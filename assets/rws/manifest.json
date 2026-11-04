@@ -1,0 +1,553 @@
+{
+  "artist": "Pamela Colman Smith",
+  "published": 1909,
+  "sourceCategory": "https://commons.wikimedia.org/wiki/Category:Rider-Waite-Smith_tarot_deck_(TaionWC)",
+  "cards": [
+    {
+      "id": "cups-01",
+      "file": "Cups01.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Cups01.jpg",
+      "license": "Public domain",
+      "size": 579313
+    },
+    {
+      "id": "cups-02",
+      "file": "Cups02.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Cups02.jpg",
+      "license": "Public domain",
+      "size": 548381
+    },
+    {
+      "id": "cups-03",
+      "file": "Cups03.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Cups03.jpg",
+      "license": "Public domain",
+      "size": 551980
+    },
+    {
+      "id": "cups-04",
+      "file": "Cups04.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Cups04.jpg",
+      "license": "Public domain",
+      "size": 482903
+    },
+    {
+      "id": "cups-05",
+      "file": "Cups05.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Cups05.jpg",
+      "license": "Public domain",
+      "size": 411443
+    },
+    {
+      "id": "cups-06",
+      "file": "Cups06.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Cups06.jpg",
+      "license": "Public domain",
+      "size": 605390
+    },
+    {
+      "id": "cups-07",
+      "file": "Cups07.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Cups07.jpg",
+      "license": "Public domain",
+      "size": 502857
+    },
+    {
+      "id": "cups-08",
+      "file": "Cups08.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Cups08.jpg",
+      "license": "Public domain",
+      "size": 499480
+    },
+    {
+      "id": "cups-09",
+      "file": "Cups09.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Cups09.jpg",
+      "license": "Public domain",
+      "size": 510391
+    },
+    {
+      "id": "cups-10",
+      "file": "Cups10.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Cups10.jpg",
+      "license": "Public domain",
+      "size": 580492
+    },
+    {
+      "id": "cups-11",
+      "file": "Cups11.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Cups11.jpg",
+      "license": "Public domain",
+      "size": 582600
+    },
+    {
+      "id": "cups-12",
+      "file": "Cups12.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Cups12.jpg",
+      "license": "Public domain",
+      "size": 558926
+    },
+    {
+      "id": "cups-13",
+      "file": "Cups13.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Cups13.jpg",
+      "license": "Public domain",
+      "size": 538485
+    },
+    {
+      "id": "cups-14",
+      "file": "Cups14.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Cups14.jpg",
+      "license": "Public domain",
+      "size": 555583
+    },
+    {
+      "id": "major-00",
+      "file": "RWS Tarot 00 Fool.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_00_Fool.jpg",
+      "license": "Public domain",
+      "size": 597073
+    },
+    {
+      "id": "major-01",
+      "file": "RWS Tarot 01 Magician.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_01_Magician.jpg",
+      "license": "Public domain",
+      "size": 495567
+    },
+    {
+      "id": "major-02",
+      "file": "RWS Tarot 02 High Priestess.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_02_High_Priestess.jpg",
+      "license": "Public domain",
+      "size": 546831
+    },
+    {
+      "id": "major-03",
+      "file": "RWS Tarot 03 Empress.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_03_Empress.jpg",
+      "license": "Public domain",
+      "size": 584943
+    },
+    {
+      "id": "major-04",
+      "file": "RWS Tarot 04 Emperor.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_04_Emperor.jpg",
+      "license": "Public domain",
+      "size": 576400
+    },
+    {
+      "id": "major-05",
+      "file": "RWS Tarot 05 Hierophant.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_05_Hierophant.jpg",
+      "license": "Public domain",
+      "size": 562440
+    },
+    {
+      "id": "major-06",
+      "file": "RWS Tarot 06 Lovers.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_06_Lovers.jpg",
+      "license": "Public domain",
+      "size": 610581
+    },
+    {
+      "id": "major-07",
+      "file": "RWS Tarot 07 Chariot.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_07_Chariot.jpg",
+      "license": "Public domain",
+      "size": 537114
+    },
+    {
+      "id": "major-08",
+      "file": "RWS Tarot 08 Strength.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_08_Strength.jpg",
+      "license": "Public domain",
+      "size": 487296
+    },
+    {
+      "id": "major-09",
+      "file": "RWS Tarot 09 Hermit.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_09_Hermit.jpg",
+      "license": "Public domain",
+      "size": 433546
+    },
+    {
+      "id": "major-10",
+      "file": "RWS Tarot 10 Wheel of Fortune.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_10_Wheel_of_Fortune.jpg",
+      "license": "Public domain",
+      "size": 571502
+    },
+    {
+      "id": "major-11",
+      "file": "RWS Tarot 11 Justice.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_11_Justice.jpg",
+      "license": "Public domain",
+      "size": 557153
+    },
+    {
+      "id": "major-12",
+      "file": "RWS Tarot 12 Hanged Man.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_12_Hanged_Man.jpg",
+      "license": "Public domain",
+      "size": 569396
+    },
+    {
+      "id": "major-13",
+      "file": "RWS Tarot 13 Death.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_13_Death.jpg",
+      "license": "Public domain",
+      "size": 581631
+    },
+    {
+      "id": "major-14",
+      "file": "RWS Tarot 14 Temperance.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_14_Temperance.jpg",
+      "license": "Public domain",
+      "size": 604714
+    },
+    {
+      "id": "major-15",
+      "file": "RWS Tarot 15 Devil.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_15_Devil.jpg",
+      "license": "Public domain",
+      "size": 495902
+    },
+    {
+      "id": "major-16",
+      "file": "RWS Tarot 16 Tower.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_16_Tower.jpg",
+      "license": "Public domain",
+      "size": 474132
+    },
+    {
+      "id": "major-17",
+      "file": "RWS Tarot 17 Star.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_17_Star.jpg",
+      "license": "Public domain",
+      "size": 517065
+    },
+    {
+      "id": "major-18",
+      "file": "RWS Tarot 18 Moon.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_18_Moon.jpg",
+      "license": "Public domain",
+      "size": 527043
+    },
+    {
+      "id": "major-19",
+      "file": "RWS Tarot 19 Sun.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_19_Sun.jpg",
+      "license": "Public domain",
+      "size": 582841
+    },
+    {
+      "id": "major-20",
+      "file": "RWS Tarot 20 Judgement.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_20_Judgement.jpg",
+      "license": "Public domain",
+      "size": 579428
+    },
+    {
+      "id": "major-21",
+      "file": "RWS Tarot 21 World.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:RWS_Tarot_21_World.jpg",
+      "license": "Public domain",
+      "size": 577497
+    },
+    {
+      "id": "pentacles-01",
+      "file": "Pents01.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Pents01.jpg",
+      "license": "Public domain",
+      "size": 542233
+    },
+    {
+      "id": "pentacles-02",
+      "file": "Pents02.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Pents02.jpg",
+      "license": "Public domain",
+      "size": 550668
+    },
+    {
+      "id": "pentacles-03",
+      "file": "Pents03.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Pents03.jpg",
+      "license": "Public domain",
+      "size": 557421
+    },
+    {
+      "id": "pentacles-04",
+      "file": "Pents04.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Pents04.jpg",
+      "license": "Public domain",
+      "size": 501575
+    },
+    {
+      "id": "pentacles-05",
+      "file": "Pents05.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Pents05.jpg",
+      "license": "Public domain",
+      "size": 571946
+    },
+    {
+      "id": "pentacles-06",
+      "file": "Pents06.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Pents06.jpg",
+      "license": "Public domain",
+      "size": 536916
+    },
+    {
+      "id": "pentacles-07",
+      "file": "Pents07.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Pents07.jpg",
+      "license": "Public domain",
+      "size": 576958
+    },
+    {
+      "id": "pentacles-08",
+      "file": "Pents08.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Pents08.jpg",
+      "license": "Public domain",
+      "size": 545578
+    },
+    {
+      "id": "pentacles-09",
+      "file": "Pents09.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Pents09.jpg",
+      "license": "Public domain",
+      "size": 525841
+    },
+    {
+      "id": "pentacles-10",
+      "file": "Pents10.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Pents10.jpg",
+      "license": "Public domain",
+      "size": 600722
+    },
+    {
+      "id": "pentacles-11",
+      "file": "Pents11.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Pents11.jpg",
+      "license": "Public domain",
+      "size": 463202
+    },
+    {
+      "id": "pentacles-12",
+      "file": "Pents12.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Pents12.jpg",
+      "license": "Public domain",
+      "size": 430551
+    },
+    {
+      "id": "pentacles-13",
+      "file": "Pents13.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Pents13.jpg",
+      "license": "Public domain",
+      "size": 598074
+    },
+    {
+      "id": "pentacles-14",
+      "file": "Pents14.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Pents14.jpg",
+      "license": "Public domain",
+      "size": 519041
+    },
+    {
+      "id": "swords-01",
+      "file": "Swords01.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Swords01.jpg",
+      "license": "Public domain",
+      "size": 530420
+    },
+    {
+      "id": "swords-02",
+      "file": "Swords02.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Swords02.jpg",
+      "license": "Public domain",
+      "size": 483377
+    },
+    {
+      "id": "swords-03",
+      "file": "Swords03.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Swords03.jpg",
+      "license": "Public domain",
+      "size": 449242
+    },
+    {
+      "id": "swords-04",
+      "file": "Swords04.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Swords04.jpg",
+      "license": "Public domain",
+      "size": 526119
+    },
+    {
+      "id": "swords-05",
+      "file": "Swords05.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Swords05.jpg",
+      "license": "Public domain",
+      "size": 540635
+    },
+    {
+      "id": "swords-06",
+      "file": "Swords06.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Swords06.jpg",
+      "license": "Public domain",
+      "size": 572210
+    },
+    {
+      "id": "swords-07",
+      "file": "Swords07.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Swords07.jpg",
+      "license": "Public domain",
+      "size": 479837
+    },
+    {
+      "id": "swords-08",
+      "file": "Swords08.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Swords08.jpg",
+      "license": "Public domain",
+      "size": 556160
+    },
+    {
+      "id": "swords-09",
+      "file": "Swords09.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Swords09.jpg",
+      "license": "Public domain",
+      "size": 486453
+    },
+    {
+      "id": "swords-10",
+      "file": "Swords10.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Swords10.jpg",
+      "license": "Public domain",
+      "size": 450405
+    },
+    {
+      "id": "swords-11",
+      "file": "Swords11.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Swords11.jpg",
+      "license": "Public domain",
+      "size": 536861
+    },
+    {
+      "id": "swords-12",
+      "file": "Swords12.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Swords12.jpg",
+      "license": "Public domain",
+      "size": 530222
+    },
+    {
+      "id": "swords-13",
+      "file": "Swords13.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Swords13.jpg",
+      "license": "Public domain",
+      "size": 509641
+    },
+    {
+      "id": "swords-14",
+      "file": "Swords14.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Swords14.jpg",
+      "license": "Public domain",
+      "size": 568702
+    },
+    {
+      "id": "wands-01",
+      "file": "Wands01.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Wands01.jpg",
+      "license": "Public domain",
+      "size": 530129
+    },
+    {
+      "id": "wands-02",
+      "file": "Wands02.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Wands02.jpg",
+      "license": "Public domain",
+      "size": 522677
+    },
+    {
+      "id": "wands-03",
+      "file": "Wands03.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Wands03.jpg",
+      "license": "Public domain",
+      "size": 576394
+    },
+    {
+      "id": "wands-04",
+      "file": "Wands04.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Wands04.jpg",
+      "license": "Public domain",
+      "size": 489358
+    },
+    {
+      "id": "wands-05",
+      "file": "Wands05.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Wands05.jpg",
+      "license": "Public domain",
+      "size": 510988
+    },
+    {
+      "id": "wands-06",
+      "file": "Wands06.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Wands06.jpg",
+      "license": "Public domain",
+      "size": 531090
+    },
+    {
+      "id": "wands-07",
+      "file": "Wands07.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Wands07.jpg",
+      "license": "Public domain",
+      "size": 459045
+    },
+    {
+      "id": "wands-08",
+      "file": "Wands08.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Wands08.jpg",
+      "license": "Public domain",
+      "size": 459980
+    },
+    {
+      "id": "wands-09",
+      "file": "Wands09.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Wands09.jpg",
+      "license": "Public domain",
+      "size": 542687
+    },
+    {
+      "id": "wands-10",
+      "file": "Wands10.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Wands10.jpg",
+      "license": "Public domain",
+      "size": 502060
+    },
+    {
+      "id": "wands-11",
+      "file": "Wands11.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Wands11.jpg",
+      "license": "Public domain",
+      "size": 578244
+    },
+    {
+      "id": "wands-12",
+      "file": "Wands12.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Wands12.jpg",
+      "license": "Public domain",
+      "size": 597756
+    },
+    {
+      "id": "wands-13",
+      "file": "Wands13.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Wands13.jpg",
+      "license": "Public domain",
+      "size": 594985
+    },
+    {
+      "id": "wands-14",
+      "file": "Wands14.jpg",
+      "source": "https://commons.wikimedia.org/wiki/File:Wands14.jpg",
+      "license": "Public domain",
+      "size": 614548
+    }
+  ]
+}
