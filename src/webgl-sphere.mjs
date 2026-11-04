@@ -127,7 +127,7 @@ function appendQuad(point,rot,verts){
   verts.push(pos[0],pos[1],pos[2],u,v,light);
  }
 }
-export function mountWebGLSphere(scene,cards,picks,getRotation){
+export function mountWebGLSphere(scene,cards,picks,getRotation,options={}){
  if(!scene||!cards.length||typeof document==='undefined')return null;
  const canvas=document.createElement('canvas');canvas.id='sphere-webgl';canvas.className='sphere-webgl';
  canvas.setAttribute('role','button');canvas.setAttribute('tabindex','0');
@@ -135,7 +135,7 @@ export function mountWebGLSphere(scene,cards,picks,getRotation){
  let gl;
  try{gl=canvas.getContext('webgl2',{alpha:true,antialias:true,depth:true,powerPreference:'low-power'});}catch{}
  if(!gl){canvas.remove();return null}
- let prog,vao,buffer,texture,frame=0,disposed=false,stopped=false,lastFrame=0;
+ let prog,vao,buffer,texture,frame=0,disposed=false,stopped=false,lastFrame=0,previousTime=null,lastPaintRotation=null;
  const layout=sphereLayout(cards.length),ids=cards.map(c=>c.id),selected=new Set(picks.map(p=>p.card.id));
  const rot=()=>{const o=getRotation();return {rx:o.rx*Math.PI/180,ry:o.ry*Math.PI/180}};
  function dispose(){disposed=true;cancelAnimationFrame(frame);if(!gl.isContextLost()){if(prog)gl.deleteProgram(prog);if(vao)gl.deleteVertexArray(vao);if(buffer)gl.deleteBuffer(buffer);if(texture)gl.deleteTexture(texture)}canvas.remove()}
@@ -151,7 +151,10 @@ export function mountWebGLSphere(scene,cards,picks,getRotation){
   const uProj=gl.getUniformLocation(prog,'u_projection'),uTime=gl.getUniformLocation(prog,'u_time');
   function paint(time){
    if(disposed||stopped)return;
-   if(document.hidden||time-lastFrame<28){frame=requestAnimationFrame(paint);return}lastFrame=time;
+   if(document.hidden){previousTime=null;frame=requestAnimationFrame(paint);return}
+   if(time-lastFrame<28){frame=requestAnimationFrame(paint);return}
+   const delta=previousTime===null?0:Math.min(time-previousTime,64);previousTime=time;lastFrame=time;
+   options.onFrame?.(delta,time);
    const rect=scene.getBoundingClientRect();if(rect.width<8||rect.height<8){frame=requestAnimationFrame(paint);return}
    const dpr=Math.min(window.devicePixelRatio||1,1.65),w=Math.round(rect.width*dpr),h=Math.round(rect.height*dpr);
    if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h)}
@@ -159,13 +162,26 @@ export function mountWebGLSphere(scene,cards,picks,getRotation){
    gl.useProgram(prog);gl.bindVertexArray(vao);gl.uniformMatrix4fv(uProj,false,perspective(w/h));
    gl.uniform1f(uTime,time/1000);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);
    gl.uniform1i(gl.getUniformLocation(prog,'u_back'),0);
-   const angle=rot(),vertices=[];
+   const angle=rot(),vertices=[];lastPaintRotation=angle;
    for(let i=0;i<layout.length;i++)if(!selected.has(ids[i]))appendQuad(layout[i],angle,vertices);
    gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.DYNAMIC_DRAW);
    gl.drawArrays(gl.TRIANGLES,0,vertices.length/6);frame=requestAnimationFrame(paint);
   }
   canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();stopped=true;cancelAnimationFrame(frame);scene.dispatchEvent(new CustomEvent('sphere-webgl-lost',{bubbles:true}))},{once:true});
   scene.classList.add('webgl-active');frame=requestAnimationFrame(paint);
-  return {canvas,pick(clientX,clientY){const b=canvas.getBoundingClientRect(),a=rot();return pickSphereCard(layout,ids,selected,a.rx,a.ry,clientX-b.left,clientY-b.top,b.width,b.height)},pickCenter(){const b=canvas.getBoundingClientRect(),a=rot();return pickSphereCard(layout,ids,selected,a.rx,a.ry,b.width/2,b.height/2,b.width,b.height)},dispose};
+  return {
+   canvas,
+   pick(clientX,clientY){const b=canvas.getBoundingClientRect(),a=lastPaintRotation||rot();return pickSphereCard(layout,ids,selected,a.rx,a.ry,clientX-b.left,clientY-b.top,b.width,b.height)},
+   pickCenter(){const b=canvas.getBoundingClientRect(),a=lastPaintRotation||rot();return pickSphereCard(layout,ids,selected,a.rx,a.ry,b.width/2,b.height/2,b.width,b.height)},
+   projectCard(id){
+    const index=ids.indexOf(id);if(index<0)return null;
+    const b=canvas.getBoundingClientRect(),a=lastPaintRotation||rot();
+    const screen=projectPoint(rotatePoint(layout[index].center,a.rx,a.ry),b.width,b.height);
+    if(!screen)return null;
+    return {x:b.left+screen.x,y:b.top+screen.y,width:CARD_WIDTH*screen.scale,height:CARD_HEIGHT*screen.scale};
+   },
+   hideCard(id){selected.add(id)},
+   dispose
+  };
  }catch(error){dispose();scene.classList.remove('webgl-active');console.warn('GPU sphere unavailable:',error);return null}
 }

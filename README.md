@@ -63,3 +63,13 @@ Artwork provenance and rights: [DECK_ARTWORK.md](docs/DECK_ARTWORK.md). Original
 - **The Chinese Tarot** by Jui Guoliang is visually documented with links to the official publisher and independent card photographs, but its copyrighted digital illustrations are not redistributed. A session-only private image importer supports a user-supplied authorized 78-file collection without network upload. Use Decks → filename guide for the exact mapping. No licensed public Chinese pack is currently bundled.
 
 Read [v0.5 QA](docs/QA-v05.md) and [Chinese art sources/rights](docs/CHINESE_ARTWORK.md). Device WebGL validation is still needed. Live AI remains an optional separately hosted backend, not activated by GitHub Pages.
+
+## Current update — v0.6.0: Orbiting Card Universe
+
+- The interior universe slowly rotates automatically (4°/second, ~90 seconds/revolution); a pause/resume control and keyboard/manual rotation remain available. Dragging temporarily suspends auto-orbit.
+- In WebGL, picking is synchronized to the **last painted frame** of the moving sphere to avoid tapping a card that's already moved on screen.
+- Selecting a card triggers a flare and a curved card-back flight **from the stars into the next hand slot**. The slot fills only after the card reaches it. Rapid taps during the flight cannot cause duplicate cards. Flat 2D shares the same hand animation.
+- Paused tabs don't cause large rotation jumps. `prefers-reduced-motion` disables ambient rotation and the flight animation; unsupported WebGL2 still falls back to the flat 2D tabletop.
+- Version `v0.6.0` is visible in masthead and footer. Existing original Rider–Waite–Smith illustrations, Chinese artwork licensing constraints, and optional private AI Worker remain unchanged.
+
+Read [v0.6 QA](docs/QA-v06.md). Full mobile/GPU browser QA is outstanding because the local browser sandbox disallowed navigation. The deployed workflow checks the complete tests and imports/audits all 78 historical card scans.
