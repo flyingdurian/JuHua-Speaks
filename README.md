@@ -53,3 +53,13 @@ Artwork synchronization needs internet; it validates Wikimedia Commons file meta
 No accounts, ads, tokens or active remote backend yet. Questions are kept in ephemeral in-memory state; clicking “Save on this device” writes an explicit localStorage snapshot. No financial, medical, legal or other high-stakes decision is decided by the app. The optional Worker backend keeps credentials server-side and only sends questions after an explicit click; it is not live until independently deployed. Its security and mainland-China hosting suitability require further review.
 
 Artwork provenance and rights: [DECK_ARTWORK.md](docs/DECK_ARTWORK.md). Original images by **Pamela Colman Smith**, 1909, sourced from [Wikimedia Commons TaionWC collection](https://commons.wikimedia.org/wiki/Category:Rider-Waite-Smith_tarot_deck_(TaionWC)). Modern recolorings and Chinese Tarot images are **not** included in the repository.
+
+## Current update — v0.5.0: Inside the Stars
+
+- Version number is visible at the top and bottom of every screen.
+- The default WebGL2 Tarot experience is now **inside** the card sphere, with the viewer at the center of six orderly bands of 78 card backs. Click/tap visible cards; drag or use arrows to rotate the view. Unsupported GPU devices automatically see the accessible fallback.
+- **Flat 2D** is now a real scrollable tabletop grid of 78 cards (not a CSS sphere) and shares the same shuffled deck and picks.
+- **Slow reveal** replaces automatic flips: drag from right to left, pinch two fingers inward, use keyboard arrows/Home/End, or press the reveal button. Each of three cards must be revealed before continuing to a reading.
+- **The Chinese Tarot** by Jui Guoliang is visually documented with links to the official publisher and independent card photographs, but its copyrighted digital illustrations are not redistributed. A session-only private image importer supports a user-supplied authorized 78-file collection without network upload. Use Decks → filename guide for the exact mapping. No licensed public Chinese pack is currently bundled.
+
+Read [v0.5 QA](docs/QA-v05.md) and [Chinese art sources/rights](docs/CHINESE_ARTWORK.md). Device WebGL validation is still needed. Live AI remains an optional separately hosted backend, not activated by GitHub Pages.

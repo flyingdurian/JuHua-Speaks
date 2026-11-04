@@ -7,15 +7,18 @@ import {requestAiReading,configuredAiEndpoint} from '../src/ai-client.mjs';
 import worker from '../worker/index.mjs';
 const input={question:'Should I take the design role or stay at my current company?',options:['Accept design job','Stay'],spread:'crossroads',lens:'chinese',locale:'en',deckId:'rws',picks:[{id:DECK[0].id,orientation:'upright'},{id:DECK[12].id,orientation:'reversed'},{id:DECK[19].id,orientation:'upright'}]};
 const sample={summary:'The Fool invites an exploration of the new role, while The Hanged Man reversed suggests checking why staying feels more secure. The Sun points toward asking for concrete terms before choosing.',cards:[{id:DECK[0].id,interpretation:'The new job could be an opening to learn, but check the team and compensation.',evidenceQuestion:'What does the role actually involve day-to-day?'},{id:DECK[12].id,interpretation:'Staying may feel safer, though it could delay a change you have been considering.',evidenceQuestion:'What specifically would improve if you stayed six months?'},{id:DECK[19].id,interpretation:'The Sun encourages asking directly about expectations rather than assuming a positive outcome.',evidenceQuestion:'Which answer would make your choice more informed?'}],reflection:'Which concrete working conditions need verification before deciding?',nextSteps:['Ask for the job description in writing.','Discuss career development with your current manager.']};
-test('GPU sphere positions and perspective are stable for 78 unique faces',()=>{
+test('GPU sphere has an interior viewpoint and selects visible cards',()=>{
  const layout=sphereLayout();assert.equal(layout.length,78);
  for(const p of layout){assert.ok(Math.abs(Math.hypot(...p.center)-SPHERE_RADIUS)<1e-8);assert.ok(Math.abs(Math.hypot(...p.normal)-1)<1e-8)}
  assert.throws(()=>sphereLayout(1));
  const a=rotatePoint([1,0,0],0,Math.PI/2);assert.ok(Math.abs(a[0])<1e-10);assert.ok(Math.abs(a[2]+1)<1e-10);
- const projected=projectPoint([0,0,2],800,420);assert.equal(projected.x,400);assert.equal(projected.y,210);
- const visible=layout.findIndex(p=>p.normal[2]>.6);assert.ok(visible>=0);
- const c=projectPoint(layout[visible].center,800,420);const ids=layout.map((_,i)=>`id${i}`);
- const picked=pickSphereCard(layout,ids,new Set(),0,0,c.x,c.y,800,420);assert.ok(picked,'Hit testing must select a front-facing card');
+ assert.equal(projectPoint([0,0,2],800,420),null,'Cards behind camera must not project');
+ const visible=layout.findIndex(p=>p.center[2]<-3);
+ assert.ok(visible>=0);
+ const c=projectPoint(layout[visible].center,800,420),ids=layout.map((_,i)=>`id${i}`);
+ assert.ok(c,'Visible card should project into the interior camera');
+ const picked=pickSphereCard(layout,ids,new Set(),0,0,c.x,c.y,800,420);
+ assert.ok(picked,'Ray hit-testing must select cards visible inside the chamber');
  const excluded=new Set(ids);assert.equal(pickSphereCard(layout,ids,excluded,0,0,c.x,c.y,800,420),null);
 });
 test('reading request strictly validates IDs, lens, three distinct cards and deck license',()=>{
