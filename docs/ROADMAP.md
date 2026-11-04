@@ -37,3 +37,21 @@
 - Every local preview is explicitly labeled **not live AI**; production AI must directly address the exact user question.
 - Any Chinese illustrated artwork **must remain disabled** until rights and all 78 images are verified.
 - `npm run assets:sync && npm run assets:audit` completes on a network-enabled build worker.
+
+## Milestone v0.5 — Inside the Stars (2026-11-04)
+
+- [x] Persistent version badge `v0.5.0` in web app masthead/footer.
+- [x] Rebuild sphere as an inward-facing WebGL chamber, viewer at the center, 78 cards in six latitude bands, ray-plane selection, GPU fallback on unsupported devices.
+- [x] Distinct flat 2D tabletop (78-card grid) with identical shuffle order/selected cards.
+- [x] Slow, per-card interactive reveal: drag edge, two-finger pinch, progress hold, keyboard and explicit button; reading locked until all three are revealed.
+- [x] Genuine Chinese Tarot source/publisher links, digital rights policy, session-only import of 78 user-provided, authorized original illustrations.
+- [x] Unit tests plus browser smoke test for the 2D/reveal flow; device GPU QA remains a manual gate.
+
+## Milestone v0.6 — polish and live reading activation
+
+1. Test real WebGL shader rendering/picking in Chrome/Safari/Android (browser sandbox WebGL2 disabled in CI). Polish starfield, camera movement and ease, with consistent back appearance between GPU and 2D.
+2. Deploy private AI worker to approved hosting and configure allowed origin, secrets, rate limiting, and explicit read consent; test English and 简体中文 question-specific synthesis and follow-up chat. GitHub Pages alone cannot host this backend.
+3. Obtain digital display/reproduction rights for Jui Guoliang Chinese Tarot or a complete 78-card properly licensed alternative before public deployment. Keep private local import isolated.
+4. Perf tuning, memory audit, touch gesture and reduced-motion accessibility; visual QA all 78 card scans; review mainland China availability/compliance before distribution.
+
+See [QA-v05.md](QA-v05.md) and [CHINESE_ARTWORK.md](CHINESE_ARTWORK.md).

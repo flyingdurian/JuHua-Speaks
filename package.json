@@ -1,6 +1,6 @@
 {
   "name": "juhua-speaks",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "description": "菊花说 · JuHua Speaks — immersive bilingual tarot experience",
@@ -10,6 +10,8 @@
     "assets:sync": "node scripts/sync-rws-assets.mjs",
     "assets:audit": "node scripts/audit-assets.mjs"
   },
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "license": "MIT"
 }
