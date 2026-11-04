@@ -38,10 +38,11 @@ test('card flight reaches the exact hand slot, with a luminous lift and no sourc
 test('UI keeps pick state until the card lands, offers pause and reduced-motion alternative',async()=>{
  const src=await readFile(new URL('../src/app.mjs',import.meta.url),'utf8');
  const gl=await readFile(new URL('../src/webgl-sphere.mjs',import.meta.url),'utf8');
- assert.match(src,/catchCard\(BY_ID\.get\(id\),webglSphere\?\.projectCard\(id\)\)/);
+ assert.match(src,/toggleCard\(BY_ID\.get\(id\)\)/);
+ assert.match(src,/confirmThreeCards\(\)/);
  assert.match(src,/animation\.onfinish=.*selectCard\(card\);render\(\)/);
  assert.match(src,/data-action=\\?"toggle-orbit/);
  assert.match(src,/motionReduced\(\)/);
- assert.match(gl,/hideCard\(id\)\{selected\.add\(id\)\}/);
+ assert.match(gl,/hideCard\(id\)\{hidden\.add\(id\)\}/);
  assert.match(gl,/lastPaintRotation\|\|rot\(\)/);
 });

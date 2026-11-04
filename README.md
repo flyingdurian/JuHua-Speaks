@@ -102,3 +102,12 @@ The initial Exodia result is displayed as returned text. The cinematic individua
 Safety: The Node adapter binds to 127.0.0.1 and refuses other origins. It accepts only same-origin JSON with a required custom header, rejects external Exodia URLs and blocks overlapping generation tasks. It enforces a five-second wait after each completed task before submitting another generation POST. Polling GET requests remain sequential at 1.5-second intervals. Timeout or failure NEVER causes an automatic regeneration. The Node server serves only web assets, not its own source scripts, secrets or Git files. Do not expose or port-forward either service.
 
 The automated tests use simulated Exodia responses to verify serialization, cooldown, prompt context, URL safeguards and same-origin browser requests. They send ZERO real ChatGPT requests and consume no credits.
+
+
+## Phase 8.1 — Milestone 8.0 overhaul
+
+The current release targets **v0.8.1: The Celestial Ritual**, with a new question-centered orbiting-card landing, gated 5–8-second shuffle, explicit floating deck finish, reversible three-card selection with glow, and black-hole cleanup of unselected cards. Original three-card reveal and reading remain in place.
+
+Brand labels come from src/brand-config.mjs (name is temporary); DeckConfig and ReaderDefinition registries allow future user-created Eastern mythology decks and Artemis-led reader variants. Full design, phased implementation and AI timing are documented in [Milestone 8.0 master directive](docs/MILESTONE_8_MASTER_DIRECTIVE.md). SQL persistence is reference-only pending login, consent, permission policies and migrations. [Phase 8.1 QA](docs/QA-8-1.md).
+
+No new real model requests are triggered automatically. The local Exodia path stays experimental and opt-in after the original three cards are locked, while structured production AI curation is a later phase.

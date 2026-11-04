@@ -78,3 +78,26 @@ See [QA-v05.md](QA-v05.md) and [CHINESE_ARTWORK.md](CHINESE_ARTWORK.md).
 - [ ] Live AI Worker activation, Chinese Tarot public image rights and mainland China hosting remain **future separate release gates**.
 
 See [QA-v07.md](QA-v07.md).
+
+
+## Milestone 8.0 — Approved master architecture / rollout
+Master implementation directive: [MILESTONE_8_MASTER_DIRECTIVE.md](MILESTONE_8_MASTER_DIRECTIVE.md).
+Reference SQL schema: [../db/postgres/001_milestone8_schema.sql](../db/postgres/001_milestone8_schema.sql).
+**Temporary brand:** all display strings move to BrandConfig. **DeckConfig:** RWS current + future original-art Chinese/Eastern mythology 78-card pack, no unlicensed scans. **Reader registry:** Artemis default, optional dynamic personas and later usage-based pruning. **Thread Observations:** future explicitly consented metadata analysis, not enabled now.
+
+### Phase 8.1 — The Celestial Ritual (v0.8.1)
+- [x] Centered question and moving near/far historical RWS illustrated cards.
+- [x] Question-submit convergence → 5–8 second automatic mystical shuffle → floating deck → Finish Shuffling.
+- [x] Burst into inward 78-card sphere with selectable, visibly glowing cards that can be deselected until explicit three-card lock.
+- [x] Black-hole cleanup of the other 75 cards and fly selected trio into Past/Present/Future reveal positions.
+- [x] Named state machine with transition guards and two-stage local-preflight/locked-card AI contract scaffolding.
+- [x] Brand, visual DeckConfig, reader registry, opt-in SQL reference and master architecture doc.
+- [ ] Manual Chrome/Safari/mobile GPU visual QA; CI alone is not a render quality certificate.
+- [ ] No premature real AI generation; structured production AI work is scheduled for Phase 8.3.
+
+### Later phases
+8.2: Artemis table, card peek/reveal and smoke-to-reading.
+8.3: professional structured 3-card interpretation, optional approved local AI adapter, reader style validation.
+8.4: extra guidance-card question/draw/reveal/reading with original-trio context; user-testing reader roster.
+8.5: saved history with authenticated SQL backend and consent, deletion/export; Thread Observations is future opt-in.
+QA document: [QA-8-1.md](QA-8-1.md).

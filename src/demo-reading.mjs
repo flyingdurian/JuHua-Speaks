@@ -60,7 +60,7 @@ const localizedMeaning=(entry,lang)=>{
 const normalize=lang=>lang==='zh'?'zh':'en';
 const cardName=(entry,lang)=>lang==='zh'?entry.card.zh:entry.card.name;
 const role=(spread,i,lang,options)=>{
- if(spread!=='crossroads')return (lang==='zh'?['当前处境','潜在影响','下一步']:['Current situation','Underlying influence','Next step'])[i];
+ if(spread!=='crossroads')return (lang==='zh'?['过去','现在','未来']:['Past','Present','Future'])[i];
  const label=lang==='zh'?['方向 A','方向 B','整合建议']:['Path A','Path B','Guidance'];
  return i===2?label[i]:`${label[i]} · ${options[i]|| (lang==='zh'?`选项 ${i===0?'A':'B'}`:`Option ${i===0?'A':'B'}`)}`;
 };
