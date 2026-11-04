@@ -8,7 +8,8 @@
     "dev": "node scripts/serve.mjs",
     "test": "node --test test/*.test.mjs",
     "assets:sync": "node scripts/sync-rws-assets.mjs",
-    "assets:audit": "node scripts/audit-assets.mjs"
+    "assets:audit": "node scripts/audit-assets.mjs",
+    "api:test": "node scripts/test-exodia-api.mjs"
   },
   "engines": {
     "node": ">=20"
