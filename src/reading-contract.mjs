@@ -6,7 +6,7 @@ const ORIENTATIONS=['upright','reversed'];
 export function normalizeReadingRequest(input){
  if(!input||typeof input!=='object'||Array.isArray(input))throw new TypeError('Invalid request');
  const {question,options,spread,lens,locale,picks,deckId}=input;
- if(typeof question!=='string'||question.trim().length<4||question.length>600)throw new TypeError('Question must be 4–600 characters');
+ if(typeof question!=='string'||question.trim().length<3||question.length>600)throw new TypeError('Question must be 3–600 characters');
  if(!SPREADS.includes(spread)||!LENSES.includes(lens)||!['en','zh'].includes(locale))throw new TypeError('Unknown spread, lens, or language');
  if(deckId!=='rws')throw new TypeError('Illustrated deck not enabled');
  if(!Array.isArray(options)||options.length!==2||options.some(x=>typeof x!=='string'||x.length>160))throw new TypeError('Invalid options');
@@ -16,7 +16,7 @@ export function normalizeReadingRequest(input){
   const c=BY_ID.get(p.id);return {id:c.id,orientation:p.orientation,name:c.name,zh:c.zh,meaning:c[p.orientation]};
  });
  if(new Set(cards.map(x=>x.id)).size!==3)throw new TypeError('Duplicate card selection');
- const positions=spread==='crossroads'?['Path A','Path B','Guidance']:['Current situation','Underlying influence','Next step'];
+ const positions=spread==='crossroads'?['Path A','Path B','Guidance']:['Past','Present','Future'];
  return {question:question.trim(),options:options.map(x=>x.trim()),spread,lens,locale,deckId,cards:cards.map((c,i)=>({...c,position:positions[i]}))};
 }
 export function validateAiReading(input,request){

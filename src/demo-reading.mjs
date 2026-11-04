@@ -4,7 +4,7 @@
  * or promises an outcome. Replace it behind the existing private AI contract later.
  */
 const TOPICS = [
-  {id:'career',re:/\b(job|career|work|promotion|offer|employment|boss|company|resign|interview)\b|工作|事业|跳槽|升职|面试|公司|辞职|职位/i,
+  {id:'career',re:/\b(jobs?|career|work|promotion|offer|employment|boss|company|resign|interview)\b|工作|事业|跳槽|升职|面试|公司|辞职|职位/i,
     en:{issue:'work, growth, and the terms of each opportunity',facts:'role expectations, compensation, learning potential, and working conditions',action:'write down the non-negotiable conditions of each path',check:'ask a concrete question about the day-to-day responsibilities'},
     zh:{issue:'工作、成长与不同机会的实际条件',facts:'岗位职责、薪酬、成长空间与工作环境',action:'列出两条道路各自不能妥协的条件',check:'询问工作日常中的一个具体职责'}},
   {id:'relationship',re:/\b(love|relationship|partner|dating|marriage|ex|breakup|friendship|crush)\b|恋爱|感情|关系|婚姻|分手|伴侣|朋友/i,
@@ -60,7 +60,7 @@ const localizedMeaning=(entry,lang)=>{
 const normalize=lang=>lang==='zh'?'zh':'en';
 const cardName=(entry,lang)=>lang==='zh'?entry.card.zh:entry.card.name;
 const role=(spread,i,lang,options)=>{
- if(spread!=='crossroads')return (lang==='zh'?['当前处境','潜在影响','下一步']:['Current situation','Underlying influence','Next step'])[i];
+ if(spread!=='crossroads')return (lang==='zh'?['过去','现在','未来']:['Past','Present','Future'])[i];
  const label=lang==='zh'?['方向 A','方向 B','整合建议']:['Path A','Path B','Guidance'];
  return i===2?label[i]:`${label[i]} · ${options[i]|| (lang==='zh'?`选项 ${i===0?'A':'B'}`:`Option ${i===0?'A':'B'}`)}`;
 };

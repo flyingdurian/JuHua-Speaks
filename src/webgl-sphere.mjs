@@ -1,3 +1,4 @@
+import {BRAND} from './brand-config.mjs';
 /**
  * JuHua Speaks 0.5 — the camera is INSIDE the star sphere, at its center.
  * Card fronts are never synthesized: the procedural GPU texture is the shared
@@ -43,7 +44,7 @@ export function projectPoint(point,width,height){
  return {x:width/2+focal*point[0]/-point[2],y:height/2-focal*point[1]/-point[2],scale:focal/-point[2],depth:-point[2]};
 }
 /** Ray-to-card-plane picking; doesn't accidentally select cards behind the viewer. */
-export function pickSphereCard(layout,ids,selection,rx,ry,x,y,width,height){
+export function pickSphereCard(layout,ids,selection,rx,ry,x,y,width,height,includeSelected=false){
  if(width<=0||height<=0)return null;
  const focal=height/(2*Math.tan(FIELD_OF_VIEW/2));
  const unnormalized=[(x-width/2)/focal,(height/2-y)/focal,-1];
@@ -51,7 +52,7 @@ export function pickSphereCard(layout,ids,selection,rx,ry,x,y,width,height){
  const ray=unnormalized.map(n=>n/length);
  let result=null;
  for(let i=0;i<layout.length;i++){
-  if(selection.has(ids[i]))continue;
+  if(!includeSelected&&selection.has(ids[i]))continue;
   const center=rotatePoint(layout[i].center,rx,ry);
   if(center[2]>=-.1)continue;
   const n=rotatePoint(layout[i].normal,rx,ry);
@@ -74,19 +75,24 @@ precision highp float;
 layout(location=0) in vec3 a_position;
 layout(location=1) in vec2 a_uv;
 layout(location=2) in float a_light;
+layout(location=3) in float a_selected;
 uniform mat4 u_projection;
 out vec2 v_uv;
 out float v_light;
-void main(){gl_Position=u_projection*vec4(a_position,1.0);v_uv=a_uv;v_light=a_light;}`;
+out float v_selected;
+void main(){gl_Position=u_projection*vec4(a_position,1.0);v_uv=a_uv;v_light=a_light;v_selected=a_selected;}`;
 const FRAG=`#version 300 es
 precision mediump float;
-in vec2 v_uv;in float v_light;
+in vec2 v_uv;in float v_light;in float v_selected;
 uniform sampler2D u_back;uniform float u_time;
 out vec4 outColor;
 void main(){
  vec4 tex=texture(u_back,v_uv);
  float streak=pow(max(0.0,1.0-abs(v_uv.x*1.35+v_uv.y*.38-mod(u_time*.11,2.35))),13.0);
- vec3 rgb=tex.rgb*(.74+.26*v_light)+vec3(.17,.15,.10)*streak*.27;
+ float rim=1.0-smoothstep(0.005,0.07,min(min(v_uv.x,1.0-v_uv.x),min(v_uv.y,1.0-v_uv.y)));
+ float shimmer=.7+.3*sin(u_time*2.3+v_uv.y*13.0);
+ vec3 glow=vec3(.66,.57,.96)*v_selected*(.27+rim*.85)*shimmer;
+ vec3 rgb=tex.rgb*(.74+.26*v_light)+vec3(.17,.15,.10)*streak*.27+glow;
  outColor=vec4(rgb,tex.a);
 }`;
 function compile(gl,type,source){
@@ -111,20 +117,20 @@ function cardBackTexture(){
  ctx.beginPath();ctx.arc(128,205,68,0,PI2);ctx.stroke();ctx.beginPath();ctx.arc(128,205,52,0,PI2);ctx.stroke();
  for(let i=0;i<12;i++){const a=i*Math.PI/6;ctx.beginPath();ctx.moveTo(128+Math.sin(a)*69,205+Math.cos(a)*69);ctx.lineTo(128+Math.sin(a)*90,205+Math.cos(a)*90);ctx.stroke()}
  ctx.fillStyle='#f3d39b';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='77px Georgia,serif';ctx.fillText('☼',128,204);
- ctx.font='16px Georgia,serif';ctx.fillText('✦     ✧     ✦',128,64);ctx.font='19px Georgia,serif';ctx.fillText('菊 花 说',128,364);
+ ctx.font='16px Georgia,serif';ctx.fillText('✦     ✧     ✦',128,64);ctx.font='19px Georgia,serif';ctx.fillText(BRAND.cardBackLabel,128,364);
  return canvas;
 }
 function perspective(aspect){const f=1/Math.tan(FIELD_OF_VIEW/2),near=.08,far=40;
  return new Float32Array([f/aspect,0,0,0,0,f,0,0,0,0,(far+near)/(near-far),-1,0,0,2*far*near/(near-far),0]);
 }
-function appendQuad(point,rot,verts){
+function appendQuad(point,rot,verts,marked=false){
  const c=rotatePoint(point.center,rot.rx,rot.ry);
  const {right,up}=cardAxes(point,rot.rx,rot.ry);
  const corners=[[-1,-1,0,1],[1,-1,1,1],[1,1,1,0],[-1,-1,0,1],[1,1,1,0],[-1,1,0,0]];
  const light=Math.max(.2,.5+.5*(-c[2]/SPHERE_RADIUS));
  for(const [sx,sy,u,v] of corners){
   let pos=add(add(c,right,sx*CARD_WIDTH/2),up,sy*CARD_HEIGHT/2);
-  verts.push(pos[0],pos[1],pos[2],u,v,light);
+  verts.push(pos[0],pos[1],pos[2],u,v,light,marked?1:0);
  }
 }
 export function mountWebGLSphere(scene,cards,picks,getRotation,options={}){
@@ -136,13 +142,13 @@ export function mountWebGLSphere(scene,cards,picks,getRotation,options={}){
  try{gl=canvas.getContext('webgl2',{alpha:true,antialias:true,depth:true,powerPreference:'low-power'});}catch{}
  if(!gl){canvas.remove();return null}
  let prog,vao,buffer,texture,frame=0,disposed=false,stopped=false,lastFrame=0,previousTime=null,lastPaintRotation=null;
- const layout=sphereLayout(cards.length),ids=cards.map(c=>c.id),selected=new Set(picks.map(p=>p.card.id));
+ const layout=sphereLayout(cards.length),ids=cards.map(c=>c.id),selected=new Set(picks.map(p=>p.card.id)),hidden=new Set();
  const rot=()=>{const o=getRotation();return {rx:o.rx*Math.PI/180,ry:o.ry*Math.PI/180}};
  function dispose(){disposed=true;cancelAnimationFrame(frame);if(!gl.isContextLost()){if(prog)gl.deleteProgram(prog);if(vao)gl.deleteVertexArray(vao);if(buffer)gl.deleteBuffer(buffer);if(texture)gl.deleteTexture(texture)}canvas.remove()}
  try{
   prog=program(gl,VERT,FRAG);vao=gl.createVertexArray();gl.bindVertexArray(vao);
   buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
-  const stride=24;for(const [location,size,offset] of [[0,3,0],[1,2,12],[2,1,20]]){gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,size,gl.FLOAT,false,stride,offset)}
+  const stride=28;for(const [location,size,offset] of [[0,3,0],[1,2,12],[2,1,20],[3,1,24]]){gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,size,gl.FLOAT,false,stride,offset)}
   texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cardBackTexture());
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
@@ -163,16 +169,16 @@ export function mountWebGLSphere(scene,cards,picks,getRotation,options={}){
    gl.uniform1f(uTime,time/1000);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,texture);
    gl.uniform1i(gl.getUniformLocation(prog,'u_back'),0);
    const angle=rot(),vertices=[];lastPaintRotation=angle;
-   for(let i=0;i<layout.length;i++)if(!selected.has(ids[i]))appendQuad(layout[i],angle,vertices);
+   for(let i=0;i<layout.length;i++)if(!hidden.has(ids[i]))appendQuad(layout[i],angle,vertices,selected.has(ids[i]));
    gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.DYNAMIC_DRAW);
-   gl.drawArrays(gl.TRIANGLES,0,vertices.length/6);frame=requestAnimationFrame(paint);
+   gl.drawArrays(gl.TRIANGLES,0,vertices.length/7);frame=requestAnimationFrame(paint);
   }
   canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();stopped=true;cancelAnimationFrame(frame);scene.dispatchEvent(new CustomEvent('sphere-webgl-lost',{bubbles:true}))},{once:true});
   scene.classList.add('webgl-active');frame=requestAnimationFrame(paint);
   return {
    canvas,
-   pick(clientX,clientY){const b=canvas.getBoundingClientRect(),a=lastPaintRotation||rot();return pickSphereCard(layout,ids,selected,a.rx,a.ry,clientX-b.left,clientY-b.top,b.width,b.height)},
-   pickCenter(){const b=canvas.getBoundingClientRect(),a=lastPaintRotation||rot();return pickSphereCard(layout,ids,selected,a.rx,a.ry,b.width/2,b.height/2,b.width,b.height)},
+   pick(clientX,clientY){const b=canvas.getBoundingClientRect(),a=lastPaintRotation||rot();return pickSphereCard(layout,ids,selected,a.rx,a.ry,clientX-b.left,clientY-b.top,b.width,b.height,true)},
+   pickCenter(){const b=canvas.getBoundingClientRect(),a=lastPaintRotation||rot();return pickSphereCard(layout,ids,selected,a.rx,a.ry,b.width/2,b.height/2,b.width,b.height,true)},
    projectCard(id){
     const index=ids.indexOf(id);if(index<0)return null;
     const b=canvas.getBoundingClientRect(),a=lastPaintRotation||rot();
@@ -180,7 +186,7 @@ export function mountWebGLSphere(scene,cards,picks,getRotation,options={}){
     if(!screen)return null;
     return {x:b.left+screen.x,y:b.top+screen.y,width:CARD_WIDTH*screen.scale,height:CARD_HEIGHT*screen.scale};
    },
-   hideCard(id){selected.add(id)},
+   hideCard(id){hidden.add(id)},
    dispose
   };
  }catch(error){dispose();scene.classList.remove('webgl-active');console.warn('GPU sphere unavailable:',error);return null}
