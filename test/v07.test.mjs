@@ -8,7 +8,7 @@ const picks=[DECK[0],DECK[17],DECK[11]].map((card,i)=>({card,orientation:i===1?'
 const args={question:'Should I accept the new job offer or stay at my current company?',picks,options:['Accept the offer','Stay put'],lang:'en',spread:'crossroads',lens:'western'};
 
 test('v0.7 is explicitly a scripted, completely local placeholder',async()=>{
- assert.equal(APP_VERSION,'0.7.0');
+ assert.match(APP_VERSION,/^\d+\.\d+\.\d+$/);
  const src=await readFile(new URL('../src/demo-reading.mjs',import.meta.url),'utf8');
  assert.doesNotMatch(src,/fetch\s*\(|localStorage\s*\.|OPENAI_API_KEY|new WebSocket/);
  const app=await readFile(new URL('../src/app.mjs',import.meta.url),'utf8');

@@ -1,5 +1,6 @@
 import {DECK,DECKS,BY_ID,AURAS,shuffleDeck,drawOrientation,localCardUrl,commonsThumbnailUrl,commonsFileUrl} from './deck.mjs';
 import {buildDemoReading,answerDemoFollowUp,DEMO_FOLLOWUPS} from './demo-reading.mjs';
+import {discoverLocalExodia,sendLocalExodia} from './local-exodia-client.mjs';
 import {mountWebGLSphere} from './webgl-sphere.mjs';
 import {nextOrbitYaw,DRAG_RESUME_DELAY_MS,FLIGHT_DURATION_MS,cardFlightFrames} from './sphere-motion.mjs';
 import {APP_VERSION,RELEASE_NAME} from './version.mjs';
@@ -7,7 +8,7 @@ import {validatePrivateDeckFiles,deckFileNameGuide} from './private-deck.mjs';
 import {clampReveal,progressFromCardDrag,progressFromPinch,nextRevealProgress,isRevealed,allCardsRevealed} from './reveal-interaction.mjs';
 
 const root=document.querySelector('#app');
-const state={step:0,locale:'en',spread:'crossroads',lens:'western',question:'Should I accept the new job offer or stay in my current role?',optionA:'Accept the new offer',optionB:'Stay in my current role',shuffled:[],picks:[],shuffles:0,rx:-12,ry:-17,modal:null,filter:'all',inspected:null,effects:true,sphereMode:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'2d':'gpu',aiReading:null,aiStatus:'idle',aiError:'',aiRequestId:0,deckId:'rws',privateImages:new Map(),revealIndex:0,revealProgress:0,revealedCards:[false,false,false],orbitPaused:false,orbitHoldUntil:0,readingBeat:-1,demoConversation:[]};
+const state={step:0,locale:'en',spread:'crossroads',lens:'western',question:'Should I accept the new job offer or stay in my current role?',optionA:'Accept the new offer',optionB:'Stay in my current role',shuffled:[],picks:[],shuffles:0,rx:-12,ry:-17,modal:null,filter:'all',inspected:null,effects:true,sphereMode:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'2d':'gpu',aiReading:null,aiStatus:'idle',aiError:'',aiRequestId:0,deckId:'rws',privateImages:new Map(),revealIndex:0,revealProgress:0,revealedCards:[false,false,false],orbitPaused:false,orbitHoldUntil:0,readingBeat:-1,demoConversation:[],localExodiaAvailable:false,localMode:'scripted',localReading:'',localTurns:[],localBusy:false,localError:'',localRequestId:0};
 const t=(en,zh)=>state.locale==='zh'?zh:en;
 const h=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const roleNames=()=>state.spread==='crossroads'?[t('Path A','方向 A'),t('Path B','方向 B'),t('Guidance','综合建议')]:[t('Current','目前'),t('Underlying influence','潜在影响'),t('Next step','下一步')];
@@ -28,6 +29,49 @@ function sphere(){const is3d=state.sphereMode==='gpu';return `<section class="ce
 function reveal(){const i=state.revealIndex,entry=state.picks[i],done=state.revealedCards[i],progress=done?1:state.revealProgress;return `<section class="center-content reveal-ritual">${eyebrow('04 / '+t('THE HAND-REVEAL RITUAL','亲手揭牌的仪式'))}<h1>${t('The secret is <em>in your hands.</em>','答案的线索，<em>由你亲手翻开。</em>')}</h1><p class="intro">${t('Drag the gold edge slowly from right to left, or bring two fingers together to peel the card. Stop anywhere, or use the reveal button.','按住金色边缘慢慢向左拖动，或两指向内捏合，像翻看手牌一样慢慢揭开。你可以随时停下，也可以使用按钮翻牌。')}</p>${description()}<div class="reveal-tray" aria-label="${t('Three-card reveal progress','三张牌的揭晓进度')}">${state.picks.map((p,j)=>`<button class="tray-slot ${j===i?'active':''} ${state.revealedCards[j]?'complete':''}" data-reveal-card="${j}" ${j>i?'disabled':''}><div class="tray-mini">${state.revealedCards[j]?cardFace(p.card,p.orientation):cardBack()}</div><span>${roleNames()[j]} ${state.revealedCards[j]?'✓':''}</span></button>`).join('')}</div><div class="peel-stage"><div class="peel-halo"></div><div class="peel-card ${done?'complete':''}" id="peel-card" role="slider" tabindex="0" aria-label="${t('Slow reveal of card','缓慢揭开牌面')} ${i+1}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.round(progress*100)}" style="--reveal-p:${progress}"><div class="peel-face">${cardFace(entry.card,entry.orientation,true)}</div><div class="peel-cover">${cardBack()}</div><div class="peel-seam" aria-hidden="true"><span>✧</span></div>${!done?`<span class="peel-corner-hint" aria-hidden="true">‹</span>`:''}</div></div><div class="peel-guidance"><div class="peel-track" role="progressbar" aria-valuenow="${Math.round(progress*100)}" aria-valuemin="0" aria-valuemax="100"><span id="peel-track-fill" style="width:${progress*100}%"></span></div><span id="peel-progress-label">${done?t('Card revealed','牌面已揭晓'):`${Math.round(progress*100)}%`}</span></div><div class="cta-row centered">${done?btn('next-reveal',i===2?t('Read the three cards →','查看三张牌的解读 →'):t('Reveal the next card →','揭开下一张牌 →')):btn('complete-reveal',t('Turn this card over','翻开这张牌'),'secondary')}${!done?btn('peel-a-little',t('Reveal a little ✧','慢慢揭开一点 ✧'),'quiet'):''}</div>${done?`<div class="peel-confirmation"><h3>${h(state.locale==='zh'?entry.card.zh:entry.card.name)}</h3><p>${roleNames()[i]} · ${entry.orientation==='reversed'?t('Reversed','逆位'):t('Upright','正位')}</p></div>`:''}<p class="fine-print centered-text">${t('On keyboard: focus the card and press → / ← to adjust, or End to reveal fully.','键盘操作：选中卡牌，按 → / ← 调节，或按 End 完整揭牌。')}</p></section>`}
 function scriptedReading(){return buildDemoReading({question:state.question,picks:state.picks,spread:state.spread,lens:state.lens,options:[state.optionA,state.optionB],lang:state.locale})}
 function demoMessages(){return state.demoConversation.length?state.demoConversation.map((entry,i)=>`<div class="demo-turn"><div class="demo-user"><span>${t('YOU','你')} · ${i+1}</span><p>${h(entry.question)}</p></div><div class="demo-answer"><span>✺ ${t('JUHUA · SCRIPTED REPLY','菊花说 · 脚本回复')}</span><p>${h(entry.answer.text)}</p></div></div>`).join(''):`<p class="demo-empty">${t('Your questions and simulated replies will appear here. Nothing is transmitted or saved.','你的提问和模拟回复会显示在这里，不会发送到服务器或自动保存。')}</p>`}
+function localExodiaPanel(){
+ if(!state.localExodiaAvailable||state.deckId!=='rws'||state.localMode!=='exodia')return '';
+ const busy=state.localBusy;
+ return `<section class="local-exodia-panel" aria-label="${t('Local Exodia AI reading','本地 Exodia AI 解读')}">
+  ${eyebrow(t('LOCAL EXODIA · EXPERIMENTAL','本地 EXODIA · 实验版'))}
+  <h2>${t('Your ChatGPT interpretation','来自本地 ChatGPT 的真实解读')}</h2>
+  <p>${t('Only when you click Generate, the local Node server sends your question and cards to Exodia on port 8765. This may take 20–60 seconds. Nothing is submitted to the public JuHua website.','仅在点击生成后，本地 Node 服务器才会将问题与牌组提交给 8765 端口的 Exodia。可能需要 20–60 秒。不会提交给公开的菊花说网站。')}</p>
+  ${state.localReading?`<div class="local-exodia-answer" role="region" aria-label="${t('Generated reading','生成的解读')}"><div class="local-exodia-label">✺ ${t('EXODIA RESPONSE','EXODIA 回复')}</div><p>${h(state.localReading)}</p></div>`:`<p class="local-exodia-prompt">${t('The scripted interpretation is still above. Generate an experimental alternative with your local ChatGPT session.','上方仍保留脚本解读。点击生成，使用你本机 ChatGPT 会话获得另一份实验性解读。')}</p>`}
+  ${!state.localReading?btn('exodia-generate',busy?t('Generating locally…','本地生成中…'):t('Generate with local Exodia','使用本地 Exodia 生成'),'secondary',busy):''}
+  ${busy?`<p class="local-exodia-wait" role="status">${t('Exodia is processing one task. Additional requests are disabled.','Exodia 正在处理一个任务，额外的生成请求已禁用。')}</p>`:''}
+  ${state.localError?`<p class="local-exodia-error" role="alert">${h(state.localError)}</p>`:''}
+  ${state.localReading?`<div class="local-exodia-conversation">
+    <h3>${t('Follow up on this reading','针对本次解读继续追问')}</h3>
+    <p>${t('Exodia creates a new conversation per task. JuHua resends the original question, selected cards, initial reading and recent follow-ups each time.','Exodia 每项任务都使用新的会话。菊花说会在每次追问中重新发送原问题、选牌、首次解读和最近的问答。')}</p>
+    <div class="local-exodia-turns" role="log">${state.localTurns.map(turn=>`<div class="local-exodia-turn"><div class="local-exodia-ask">${h(turn.question)}</div><div class="local-exodia-reply">${h(turn.answer)}</div></div>`).join('')}</div>
+    <form id="local-exodia-followup"><label for="local-exodia-question">${t('Follow-up question','追问内容')}</label><div class="local-exodia-input-row"><input id="local-exodia-question" maxlength="280" minlength="2" required placeholder="${t('How does the guidance card relate to my options?','综合建议牌与我的选择有什么关联？')}" ${busy||state.localTurns.length>=8?'disabled':''}/><button class="btn" type="submit" ${busy||state.localTurns.length>=8?'disabled':''}>${t('Ask Exodia','追问 Exodia')}</button></div><small>${state.localTurns.length}/8 · ${t('One generation at a time','每次仅生成一项任务')}</small></form>
+   </div>`:''}
+ </section>`;
+}
+
+function localReadingContext(){
+ return {question:state.question,options:[state.optionA,state.optionB],spread:state.spread,lens:state.lens,locale:state.locale,deckId:state.deckId,picks:state.picks.map(p=>({id:p.card.id,orientation:p.orientation}))};
+}
+
+function resetLocalResponses(){
+ state.localRequestId++;state.localReading='';state.localTurns=[];state.localBusy=false;state.localError='';
+}
+
+async function runLocalReading(followup=''){
+ if(state.step!==5||state.readingBeat!==3||!state.localExodiaAvailable||state.deckId!=='rws'||state.localBusy)return;
+ if(followup&&(state.localTurns.length>=8||!state.localReading))return;
+ const currentId=++state.localRequestId;
+ const payload={kind:followup?'followup':'reading',context:localReadingContext(),...(followup?{followup,initialReading:state.localReading,history:state.localTurns}:{})};
+ state.localBusy=true;state.localError='';render();
+ try{
+  const result=await sendLocalExodia(payload);
+  if(currentId!==state.localRequestId)return;
+  if(followup)state.localTurns.push({question:followup,answer:result.answer});
+  else state.localReading=result.answer;
+ }catch(e){if(currentId!==state.localRequestId)return;state.localError=e.message;}
+ finally{if(currentId===state.localRequestId){state.localBusy=false;render();}}
+}
+
 function reading(){
  const demo=scriptedReading(),beat=state.readingBeat,full=beat===3,opening=beat<0;
  const active=beat>=0&&beat<3?demo.cards[beat]:null;
@@ -46,9 +90,10 @@ function reading(){
  };
  const nextLabel=opening?t('Begin the interpretation ✧','开始解读 ✧'):beat<2?t('Illuminate the next card →','照亮下一张牌 →'):beat===2?t('Bring the three meanings together →','汇聚三张牌的含义 →'):t('Revisit the first card','重温第一张牌');
  const phaseName=opening?'00':full?'04':String(beat+1).padStart(2,'0');
- return `<section class="reading-page reading-v07">
-   <div class="reading-header"><div>${eyebrow('05 / '+t('THE READING COMES ALIVE','让解读鲜活起来'))}<h1>${t('The story <em>between the stars.</em>','星辰之间，<em>藏着怎样的线索？</em>')}</h1></div><div class="reading-demo-status"><strong>✧ ${t('SCRIPTED DEMO','脚本演示')}</strong><span>${t('No live AI · No AI network calls','无实时 AI · 无 AI 网络请求')}</span></div></div>
+ return `<section class="reading-page reading-v07 ${state.localMode==='exodia'?'reading-exodia-mode':''}">
+   <div class="reading-header"><div>${eyebrow('05 / '+t('THE READING COMES ALIVE','让解读鲜活起来'))}<h1>${t('The story <em>between the stars.</em>','星辰之间，<em>藏着怎样的线索？</em>')}</h1></div><div class="reading-demo-status"><strong>✧ ${state.localMode==='exodia'?t('LOCAL EXODIA · EXPERIMENTAL','本地 EXODIA · 实验版'):t('SCRIPTED DEMO','脚本演示')}</strong><span>${state.localMode==='exodia'?t('Only on this computer','仅限本机'):t('No live AI · No AI network calls','无实时 AI · 无 AI 网络请求')}</span></div></div>
    ${description()}
+   ${state.localExodiaAvailable&&state.deckId==='rws'?`<div class="reading-source-switch" role="group" aria-label="${t('Reading source','解读来源')}"><button type="button" data-action="reading-scripted" aria-pressed="${state.localMode==='scripted'}" class="${state.localMode==='scripted'?'active':''}">${t('Scripted demo','脚本演示')}</button><button type="button" data-action="reading-exodia" aria-pressed="${state.localMode==='exodia'}" class="${state.localMode==='exodia'?'active':''}">${t('Local Exodia AI','本地 Exodia AI')}</button></div>`:''}
    <div class="reading-cinema" id="reading-cinema" aria-label="${t('Interactive cinematic Tarot interpretation','互动电影式塔罗解读')}">
      <div class="cinema-sky" aria-hidden="true"><span>✦</span><span>✧</span><span>✶</span></div>
      <div class="cinema-deck" role="group" aria-label="${t('Choose a card to illuminate','点击卡牌照亮对应解读')}">
@@ -71,11 +116,12 @@ function reading(){
      <form class="demo-chat-form" id="demo-followup-form"><label for="demo-followup-input">${t('Your follow-up question','你的追问')}</label><div><input id="demo-followup-input" type="text" maxlength="280" minlength="2" autocomplete="off" placeholder="${t('What does the guidance card mean for me?','综合建议牌对我意味着什么？')}" ${state.demoConversation.length>=12?'disabled':''} required/><button class="btn" type="submit" ${state.demoConversation.length>=12?'disabled':''}>${t('Ask →','提问 →')}</button></div><span>${t(`${state.demoConversation.length}/12 sample replies · No account or AI service`,`${state.demoConversation.length}/12 条模拟回复 · 无需账户或 AI 服务`)}</span></form>
      <div id="demo-chat-clear-slot">${state.demoConversation.length?btn('demo-chat-clear',t('Clear this conversation','清空本次对话'),'quiet'):''}</div>
    </section>`:''}
+   ${full?localExodiaPanel():''}
    <div class="cta-row reading-end-actions">${btn('restart',t('Begin another reading','开始新的解读'))}${btn('save',t('Save this spread on my device','将牌阵保存到本设备'),'secondary')}${btn('gallery',t('Browse the original illustrations','查看原版插画'),'quiet')}</div>
    <p class="fine-print">${t('v0.7 is a cinematic, local scripted experience. It does not use an AI model, know facts about your life, predict outcomes, or replace professional advice. Live AI connection is intentionally deferred.','v0.7 是本地电影式脚本体验，不使用 AI 模型，不知道你的真实生活情况，不能预测结果，也不能代替专业建议。实时 AI 接入已按要求暂缓。')}</p>
  </section>`;
 }
-function resetDemo(){state.readingBeat=-1;state.demoConversation=[];}
+function resetDemo(){state.readingBeat=-1;state.demoConversation=[];resetLocalResponses();}
 function changeReadingBeat(beat){if(state.step!==5)return;state.readingBeat=Math.max(-1,Math.min(3,Number(beat)));render();}
 function submitDemoFollowUp(text){
  if(state.step!==5||state.readingBeat!==3)return;
@@ -169,7 +215,7 @@ root.addEventListener('click',e=>{
   if(button.hasAttribute('data-reading-beat')){changeReadingBeat(Number(button.dataset.readingBeat));return;}
   if(button.hasAttribute('data-demo-suggest')){submitDemoFollowUp(button.dataset.demoLabel);return;}
   if(button.hasAttribute('data-step')){const n=Number(button.dataset.step);if(n<=state.step)go(n);return}
-  if(button.dataset.lens){state.demoConversation=[];state.lens=button.dataset.lens;state.aiReading=null;state.aiStatus='idle';state.aiError='';state.aiRequestId++;render();return}
+  if(button.dataset.lens){state.demoConversation=[];resetLocalResponses();state.lens=button.dataset.lens;state.aiReading=null;state.aiStatus='idle';state.aiError='';state.aiRequestId++;render();return}
   if(button.dataset.spread){state.spread=button.dataset.spread;state.aiReading=null;render();return}
   if(button.dataset.filter){state.filter=button.dataset.filter;render();return}
   if(button.dataset.inspect){state.inspected=button.dataset.inspect;state.modal='inspect';render();return}
@@ -181,7 +227,7 @@ root.addEventListener('click',e=>{
     case 'decks':state.modal='decks';render();break;
     case 'close':state.modal=null;render();break;
     case 'back-gallery':state.modal='gallery';render();break;
-    case 'locale':{state.demoConversation=[];state.locale=state.locale==='en'?'zh':'en';if(state.question===oldDefault||state.question===newDefault)state.question=state.locale==='zh'?newDefault:oldDefault;if(['Accept the new offer','接受新工作'].includes(state.optionA))state.optionA=state.locale==='zh'?'接受新工作':'Accept the new offer';if(['Stay in my current role','留在目前的职位'].includes(state.optionB))state.optionB=state.locale==='zh'?'留在目前的职位':'Stay in my current role';render();break}
+    case 'locale':{state.demoConversation=[];resetLocalResponses();state.locale=state.locale==='en'?'zh':'en';if(state.question===oldDefault||state.question===newDefault)state.question=state.locale==='zh'?newDefault:oldDefault;if(['Accept the new offer','接受新工作'].includes(state.optionA))state.optionA=state.locale==='zh'?'接受新工作':'Accept the new offer';if(['Stay in my current role','留在目前的职位'].includes(state.optionB))state.optionB=state.locale==='zh'?'留在目前的职位':'Stay in my current role';render();break}
     case 'begin':resetDemo();state.aiReading=null;state.aiStatus='idle';state.aiError='';state.aiRequestId++;if(state.question.trim().length<3){root.querySelector('#question')?.focus();toast(t('Please enter a question with at least 3 characters','请输入至少 3 个字符的问题'));break}reshuffle();go(2);break;
     case 'shuffle':{reshuffle();render();const el=root.querySelector('#shuffle-stage');if(el){el.classList.add('mixing');setTimeout(()=>el.classList.remove('mixing'),800)}break}
     case 'next':go(state.step+1);break;
@@ -201,11 +247,17 @@ root.addEventListener('click',e=>{
     case 'cinema-next':changeReadingBeat(state.readingBeat===3?0:state.readingBeat+1);break;
     case 'cinema-prev':changeReadingBeat(state.readingBeat-1);break;
     case 'demo-chat-clear':state.demoConversation=[];render();break;
+    case 'reading-scripted':state.localMode='scripted';render();break;
+    case 'reading-exodia':if(state.localExodiaAvailable&&state.deckId==='rws'){state.localMode='exodia';render()}break;
+    case 'exodia-generate':runLocalReading();break;
     case 'effects':state.effects=!state.effects;render();break;
     case 'sphere-mode':state.sphereMode=state.sphereMode==='gpu'?'2d':'gpu';render();break;
 
   }
 });
-root.addEventListener('submit',event=>{if(event.target?.id!=='demo-followup-form')return;event.preventDefault();const input=root.querySelector('#demo-followup-input');const message=input?.value.trim();if(!message)return;submitDemoFollowUp(message);if(input&&!input.disabled){input.value='';input.focus();}});
+root.addEventListener('submit',event=>{if(event.target?.id==='local-exodia-followup'){event.preventDefault();const field=root.querySelector('#local-exodia-question');const value=field?.value.trim();if(value?.length>=2)runLocalReading(value);return;}if(event.target?.id!=='demo-followup-form')return;event.preventDefault();const input=root.querySelector('#demo-followup-input');const message=input?.value.trim();if(!message)return;submitDemoFollowUp(message);if(input&&!input.disabled){input.value='';input.focus();}});
 root.addEventListener('keydown',e=>{if(e.target.closest?.('#peel-card')&&state.step===4&&!state.revealedCards[state.revealIndex]){if(['ArrowRight','ArrowLeft','Home','End'].includes(e.key)){e.preventDefault();const value=e.key==='End'?1:e.key==='Home'?0:nextRevealProgress(state.revealProgress,e.key==='ArrowRight'?.1:-.1);if(isRevealed(value))completePeel();else paintPeel(value);return;}}if(e.key==='Escape'&&state.modal){state.modal=null;render()}if(state.step===3&&!state.modal&&e.target.closest('#sphere-scene')){if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();state.orbitHoldUntil=performance.now()+DRAG_RESUME_DELAY_MS;if(e.key==='ArrowLeft')state.ry-=24;if(e.key==='ArrowRight')state.ry+=24;if(e.key==='ArrowUp')state.rx=Math.min(75,state.rx+16);if(e.key==='ArrowDown')state.rx=Math.max(-75,state.rx-16);orbOrientation()}else if(e.key==='Enter'&&e.target.id==='sphere-webgl'){const id=webglSphere?.pickCenter();if(id)catchCard(BY_ID.get(id),webglSphere?.projectCard(id))}}});
 render();
+
+// Local Exodia is unavailable from GitHub Pages and is never called automatically.
+discoverLocalExodia().then(status=>{if(!status)return;state.localExodiaAvailable=true;if(state.step===5)render();});
