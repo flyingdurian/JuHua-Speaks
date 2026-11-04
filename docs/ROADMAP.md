@@ -101,3 +101,16 @@ Reference SQL schema: [../db/postgres/001_milestone8_schema.sql](../db/postgres/
 8.4: extra guidance-card question/draw/reveal/reading with original-trio context; user-testing reader roster.
 8.5: saved history with authenticated SQL backend and consent, deletion/export; Thread Observations is future opt-in.
 QA document: [QA-8-1.md](QA-8-1.md).
+
+
+### Phase 8.1B — Video-guided cinematic fidelity (v0.8.2)
+- [x] Analyzed 40.147s user-supplied walkthrough frame-by-frame; see VIDEO_RITUAL_FIDELITY.md. The reference is a quality benchmark, not a source-code/artwork license.
+- [x] Full-viewport stage with dynamic per-refresh nebula hue and 78-quads WebGL2 landing orbit using ORIGINAL RWS JPEG face textures; CSS fallback for WebGL failure and reduced-motion mode.
+- [x] Time-based 5-beat mystical shuffle: tornado → collapse → miniature globe → three interacting piles → single deck. Optional rerunnable Cosmic/Riffle/Wash patterns, with freshly secure randomized card order and a re-armed minimum 5-second shuffle gate.
+- [x] GPU deck-to-space launch and construction into the existing inward-looking 78-card selection shell, with position/angle animation independent of frame rate.
+- [x] Hover gloss and forward lift on cards; stronger halo for selected cards. 3-card selection automatically locks after an 1850ms undo window; the Confirm button allows immediate lock.
+- [x] Physical 3D three-card reveal: all three visible, independent click-to-flip, drag to partially peek from edges or corners, resume dragging from last position, and reveal in any order.
+- [x] Preserve v0.7 large clickable card-by-card reading with Past/Present/Future labels and scripted follow-ups; no unsolicited Exodia AI requests, no changes to licensed art or DB.
+- [ ] Device-side GPU 3D and touch visual approval still mandatory; automated tests do NOT certify appearance.
+- [ ] Artemis table and generative reading formulation remain deferred until this fidelity phase is accepted.
+QA: VIDEO_RITUAL_FIDELITY.md and QA-8-1.md.

@@ -23,6 +23,8 @@ jobs:
           node --check src/ritual-views.mjs
           node --check src/ritual-machine.mjs
           node --check src/deck-config.mjs
+          node --check src/ritual-cinema.mjs
+          node --check src/physical-reveal.mjs
       - name: Validate source asset rules
         run: |
           if find assets/rws -name '*.jpg' | grep -q .; then

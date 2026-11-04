@@ -28,6 +28,8 @@ export function transitionRitual(session,event,payload={},now=Date.now()){
   return freeze(session,{phase:'question_submitted',question:requireQuestion(payload.question),preflight:payload.preflight||null});
  case 'COLLAPSE_COMPLETE':requirePhase(session,event,'question_submitted');
   return freeze(session,{phase:'shuffle_ritual',shuffleStartedAt:now});
+ case 'RESHUFFLE':requirePhase(session,event,'deck_formed');
+  return freeze(session,{phase:'shuffle_ritual',shuffleStartedAt:now});
  case 'MIN_SHUFFLE_ELAPSED':requirePhase(session,event,'shuffle_ritual');
   if(now-session.shuffleStartedAt<MIN_SHUFFLE_MS)throw new Error('The shuffle ritual has not completed its minimum duration');
   return freeze(session,{phase:'deck_formed'});
