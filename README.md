@@ -111,3 +111,10 @@ The current release targets **v0.8.1: The Celestial Ritual**, with a new questio
 Brand labels come from src/brand-config.mjs (name is temporary); DeckConfig and ReaderDefinition registries allow future user-created Eastern mythology decks and Artemis-led reader variants. Full design, phased implementation and AI timing are documented in [Milestone 8.0 master directive](docs/MILESTONE_8_MASTER_DIRECTIVE.md). SQL persistence is reference-only pending login, consent, permission policies and migrations. [Phase 8.1 QA](docs/QA-8-1.md).
 
 No new real model requests are triggered automatically. The local Exodia path stays experimental and opt-in after the original three cards are locked, while structured production AI curation is a later phase.
+
+
+## v0.8.2 — Video-guided cinematic ritual (Phase 8.1B)
+
+A frame-by-frame study of the user's 40-second reference recording now informs the front half of the experience. Full-screen landing uses orbiting original 1909 RWS face textures through WebGL2; the time-based shuffle animates tornado → collapsed pack → mini globe → three deck piles → floating deck. Optional cosmic/riffle/wash shuffles restart a secured fair draw and minimum-duration gate. The deck then travels through a star field into the existing interior card sphere. Hover/pick adds depth and gold aura; users can undo a three-card selection during a short lock window. Reveal now shows all three cards side by side and supports click, edge, or corner peek using a physical 3D card rotation rather than a 2D wipe.
+
+The existing cinematic scripted Past/Present/Future interpretation stage and optional local Exodia adapter remain unchanged. Source: [VIDEO_RITUAL_FIDELITY.md](docs/VIDEO_RITUAL_FIDELITY.md). Full device GPU/touch QA remains a manual release gate.

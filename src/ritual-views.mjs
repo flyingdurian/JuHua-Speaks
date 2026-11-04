@@ -37,7 +37,9 @@ export function renderRitualShuffle({state,t,h,btn,eyebrow,cardFace,cardBack,DEC
     '<div class="ritual-finished-deck" aria-hidden="true">'+Array.from({length:7},(_,i)=>'<div style="--stack:'+i+'">'+cardBack()+'</div>').join('')+'</div>'+
   '</div>'+
   '<div class="ritual-status" role="status" aria-live="polite">'+(ready?t('✧ Your deck has formed','✧ 塔罗牌组已成形'):t('✧ Each card has an equal chance to appear','✧ 每张牌都有同样的出现概率'))+'</div>'+
-  '<div class="cta-row centered">'+btn('finish-shuffle',t('Finish Shuffling →','完成洗牌 →'),'',!ready)+'</div>'+
+  '<div class="cta-row centered">'+btn('finish-shuffle',t('Finish Shuffling →','完成洗牌 →'),'',!ready)+'</div>'+ 
+  (ready?'<div class="shuffle-style-choices" aria-label="'+t('Choose another shuffle style','选择其他洗牌方式')+'">'+
+   [['cosmic',t('Cosmic tornado ↻','宇宙旋风 ↻')],['riffle',t('Riffle shuffle ↻','交错洗牌 ↻')],['wash',t('Celestial wash ↻','星辰洗牌 ↻')]].map(([id,label])=>'<button data-shuffle-style="'+id+'">'+label+'</button>').join('')+'</div>':'')+
   '<p class="fine-print centered-text">'+h(t('No AI reading is generated before you confirm your three cards.','确认三张牌之前，不会提前生成完整的 AI 解读。'))+'</p>'+
   '</section>';
 }
