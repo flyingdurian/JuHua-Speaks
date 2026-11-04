@@ -65,3 +65,16 @@ See [QA-v05.md](QA-v05.md) and [CHINESE_ARTWORK.md](CHINESE_ARTWORK.md).
 - [x] Version badge updated to `v0.6.0`, automated coverage expanded to 20 checks, detailed device test plan in [QA-v06.md](QA-v06.md).
 - [ ] Device/browser visual QA of real GPU timing, hit targets and flight trajectory (sandbox browser navigation blocked).
 - [ ] Live AI Worker deployment and licensed Chinese Tarot public images are separate, unchanged release gates.
+
+## Milestone v0.7.0 — The Reading Comes Alive (2026-11-04)
+
+- [x] **No live AI connection** per user direction: keep the existing private Worker code dormant and remove the frontend's AI request path while this release is a demo.
+- [x] Add cinematic post-reveal sequence with all three authentic card illustrations moving from hand toward a celestial spread, spotlighting the selected card with its meaning-based glow; no re-illustration or vector face substitutes.
+- [x] Interactive chapters: opening → individual cards 1–3 → question-specific combined spread. Each card is directly selectable; previous/next navigation and keyboard-accessible buttons included.
+- [x] Add a **clearly labeled scripted demo** for readings and a local follow-up conversation: exact question, option names, drawn card IDs/orientations, interpretation lens and EN/简体中文 affect scripted output, with no service calls.
+- [x] Add two practical reflection steps and a question-to-check, rather than confident predictions or direct financial/legal/medical advice.
+- [x] QA: 25 Node tests, including dummy semantics and API-disabled contract. Reduced motion styles, client-side input length and escaped rendering.
+- [ ] True end-to-end browser visual QA of the cinematic sequence on Android, iOS Safari and desktop; browser sandbox may block localhost navigation.
+- [ ] Live AI Worker activation, Chinese Tarot public image rights and mainland China hosting remain **future separate release gates**.
+
+See [QA-v07.md](QA-v07.md).

@@ -73,3 +73,13 @@ Read [v0.5 QA](docs/QA-v05.md) and [Chinese art sources/rights](docs/CHINESE_ART
 - Version `v0.6.0` is visible in masthead and footer. Existing original Rider–Waite–Smith illustrations, Chinese artwork licensing constraints, and optional private AI Worker remain unchanged.
 
 Read [v0.6 QA](docs/QA-v06.md). Full mobile/GPU browser QA is outstanding because the local browser sandbox disallowed navigation. The deployed workflow checks the complete tests and imports/audits all 78 historical card scans.
+
+## Current update — v0.7.0: The Reading Comes Alive (scripted demo only)
+
+After revealing three cards, you now enter a cinematic reading with **genuine RWS illustrated faces** lifted from the hand into a celestial spread, clickable individual spotlights, staggered transitions, previous/next chapters, and a whole-spread synthesis. Meaning-based foil is an overlay, not an alteration of the source scans.
+
+A **deterministic, local-only demonstration engine** (`src/demo-reading.mjs`) now offers context-dependent scripts in English and Simplified Chinese based on your exact question, two path labels, the three card identities/orientations and cultural lens. The synthesis opens a scripted follow-up conversation with suggested prompts and up to 12 custom questions. UI labels explicitly say **SCRIPTED DEMO — NOT LIVE AI**. The conversation is kept only in tab memory, not sent to a service or included when explicitly saving the spread.
+
+**Per request, live AI connection is on hold.** The future private Worker and its validation tests are retained but the v0.7 frontend no longer calls it. Do not add a public API key to GitHub Pages or misrepresent sample interpretations as real AI output.
+
+See [v0.7 QA](docs/QA-v07.md) for a concise device test plan. The Chinese Tarot remains opt-in only with user-supplied authorized local images pending public digital rights; mainland-China hosting and real AI remain future gates.
