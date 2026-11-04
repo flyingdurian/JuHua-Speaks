@@ -4,7 +4,7 @@
  * or promises an outcome. Replace it behind the existing private AI contract later.
  */
 const TOPICS = [
-  {id:'career',re:/\b(job|career|work|promotion|offer|employment|boss|company|resign|interview)\b|工作|事业|跳槽|升职|面试|公司|辞职|职位/i,
+  {id:'career',re:/\b(jobs?|career|work|promotion|offer|employment|boss|company|resign|interview)\b|工作|事业|跳槽|升职|面试|公司|辞职|职位/i,
     en:{issue:'work, growth, and the terms of each opportunity',facts:'role expectations, compensation, learning potential, and working conditions',action:'write down the non-negotiable conditions of each path',check:'ask a concrete question about the day-to-day responsibilities'},
     zh:{issue:'工作、成长与不同机会的实际条件',facts:'岗位职责、薪酬、成长空间与工作环境',action:'列出两条道路各自不能妥协的条件',check:'询问工作日常中的一个具体职责'}},
   {id:'relationship',re:/\b(love|relationship|partner|dating|marriage|ex|breakup|friendship|crush)\b|恋爱|感情|关系|婚姻|分手|伴侣|朋友/i,
