@@ -94,3 +94,18 @@
 @media(prefers-reduced-motion:reduce){.peel-corner-hint{animation:none}.peel-track span{transition:none}}
 /* The shuffling hit surface must be above the decorative cards. */
 .shuffle-stage .deck-hit{z-index:20}
+
+/* v0.6: ambient inside-the-universe movement, and cards flying into the user's hand. */
+.orbit-toggle{background:#1b1b32d9;border:1px solid #c6a4778f;border-radius:18px;color:#efdab7;padding:7px 12px;white-space:nowrap;font-size:11px}
+.orbit-toggle:hover{background:#30233d}
+.hand-label{margin:16px auto 2px;font-size:10px;letter-spacing:.17em;color:#e2c291;text-align:center;text-transform:uppercase}
+.slots .slot-image{transition:box-shadow .25s,border-color .25s,background .25s}
+.slots .slot-image.receiving{box-shadow:0 0 34px #f7dca794,0 0 12px #f7edcb inset;border-color:#ffdf9c;background:#332d49}
+.card-flight{position:fixed;z-index:1005;aspect-ratio:1.06 / 1.72;pointer-events:none;transform:translate(-50%,-50%);filter:drop-shadow(0 0 20px #ffe9b8) drop-shadow(0 0 45px #aa8bdd)}
+.card-flight .card-back{width:100%;height:100%;box-shadow:0 0 24px #eac486a6,0 9px 32px #000a}
+.card-flight .back-mandala span{font-size:clamp(19px,4vw,37px)}
+.card-flight .back-brand{font-size:8px}
+.card-flight-burst{position:fixed;z-index:1004;pointer-events:none;color:#fce5ad;white-space:nowrap;text-shadow:0 0 12px #fff0c8,0 0 27px #ffd6a7;font:34px Georgia,serif}
+.card-flight-burst span{color:#c1abf0}
+@media(max-width:730px){.sphere-tools{gap:5px;flex-wrap:wrap}.orbit-toggle{padding:6px 8px;font-size:10px}.card-flight .back-brand{font-size:6px}}
+@media(prefers-reduced-motion:reduce){.card-flight,.card-flight-burst{display:none}.orbit-toggle{display:none}}

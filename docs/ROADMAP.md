@@ -55,3 +55,13 @@
 4. Perf tuning, memory audit, touch gesture and reduced-motion accessibility; visual QA all 78 card scans; review mainland China availability/compliance before distribution.
 
 See [QA-v05.md](QA-v05.md) and [CHINESE_ARTWORK.md](CHINESE_ARTWORK.md).
+
+## Milestone v0.6.0 — Orbiting Card Universe (2026-11-04)
+
+- [x] Slow, continuous ambient rotation inside the 78-card universe, with manual drag takeover and a pause/resume control.
+- [x] Selection geometry follows the **last rendered card positions**, preventing clicks from drifting ahead of the visible card as it moves.
+- [x] Select a passing card → starburst → floating card-back flies to the next hand slot → hand slot fills. Block fast repeat selection during the animation.
+- [x] Matching hand delivery for the flat 2D option; respects reduced motion and WebGL fallback; lifecycle cleanup when navigating away.
+- [x] Version badge updated to `v0.6.0`, automated coverage expanded to 20 checks, detailed device test plan in [QA-v06.md](QA-v06.md).
+- [ ] Device/browser visual QA of real GPU timing, hit targets and flight trajectory (sandbox browser navigation blocked).
+- [ ] Live AI Worker deployment and licensed Chinese Tarot public images are separate, unchanged release gates.
