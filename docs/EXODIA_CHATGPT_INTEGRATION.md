@@ -274,3 +274,22 @@ Response:
 - **Generation POSTs** must be serialized by the future JuHua backend. This probe submits exactly one POST; it cannot prove production cross-session queueing or a five-second inter-generation gap. The probe keeps conservative pre-request spacing and configurable faster GET polling.
 - The worker examples in this document describe a *proposed* local adapter. They are **not deployed** or connected to the public web app. Follow-ups require the full original question, spread, chosen card IDs and orientations, first reading, and a bounded history in every new Exodia prompt.
 - A successful probe confirms interface connectivity and presence of card names, **not** strict JSON structure, semantic accuracy, user privacy, reliability, or safe public access. Keep Exodia on localhost and never expose it on public GitHub Pages.
+
+
+## v0.7.1 — Optional Local Exodia AI on port 4173
+
+The browser now detects a loopback-only Node proxy when the app runs at http://127.0.0.1:4173. On GitHub Pages, the local mode is absent and the scripted demonstration stays the default.
+
+### Try it on your Windows computer
+
+1. Keep Exodia running locally on http://127.0.0.1:8765.
+2. In your clean JuHua-Speaks clone, pull the latest main and run npm run dev.
+3. Open http://127.0.0.1:4173 and complete a three-card reading.
+4. At the reading screen, choose Local Exodia AI, advance to the final synthesis, then click Generate with local Exodia. One generation task is submitted; expect about 20–60 seconds.
+5. Ask a follow-up. JuHua resends the original question, both options, exact card IDs, positions and orientations, initial response and up to eight previous exchanges in every task.
+
+The initial Exodia result is displayed as returned text. The cinematic individual-card chapters above remain scripted. This is NOT a production structured AI reading. Local mode is explicitly opt-in: clicking Generate or Ask submits that information to the signed-in ChatGPT session controlled by Exodia.
+
+Safety: The Node adapter binds to 127.0.0.1 and refuses other origins. It accepts only same-origin JSON with a required custom header, rejects external Exodia URLs and blocks overlapping generation tasks. It enforces a five-second wait after each completed task before submitting another generation POST. Polling GET requests remain sequential at 1.5-second intervals. Timeout or failure NEVER causes an automatic regeneration. The Node server serves only web assets, not its own source scripts, secrets or Git files. Do not expose or port-forward either service.
+
+The automated tests use simulated Exodia responses to verify serialization, cooldown, prompt context, URL safeguards and same-origin browser requests. They send ZERO real ChatGPT requests and consume no credits.

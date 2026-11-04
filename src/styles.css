@@ -174,3 +174,27 @@
 @media(max-width:730px){.reading-v07 .reading-header{display:block}.reading-demo-status{align-items:flex-start;display:inline-flex;margin:0 0 7px}.cinema-deck{min-height:235px;gap:clamp(7px,2vw,18px);padding:10px 0 24px}.cinema-card{width:clamp(88px,25vw,145px)}.reading-cinema{padding:25px 13px}.reading-v07-detail-grid{grid-template-columns:1fr}.demo-chat-heading{display:block}.demo-chat-heading>span{display:inline-block;margin-bottom:14px}.demo-chat{padding:15px}.demo-user,.demo-answer{max-width:94%}}
 @media(max-width:380px){.cinema-card{width:27vw}.cinema-card-caption{font-size:8px}.cinema-controls .btn{padding:10px 12px}.demo-chat-form>div{flex-direction:column}.demo-chat-form .btn{width:100%}}
 @media(prefers-reduced-motion:reduce){.cinema-card,.cinema-card.is-focused,.reading-v07-details,.cinema-progress-dot,.cinema-sky span{animation:none!important;transition:none!important}}
+
+/* v0.7.1: optional local Exodia mode. Never enabled on public GitHub Pages. */
+.reading-source-switch{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:16px 0 6px;border:1px solid #bfa77c56;border-radius:12px;background:#1b1a2cb3;padding:8px;width:fit-content;max-width:100%}
+.reading-source-switch button{border:1px solid transparent;background:transparent;border-radius:8px;padding:10px 16px;color:#c8bdcc;font-size:12px}
+.reading-source-switch button.active{border-color:#d8b780;background:#3c3047;color:#f3dfbc}
+.reading-exodia-mode .demo-chat{display:none}
+.local-exodia-panel{border:1px solid #b9a1739a;background:radial-gradient(ellipse at 80% 0%,#52436c77,transparent 54%),#181c31;border-radius:14px;margin:25px 0;padding:23px 26px;box-shadow:0 16px 42px #0006}
+.local-exodia-panel>h2{margin:0 0 9px;color:#f2dbb4}
+.local-exodia-panel>p,.local-exodia-conversation>p{font-size:12px;color:#c8c0d2;line-height:1.8;max-width:860px}
+.local-exodia-label{font-size:10px;color:#efc78d;letter-spacing:.14em;margin:0 0 10px}
+.local-exodia-answer{background:#0d1528b5;border:1px solid #c9b58c4a;border-radius:9px;margin:18px 0;padding:18px;line-height:1.94}
+.local-exodia-answer p,.local-exodia-reply{white-space:pre-wrap;overflow-wrap:anywhere;color:#e4dce6;line-height:1.9;font-size:13px}
+.local-exodia-wait{color:#f0cc8f!important}
+.local-exodia-error{color:#ffc3c3!important}
+.local-exodia-conversation{border-top:1px solid #ac937458;margin-top:20px;padding-top:18px}
+.local-exodia-conversation h3{margin:0 0 8px}
+.local-exodia-turns{display:flex;flex-direction:column;gap:14px;max-height:520px;overflow-y:auto;margin:14px 0}
+.local-exodia-turn{padding:11px 14px;border:1px solid #9f907068;border-radius:9px;background:#171a30}
+.local-exodia-ask{color:#f1cf96;font-size:12px;margin-bottom:8px}
+.local-exodia-input-row{display:flex;gap:9px;align-items:stretch;margin-top:8px}
+.local-exodia-conversation label{color:#f2dbb4;font-size:12px}
+.local-exodia-input-row input{flex:1;min-width:0;border:1px solid #b4a1818c;border-radius:6px;background:#11172b;color:#f3e9df;padding:10px 12px}
+.local-exodia-conversation small{display:block;color:#bfb6c6;margin-top:7px}
+@media(max-width:560px){.local-exodia-panel{padding:17px 12px}.reading-source-switch{width:100%}.reading-source-switch button{flex:1;min-width:130px}.local-exodia-input-row{flex-direction:column}}
