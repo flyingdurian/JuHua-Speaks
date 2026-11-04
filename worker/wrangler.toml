@@ -1,0 +1,12 @@
+name = "juhua-speaks-reading"
+main = "index.mjs"
+compatibility_date = "2026-10-21"
+# Configure ALLOWED_ORIGIN and OPENAI_MODEL in Worker environment variables.
+# Add the OPENAI_API_KEY as a Worker SECRET, never as a variable or frontend file.
+# Require a ratelimit binding and review additional bot defenses prior to production.
+[[ratelimits]]
+name = "AI_RATE_LIMITER"
+namespace_id = "1001"
+[ratelimits.simple]
+limit = 3
+period = 60

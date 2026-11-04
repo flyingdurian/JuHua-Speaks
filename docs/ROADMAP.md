@@ -14,13 +14,13 @@
 - [x] Chinese illustrated deck researched, kept locked pending image rights
 - [x] CI checks, artwork sync/audit, deployment workflow
 
-## Milestone v0.4 — real engine and frontend quality
+## Milestone v0.4 — GPU sphere and private AI contract (this change)
 
-1. Replace CSS-3D-only sphere with optimized WebGL/Three.js scene and touch-friendly, deterministic camera controls. Preserve a no-WebGL accessible fallback. Profile low-end Android and iOS.
-2. Add a **private, server-side** LLM adapter. Never put API keys in frontend code. Include structured prompts containing **exact user question + options + card IDs + orientations + spread roles + lens**, with card-wise interpretation and spread synthesis. Backend should validate inputs and implement rate controls.
-3. Add consent, content safety boundaries (not professional advice), and meaningful self-reflection/follow-up chat. Tests must detect generic canned responses.
-4. Build real illustrations into mobile-friendly, first-party image packs with hashes and preload budgets; QA image legibility/quality of all 78.
-5. Test deploy and browser automation (keyboard, mobile touch, reverse cards, language changes, repeated shuffles).
+1. [x] Add a GPU WebGL2 sphere with 78 rendered card backs, drag controls and projected click selection, preserving the CSS-3D fallback and a manual 2D switch. [ ] Profile low-end Android and iOS; perform live browser rendering QA.
+2. [x] Build an **optional private server-side** AI Worker with secrets, origin validation, rate limits, structured prompts and response verification. [ ] Configure/deploy provider with explicit user opt-in, verified regional availability, moderation and budget controls. Never put API keys in frontend code.
+3. [x] Display explicit AI transmission notice and preserve local fallback; introduce evidence questions and reflections. [ ] Add follow-up chat, reviewed safety boundaries and qualitative content tests with real model outputs.
+4. [x] Build genuine illustrations into a first-party image pack in GitHub Actions. [ ] Add hashes, preload budgets and visual QA of all 78 for mobile.
+5. [x] Add tests for sphere math, card selection and AI contracts. [ ] Browser GPU/mobile touch regression automation and keyboard usability QA.
 
 ## Milestone v0.5 — Chinese-market readiness and alternative art
 
