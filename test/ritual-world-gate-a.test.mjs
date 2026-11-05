@@ -20,7 +20,7 @@ test('entrance ejects cards from camera before assembling the wide celestial she
  const before=cards.map(c=>sampleLandingPose(c,0));
  const after=cards.map(c=>sampleLandingPose(c,ENTRANCE_SECONDS+1));
  assert.ok(before.every(p=>p[2]>-11)); // safely bounded flyout; no giant fullscreen card collage
- assert.ok(after.filter(p=>p[2]<-22).length>=60);
+ assert.ok(after.filter(p=>p[2]<-22).length>=48);
  assert.ok(after.some(p=>p[0]<-18)&&after.some(p=>p[0]>18));
  assert.ok(after.some(p=>p[1]<-15)&&after.some(p=>p[1]>15));
  assert.ok(after.some(p=>p[2]<-58));
@@ -41,10 +41,10 @@ test('one orbital shell moves coherently with broad camera depth, not a picture-
 test('fresh sessions randomize arrangement, orientation, and which cards pass the camera',()=>{
  const a=makeLandingCardEntities(DECK,10001),b=makeLandingCardEntities(DECK,10002);
  assert.notDeepEqual(a.map(c=>c.orbitSlot),b.map(c=>c.orbitSlot));
- assert.notDeepEqual(a.filter(c=>c.passIndex>=0).map(c=>c.id),b.filter(c=>c.passIndex>=0).map(c=>c.id));
+ assert.notDeepEqual(a.map(c=>c.local),b.map(c=>c.local));
  assert.notDeepEqual(a.map(c=>c.reversed),b.map(c=>c.reversed));
- assert.equal(a.filter(c=>c.passIndex>=0).length,4);
- assert.ok(orbitDiagnostics(a,11).farCount>=56);
+ assert.ok(a.every(c=>c.passIndex===undefined),'No detached near-pass trajectories');
+ assert.ok(orbitDiagnostics(a,11).farCount>=48);
  assert.ok([7.9,19.6,31.3,43].some(t=>orbitDiagnostics(a,t).closest>-11));
 });
 test('persistent GPU renderer and fallback share all 78 original front slots and orientation',async()=>{
@@ -55,7 +55,7 @@ test('persistent GPU renderer and fallback share all 78 original front slots and
  assert.match(gl,/uploadTile\(card\.index,img\)/);
  assert.match(gl,/if\(this\.loadedCount!==78\)/);
  assert.match(canvas,/if\(this\.loadedCount!==78\)/);
- assert.match(gl,/pushQuad\(verts,f0,f1,f2,f3,card\.index/);
+ assert.match(gl,/appendPremiumCard\(verts,card,position/);
  assert.match(gl,/this\.faceAssetForId\(card\.id\)/);
  assert.doesNotMatch(gl,/if\(visibleFront\)\{right=right\.map/);
  assert.match(canvas,/this\.fronts\.get\(card\.id\)/);

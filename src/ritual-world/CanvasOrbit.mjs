@@ -28,7 +28,7 @@ export class CanvasOrbit{
   let i=0;const priority=[...this.cards].sort((a,b)=>(Number(b.passIndex>=0)-Number(a.passIndex>=0))||a.orbitSlot-b.orbitSlot);
   for(let n=0;n<4;n++){
    const work=()=>{if(this.disposed||i>=priority.length)return;const card=priority[i++],image=new Image();this.images.push(image);
-    image.onload=()=>{if(this.disposed)return;const small=document.createElement('canvas');small.width=192;small.height=336;small.getContext('2d').drawImage(image,0,0,192,336);this.fronts.set(card.id,small);this.loadedCount++;image.onload=null;image.onerror=null;this.images.splice(this.images.indexOf(image),1);work()};
+    image.onload=()=>{if(this.disposed)return;const small=document.createElement('canvas');small.width=384;small.height=664;small.getContext('2d').drawImage(image,0,0,384,664);this.fronts.set(card.id,small);this.loadedCount++;image.onload=null;image.onerror=null;this.images.splice(this.images.indexOf(image),1);work()};
     image.onerror=()=>{if(this.disposed)return;this.failedAssets.push(card.id);this.images.splice(this.images.indexOf(image),1);work()};image.src=faceAssetForId(card.id)};work();
   }
   this.tick=this.tick.bind(this);this.frame=requestAnimationFrame(this.tick);
@@ -54,11 +54,12 @@ export class CanvasOrbit{
    const A=v(-1,1),B=v(1,1),C=v(1,-1),D=v(-1,-1);
    const bound=Math.max(Math.hypot(B[0]-A[0],B[1]-A[1]),Math.hypot(D[0]-A[0],D[1]-A[1]));
    if(bound<2.8||bound>1900||[A,B,C,D].every(p=>p[0]<-80||p[0]>w+80||p[1]<-80||p[1]>h+80))continue;
-   const edge=.5+bound*.011;
-   ctx.fillStyle='#a88d65';ctx.beginPath();ctx.moveTo(B[0],B[1]);ctx.lineTo(C[0],C[1]);ctx.lineTo(C[0]+edge,C[1]+edge);ctx.lineTo(B[0]+edge,B[1]+edge);ctx.closePath();ctx.fill();
+   const edge=Math.max(.8,Math.min(2.2,bound*.004));
+   ctx.fillStyle='#8e816f';ctx.beginPath();ctx.moveTo(B[0],B[1]);ctx.lineTo(C[0],C[1]);ctx.lineTo(C[0]+edge,C[1]+edge);ctx.lineTo(B[0]+edge,B[1]+edge);ctx.closePath();ctx.fill();
    const src=pose.frontFacingCamera?this.fronts.get(card.id)||this.back:this.back;
-   ctx.save();ctx.globalAlpha=card.light*landingOpacity(card,this.elapsed);ctx.setTransform((B[0]-A[0])/src.width,(B[1]-A[1])/src.width,(D[0]-A[0])/src.height,(D[1]-A[1])/src.height,A[0],A[1]);ctx.drawImage(src,0,0);ctx.restore();
-   ctx.strokeStyle='#c5aa79';ctx.lineWidth=Math.max(.5,bound*.007);ctx.beginPath();ctx.moveTo(...A);ctx.lineTo(...B);ctx.lineTo(...C);ctx.lineTo(...D);ctx.closePath();ctx.stroke();
+   ctx.save();ctx.globalAlpha=card.light*landingOpacity(card,this.elapsed);ctx.setTransform((B[0]-A[0])/src.width,(B[1]-A[1])/src.width,(D[0]-A[0])/src.height,(D[1]-A[1])/src.height,A[0],A[1]);
+   ctx.beginPath();ctx.roundRect(0,0,src.width,src.height,src.width*.056);ctx.clip();ctx.drawImage(src,0,0);ctx.restore();
+   ctx.strokeStyle='rgba(194,171,126,.58)';ctx.lineWidth=Math.max(.35,Math.min(1.2,bound*.003));ctx.beginPath();ctx.moveTo(...A);ctx.lineTo(...B);ctx.lineTo(...C);ctx.lineTo(...D);ctx.closePath();ctx.stroke();
   }
   this.onStatus({state:this.phase,rendered:78,elapsed:this.elapsed,loaded:this.loadedCount,failed:this.failedAssets.length});
  }

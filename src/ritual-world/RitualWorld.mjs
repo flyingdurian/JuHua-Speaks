@@ -6,6 +6,7 @@
  */
 import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,landingAttitude,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
 export {makeLandingCardEntities,sampleLandingPose} from './OrbitalField.mjs';
+import {appendPremiumCard} from './CardSurface.mjs';
 const TAU = Math.PI * 2;
 const clamp = (v,a,b) => Math.max(a, Math.min(b,v));
 const hash = (x) => { x = Math.imul(x ^ x >>> 16, 0x7feb352d); x = Math.imul(x ^ x >>> 15,0x846ca68b); return ((x ^ x >>> 16) >>> 0) / 4294967296; };
@@ -36,21 +37,28 @@ const perspective=(aspect,fov=58) => {
  const q=1/Math.tan(fov*Math.PI/360),n=.08,f=160;
  return new Float32Array([q/aspect,0,0,0,0,q,0,0,0,0,(f+n)/(n-f),-1,0,0,2*n*f/(n-f),0]);
 };
-const ATLAS_COLS=9,ATLAS_ROWS=9,TILE_W=128,TILE_H=220,ATLAS_W=ATLAS_COLS*TILE_W,ATLAS_H=ATLAS_ROWS*TILE_H;
+const ATLAS_COLS=9,ATLAS_ROWS=9,TILE_W=256,TILE_H=448,ATLAS_W=ATLAS_COLS*TILE_W,ATLAS_H=ATLAS_ROWS*TILE_H;
 const BACK_SLOT=78,EDGE_SLOT=79;
-const slotUv=(slot,u,v)=>[(slot%ATLAS_COLS+u)/ATLAS_COLS,(Math.floor(slot/ATLAS_COLS)+v)/ATLAS_ROWS];
+const slotUv=(slot,u,v)=>[(slot%ATLAS_COLS+2/TILE_W+u*(1-4/TILE_W))/ATLAS_COLS,(Math.floor(slot/ATLAS_COLS)+2/TILE_H+v*(1-4/TILE_H))/ATLAS_ROWS];
 function backing(ctx,x,y){
- const g=ctx.createLinearGradient(x,y,x+TILE_W,y+TILE_H);
- g.addColorStop(0,'#07132d');g.addColorStop(.5,'#183059');g.addColorStop(1,'#050e20');
- ctx.fillStyle='#c6ab78';ctx.fillRect(x,y,TILE_W,TILE_H);
- ctx.fillStyle=g;ctx.fillRect(x+3,y+3,TILE_W-6,TILE_H-6);
- ctx.strokeStyle='#e8cf95';ctx.lineWidth=1.3;ctx.strokeRect(x+8,y+9,TILE_W-16,TILE_H-18);
- ctx.strokeStyle='#bba678';ctx.lineWidth=.6;ctx.strokeRect(x+14,y+15,TILE_W-28,TILE_H-30);
- const midX=x+TILE_W/2,midY=y+TILE_H/2;
- for(let k=0;k<2;k++){ctx.beginPath();ctx.arc(midX,midY,27+k*8,0,TAU);ctx.stroke()}
- for(let i=0;i<16;i++){const a=i*TAU/16;ctx.beginPath();ctx.moveTo(midX+Math.sin(a)*36,midY+Math.cos(a)*36);ctx.lineTo(midX+Math.sin(a)*42,midY+Math.cos(a)*42);ctx.stroke()}
- ctx.fillStyle='#e9d49f';ctx.font='31px Georgia';ctx.textAlign='center';ctx.fillText('☽',midX,midY+11);
- ctx.font='8px Georgia';ctx.fillText('✦   ✧   ✦',midX,y+34);ctx.fillText('✦   ✧   ✦',midX,y+TILE_H-25);
+ // Premium thin obsidian back; a restrained gold bezel and engraved celestial lines.
+ const w=TILE_W,h=TILE_H,r=Math.max(7,w*.04),cx=x+w*.5,cy=y+h*.5;
+ const g=ctx.createLinearGradient(x,y,x+w,y+h);
+ g.addColorStop(0,'#1d2b46');g.addColorStop(.36,'#101d37');g.addColorStop(.79,'#07122a');g.addColorStop(1,'#030b1e');
+ ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.clip();ctx.fillStyle=g;ctx.fillRect(x,y,w,h);
+ const light=ctx.createRadialGradient(x+w*.37,y+h*.24,0,x+w*.37,y+h*.24,w*1.1);
+ light.addColorStop(0,'rgba(205,190,230,.16)');light.addColorStop(.52,'rgba(95,108,166,.035)');light.addColorStop(1,'rgba(0,0,0,0)');
+ ctx.fillStyle=light;ctx.fillRect(x,y,w,h);
+ ctx.strokeStyle='#c4ad7c';ctx.lineWidth=Math.max(.8,w*.005);
+ for(const q of [.035,.068]){ctx.beginPath();ctx.roundRect(x+w*q,y+h*q,w*(1-2*q),h*(1-2*q),r*.58);ctx.stroke()}
+ ctx.strokeStyle='rgba(224,205,157,.78)';ctx.lineWidth=Math.max(.65,w*.004);
+ for(const rad of [w*.255,w*.299,w*.347]){ctx.beginPath();ctx.arc(cx,cy,rad,0,Math.PI*2);ctx.stroke()}
+ for(let i=0;i<24;i++){const a=i*Math.PI/12;ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*w*.35,cy+Math.sin(a)*w*.35);ctx.lineTo(cx+Math.cos(a)*w*.385,cy+Math.sin(a)*w*.385);ctx.stroke()}
+ ctx.fillStyle='#e8d3a6';ctx.textAlign='center';ctx.font=(w*.30)+'px Georgia,serif';ctx.fillText('☽',cx,cy+w*.10);
+ ctx.font=(w*.052)+'px Georgia,serif';ctx.fillText('✧   ✦   ✧',cx,y+h*.136);ctx.fillText('✧   ✦   ✧',cx,y+h*.884);
+ for(let i=0;i<340;i++){const px=(i*89+i*i*17)%w,py=(i*67+i*i*29)%h;
+  ctx.fillStyle=i%3===0?'rgba(235,223,191,.048)':'rgba(13,25,46,.09)';ctx.fillRect(x+px,y+py,1,1)}
+ ctx.restore();
 }
 function makeAtlas(){
  const canvas=document.createElement('canvas');canvas.width=ATLAS_W;canvas.height=ATLAS_H;
@@ -75,24 +83,10 @@ function pushQuad(verts,A,B,C,D,slot,brightness){
  for(const [p,u,v] of points){const t=uv(u,v);verts.push(p[0],p[1],p[2],t[0],t[1],brightness)}
 }
 function appendBox(verts,card,position,time){
- // Actual 3D attitude: historical front/back and thin edges are revealed by motion.
- const {right,up,normal}=landingAttitude(card,position,time);
- const depth=.048,scale=entranceScale(card,time);
- const W=card.width*.5*scale,H=card.height*.5*scale;
- const locate=(sx,sy,sz)=>[position[0]+right[0]*W*sx+up[0]*H*sy+normal[0]*depth*sz,
-  position[1]+right[1]*W*sx+up[1]*H*sy+normal[1]*depth*sz,
-  position[2]+right[2]*W*sx+up[2]*H*sy+normal[2]*depth*sz];
- const f0=locate(-1,1,1),f1=locate(1,1,1),f2=locate(1,-1,1),f3=locate(-1,-1,1);
- const b0=locate(-1,1,-1),b1=locate(1,1,-1),b2=locate(1,-1,-1),b3=locate(-1,-1,-1);
- const fade=landingOpacity(card,time);
- // Stable 78-face atlas; camera genuinely sees face, back or edge, not a billboard.
- pushQuad(verts,f0,f1,f2,f3,card.index,card.light*fade);
- pushQuad(verts,b1,b0,b3,b2,BACK_SLOT,card.light*.72*fade);
- pushQuad(verts,f0,b0,b1,f1,EDGE_SLOT,.83*fade);
- pushQuad(verts,f2,b2,b3,f3,EDGE_SLOT,.83*fade);
- pushQuad(verts,f1,b1,b2,f2,EDGE_SLOT,.78*fade);
- pushQuad(verts,f3,b3,b0,f0,EDGE_SLOT,.78*fade);
+ appendPremiumCard(verts,card,position,landingAttitude(card,position,time),entranceScale(card,time),
+   card.light*landingOpacity(card,time),slotUv,{backSlot:BACK_SLOT,edgeSlot:EDGE_SLOT});
 }
+
 export class RitualWorld{
  constructor({mount,cards,faceAssetForId,visualSeed=createVisualSeed(),onStatus=()=>{}}){
   if(!mount)throw Error('RitualWorld requires persistent mount');
@@ -102,12 +96,15 @@ export class RitualWorld{
   this.canvas=document.createElement('canvas');this.canvas.className='ritual-world-canvas';this.canvas.setAttribute('aria-hidden','true');mount.append(this.canvas);
   const gl=this.canvas.getContext('webgl2',{alpha:true,antialias:true,depth:true,powerPreference:'high-performance'});
   if(!gl){this.canvas.remove();throw Error('WebGL2 unavailable (use fallback landing)')}
+  if(gl.getParameter(gl.MAX_TEXTURE_SIZE)<Math.max(ATLAS_W,ATLAS_H)){this.canvas.remove();throw Error('High-resolution atlas exceeds GPU limit; using Canvas fallback')}
   this.gl=gl;this.program=program(gl);this.vao=gl.createVertexArray();gl.bindVertexArray(this.vao);
   this.buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);
   for(const [loc,size,offset] of [[0,3,0],[1,2,12],[2,1,20]]){gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,24,offset)}
   this.texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  const anisotropy=gl.getExtension('EXT_texture_filter_anisotropic')||gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
+  if(anisotropy)gl.texParameterf(gl.TEXTURE_2D,anisotropy.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(8,gl.getParameter(anisotropy.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
   this.uploadAtlas();gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   this.locProj=gl.getUniformLocation(this.program,'projection');this.locAtlas=gl.getUniformLocation(this.program,'atlas');
   this.canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();this.contextLost=true;this.pause=true;onStatus({state:'context-lost'})},{once:true});
@@ -117,7 +114,7 @@ export class RitualWorld{
  setPhase(phase){if(!['landing','question_submitted','shuffle_ritual','deck_formed','sphere_selection','three_reveal'].includes(phase))throw Error('Unsupported world phase');this.phase=phase;this.onStatus({state:phase,cards:this.cards.length})}
  setPaused(value){this.pause=!!value}
  uploadAtlas(){const gl=this.gl;if(this.disposed||gl.isContextLost())return;gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,this.atlas.canvas)}
- uploadTile(index,image){const gl=this.gl;if(this.disposed||gl.isContextLost())return;const small=document.createElement('canvas');small.width=TILE_W;small.height=TILE_H;small.getContext('2d').drawImage(image,0,0,TILE_W,TILE_H);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texSubImage2D(gl.TEXTURE_2D,0,(index%ATLAS_COLS)*TILE_W,Math.floor(index/ATLAS_COLS)*TILE_H,gl.RGBA,gl.UNSIGNED_BYTE,small)}
+ uploadTile(index,image){const gl=this.gl;if(this.disposed||gl.isContextLost())return;const small=document.createElement('canvas');small.width=TILE_W;small.height=TILE_H;small.getContext('2d').drawImage(image,2,2,TILE_W-4,TILE_H-4);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texSubImage2D(gl.TEXTURE_2D,0,(index%ATLAS_COLS)*TILE_W,Math.floor(index/ATLAS_COLS)*TILE_H,gl.RGBA,gl.UNSIGNED_BYTE,small)}
  loadCardFaces(){
   // Individual immutable IDs, 78 distinct source URLs; async texture loading never changes identity/order.
   const queue=[...this.cards].sort((a,b)=>(Number(b.passIndex>=0)-Number(a.passIndex>=0))||a.orbitSlot-b.orbitSlot);
@@ -125,7 +122,8 @@ export class RitualWorld{
    if(this.disposed||index>=queue.length)return;
    const card=queue[index++],url=this.faceAssetForId(card.id),img=new Image();img.decoding='async';this.images.push(img);
    img.onload=()=>{if(this.disposed)return;const x=(card.index%ATLAS_COLS)*TILE_W,y=Math.floor(card.index/ATLAS_COLS)*TILE_H;
-    this.atlas.ctx.drawImage(img,x,y,TILE_W,TILE_H);this.loadedCount++;this.uploadTile(card.index,img);img.onload=null;img.onerror=null;this.images.splice(this.images.indexOf(img),1);this.onStatus({state:this.phase,loaded:this.loadedCount,cards:78});next()};
+    this.atlas.ctx.drawImage(img,x+2,y+2,TILE_W-4,TILE_H-4);this.loadedCount++;this.uploadTile(card.index,img);
+    if(this.loadedCount===78){const gl=this.gl;gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR)}img.onload=null;img.onerror=null;this.images.splice(this.images.indexOf(img),1);this.onStatus({state:this.phase,loaded:this.loadedCount,cards:78});next()};
    img.onerror=()=>{if(this.disposed)return;this.failedAssets.push(card.id);this.images.splice(this.images.indexOf(img),1);this.onStatus({state:this.phase,failed:this.failedAssets.length});next()};
    img.src=url;
   };next()});return workers;
@@ -144,7 +142,7 @@ export class RitualWorld{
   gl.drawArrays(gl.TRIANGLES,0,vertices.length/6);
   this.onStatus({state:this.phase,rendered:78,elapsed:this.elapsed,loaded:this.loadedCount,failed:this.failedAssets.length});
  }
- getDiagnostics(){return {phase:this.phase,cards:this.cards.length,loaded:this.loadedCount,failed:this.failedAssets.length,elapsed:this.elapsed,visualSeed:this.visualSeed,...orbitDiagnostics(this.cards,this.elapsed),webgl:this.gl.getParameter(this.gl.VERSION),canvasWidth:this.canvas.width,canvasHeight:this.canvas.height}}
+ getDiagnostics(){return {phase:this.phase,cards:this.cards.length,loaded:this.loadedCount,failed:this.failedAssets.length,elapsed:this.elapsed,visualSeed:this.visualSeed,...orbitDiagnostics(this.cards,this.elapsed),webgl:this.gl.getParameter(this.gl.VERSION),textureTile:[TILE_W,TILE_H],cardGeometry:'rounded-beveled-thin',canvasWidth:this.canvas.width,canvasHeight:this.canvas.height}}
  dispose(){if(this.disposed)return;this.disposed=true;cancelAnimationFrame(this.frame);this.resizeObserver?.disconnect();for(const img of this.images){img.onload=null;img.onerror=null}
   const gl=this.gl;if(!gl.isContextLost()){gl.deleteTexture(this.texture);gl.deleteBuffer(this.buffer);gl.deleteVertexArray(this.vao);gl.deleteProgram(this.program)}this.canvas.remove();}
 }

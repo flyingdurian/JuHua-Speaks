@@ -16,6 +16,11 @@ jobs:
         with:
           node-version: '22'
       - run: npm test
+      - run: |
+          node --check src/ritual-world/OrbitalField.mjs
+          node --check src/ritual-world/RitualWorld.mjs
+          node --check src/ritual-world/CardSurface.mjs
+          node --check src/ritual-world/CanvasOrbit.mjs
       - name: Verify JavaScript source syntax
         run: |
           node --check src/app.mjs
