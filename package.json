@@ -9,7 +9,8 @@
     "test": "node --test test/*.test.mjs",
     "assets:sync": "node scripts/sync-rws-assets.mjs",
     "assets:audit": "node scripts/audit-assets.mjs",
-    "api:test": "node scripts/test-exodia-api.mjs"
+    "api:test": "node scripts/test-exodia-api.mjs",
+    "preview:gate-a": "node scripts/serve-gate-a.mjs"
   },
   "engines": {
     "node": ">=20"

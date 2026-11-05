@@ -118,3 +118,8 @@ No new real model requests are triggered automatically. The local Exodia path st
 A frame-by-frame study of the user's 40-second reference recording now informs the front half of the experience. Full-screen landing uses orbiting original 1909 RWS face textures through WebGL2; the time-based shuffle animates tornado → collapsed pack → mini globe → three deck piles → floating deck. Optional cosmic/riffle/wash shuffles restart a secured fair draw and minimum-duration gate. The deck then travels through a star field into the existing interior card sphere. Hover/pick adds depth and gold aura; users can undo a three-card selection during a short lock window. Reveal now shows all three cards side by side and supports click, edge, or corner peek using a physical 3D card rotation rather than a 2D wipe.
 
 The existing cinematic scripted Past/Present/Future interpretation stage and optional local Exodia adapter remain unchanged. Source: [VIDEO_RITUAL_FIDELITY.md](docs/VIDEO_RITUAL_FIDELITY.md). Full device GPU/touch QA remains a manual release gate.
+
+
+## v0.8.3 Gate A — persistent landing universe (visual review, unmerged)
+
+On branch `feat/v083-gate-a-persistent-world`, run `npm run preview:gate-a` and open `http://127.0.0.1:4183/preview/gate-a/`. This isolated preview replaces the rejected v0.8.2 landing renderer with one persistent WebGL2 world, a durable camera and 78 distinct Tarot entities with original RWS front texture sources, gold-edged backs and thickness. A Canvas2D perspective fallback handles WebGL restrictions. **Only the landing is in scope; shuffle, sphere and reveal gates remain blocked until visual approval.** Production stays v0.8.2; see `docs/GATE_A_WORLD_REBUILD.md`.
