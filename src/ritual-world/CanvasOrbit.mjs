@@ -28,8 +28,8 @@ export class CanvasOrbit{
   let i=0;const priority=[...this.cards].sort((a,b)=>(Number(b.passIndex>=0)-Number(a.passIndex>=0))||a.orbitSlot-b.orbitSlot);
   for(let n=0;n<4;n++){
    const work=()=>{if(this.disposed||i>=priority.length)return;const card=priority[i++],image=new Image();this.images.push(image);
-    image.onload=()=>{if(this.disposed)return;const small=document.createElement('canvas');small.width=192;small.height=336;small.getContext('2d').drawImage(image,0,0,192,336);this.fronts.set(card.id,small);this.loadedCount++;image.onload=null;image.onerror=null;work()};
-    image.onerror=()=>{if(this.disposed)return;this.failedAssets.push(card.id);work()};image.src=faceAssetForId(card.id)};work();
+    image.onload=()=>{if(this.disposed)return;const small=document.createElement('canvas');small.width=192;small.height=336;small.getContext('2d').drawImage(image,0,0,192,336);this.fronts.set(card.id,small);this.loadedCount++;image.onload=null;image.onerror=null;this.images.splice(this.images.indexOf(image),1);work()};
+    image.onerror=()=>{if(this.disposed)return;this.failedAssets.push(card.id);this.images.splice(this.images.indexOf(image),1);work()};image.src=faceAssetForId(card.id)};work();
   }
   this.tick=this.tick.bind(this);this.frame=requestAnimationFrame(this.tick);
  }
@@ -38,6 +38,7 @@ export class CanvasOrbit{
  resize(){const r=this.mount.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,1.35);
   const w=Math.max(2,Math.round(r.width*dpr)),h=Math.max(2,Math.round(r.height*dpr));if(w!==this.canvas.width||h!==this.canvas.height){this.canvas.width=w;this.canvas.height=h}}
  tick(now){if(this.disposed)return;this.frame=requestAnimationFrame(this.tick);if(document.hidden||this.paused)return;
+  if(this.loadedCount!==78){this.last=now;this.lastPaint=now;return;} // Original faces required before entrance.
   const delta=Math.min(65,now-this.last||0);this.last=now;this.elapsed+=delta/1000;
   if(now-this.lastPaint<29)return;this.lastPaint=now;
   this.resize();const ctx=this.ctx,w=this.canvas.width,h=this.canvas.height,f=h/(2*Math.tan(Math.PI*58/360));

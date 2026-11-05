@@ -130,14 +130,15 @@ export class RitualWorld{
    if(this.disposed||index>=queue.length)return;
    const card=queue[index++],url=this.faceAssetForId(card.id),img=new Image();img.decoding='async';this.images.push(img);
    img.onload=()=>{if(this.disposed)return;const x=(card.index%ATLAS_COLS)*TILE_W,y=Math.floor(card.index/ATLAS_COLS)*TILE_H;
-    this.atlas.ctx.drawImage(img,x,y,TILE_W,TILE_H);this.loadedCount++;this.uploadTile(card.index,img);img.onload=null;img.onerror=null;this.onStatus({state:this.phase,loaded:this.loadedCount,cards:78});next()};
-   img.onerror=()=>{if(this.disposed)return;this.failedAssets.push(card.id);this.onStatus({state:this.phase,failed:this.failedAssets.length});next()};
+    this.atlas.ctx.drawImage(img,x,y,TILE_W,TILE_H);this.loadedCount++;this.uploadTile(card.index,img);img.onload=null;img.onerror=null;this.images.splice(this.images.indexOf(img),1);this.onStatus({state:this.phase,loaded:this.loadedCount,cards:78});next()};
+   img.onerror=()=>{if(this.disposed)return;this.failedAssets.push(card.id);this.images.splice(this.images.indexOf(img),1);this.onStatus({state:this.phase,failed:this.failedAssets.length});next()};
    img.src=url;
   };next()});return workers;
  }
  resize(){if(this.disposed)return;const r=this.mount.getBoundingClientRect();const dpr=Math.min(window.devicePixelRatio||1,1.5);
   const w=Math.max(2,Math.round(r.width*dpr)),h=Math.max(2,Math.round(r.height*dpr));if(w!==this.canvas.width||h!==this.canvas.height){this.canvas.width=w;this.canvas.height=h;this.gl.viewport(0,0,w,h)}}
  tick(now){if(this.disposed||this.contextLost)return;this.frame=requestAnimationFrame(this.tick);if(document.hidden||this.pause)return;
+  if(this.loadedCount!==78){this.last=now;this.lastRendered=now;return;} // No placeholder/fake faces during entrance.
   const dt=Math.min(70,now-this.last||0);this.last=now;this.elapsed+=dt/1000;
   if(now-this.lastRendered<28)return;this.lastRendered=now;
   this.resize();const gl=this.gl;gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(this.program);gl.bindVertexArray(this.vao);

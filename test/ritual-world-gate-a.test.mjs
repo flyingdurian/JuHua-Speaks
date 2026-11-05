@@ -53,6 +53,8 @@ test('persistent GPU renderer and fallback share all 78 original front slots and
  const preview=await readFile(new URL('../preview/gate-a/gate-a.mjs',import.meta.url),'utf8');
  assert.match(gl,/this\.cards=makeLandingCardEntities\(cards,visualSeed\)/);
  assert.match(gl,/uploadTile\(card\.index,img\)/);
+ assert.match(gl,/if\(this\.loadedCount!==78\)/);
+ assert.match(canvas,/if\(this\.loadedCount!==78\)/);
  assert.match(gl,/pushQuad\(verts,f0,f1,f2,f3,card\.index/);
  assert.match(gl,/this\.faceAssetForId\(card\.id\)/);
  assert.doesNotMatch(gl,/if\(visibleFront\)\{right=right\.map/);
