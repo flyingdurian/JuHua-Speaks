@@ -63,6 +63,8 @@ test('high-quality atlas and fallback use genuine art and no billboard paths',as
  assert.match(gl,/appendPremiumCard/);
  assert.match(gl,/gl\.generateMipmap\(gl\.TEXTURE_2D\)/);
  assert.match(gl,/MAX_TEXTURE_SIZE/);
+ assert.match(gl,/pixelStorei\(gl\.UNPACK_FLIP_Y_WEBGL,false\)/); // v=0 represents top of real card art
+ assert.doesNotMatch(gl,/UNPACK_FLIP_Y_WEBGL,true/);
  assert.match(gl,/this\.faceAssetForId\(card\.id\)/);
  assert.match(canvas,/small\.width=384;small\.height=664/);
  assert.match(canvas,/src=pose\.frontFacingCamera\?/);

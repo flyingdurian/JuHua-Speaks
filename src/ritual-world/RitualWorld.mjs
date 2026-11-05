@@ -113,8 +113,9 @@ export class RitualWorld{
  }
  setPhase(phase){if(!['landing','question_submitted','shuffle_ritual','deck_formed','sphere_selection','three_reveal'].includes(phase))throw Error('Unsupported world phase');this.phase=phase;this.onStatus({state:phase,cards:this.cards.length})}
  setPaused(value){this.pause=!!value}
- uploadAtlas(){const gl=this.gl;if(this.disposed||gl.isContextLost())return;gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,this.atlas.canvas)}
- uploadTile(index,image){const gl=this.gl;if(this.disposed||gl.isContextLost())return;const small=document.createElement('canvas');small.width=TILE_W;small.height=TILE_H;small.getContext('2d').drawImage(image,2,2,TILE_W-4,TILE_H-4);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texSubImage2D(gl.TEXTURE_2D,0,(index%ATLAS_COLS)*TILE_W,Math.floor(index/ATLAS_COLS)*TILE_H,gl.RGBA,gl.UNSIGNED_BYTE,small)}
+ // UV v=0 addresses the TOP of the artwork. Keep canvas uploads unflipped for correct upright RWS fronts.
+ uploadAtlas(){const gl=this.gl;if(this.disposed||gl.isContextLost())return;gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,this.atlas.canvas)}
+ uploadTile(index,image){const gl=this.gl;if(this.disposed||gl.isContextLost())return;const small=document.createElement('canvas');small.width=TILE_W;small.height=TILE_H;small.getContext('2d').drawImage(image,2,2,TILE_W-4,TILE_H-4);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texSubImage2D(gl.TEXTURE_2D,0,(index%ATLAS_COLS)*TILE_W,Math.floor(index/ATLAS_COLS)*TILE_H,gl.RGBA,gl.UNSIGNED_BYTE,small)}
  loadCardFaces(){
   // Individual immutable IDs, 78 distinct source URLs; async texture loading never changes identity/order.
   const queue=[...this.cards].sort((a,b)=>(Number(b.passIndex>=0)-Number(a.passIndex>=0))||a.orbitSlot-b.orbitSlot);

@@ -58,3 +58,6 @@ Open http://127.0.0.1:4183/preview/gate-a/. Use **H** to hide/show the CTA. Comp
 - Automated tests cover fixed-radius invariants, no special near-pass spline, coherent angular velocity, natural side transitions, valid rounded mesh, real card ID mapping and atlas settings.
 - Local test environment blocks GPU WebGL and network-sourced RWS JPEG downloads. A Canvas-only, geometry-driven technical preview can be tested here, **but does not establish real GPU visual fidelity**. Do not substitute test-art thumbnails for genuine illustrations in the reviewed build.
 - **No deployment, PR merge or Gate B development until Product Owner visually accepts Gate A v4.** Keep detailed logs and comparisons in this document / repo.
+
+### Image orientation safeguard
+The physical front mesh assigns **v=0 to the card's top edge**. Both full-atlas and per-tile Canvas uploads therefore use `UNPACK_FLIP_Y_WEBGL=false`, preventing an unintended global upside-down display. A genuinely reversed card is rotated by its own deliberate 180° visual orientation, never by accidental texture flipping.
