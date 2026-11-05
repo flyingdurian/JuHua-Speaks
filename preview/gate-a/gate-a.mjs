@@ -29,7 +29,7 @@ let world=null;
 try{
  world=new RitualWorld({mount:root,cards:DECK,faceAssetForId:localFiles,visualSeed,onStatus:evt=>{
   if(evt.state==='context-lost'){status.textContent='GRAPHICS CONTEXT LOST';return}
-  if(Number.isInteger(evt.loaded))status.textContent=evt.loaded===78?'ORBIT ACTIVE · 78 FACES LOADED':`LOADING ORIGINAL ART · ${evt.loaded}/78`;
+  if(Number.isInteger(evt.loaded))status.textContent=evt.loaded===78?'ORBIT ACTIVE · 78 FACES LOADED':`ORBIT ACTIVE · LOADING RWS ART ${evt.loaded}/78`;
   if(evt.failed)status.textContent='ILLUSTRATION ERROR — VERIFY RWS ASSETS';
  }});
  document.getElementById('card-counter').textContent=`${world.cards.length} CARD ENTITIES`;

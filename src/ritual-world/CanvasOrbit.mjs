@@ -38,7 +38,6 @@ export class CanvasOrbit{
  resize(){const r=this.mount.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,1.35);
   const w=Math.max(2,Math.round(r.width*dpr)),h=Math.max(2,Math.round(r.height*dpr));if(w!==this.canvas.width||h!==this.canvas.height){this.canvas.width=w;this.canvas.height=h}}
  tick(now){if(this.disposed)return;this.frame=requestAnimationFrame(this.tick);if(document.hidden||this.paused)return;
-  if(this.loadedCount!==78){this.last=now;this.lastPaint=now;return;} // Original faces required before entrance.
   const delta=Math.min(65,now-this.last||0);this.last=now;this.elapsed+=delta/1000;
   if(now-this.lastPaint<29)return;this.lastPaint=now;
   this.resize();const ctx=this.ctx,w=this.canvas.width,h=this.canvas.height,f=h/(2*Math.tan(Math.PI*58/360));
