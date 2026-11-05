@@ -38,6 +38,20 @@ try{
  try{world=new CanvasOrbit({mount:root,cards:DECK,faceAssetForId:localFiles,visualSeed,onStatus:evt=>{status.textContent=evt.loaded===78?'ORBIT ACTIVE · 78 FACES LOADED':`ORBIT ACTIVE · ILLUSTRATIONS ${evt.loaded||0}/78`}});status.textContent='ORBIT ACTIVE · 2D FALLBACK';}
  catch(inner){status.textContent='RENDERER UNAVAILABLE';console.error(inner)}
 }
+// The user's comparison videos supplied CTA-on and CTA-off views.
+ // This control toggles ONLY the overlay; the 3D world/camera are never recreated.
+const hideButton=document.getElementById('hide-cta');
+function toggleCta(force){
+ const hide=typeof force==='boolean'?force:!page.classList.contains('review-no-cta');
+ if(hide&&document.activeElement?.closest?.('.question-panel'))document.activeElement.blur();
+ page.classList.toggle('review-no-cta',hide);
+ hideButton.setAttribute('aria-pressed',String(hide));
+ hideButton.innerHTML=hide?'SHOW CTA <span>H</span>':'HIDE CTA <span>H</span>';
+}
+hideButton.addEventListener('click',()=>toggleCta());
+window.addEventListener('keydown',event=>{
+ if(event.key.toLowerCase()==='h'&&!event.altKey&&!event.ctrlKey&&!event.metaKey&&!['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)){toggleCta();event.preventDefault();}
+});
 const paused=document.getElementById('pause');paused.addEventListener('click',()=>{if(!world)return;const state=!(world.pause??world.paused);world.setPaused(state);paused.innerHTML=state?'RESUME ORBIT <span>▶</span>':'PAUSE ORBIT <span>Ⅱ</span>';status.textContent=state?'ORBIT PAUSED':'ORBIT ACTIVE'});
 document.getElementById('divine').addEventListener('click',()=>{
  const question=document.getElementById('question');if(question.value.trim().length<3){question.focus();return}

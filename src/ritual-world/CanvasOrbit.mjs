@@ -3,7 +3,7 @@
  * entities, world-space orbit, camera projection and lifecycle as RitualWorld.
  * It is a real perspective projection, not a scattered CSS animation.
  */
-import {makeLandingCardEntities,sampleLandingPose,landingOpacity,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
+import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,landingAttitude,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
 const TAU=Math.PI*2;
 const norm=a=>{const l=Math.hypot(...a)||1;return a.map(v=>v/l)};
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
@@ -47,16 +47,16 @@ export class CanvasOrbit{
   items.sort((a,b)=>a.pos[2]-b.pos[2]);
   const project=p=>[w*.5+p[0]*f/(-p[2]),h*.5-p[1]*f/(-p[2])];
   for(const {card,pos} of items){
-   const toward=norm(pos.map(v=>-v));let right=norm(cross([0,1,0],toward));if(Math.hypot(...right)<.01)right=[1,0,0];let up=norm(cross(toward,right));
-   const roll=card.roll+(card.reversed?Math.PI:0)+Math.sin(this.elapsed*.24+card.phase)*.055;const cs=Math.cos(roll),sn=Math.sin(roll);const r=right.map((n,i)=>n*cs+up[i]*sn);const u=up.map((n,i)=>n*cs-right[i]*sn);right=r;up=u;
-   const W=card.width*.5,H=card.height*.5;
+   // The 2D perspective fallback uses the same physical front/back basis as WebGL.
+   const pose=landingAttitude(card,pos,this.elapsed),right=pose.right,up=pose.up;
+   const scale=entranceScale(card,this.elapsed),W=card.width*.5*scale,H=card.height*.5*scale;
    const v=(sx,sy)=>project([pos[0]+right[0]*sx*W+up[0]*sy*H,pos[1]+right[1]*sx*W+up[1]*sy*H,pos[2]+right[2]*sx*W+up[2]*sy*H]);
    const A=v(-1,1),B=v(1,1),C=v(1,-1),D=v(-1,-1);
    const bound=Math.max(Math.hypot(B[0]-A[0],B[1]-A[1]),Math.hypot(D[0]-A[0],D[1]-A[1]));
    if(bound<2.8||bound>1900||[A,B,C,D].every(p=>p[0]<-80||p[0]>w+80||p[1]<-80||p[1]>h+80))continue;
    const edge=.5+bound*.011;
    ctx.fillStyle='#a88d65';ctx.beginPath();ctx.moveTo(B[0],B[1]);ctx.lineTo(C[0],C[1]);ctx.lineTo(C[0]+edge,C[1]+edge);ctx.lineTo(B[0]+edge,B[1]+edge);ctx.closePath();ctx.fill();
-   const src=this.fronts.get(card.id)||this.back;
+   const src=pose.frontFacingCamera?this.fronts.get(card.id)||this.back:this.back;
    ctx.save();ctx.globalAlpha=card.light*landingOpacity(card,this.elapsed);ctx.setTransform((B[0]-A[0])/src.width,(B[1]-A[1])/src.width,(D[0]-A[0])/src.height,(D[1]-A[1])/src.height,A[0],A[1]);ctx.drawImage(src,0,0);ctx.restore();
    ctx.strokeStyle='#c5aa79';ctx.lineWidth=Math.max(.5,bound*.007);ctx.beginPath();ctx.moveTo(...A);ctx.lineTo(...B);ctx.lineTo(...C);ctx.lineTo(...D);ctx.closePath();ctx.stroke();
   }

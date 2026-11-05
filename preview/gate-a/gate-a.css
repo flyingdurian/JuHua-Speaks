@@ -27,3 +27,25 @@ h1{font:normal clamp(31px,4.5vw,53px)/1.2 Georgia,'Times New Roman',serif;letter
 @keyframes fallbackDrift{0%{transform:rotate(var(--r)) translateY(0)}50%{transform:rotate(calc(var(--r) + 45deg)) translateY(42px)}100%{transform:rotate(calc(var(--r) + 90deg)) translateY(0)}}
 @media(max-width:650px){.gate-header{padding:17px 17px}.gate-version{letter-spacing:.12em;font-size:8px}.wordmark{font-size:14px}.wordmark-sigil{font-size:28px}.question-panel{width:91vw;top:47%}.overline{line-height:1.6}.question-panel h1{margin:22px 0}.gate-footer{padding:18px;letter-spacing:.1em;font-size:8px}.footer-right>span{display:none}}
 @media(prefers-reduced-motion:reduce){.fallback-orbit span{animation:none}.gate-a *{transition:none!important}}
+
+
+/* Gate A v3: space depth is visible, but the CTA remains readable. */
+.space-background:after{content:"";position:absolute;inset:-15%;pointer-events:none;mix-blend-mode:screen;opacity:.82;
+ background:
+ radial-gradient(ellipse 12% 34% at 88% 29%,rgba(175,159,204,.19),transparent 94%),
+ radial-gradient(ellipse 23% 16% at 77% 69%,rgba(118,99,176,.12),transparent 95%),
+ radial-gradient(ellipse 17% 41% at 63% 49%,rgba(118,148,204,.10),transparent 94%),
+ radial-gradient(ellipse 24% 11% at 33% 88%,rgba(154,117,190,.10),transparent 95%);
+ filter:blur(27px);animation:nebulaDrift 37s ease-in-out infinite alternate}
+@keyframes nebulaDrift{0%{transform:translate(-3%,-2%) rotate(-7deg) scale(.93)}100%{transform:translate(4%,3%) rotate(5deg) scale(1.12)}}
+.space-background{filter:hue-rotate(var(--hue)) saturate(1.15)}
+.space-background canvas{opacity:1}
+.space-vignette{background:radial-gradient(ellipse 31% 36% at 50% 50%,rgba(0,0,0,.38) 0%,rgba(0,0,0,.28) 55%,transparent 90%),
+ linear-gradient(0deg,#03040c83 0%,transparent 14%,transparent 86%,#03040c60 100%)}
+.question-panel{width:min(515px,87vw)}
+.question-panel h1{font-size:clamp(28px,3.4vw,43px);margin:19px 0 24px}
+.question-panel textarea{background:rgba(4,7,16,.77)}
+.gate-a.review-no-cta .question-panel{opacity:0;pointer-events:none;visibility:hidden}
+.gate-footer button[aria-pressed="true"]{border-color:#dfbe8b;color:#ffe3ae}
+.gate-footer .review-controls{display:flex;gap:9px;align-items:center}
+@media(prefers-reduced-motion:reduce){.space-background:after{animation:none}}

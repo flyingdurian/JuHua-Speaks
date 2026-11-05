@@ -4,7 +4,7 @@
  * DOM overlays may update without disposing this renderer.
  * Card fronts resolve by immutable DeckConfig card IDs; historical art is never redrawn.
  */
-import {makeLandingCardEntities,sampleLandingPose,landingOpacity,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
+import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,landingAttitude,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
 export {makeLandingCardEntities,sampleLandingPose} from './OrbitalField.mjs';
 const TAU = Math.PI * 2;
 const clamp = (v,a,b) => Math.max(a, Math.min(b,v));
@@ -27,7 +27,7 @@ const program=(gl)=>{
  const frag=shader(gl,gl.FRAGMENT_SHADER,`#version 300 es
  precision mediump float;
  in vec2 vUv;in float vLight;uniform sampler2D atlas;out vec4 color;
- void main(){vec4 base=texture(atlas,vUv);color=vec4(base.rgb*vLight,base.a);}`);
+ void main(){vec4 base=texture(atlas,vUv);color=vec4(base.rgb*(.72+.28*vLight),base.a*clamp(vLight,0.0,1.0));}`);
  const p=gl.createProgram();gl.attachShader(p,vert);gl.attachShader(p,frag);gl.linkProgram(p);
  gl.deleteShader(vert);gl.deleteShader(frag);
  if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));return p;
@@ -75,28 +75,23 @@ function pushQuad(verts,A,B,C,D,slot,brightness){
  for(const [p,u,v] of points){const t=uv(u,v);verts.push(p[0],p[1],p[2],t[0],t[1],brightness)}
 }
 function appendBox(verts,card,position,time){
- const toward=norm([-position[0],-position[1],-position[2]]);
- let right=norm(cross([0,1,0],toward));
- if(Math.hypot(...right)<.01)right=[1,0,0];
- let up=norm(cross(toward,right));
- const roll=card.roll+(card.reversed?Math.PI:0)+Math.sin(time*.24+card.phase)*.055;
- right=rotAround(right,toward,roll);up=rotAround(up,toward,roll);
- // Every landing card shows its authentic face; a true half-turn creates a reversed card.
- const visibleFront=true;
- const depth=.040;
- const W=card.width*.5,H=card.height*.5;
- const locate=(sx,sy,sz)=>[position[0]+right[0]*W*sx+up[0]*H*sy+toward[0]*depth*sz,
-  position[1]+right[1]*W*sx+up[1]*H*sy+toward[1]*depth*sz,
-  position[2]+right[2]*W*sx+up[2]*H*sy+toward[2]*depth*sz];
+ // Actual 3D attitude: historical front/back and thin edges are revealed by motion.
+ const {right,up,normal}=landingAttitude(card,position,time);
+ const depth=.048,scale=entranceScale(card,time);
+ const W=card.width*.5*scale,H=card.height*.5*scale;
+ const locate=(sx,sy,sz)=>[position[0]+right[0]*W*sx+up[0]*H*sy+normal[0]*depth*sz,
+  position[1]+right[1]*W*sx+up[1]*H*sy+normal[1]*depth*sz,
+  position[2]+right[2]*W*sx+up[2]*H*sy+normal[2]*depth*sz];
  const f0=locate(-1,1,1),f1=locate(1,1,1),f2=locate(1,-1,1),f3=locate(-1,-1,1);
  const b0=locate(-1,1,-1),b1=locate(1,1,-1),b2=locate(1,-1,-1),b3=locate(-1,-1,-1);
- // Card is a thin bevelled solid with independent front/back/edge surfaces.
- pushQuad(verts,f0,f1,f2,f3,card.index,card.light*landingOpacity(card,time));
- pushQuad(verts,b1,b0,b3,b2,BACK_SLOT,card.light*.76*landingOpacity(card,time));
- pushQuad(verts,f0,b0,b1,f1,EDGE_SLOT,.86*landingOpacity(card,time));
- pushQuad(verts,f2,b2,b3,f3,EDGE_SLOT,.86*landingOpacity(card,time));
- pushQuad(verts,f1,b1,b2,f2,EDGE_SLOT,.82*landingOpacity(card,time));
- pushQuad(verts,f3,b3,b0,f0,EDGE_SLOT,.82*landingOpacity(card,time));
+ const fade=landingOpacity(card,time);
+ // Stable 78-face atlas; camera genuinely sees face, back or edge, not a billboard.
+ pushQuad(verts,f0,f1,f2,f3,card.index,card.light*fade);
+ pushQuad(verts,b1,b0,b3,b2,BACK_SLOT,card.light*.72*fade);
+ pushQuad(verts,f0,b0,b1,f1,EDGE_SLOT,.83*fade);
+ pushQuad(verts,f2,b2,b3,f3,EDGE_SLOT,.83*fade);
+ pushQuad(verts,f1,b1,b2,f2,EDGE_SLOT,.78*fade);
+ pushQuad(verts,f3,b3,b0,f0,EDGE_SLOT,.78*fade);
 }
 export class RitualWorld{
  constructor({mount,cards,faceAssetForId,visualSeed=createVisualSeed(),onStatus=()=>{}}){
@@ -113,7 +108,7 @@ export class RitualWorld{
   this.texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
-  this.uploadAtlas();gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);
+  this.uploadAtlas();gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   this.locProj=gl.getUniformLocation(this.program,'projection');this.locAtlas=gl.getUniformLocation(this.program,'atlas');
   this.canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();this.contextLost=true;this.pause=true;onStatus({state:'context-lost'})},{once:true});
   this.setPhase('landing');this.loadCardFaces();this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(mount);

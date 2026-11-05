@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {DECK} from '../src/deck.mjs';
 import {makeLandingCardEntities,sampleLandingPose} from '../src/ritual-world/RitualWorld.mjs';
-import {sphericalPose,landingOpacity,orbitDiagnostics,ENTRANCE_SECONDS} from '../src/ritual-world/OrbitalField.mjs';
+import {sphericalPose,landingOpacity,entranceScale,landingAttitude,orbitDiagnostics,ENTRANCE_SECONDS,ORBIT_SPEED} from '../src/ritual-world/OrbitalField.mjs';
 
 test('78 unique RWS identities, front-facing art, randomized visual orientation and positions',()=>{
  const cards=makeLandingCardEntities(DECK,47925);
@@ -19,7 +19,7 @@ test('entrance ejects cards from camera before assembling the wide celestial she
  const cards=makeLandingCardEntities(DECK,47925);
  const before=cards.map(c=>sampleLandingPose(c,0));
  const after=cards.map(c=>sampleLandingPose(c,ENTRANCE_SECONDS+1));
- assert.ok(before.every(p=>p[2]>-5));
+ assert.ok(before.every(p=>p[2]>-11)); // safely bounded flyout; no giant fullscreen card collage
  assert.ok(after.filter(p=>p[2]<-22).length>=60);
  assert.ok(after.some(p=>p[0]<-18)&&after.some(p=>p[0]>18));
  assert.ok(after.some(p=>p[1]<-15)&&after.some(p=>p[1]>15));
@@ -43,9 +43,9 @@ test('fresh sessions randomize arrangement, orientation, and which cards pass th
  assert.notDeepEqual(a.map(c=>c.orbitSlot),b.map(c=>c.orbitSlot));
  assert.notDeepEqual(a.filter(c=>c.passIndex>=0).map(c=>c.id),b.filter(c=>c.passIndex>=0).map(c=>c.id));
  assert.notDeepEqual(a.map(c=>c.reversed),b.map(c=>c.reversed));
- assert.equal(a.filter(c=>c.passIndex>=0).length,5);
- assert.ok(orbitDiagnostics(a,11).farCount>=64);
- assert.ok([3,6,12,17,24].some(t=>orbitDiagnostics(a,t).closest>-10));
+ assert.equal(a.filter(c=>c.passIndex>=0).length,4);
+ assert.ok(orbitDiagnostics(a,11).farCount>=56);
+ assert.ok([7.9,19.6,31.3,43].some(t=>orbitDiagnostics(a,t).closest>-11));
 });
 test('persistent GPU renderer and fallback share all 78 original front slots and orientation',async()=>{
  const gl=await readFile(new URL('../src/ritual-world/RitualWorld.mjs',import.meta.url),'utf8');
@@ -59,7 +59,9 @@ test('persistent GPU renderer and fallback share all 78 original front slots and
  assert.match(gl,/this\.faceAssetForId\(card\.id\)/);
  assert.doesNotMatch(gl,/if\(visibleFront\)\{right=right\.map/);
  assert.match(canvas,/this\.fronts\.get\(card\.id\)/);
- assert.match(canvas,/card\.reversed\?Math\.PI:0/);
+ assert.match(gl,/landingAttitude\(card,position,time\)/);
+ assert.match(canvas,/landingAttitude\(card,pos,this\.elapsed\)/);
+ assert.match(canvas,/pose\.frontFacingCamera\?/);
  assert.match(preview,/visualSeed/);
  assert.match(preview,/78 FACES LOADED/);
 });
@@ -83,4 +85,31 @@ test('Gate A is isolated from production flow, Exodia and Gate B',async()=>{
  assert.match(launch,/RitualWorld/);assert.match(launch,/CanvasOrbit/);
  assert.match(server,/4183/);assert.match(server,/127\.0\.0\.1/);
  assert.doesNotMatch(server,/0\.0\.0\.0/);
+});
+
+
+test('video benchmark: broad rotating shell, visible backs, foreshortened edges (not billboards)',()=>{
+ const cards=makeLandingCardEntities(DECK,47925);
+ const seconds=9.8,poses=cards.map(c=>sampleLandingPose(c,seconds));
+ const attitudes=cards.map((c,i)=>landingAttitude(c,poses[i],seconds));
+ const fronts=attitudes.filter(a=>a.frontFacingCamera).length;
+ const backs=attitudes.filter(a=>!a.frontFacingCamera).length;
+ const edgeOn=attitudes.filter(a=>Math.abs(a.facing)<.28).length;
+ assert.ok(fronts>=10&&fronts<=40,'A minority show authentic faces at one moment');
+ assert.ok(backs>=38,'Dark card backs dominate the spherical landing field');
+ assert.ok(edgeOn>=3,'Card sides become visibly foreshortened, unlike billboards');
+ assert.ok(ORBIT_SPEED>.025&&ORBIT_SPEED<.08,'Slow but visibly changing 20-second orbit');
+ assert.ok(cards.every(c=>c.frontVisible),'All 78 genuine fronts are still asset-mapped');
+ assert.ok(attitudes.every(a=>a.right.every(Number.isFinite)&&a.up.every(Number.isFinite)&&a.normal.every(Number.isFinite)));
+ assert.ok(cards.some(c=>entranceScale(c,.45)<.55),'Flyout begins with small, not fullscreen, cards');
+});
+test('CTA-off comparison retains same world instance and keyboard-only visual toggle',async()=>{
+ const html=await readFile(new URL('../preview/gate-a/index.html',import.meta.url),'utf8');
+ const js=await readFile(new URL('../preview/gate-a/gate-a.mjs',import.meta.url),'utf8');
+ const css=await readFile(new URL('../preview/gate-a/gate-a.css',import.meta.url),'utf8');
+ assert.match(html,/id="hide-cta"/);
+ assert.match(js,/page\.classList\.toggle\('review-no-cta',hide\)/);
+ assert.match(css,/review-no-cta \.question-panel/);
+ assert.match(css,/nebulaDrift/);
+ assert.ok(!/new RitualWorld\([^\n]+\)\s*;\s*world\.dispose\(/.test(js),'CTA toggling must not recreate the world');
 });
