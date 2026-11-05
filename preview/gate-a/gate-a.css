@@ -6,7 +6,7 @@
 .space-background canvas{width:100%;height:100%;display:block;opacity:.93}
 .world-root{z-index:1;contain:layout paint}
 .world-root canvas{display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.space-vignette{z-index:2;background:radial-gradient(ellipse 38% 53% at 50% 50%,rgba(0,0,0,.66) 0%,rgba(0,0,0,.46) 44%,rgba(0,0,0,.08) 83%,rgba(0,0,0,.18) 100%),linear-gradient(0deg,#03040c82 0%,transparent 17%,transparent 83%,#03040c4d 100%)}
+.space-vignette{z-index:2;background:radial-gradient(ellipse 38% 53% at 50% 50%,rgba(0,0,0,.48) 0%,rgba(0,0,0,.32) 44%,rgba(0,0,0,.04) 83%,rgba(0,0,0,.18) 100%),linear-gradient(0deg,#03040c82 0%,transparent 17%,transparent 83%,#03040c4d 100%)}
 .gate-header,.gate-footer{position:absolute;left:0;right:0;display:flex;justify-content:space-between;align-items:center;z-index:5;pointer-events:none}
 .gate-header{top:0;padding:25px clamp(22px,4vw,64px)}
 .wordmark{display:flex;gap:13px;align-items:center;color:#e7d2aa;font:17px Georgia,serif;letter-spacing:.09em;white-space:nowrap}.wordmark-sigil{font:36px Georgia,serif;color:#e0b981}.wordmark small{display:block;color:#9e9a9c;font:8px 'Segoe UI',sans-serif;letter-spacing:.26em;margin-top:5px}

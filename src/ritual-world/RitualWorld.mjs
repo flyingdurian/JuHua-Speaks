@@ -4,6 +4,8 @@
  * DOM overlays may update without disposing this renderer.
  * Card fronts resolve by immutable DeckConfig card IDs; historical art is never redrawn.
  */
+import {makeLandingCardEntities,sampleLandingPose,landingOpacity,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
+export {makeLandingCardEntities,sampleLandingPose} from './OrbitalField.mjs';
 const TAU = Math.PI * 2;
 const clamp = (v,a,b) => Math.max(a, Math.min(b,v));
 const hash = (x) => { x = Math.imul(x ^ x >>> 16, 0x7feb352d); x = Math.imul(x ^ x >>> 15,0x846ca68b); return ((x ^ x >>> 16) >>> 0) / 4294967296; };
@@ -77,12 +79,11 @@ function appendBox(verts,card,position,time){
  let right=norm(cross([0,1,0],toward));
  if(Math.hypot(...right)<.01)right=[1,0,0];
  let up=norm(cross(toward,right));
- const roll=card.roll+Math.sin(time*.31+card.phase)*.07;
+ const roll=card.roll+(card.reversed?Math.PI:0)+Math.sin(time*.24+card.phase)*.055;
  right=rotAround(right,toward,roll);up=rotAround(up,toward,roll);
- // Local card front points away from the camera. A few historical fronts are flipped toward the camera.
- const visibleFront=card.frontVisible;
- if(visibleFront){right=right.map(v=>-v)}
- const depth=.038;
+ // Every landing card shows its authentic face; a true half-turn creates a reversed card.
+ const visibleFront=true;
+ const depth=.040;
  const W=card.width*.5,H=card.height*.5;
  const locate=(sx,sy,sz)=>[position[0]+right[0]*W*sx+up[0]*H*sy+toward[0]*depth*sz,
   position[1]+right[1]*W*sx+up[1]*H*sy+toward[1]*depth*sz,
@@ -90,39 +91,19 @@ function appendBox(verts,card,position,time){
  const f0=locate(-1,1,1),f1=locate(1,1,1),f2=locate(1,-1,1),f3=locate(-1,-1,1);
  const b0=locate(-1,1,-1),b1=locate(1,1,-1),b2=locate(1,-1,-1),b3=locate(-1,-1,-1);
  // Card is a thin bevelled solid with independent front/back/edge surfaces.
- pushQuad(verts,f0,f1,f2,f3,visibleFront?card.index:BACK_SLOT,card.light);
- pushQuad(verts,b1,b0,b3,b2,visibleFront?BACK_SLOT:card.index,card.light*.75);
- pushQuad(verts,f0,b0,b1,f1,EDGE_SLOT,.86);
- pushQuad(verts,f2,b2,b3,f3,EDGE_SLOT,.86);
- pushQuad(verts,f1,b1,b2,f2,EDGE_SLOT,.82);
- pushQuad(verts,f3,b3,b0,f0,EDGE_SLOT,.82);
-}
-export function makeLandingCardEntities(deck){
- if(!Array.isArray(deck)||deck.length!==78||new Set(deck.map(c=>c.id)).size!==78)throw Error('Exactly 78 unique Tarot cards required');
- return deck.map((c,i)=>Object.freeze({id:c.id,index:i,name:c.name,width:.88+hash(i*17+13)*.32,height:1.55+hash(i*29+7)*.45,
-   phase:(i*0.618033988749895%1)*TAU,layer:i<5?'near':i<20?'mid':'far',
-   heightBand:(hash(i*47+9)-.5)*2,roll:(hash(i*31+11)-.5)*.3,
-   frontVisible:i%13===4||i===2||i===17,light:.62+hash(i*13)*.38}));
-}
-export function sampleLandingPose(card,seconds){
- const i=card.index;const near=card.layer==='near',mid=card.layer==='mid';
- const speed=near?.031:mid?.017:.009+hash(i+8)*.006;
- const phase=card.phase+seconds*speed;
- const baseX=near?16:mid?27:39;
- const centerZ=near?-28:mid?-44:-62;
- const radiusZ=near?20:mid?21:23;
- const theta=phase;
- const x=Math.sin(theta)*(baseX+hash(i*9)*8)+(near?(i%2?4.4:-4.4):0);
- const z=centerZ-Math.cos(theta)*radiusZ;
- const y=card.heightBand*(near?2.6:mid?8:14)+Math.sin(theta*.75+i)*.54;
- return [x,y,z];
+ pushQuad(verts,f0,f1,f2,f3,card.index,card.light*landingOpacity(card,time));
+ pushQuad(verts,b1,b0,b3,b2,BACK_SLOT,card.light*.76*landingOpacity(card,time));
+ pushQuad(verts,f0,b0,b1,f1,EDGE_SLOT,.86*landingOpacity(card,time));
+ pushQuad(verts,f2,b2,b3,f3,EDGE_SLOT,.86*landingOpacity(card,time));
+ pushQuad(verts,f1,b1,b2,f2,EDGE_SLOT,.82*landingOpacity(card,time));
+ pushQuad(verts,f3,b3,b0,f0,EDGE_SLOT,.82*landingOpacity(card,time));
 }
 export class RitualWorld{
- constructor({mount,cards,faceAssetForId,starSeed=2026,onStatus=()=>{}}){
+ constructor({mount,cards,faceAssetForId,visualSeed=createVisualSeed(),onStatus=()=>{}}){
   if(!mount)throw Error('RitualWorld requires persistent mount');
-  this.mount=mount;this.cards=makeLandingCardEntities(cards);this.faceAssetForId=faceAssetForId;
+  this.mount=mount;this.visualSeed=visualSeed;this.cards=makeLandingCardEntities(cards,visualSeed);this.faceAssetForId=faceAssetForId;
   this.onStatus=onStatus;this.disposed=false;this.phase='landing';this.start=performance.now();this.last=0;this.elapsed=0;
-  this.pause=false;this.frame=0;this.failedAssets=[];this.loadedCount=0;this.atlas=makeAtlas();this.images=[];
+  this.pause=false;this.frame=0;this.failedAssets=[];this.loadedCount=0;this.atlas=makeAtlas();this.images=[];this.lastRendered=0;
   this.canvas=document.createElement('canvas');this.canvas.className='ritual-world-canvas';this.canvas.setAttribute('aria-hidden','true');mount.append(this.canvas);
   const gl=this.canvas.getContext('webgl2',{alpha:true,antialias:true,depth:true,powerPreference:'high-performance'});
   if(!gl){this.canvas.remove();throw Error('WebGL2 unavailable (use fallback landing)')}
@@ -144,12 +125,12 @@ export class RitualWorld{
  uploadTile(index,image){const gl=this.gl;if(this.disposed||gl.isContextLost())return;const small=document.createElement('canvas');small.width=TILE_W;small.height=TILE_H;small.getContext('2d').drawImage(image,0,0,TILE_W,TILE_H);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texSubImage2D(gl.TEXTURE_2D,0,(index%ATLAS_COLS)*TILE_W,Math.floor(index/ATLAS_COLS)*TILE_H,gl.RGBA,gl.UNSIGNED_BYTE,small)}
  loadCardFaces(){
   // Individual immutable IDs, 78 distinct source URLs; async texture loading never changes identity/order.
-  const queue=[...this.cards].sort((a,b)=>Number(b.frontVisible)-Number(a.frontVisible));
+  const queue=[...this.cards].sort((a,b)=>(Number(b.passIndex>=0)-Number(a.passIndex>=0))||a.orbitSlot-b.orbitSlot);
   let index=0;const workers=Array.from({length:4},()=>{const next=()=>{
    if(this.disposed||index>=queue.length)return;
    const card=queue[index++],url=this.faceAssetForId(card.id),img=new Image();img.decoding='async';this.images.push(img);
    img.onload=()=>{if(this.disposed)return;const x=(card.index%ATLAS_COLS)*TILE_W,y=Math.floor(card.index/ATLAS_COLS)*TILE_H;
-    this.atlas.ctx.drawImage(img,x,y,TILE_W,TILE_H);this.loadedCount++;this.uploadTile(card.index,img);this.onStatus({state:this.phase,loaded:this.loadedCount,cards:78});next()};
+    this.atlas.ctx.drawImage(img,x,y,TILE_W,TILE_H);this.loadedCount++;this.uploadTile(card.index,img);img.onload=null;img.onerror=null;this.onStatus({state:this.phase,loaded:this.loadedCount,cards:78});next()};
    img.onerror=()=>{if(this.disposed)return;this.failedAssets.push(card.id);this.onStatus({state:this.phase,failed:this.failedAssets.length});next()};
    img.src=url;
   };next()});return workers;
@@ -167,7 +148,7 @@ export class RitualWorld{
   gl.drawArrays(gl.TRIANGLES,0,vertices.length/6);
   this.onStatus({state:this.phase,rendered:78,elapsed:this.elapsed,loaded:this.loadedCount,failed:this.failedAssets.length});
  }
- getDiagnostics(){return {phase:this.phase,cards:this.cards.length,loaded:this.loadedCount,failed:this.failedAssets.length,elapsed:this.elapsed,webgl:this.gl.getParameter(this.gl.VERSION),canvasWidth:this.canvas.width,canvasHeight:this.canvas.height}}
+ getDiagnostics(){return {phase:this.phase,cards:this.cards.length,loaded:this.loadedCount,failed:this.failedAssets.length,elapsed:this.elapsed,visualSeed:this.visualSeed,...orbitDiagnostics(this.cards,this.elapsed),webgl:this.gl.getParameter(this.gl.VERSION),canvasWidth:this.canvas.width,canvasHeight:this.canvas.height}}
  dispose(){if(this.disposed)return;this.disposed=true;cancelAnimationFrame(this.frame);this.resizeObserver?.disconnect();for(const img of this.images){img.onload=null;img.onerror=null}
   const gl=this.gl;if(!gl.isContextLost()){gl.deleteTexture(this.texture);gl.deleteBuffer(this.buffer);gl.deleteVertexArray(this.vao);gl.deleteProgram(this.program)}this.canvas.remove();}
 }

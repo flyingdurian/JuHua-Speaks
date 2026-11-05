@@ -54,5 +54,5 @@ async function worker(){while(next<DECK.length){const card=DECK[next++],entry=ca
 await Promise.all(Array.from({length:4},worker));
 if(errors.length)throw new Error(`Artwork import failed:\n${errors.join('\n')}`);
 if(validated.length!==78)throw new Error(`Expected 78 JPEGs; got ${validated.length}`);
-await writeFile(join(dir,'manifest.json'),JSON.stringify({artist:'Pamela Colman Smith',published:1909,sourceCategory:'https://commons.wikimedia.org/wiki/Category:Rider-Waite-Smith_tarot_deck_(TaionWC)',cards:validated.sort((a,b)=>a.id.localeCompare(b.id))},null,2));
+if(process.env.RWS_SKIP_MANIFEST_WRITE!=='1') await writeFile(join(dir,'manifest.json'),JSON.stringify({artist:'Pamela Colman Smith',published:1909,sourceCategory:'https://commons.wikimedia.org/wiki/Category:Rider-Waite-Smith_tarot_deck_(TaionWC)',cards:validated.sort((a,b)=>a.id.localeCompare(b.id))},null,2));
 console.log('Completed: 78 authentic RWS scanned JPEGs, metadata checked.');

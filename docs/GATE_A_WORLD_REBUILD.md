@@ -30,7 +30,7 @@ The Gate A preview is deliberately limited to the landing universe. The `Start D
 1. Confirm fullscreen coverage at 1440×810 and 375×812 with no clipped question field.
 2. Watch continuously for at least 15 seconds: 78 stable card identities, slow orbit, mostly far-field cards, occasional near passes and an editable centered question.
 3. On a normal GPU-enabled Chrome browser, verify that RWS **front faces actually load** where their trajectories show the front. The repository’s RWS asset audit remains authoritative for completeness.
-4. Refresh three times: atmosphere hue changes; card trajectories and ID assignments remain deterministic.
+4. Refresh three times: the atmosphere, card layout, visible orientations and close-pass candidates change; semantic card identities remain stable during one visit.
 5. Pause/resume should freeze and restore motion without removing and recreating the scene.
 6. Verify that neither the public GitHub Pages website nor the live Exodia API is changed or contacted.
 7. Inspect the 15-second demonstration: use it as a **composition** preview, not proof of browser GPU performance.
@@ -50,3 +50,26 @@ The recording was captured in a Chromium execution environment with **WebGL disa
 - [ ] Manual performance, long-term WebGL resource stability and mobile FPS acceptance.
 
 **Gate B is blocked** until the required visual sign-off is received. Do not merge into `main` on CI alone.
+
+## Gate A refinement 2 — Screenshot-based corrections (2026-11-04)
+
+**User observations:** The first candidate resembled a horizontal card wall rather than a coherent celestial sphere; very few historical fronts were shown, and those visible appeared incorrectly reversed. The reference screenshot shows a vast orbital shell, all illustrated faces, randomized formation, and an initial burst away from the visitor.
+
+### Implemented corrections
+- **Entry (0–2.65 seconds):** 78 cards fly outward from near the viewer with staggered release and opacity; they settle into ONE huge slowly orbiting ellipsoid rather than preassigned depth bands.
+- **3D geometry:** golden-angle sphere distribution, seeded per-refresh permutation, small angle and location jitter; a coherent slow orbit (~0.016 rad/s). Five seeded cards take occasional near-camera passes toward screen edges, leaving the question readable.
+- **Original artwork:** all 78 canonical RWS cards have individual front texture slots and are intentionally front-facing. The old right-vector inversion was removed. About 27% receive a deliberate 180-degree visual rotation; the rest remain upright. Decorative landing orientation NEVER changes Tarot draw probabilities.
+- **Every refresh random:** secure visual seed changes starting arrangement, upright/reversed mix, near-pass identities, and atmospheric hue. The seed remains stable during one visit, avoiding mid-orbit rerolls.
+- **Asset readiness:** Git intentionally ignores RWS JPEGs. The updated preview command audits 78 locally installed originals; when missing, it calls the existing license-checked Wikimedia importer, then audits again. The import preserves the tracked manifest to avoid GitHub Desktop conflicts. Missing art stops the preview rather than silently showing fake or empty fronts.
+- **Renderer parity:** GPU atlas updates one card tile per loaded image instead of uploading the whole atlas 78 times. Canvas2D fallback caches smaller face textures and uses the same seed and orbit equation.
+
+### Exact acceptance checks
+1. Run npm run preview:gate-a. First run may need internet while verified historical scans download. Open http://127.0.0.1:4183/preview/gate-a/; lower-left status must reach 78 FACES LOADED.
+2. Refresh and watch the first three seconds: cards should fly outward from the viewer before assembling into a wide spherical formation, not remain arranged as a picture wall.
+3. Watch continuously for fifteen seconds: slow coherent orbit, most cards distant, occasional large card near an edge without obscuring the question.
+4. **All visible cards should display distinct historical RWS illustrations**, a mixed upright/reversed sample, and no field of default blue backs or repeated placeholder faces.
+5. Refresh three times: verify different initial positions, close-passing identities, reversed mix and atmospheric hue.
+6. Check desktop/mobile fullscreen, pause/resume, responsive resizing, input usability, no GPU context issues, and that Start Divination intentionally does not initiate Gate B.
+7. In DevTools, window.__ritualGateA.diagnostics() should show loaded:78, frontFacing:78, and normally at least 60 distant cards after the entrance settles.
+
+**Status:** Pure code tests and numerical projection QA passed. Real-GPU/browser visual capture is NOT verified here: the available Chromium environment rejects navigation to both local URLs and file pages. The older Gate A video represents the superseded first candidate and must not be used as evidence for this revision. Product Owner signoff on a fresh GPU browser recording is still required. Do not merge or proceed to Gate B.

@@ -123,3 +123,5 @@ The existing cinematic scripted Past/Present/Future interpretation stage and opt
 ## v0.8.3 Gate A — persistent landing universe (visual review, unmerged)
 
 On branch `feat/v083-gate-a-persistent-world`, run `npm run preview:gate-a` and open `http://127.0.0.1:4183/preview/gate-a/`. This isolated preview replaces the rejected v0.8.2 landing renderer with one persistent WebGL2 world, a durable camera and 78 distinct Tarot entities with original RWS front texture sources, gold-edged backs and thickness. A Canvas2D perspective fallback handles WebGL restrictions. **Only the landing is in scope; shuffle, sphere and reveal gates remain blocked until visual approval.** Production stays v0.8.2; see `docs/GATE_A_WORLD_REBUILD.md`.
+
+**Gate A refinement 2:** The landing cards fly outward from the camera and settle into one huge orbital shell. All 78 show their original RWS face images and a randomized upright/reversed mix. Initial arrangement and close-pass cards change every refresh. The Gate A preview now audits/downloads the 78 verified artwork JPEGs before launching. This remains a draft, unmerged visual gate.

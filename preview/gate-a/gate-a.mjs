@@ -1,11 +1,12 @@
 import {DECK} from '../../src/deck.mjs';
 import {RitualWorld} from '../../src/ritual-world/RitualWorld.mjs';
 import {CanvasOrbit} from '../../src/ritual-world/CanvasOrbit.mjs';
+import {createVisualSeed} from '../../src/ritual-world/OrbitalField.mjs';
 
 const page=document.getElementById('gate-a'),root=document.getElementById('world-root'),status=document.getElementById('orbit-status');
 const hueChoices=[0,27,68,124,207,278];
 const rng=globalThis.crypto?.getRandomValues?crypto.getRandomValues(new Uint32Array(1))[0]:Math.floor(Math.random()*0xffffffff);
-const hue=hueChoices[rng%hueChoices.length];document.getElementById('space-background').style.setProperty('--hue',hue+'deg');
+const visualSeed=createVisualSeed();const hue=hueChoices[rng%hueChoices.length];document.getElementById('space-background').style.setProperty('--hue',hue+'deg');
 function paintSpace(){
  const canvas=document.getElementById('star-canvas'),rect=canvas.getBoundingClientRect(),ratio=Math.min(1.25,devicePixelRatio||1);
  const w=canvas.width=Math.ceil(rect.width*ratio),h=canvas.height=Math.ceil(rect.height*ratio),ctx=canvas.getContext('2d');
@@ -26,14 +27,14 @@ paintSpace();window.addEventListener('resize',paintSpace,{passive:true});
 const localFiles=id=>new URL(`../../assets/rws/${id}.jpg`,import.meta.url).href;
 let world=null;
 try{
- world=new RitualWorld({mount:root,cards:DECK,faceAssetForId:localFiles,onStatus:evt=>{
+ world=new RitualWorld({mount:root,cards:DECK,faceAssetForId:localFiles,visualSeed,onStatus:evt=>{
   if(evt.state==='context-lost'){status.textContent='GRAPHICS CONTEXT LOST';return}
-  if(evt.rendered===78)status.textContent='ORBIT ACTIVE';
+  if(evt.rendered===78)status.textContent=evt.loaded===78?'ORBIT ACTIVE · 78 FACES LOADED':`ORBIT ACTIVE · ILLUSTRATIONS ${evt.loaded||0}/78`;
  }});
  document.getElementById('card-counter').textContent=`${world.cards.length} CARD ENTITIES`;
  }catch(error){
  console.warn('Gate A WebGL unavailable; using perspective-preserving Canvas2D fallback:',error.message);
- try{world=new CanvasOrbit({mount:root,cards:DECK,faceAssetForId:localFiles});status.textContent='ORBIT ACTIVE · 2D FALLBACK';}
+ try{world=new CanvasOrbit({mount:root,cards:DECK,faceAssetForId:localFiles,visualSeed,onStatus:evt=>{status.textContent=evt.loaded===78?'ORBIT ACTIVE · 78 FACES LOADED':`ORBIT ACTIVE · ILLUSTRATIONS ${evt.loaded||0}/78`}});status.textContent='ORBIT ACTIVE · 2D FALLBACK';}
  catch(inner){status.textContent='RENDERER UNAVAILABLE';console.error(inner)}
 }
 const paused=document.getElementById('pause');paused.addEventListener('click',()=>{if(!world)return;const state=!(world.pause??world.paused);world.setPaused(state);paused.innerHTML=state?'RESUME ORBIT <span>▶</span>':'PAUSE ORBIT <span>Ⅱ</span>';status.textContent=state?'ORBIT PAUSED':'ORBIT ACTIVE'});
@@ -41,5 +42,5 @@ document.getElementById('divine').addEventListener('click',()=>{
  const question=document.getElementById('question');if(question.value.trim().length<3){question.focus();return}
  document.getElementById('demo-notice').textContent='Gate A review: landing universe only. Shuffle begins after visual approval.';
 });
-window.__ritualGateA={world,diagnostics:()=>world?.getDiagnostics(),hue,phase:'landing'};
+window.__ritualGateA={world,diagnostics:()=>world?.getDiagnostics(),hue,visualSeed,phase:'landing'};
 window.addEventListener('pagehide',()=>world?.dispose(),{once:true});
