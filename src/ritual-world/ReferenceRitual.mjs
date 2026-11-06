@@ -12,7 +12,7 @@
  * beyond per-frame pose arrays. Gate A world/camera remain persistent.
  */
 import {sampleLandingPose,landingAttitude} from './OrbitalField.mjs';
-import {sampleTunnelTrajectory} from './TunnelDynamics.mjs';
+import {sampleVortexCard} from './VortexRibbon.mjs';
 
 const N=78,TAU=2*Math.PI,GOLDEN=Math.PI*(3-Math.sqrt(5));
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -89,36 +89,24 @@ function currentLanding(card,time,entranceMode){
  const position=sampleLandingPose(card,time,entranceMode);
  return pose(position,landingAttitude(card,position,time),1);
 }
-// A few large close Tarot illustrations must remain legible, but most sheets
-// shrink as the virtual camera dives into the long helix. This modulates
-// physical-sheet scale smoothly, not the number or identity of cards.
-const TUNNEL_SIZE=Object.freeze([
- {t:1.10,m:1},{t:2.10,m:1.43},{t:3.00,m:1.15},
- {t:3.80,m:.90},{t:4.70,m:.86},{t:5.45,m:1}
-]);
-function tunnelSize(t){
- if(t<=TUNNEL_SIZE[0].t)return 1;
- for(let i=0;i<TUNNEL_SIZE.length-1;i++){
-  const a=TUNNEL_SIZE[i],b=TUNNEL_SIZE[i+1];
-  if(t<=b.t)return mix(a.m,b.m,smoother((t-a.t)/(b.t-a.t)));
- }
- return 1;
-}
-// V7: coherent 3D tunnel. Cards and volumetric mist use the SAME material
-// trajectories. The central empty throat, near/far layered arcs and bank
-// arise from per-card changing perspective, never a rotating flat backdrop.
+// V8: 78 real Tarot sheets are threaded along a continuous 3D spiral,
+// not randomly distributed around a centred ring or shallow swarm.
+// Banked perspective moves from the face of the ribbon toward its sweeping
+// edge, so near and far cards exhibit natural physical parallax.
 function suctionPose(card,t){
  const k=card.orbitSlot,seed=card.visualSeed>>>0;
  const rnd=n=>hash(k+n,seed);
- const v=sampleTunnelTrajectory(k,seed,t);
- const theta=v.azimuth,axial=v.axial;
- const face=k%9===2||k%17===6;
- const yaw=(face?Math.PI:0)+.33*Math.sin(theta*.69+k*.31)
-    +.38*Math.sin(axial*1.24+t*1.7+k*.15);
- const pitch=.34*Math.sin(theta*.47+k*.52)+.21*Math.sin(t*2.6+k*.39);
- const roll=-theta*.60+.32*Math.sin(axial*.87+k*.2);
- const flowScale=1-.27*Math.exp(-Math.pow((t-3.0)/.52,2));
- const scale=((face?.76:.33)+(face?.12:.09)*rnd(39)+.018*Math.sin(t*1.5+k*.31))*flowScale*tunnelSize(t);
+ const v=sampleVortexCard(k,seed,t);
+ const theta=v.theta,stream=v.lane;
+ const illustrated=(k%11===2||k%17===6);
+ // Coherent card roll aligns long edges to the curving ribbon. Selected
+ // sheets reveal real historic fronts; most show their engraved dark backs.
+ const yaw=(illustrated?Math.PI:0)+.23*Math.sin(theta*.75+k*.17)
+   +.20*Math.sin(t*2.4+k*.31);
+ const pitch=.29*Math.sin(theta*.52+k*.47)+.10*Math.sin(t*3+k*.23);
+ const roll=theta+.28*Math.sin(k*.73)+[0,.16,-.14][stream];
+ const scale=(illustrated?.87:.66)+(.18*rnd(39))
+   +.07*Math.sin(t*1.35+k*.24);
  return pose(v.position,facing(yaw,pitch,roll),scale);
 }
 function pocketPose(card,t){
