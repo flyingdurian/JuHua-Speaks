@@ -1,5 +1,13 @@
 # 菊花说 · JuHua Speaks
 
+## Release v0.8.3 — Gate A approved
+
+**The production homepage now uses the visually approved Gate A v7 landing.** This release preserves a snapshot branch at [`review/gate-a-v7-approved`](https://github.com/flyingdurian/JuHua-Speaks/tree/review/gate-a-v7-approved) for independent review. The [dedicated Gate A-only browser route](./preview/gate-a/) is published within the GitHub Pages artifact, so friends can view/replay Gate A without navigating through unfinished Gate B.
+
+**Temporary continuity bridge:** Until the persistent 3D shuffle is completed in Gate B, submitting a question on the new landing privately passes it through `sessionStorage` to the existing `ritual.html` question/setup and reading experience. It does **not** put the question in a URL or automatically connect to any public AI backend. This handoff is a deliberate release bridge, not the finished full-scene cinematic transition; Gate B replaces it later. The old ritual path remains independently accessible.
+
+**GitHub Pages** serves one site per repository. A standalone review branch does not automatically receive an independent GitHub Pages deployment; the preserved source branch and published `/preview/gate-a/` route serve different purposes. Avoid advertising a branch URL as a playable web app.
+
 An immersive, bilingual Tarot web application built around **authentic historical Rider–Waite–Smith card illustrations**. The name 菊花说 (*Júhuā Shuō*, “JuHua Speaks”) has a playful double meaning; the visual experience itself stays atmospheric and polished.
 
 ## Current milestone: v0.4 — GPU immersion + private AI contract

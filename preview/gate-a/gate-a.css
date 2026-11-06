@@ -158,3 +158,14 @@ h1{font:normal clamp(31px,4.5vw,53px)/1.2 Georgia,'Times New Roman',serif;letter
 @media(prefers-reduced-motion:reduce){
  .space-background .nebula-texture,.space-background #star-canvas,.space-background .twinkle-canvas{animation:none!important}
 }
+
+/* Public landing: review instruments live only in the isolated Gate A preview. */
+.production-landing .gate-footer .review-controls,
+.production-landing .gate-footer .footer-right {display:none!important}
+.production-landing .gate-footer{justify-content:flex-start}
+.production-landing .gate-version{color:#bfb3ab}
+.production-landing.exiting-landing .world-root{opacity:0;transform:scale(1.06);transition:opacity .55s ease,transform .55s ease}
+.production-landing.exiting-landing .question-panel{opacity:0;transition:opacity .35s ease}
+@media(prefers-reduced-motion:reduce){
+ .production-landing.exiting-landing .world-root,.production-landing.exiting-landing .question-panel{transition:none}
+}

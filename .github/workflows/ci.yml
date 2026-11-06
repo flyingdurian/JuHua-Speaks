@@ -20,7 +20,11 @@ jobs:
           node --check src/ritual-world/OrbitalField.mjs
           node --check src/ritual-world/RitualWorld.mjs
           node --check src/ritual-world/CardSurface.mjs
+          node --check src/ritual-world/CelestialSky.mjs
+          node --check preview/gate-a/gate-a.mjs
           node --check src/ritual-world/CanvasOrbit.mjs
+      - name: Verify production landing and historical ritual handoff
+        run: node --test test/production-landing.test.mjs
       - name: Verify JavaScript source syntax
         run: |
           node --check src/app.mjs
@@ -60,6 +64,8 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html _site/index.html
+          cp ritual.html _site/ritual.html
+          cp -R preview _site/preview
           cp -R src _site/src
           cp -R assets _site/assets
           touch _site/.nojekyll

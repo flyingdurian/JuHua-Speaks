@@ -5,6 +5,7 @@ import {createVisualSeed} from '../../src/ritual-world/OrbitalField.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
 
 const page=document.getElementById('gate-a'),root=document.getElementById('world-root'),status=document.getElementById('orbit-status');
+const isProductionLanding=document.body.dataset.gateRole==='production';
 const visualSeed=createVisualSeed();
 // Deterministic for the lifetime of one visit; different on each refresh.
 // Query override supports comparable recordings of both entry rituals.
@@ -59,8 +60,20 @@ replayEntry.addEventListener('click',()=>runEntrance(entranceMode));
 showEntrance();
 const paused=document.getElementById('pause');paused.addEventListener('click',()=>{if(!world)return;const state=!(world.pause??world.paused);world.setPaused(state);paused.innerHTML=state?'RESUME ORBIT <span>▶</span>':'PAUSE ORBIT <span>Ⅱ</span>';status.textContent=state?'ORBIT PAUSED':'ORBIT ACTIVE'});
 document.getElementById('divine').addEventListener('click',()=>{
- const question=document.getElementById('question');if(question.value.trim().length<3){question.focus();return}
- document.getElementById('demo-notice').textContent='Gate A review: landing universe only. Shuffle begins after visual approval.';
+ const question=document.getElementById('question'),value=question.value.trim();
+ if(value.length<3||value.length>600){question.focus();return}
+ if(!isProductionLanding){
+  document.getElementById('demo-notice').textContent='Gate A v7 review: landing only. The production reading continues separately.';
+  return;
+ }
+ try{
+  sessionStorage.setItem('juhua:gate-a-question',value);
+  document.getElementById('demo-notice').textContent='Entering the Tarot ritual…';
+ }catch{
+  document.getElementById('demo-notice').textContent='Continuing to your reading. You may need to re-enter the question if private storage is disabled.';
+ }
+ document.getElementById('gate-a').classList.add('exiting-landing');
+ window.setTimeout(()=>window.location.assign(new URL('../../ritual.html',import.meta.url).href),550);
 });
 window.__ritualGateA={world,diagnostics:()=>({...world?.getDiagnostics(),sky:sky.diagnostics()}),hue,visualSeed,get entranceMode(){return entranceMode},replayEntrance:runEntrance,phase:'landing'};
 window.addEventListener('pagehide',()=>{world?.dispose();sky.dispose()}, {once:true});

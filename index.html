@@ -1,17 +1,31 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <meta name="theme-color" content="#0c0d1b" />
-  <meta name="description" content="An immersive bilingual Tarot experience featuring authentic Rider–Waite–Smith illustrations." />
-  <title>Tarot Ritual</title>
-  <!-- Optional; set only after deploying a private server-side AI service. -->
-  <meta name="juhua-reading-endpoint" content="" />
-  <link rel="stylesheet" href="./src/styles.css" />
+<base href="./preview/gate-a/"/>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#02040a"/>
+<title>菊花说 · JuHua Speaks — Tarot Universe</title>
+<link rel="stylesheet" href="./gate-a.css"/>
 </head>
-<body>
-  <div id="app" role="application" aria-label="Immersive tarot ritual"></div>
-  <script type="module" src="./src/app.mjs"></script>
+<body data-gate-role="production">
+<main id="gate-a" class="gate-a production-landing" aria-label="Three-dimensional Tarot universe">
+  <div id="space-background" class="space-background" aria-hidden="true"><canvas id="star-canvas"></canvas></div>
+  <div id="world-root" class="world-root" aria-hidden="true"></div>
+  <div class="space-vignette" aria-hidden="true"></div>
+  <header class="gate-header"><div class="wordmark"><span class="wordmark-sigil">☾</span><span>菊花说 <small>JUHUA SPEAKS</small></span></div><span class="gate-version">v0.8.3 <span class="dot">●</span> CELESTIAL LANDING</span></header>
+  <section class="question-panel" aria-label="Ask your Tarot question">
+    <div class="small-caps"><span class="star-small">✧</span> THE STARS ARE LISTENING <span class="star-small">✧</span></div>
+    <p class="overline">78 ORIGINAL RIDER–WAITE–SMITH CARDS · ONE CELESTIAL ORBIT</p>
+    <h1>Ask your question.<br/><em>Enter the universe.</em></h1>
+    <label for="question">Your question</label>
+    <textarea id="question" maxlength="600" spellcheck="true">How can I find clarity in the decision ahead?</textarea>
+    <button id="divine" class="start-button">START DIVINATION <span>✧</span></button>
+    <div class="demo-notice" id="demo-notice" role="status" aria-live="polite"></div>
+  </section>
+  <footer class="gate-footer"><div><span id="orbit-status">ORBIT ACTIVE</span> <span class="separator">·</span> <span id="card-counter">78 CARD ENTITIES</span></div><div class="footer-right"><span>JUHUA SPEAKS · IMMERSIVE TAROT</span><div class="review-controls"><span class="entry-label" aria-label="Active landing entrance">ENTRY: <strong id="entrance-label">RANDOM</strong></span><button id="change-entrance" aria-label="Switch landing entrance and replay">SWITCH ENTRY ↻</button><button id="replay-entrance" aria-label="Replay the current entrance">REPLAY ↺</button><button id="hide-cta" aria-label="Hide question interface to inspect the orbit" aria-pressed="false">HIDE CTA <span>H</span></button><button id="pause" aria-label="Pause or resume orbit">PAUSE ORBIT <span id="pause-ico">Ⅱ</span></button></div></div></footer>
+  <aside id="debug" class="debug" aria-hidden="true"></aside>
+</main>
+<script type="module" src="./gate-a.mjs"></script>
 </body>
 </html>
