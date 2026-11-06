@@ -43,7 +43,7 @@ test('Independent sheet velocities vary within a coherent spiral rather than rig
 });
 
 test('Camera pitches a deep tube into the reference tall edge-on cyclone smoothly',()=>{
- assert.ok(vortexCamera(2.1).pitch<.45);
+ assert.ok(vortexCamera(2.1).pitch>.50&&vortexCamera(2.1).pitch<.75);
  assert.ok(vortexCamera(3.8).pitch>.95);
  assert.ok(vortexCamera(4.7).pitch>1.10);
  assert.ok(vortexCamera(5.45).pitch<.2);
