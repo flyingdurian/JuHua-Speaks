@@ -18,7 +18,7 @@ const buttonStart=document.getElementById('start-shuffle');
 const buttonPause=document.getElementById('pause');
 const reviewParams=new URLSearchParams(location.search);
 const requestedSeed=reviewParams.get('seed');
-const visualSeed=requestedSeed!==null&&/^\\d+$/.test(requestedSeed)&&Number.isSafeInteger(Number(requestedSeed))
+const visualSeed=requestedSeed!==null&&/^[0-9]+$/.test(requestedSeed)&&Number.isSafeInteger(Number(requestedSeed))
  ? Number(requestedSeed)>>>0 : createVisualSeed();
 const entrance=reviewParams.get('entrance');
 const entranceMode=['inside-out','outside-in'].includes(entrance)?entrance:(visualSeed%2?'inside-out':'outside-in');
