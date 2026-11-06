@@ -1,76 +1,82 @@
-/** Gate B v7: volumetric mist follows the VERY SAME 3D flow as the cards. */
-import {sampleTunnelTrajectory,tunnelHash} from '../../src/ritual-world/TunnelDynamics.mjs';
+/**
+ * Gate B v8: actual material-wake filaments along the same physical 3D
+ * corkscrew paths as the 78 cards. No painted tornado image, no background
+ * rotation, and no effect outside the unapproved first sequence.
+ */
+import {sampleVortexRibbon,vortexProgress} from '../../src/ritual-world/VortexRibbon.mjs';
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
-function softMote(){
+const FOCAL=428/(2*Math.tan(58*Math.PI/360));
+function project(p){
+ const v=p.position,z=-v[2];
+ if(z<=2)return null;
+ return {x:256+FOCAL*v[0]/z,y:214-FOCAL*v[1]/z,z};
+}
+function sprite(){
  const c=document.createElement('canvas');c.width=64;c.height=64;
- const x=c.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);
- g.addColorStop(0,'rgba(218,225,227,.55)');
- g.addColorStop(.24,'rgba(173,181,181,.30)');
- g.addColorStop(.67,'rgba(137,145,157,.08)');
- g.addColorStop(1,'rgba(120,148,165,0)');
- x.fillStyle=g;x.fillRect(0,0,64,64);return c;
+ const x=c.getContext('2d');
+ const g=x.createRadialGradient(32,32,0,32,32,32);
+ g.addColorStop(0,'rgba(228,229,218,.65)');
+ g.addColorStop(.23,'rgba(188,193,199,.20)');
+ g.addColorStop(1,'rgba(143,155,175,0)');
+ x.fillStyle=g;x.fillRect(0,0,64,64);
+ return c;
 }
 export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
+ if(!mount)throw Error('FlowMist requires a mount');
  const canvas=document.createElement('canvas');canvas.className='advected-mist';
  canvas.width=512;canvas.height=428;canvas.setAttribute('aria-hidden','true');
  mount.append(canvas);
- const ctx=canvas.getContext('2d',{alpha:true});
- const mote=softMote(),N=reduceMotion?80:175;
- const f=428/(2*Math.tan(58*Math.PI/360));
- const project=p=>({x:256+f*p.position[0]/(-p.position[2]),
-                     y:214-f*p.position[1]/(-p.position[2]),depth:-p.position[2]});
- let disposed=false,frame=0,last=-100;
+ const ctx=canvas.getContext('2d',{alpha:true}),mote=sprite();
+ let last=-1,frame=0,disposed=false;
  const draw=()=>{
+  if(disposed)return;
   frame=requestAnimationFrame(draw);
-  if(disposed||document.hidden)return;
+  if(document.hidden)return;
   const t=getAge();
-  if(t<.95||t>6.29){if(last!==-100)ctx.clearRect(0,0,512,428);last=-100;return}
-  if(Math.abs(t-last)<.035)return;
+  if(t<1.12||t>6.30){
+   if(last>=0)ctx.clearRect(0,0,512,428);
+   last=-1;return;
+  }
+  if(Math.abs(t-last)<.027)return;
   last=t;ctx.clearRect(0,0,512,428);
-  const fade=clamp((t-.95)/.58)*clamp((6.29-t)/.52);
+  const {collapse}=vortexProgress(t);
+  const fade=clamp((t-1.12)/.44)*clamp((6.26-t)/.7);
+  const plume=clamp((t-3.44)/.76)*clamp((5.50-t)/.80);
   ctx.save();ctx.globalCompositeOperation='screen';
-  // The three gas paths share the three asymmetrical physical Tarot streams.
-  // Their vertices recalculate from the material field as time advances.
   for(let lane=0;lane<3;lane++){
-   const first=[0,48,70][lane],count=[48,22,8][lane];
+   // Curved streaks are computed from the WHOLE moving 3D ribbon, not
+   // rotating images. The foreground moves differently from far segments.
+   const steps=reduceMotion?40:96;
    ctx.beginPath();let previous=null;
-   for(let step=0;step<count;step++){
-    const p=project(sampleTunnelTrajectory(first+step,seed,t,{mote:true}));
-    if(!previous||Math.hypot(p.x-previous.x,p.y-previous.y)>88)ctx.moveTo(p.x,p.y);
+   for(let i=0;i<=steps;i++){
+    const q=i/steps,p=project(sampleVortexRibbon(lane,q,t,seed));
+    if(!p){previous=null;continue}
+    if(!previous||Math.hypot(p.x-previous.x,p.y-previous.y)>100)
+      ctx.moveTo(p.x,p.y);
     else ctx.lineTo(p.x,p.y);
     previous=p;
    }
+   const haze=(.07+.025*(lane===0?1:0))*fade*plume;
    ctx.globalAlpha=1;
-   // In the benchmark, the opening storm is primarily dark CARD MOTION.
-   // A broad smoke plume only develops during the terminal lens rush.
-   const plume=clamp((t-3.38)/.75)*clamp((5.28-t)/.85);
-   ctx.strokeStyle='rgba(143,153,166,'+(.075*fade*plume)+')';
-   ctx.lineWidth=20;ctx.stroke();
-   ctx.strokeStyle='rgba(185,192,190,'+(.10*fade*plume)+')';
-   ctx.lineWidth=4;ctx.stroke();
-   ctx.strokeStyle='rgba(213,217,217,'+(.18*fade)+')';
-   ctx.lineWidth=1;ctx.stroke();
+   ctx.strokeStyle='rgba(154,165,176,'+haze+')';
+   ctx.lineWidth=reduceMotion?9:23;ctx.stroke();
+   ctx.strokeStyle='rgba(214,216,211,'+(.11*fade)+')';
+   ctx.lineWidth=1.3;ctx.stroke();
   }
-  // A camera-perspective filament is a trail of the same material coordinate,
-  // not a CSS/Canvas spiral that spins behind stationary sheets.
-  for(let i=0;i<N;i++){
-   const key=i+781;
-   const head=project(sampleTunnelTrajectory(key,seed,t,{mote:true}));
-   if(head.depth<3.5||head.depth>43)continue;
-   const tail=project(sampleTunnelTrajectory(key,seed,t-.065,{mote:true}));
-   const alpha=fade*(.090+.11*tunnelHash(key+71,seed));
-   if((head.x>=-80&&head.x<=592)&&(head.y>=-80&&head.y<=508)){
-    ctx.strokeStyle='rgba(175,190,195,'+(alpha*.95)+')';
-    ctx.lineWidth=clamp(1.5*(24/head.depth),.3,2.7);
-    ctx.beginPath();ctx.moveTo(tail.x,tail.y);ctx.lineTo(head.x,head.y);ctx.stroke();
-    const size=clamp((10+13*tunnelHash(key+17,seed))*18/head.depth,3,46);
-    ctx.globalAlpha=alpha*2.1;
-    ctx.drawImage(mote,head.x-size/2,head.y-size/2,size,size);
-   }
+  const n=reduceMotion?55:185;
+  for(let i=0;i<n;i++){
+   const lane=i%3;
+   const q=((i*0.6180339887498949+seed*.00000017)%1+1)%1;
+   const p=project(sampleVortexRibbon(lane,q,t,seed));
+   if(!p||p.x<-40||p.x>552||p.y<-40||p.y>468)continue;
+   const size=clamp(190/p.z,2.5,19);
+   ctx.globalAlpha=fade*(.07+.085*((i*37%101)/101))*(1-.35*collapse);
+   ctx.drawImage(mote,p.x-size/2,p.y-size/2,size,size);
   }
   ctx.restore();
  };
  frame=requestAnimationFrame(draw);
- return {diagnostics:()=>({type:'material-perspective-filaments',count:N,staticTornado:false,sharedTrajectory:true}),
- dispose(){disposed=true;cancelAnimationFrame(frame);canvas.remove()}};
+ return {diagnostics:()=>({type:'shared-3D-card-ribbon-wake',count:reduceMotion?55:185,
+  staticTornado:false,approvedSphereUnaffected:true}),
+  dispose(){disposed=true;cancelAnimationFrame(frame);canvas.remove()}};
 }
