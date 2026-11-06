@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {makeLandingCardEntities} from '../src/ritual-world/OrbitalField.mjs';
 import {DECK} from '../src/deck.mjs';
-import {sampleVortexCard,sampleVortexRibbon,vortexCamera} from '../src/ritual-world/VortexRibbon.mjs';
+import {sampleVortexCard,sampleVortexRibbon,vortexCamera,rotateVortexBasis} from '../src/ritual-world/VortexRibbon.mjs';
 import {samplePhysicalShuffle} from '../src/ritual-world/ShuffleChoreography.mjs';
 
 const cards=makeLandingCardEntities(DECK,2165840022);
@@ -62,6 +62,24 @@ test('Atmospheric trails and cards share the same 3D physical helix',async()=>{
  assert.ok(ribbon.position.every(Number.isFinite));
  const card=sampleVortexCard(cards[20].orbitSlot,cards[20].visualSeed,3.2);
  assert.ok(card.position.every(Number.isFinite));
+});
+
+test('Card faces, backs and edges rotate rigidly with the same camera bank as their world-space centres',()=>{
+ const dot=(a,b)=>a.reduce((sum,x,i)=>sum+x*b[i],0);
+ const norm=a=>Math.hypot(...a);
+ for(const t of [1.25,2.1,3.0,3.8,4.7,5.2]){
+  const basis=[[1,0,0],[0,1,0],[0,0,1]].map(v=>rotateVortexBasis(v,t));
+  assert.ok(basis.every(v=>Math.abs(norm(v)-1)<1e-9));
+  assert.ok(Math.abs(dot(basis[0],basis[1]))<1e-9);
+  assert.ok(Math.abs(dot(basis[0],basis[2]))<1e-9);
+  assert.ok(Math.abs(dot(basis[1],basis[2]))<1e-9);
+ }
+ const a=rotateVortexBasis([1,0,0],1.25),b=rotateVortexBasis([1,0,0],3.8);
+ assert.ok(Math.hypot(...a.map((x,i)=>x-b[i]))>.25,
+  'The camera bank must physically rotate the card basis, not only its centre');
+ const source=await readFile(new URL('../src/ritual-world/ReferenceRitual.mjs',import.meta.url),'utf8');
+ assert.match(source,/rotateVortexBasis\(localAtt\.normal,t\)/);
+ assert.match(source,/rotateVortexBasis\(localAtt\.right,t\)/);
 });
 
 test('Approved Sequence 2 choreography and all subsequent steps are byte-for-byte frozen',async()=>{
