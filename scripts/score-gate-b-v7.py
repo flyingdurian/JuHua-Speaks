@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Semantic-frame visual gate for the original owner-supplied 2026-11-06
 ChatARot split-screen reference. The 14.13-second original is NOT in Git.
-Thresholds are image-composition PROXIES, not a perceptual fidelity percentage.
+The owner has relaxed the review gate to ±25%. Thresholds are image-composition PROXIES, not a perceptual fidelity percentage.
 Never claim visual approval solely from this script.
 """
 import json,sys
@@ -21,7 +21,7 @@ REFERENCE=[
  ("globe_rotate",7.8,10.7,.1418,.6081,.5778,.4884,.4625)
 ]
 FIELDS=["fraction","width","height","cx","cy"]
-TOLERANCE=.10
+TOLERANCE=.25
 
 def quantile(counts,n,quant):
  threshold=n*quant
