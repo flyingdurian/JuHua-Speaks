@@ -30,15 +30,15 @@ test('Sequence 1 cards are carried through substantial 3D depth while revolving 
  assert.ok(moved>=60,'Cards must actually travel through the vortex over time');
 });
 
-test('Camera moves from face-on to edge-on, making sweeping perspective changes rather than a stationary wreath',()=>{
- assert.ok(vortexCamera(2.1).yaw<.45);
- assert.ok(vortexCamera(3.8).yaw>.90);
- assert.ok(vortexCamera(4.7).yaw>1.1);
- assert.ok(vortexCamera(5.45).yaw<.2);
+test('Camera pitches a deep tube into the reference tall edge-on cyclone smoothly',()=>{
+ assert.ok(vortexCamera(2.1).pitch<.45);
+ assert.ok(vortexCamera(3.8).pitch>.95);
+ assert.ok(vortexCamera(4.7).pitch>1.10);
+ assert.ok(vortexCamera(5.45).pitch<.2);
  for(let t=1.1;t<5.45;t+=.025){
   const a=vortexCamera(t),b=vortexCamera(t+.002);
-  assert.ok(Math.abs(a.yaw-b.y)<.05&&Math.abs(a.roll-b.roll)<.04,
-   'Camera must not snap at t='+t+' (yaw delta '+Math.abs(a.yaw-b.y)+', roll delta '+Math.abs(a.roll-b.roll)+')');
+  assert.ok(Math.abs(a.pitch-b.pitch)<.05&&Math.abs(a.roll-b.roll)<.04,
+   'Camera pitched discontinuously at '+t+' by '+Math.abs(a.pitch-b.pitch));
  }
 });
 
