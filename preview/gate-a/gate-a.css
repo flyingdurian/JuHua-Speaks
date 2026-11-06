@@ -49,3 +49,40 @@ h1{font:normal clamp(31px,4.5vw,53px)/1.2 Georgia,'Times New Roman',serif;letter
 .gate-footer button[aria-pressed="true"]{border-color:#dfbe8b;color:#ffe3ae}
 .gate-footer .review-controls{display:flex;gap:9px;align-items:center}
 @media(prefers-reduced-motion:reduce){.space-background:after{animation:none}}
+
+
+/* Gate A v6: low-cost, restrained atmospheric detail. Palette shifts per refresh. */
+.space-background:before{
+ content:'';position:absolute;inset:0;pointer-events:none;
+ background:
+ radial-gradient(ellipse 45% 28% at 12% 108%,rgba(126,103,177,.16),transparent 89%),
+ radial-gradient(ellipse 47% 27% at 88% 110%,rgba(108,137,182,.15),transparent 87%),
+ linear-gradient(0deg,rgba(82,81,118,.038) 0%,transparent 20%);
+ opacity:.83;z-index:1;
+}
+.space-background:after{z-index:2;mix-blend-mode:screen;opacity:.58;filter:blur(18px)}
+.space-background canvas{position:relative;z-index:0;opacity:1}
+.world-root canvas{opacity:1!important} /* Card opacity is controlled by solid 3D surfaces, never CSS. */
+.space-vignette{background:
+ radial-gradient(ellipse 31% 36% at 50% 50%,rgba(0,0,0,.34),rgba(0,0,0,.25) 55%,transparent 91%),
+ linear-gradient(0deg,#03040c8c 0%,transparent 14%,transparent 87%,#03040c6a 100%)}
+.gate-footer .entry-label{font:8px 'Segoe UI',sans-serif;letter-spacing:.1em;color:#a99cae;white-space:nowrap}
+.gate-footer .entry-label strong{color:#d1bc98;font-weight:500;letter-spacing:.08em}
+.gate-footer .review-controls{gap:6px}
+.gate-footer #change-entrance,.gate-footer #replay-entrance{font-size:8px;padding:8px 9px}
+@media(max-width:870px){
+ .gate-footer{align-items:flex-end;gap:8px;flex-wrap:wrap}
+ .gate-footer .footer-right{width:100%;justify-content:space-between;flex-wrap:wrap;gap:6px}
+ .gate-footer .review-controls{flex-wrap:wrap;justify-content:flex-end}
+ .gate-footer .entry-label{display:none}
+ .gate-footer #change-entrance,.gate-footer #replay-entrance{padding:7px 8px}
+}
+@media(max-width:500px){
+ .gate-footer #change-entrance{font-size:0}
+ .gate-footer #change-entrance:after{content:'ENTRY ↻';font-size:8px}
+ .gate-footer button{padding:6px 7px}
+ .space-background:after{filter:blur(12px);animation:none}
+}
+@media(prefers-reduced-motion:reduce){
+ .space-background:after{animation:none!important}
+}

@@ -28,7 +28,7 @@ const program=(gl)=>{
  const frag=shader(gl,gl.FRAGMENT_SHADER,`#version 300 es
  precision mediump float;
  in vec2 vUv;in float vLight;uniform sampler2D atlas;out vec4 color;
- void main(){vec4 base=texture(atlas,vUv);color=vec4(base.rgb*(.72+.28*vLight),base.a*clamp(vLight,0.0,1.0));}`);
+ void main(){vec4 base=texture(atlas,vUv);color=vec4(base.rgb*(.72+.28*clamp(vLight,0.0,1.0)),1.0);} // Solid obsidian, real cards, no translucent faces`);
  const p=gl.createProgram();gl.attachShader(p,vert);gl.attachShader(p,frag);gl.linkProgram(p);
  gl.deleteShader(vert);gl.deleteShader(frag);
  if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));return p;
@@ -81,16 +81,16 @@ function pushQuad(verts,A,B,C,D,slot,brightness){
  const points=[[A,0,0],[B,1,0],[C,1,1],[A,0,0],[C,1,1],[D,0,1]];
  for(const [p,u,v] of points){const t=uv(u,v);verts.push(p[0],p[1],p[2],t[0],t[1],brightness)}
 }
-function appendBox(verts,card,position,time){
- appendPremiumCard(verts,card,position,landingAttitude(card,position,time),entranceScale(card,time),
-   card.light*landingOpacity(card,time),slotUv,{backSlot:BACK_SLOT,edgeSlot:EDGE_SLOT});
+function appendBox(verts,card,position,time,entranceMode='inside-out'){
+ appendPremiumCard(verts,card,position,landingAttitude(card,position,time),entranceScale(card,time,entranceMode),
+   card.light,slotUv,{backSlot:BACK_SLOT,edgeSlot:EDGE_SLOT});
 }
 
 export class RitualWorld{
- constructor({mount,cards,faceAssetForId,visualSeed=createVisualSeed(),onStatus=()=>{}}){
+ constructor({mount,cards,faceAssetForId,visualSeed=createVisualSeed(),entranceMode='inside-out',onStatus=()=>{}}){
   if(!mount)throw Error('RitualWorld requires persistent mount');
   this.mount=mount;this.visualSeed=visualSeed;this.cards=makeLandingCardEntities(cards,visualSeed);this.faceAssetForId=faceAssetForId;
-  this.onStatus=onStatus;this.disposed=false;this.phase='landing';this.start=performance.now();this.last=0;this.elapsed=0;
+  this.onStatus=onStatus;this.disposed=false;this.phase='landing';this.start=performance.now();this.last=0;this.elapsed=0;this.entranceMode=entranceMode;
   this.pause=false;this.frame=0;this.failedAssets=[];this.loadedCount=0;this.atlas=makeAtlas();this.images=[];this.lastRendered=0;
   this.canvas=document.createElement('canvas');this.canvas.className='ritual-world-canvas';this.canvas.setAttribute('aria-hidden','true');mount.append(this.canvas);
   const gl=this.canvas.getContext('webgl2',{alpha:true,antialias:true,depth:true,powerPreference:'high-performance'});
@@ -104,7 +104,7 @@ export class RitualWorld{
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
   const anisotropy=gl.getExtension('EXT_texture_filter_anisotropic')||gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
   if(anisotropy)gl.texParameterf(gl.TEXTURE_2D,anisotropy.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(8,gl.getParameter(anisotropy.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
-  this.uploadAtlas();gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  this.uploadAtlas();gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.depthMask(true);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);
   this.locProj=gl.getUniformLocation(this.program,'projection');this.locAtlas=gl.getUniformLocation(this.program,'atlas');
   this.canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();this.contextLost=true;this.pause=true;onStatus({state:'context-lost'})},{once:true});
   this.setPhase('landing');this.loadCardFaces();this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(mount);
@@ -112,12 +112,13 @@ export class RitualWorld{
  }
  setPhase(phase){if(!['landing','question_submitted','shuffle_ritual','deck_formed','sphere_selection','three_reveal'].includes(phase))throw Error('Unsupported world phase');this.phase=phase;this.onStatus({state:phase,cards:this.cards.length})}
  setPaused(value){this.pause=!!value}
+ restartEntrance(mode){if(!['inside-out','outside-in'].includes(mode))throw Error('Unsupported landing entrance');this.entranceMode=mode;this.elapsed=0;this.last=0;this.lastRendered=0;this.onStatus({state:'entrance',entrance:mode})}
  // UV v=0 addresses the TOP of the artwork. Keep canvas uploads unflipped for correct upright RWS fronts.
  uploadAtlas(){const gl=this.gl;if(this.disposed||gl.isContextLost())return;gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,this.atlas.canvas)}
  uploadTile(index,image){const gl=this.gl;if(this.disposed||gl.isContextLost())return;const small=document.createElement('canvas');small.width=TILE_W;small.height=TILE_H;small.getContext('2d').drawImage(image,2,2,TILE_W-4,TILE_H-4);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texSubImage2D(gl.TEXTURE_2D,0,(index%ATLAS_COLS)*TILE_W,Math.floor(index/ATLAS_COLS)*TILE_H,gl.RGBA,gl.UNSIGNED_BYTE,small)}
  loadCardFaces(){
   // Individual immutable IDs, 78 distinct source URLs; async texture loading never changes identity/order.
-  const queue=[...this.cards].sort((a,b)=>(Number(b.passIndex>=0)-Number(a.passIndex>=0))||a.orbitSlot-b.orbitSlot);
+  const queue=[...this.cards].sort((a,b)=>(Number(b.featured)-Number(a.featured))||a.orbitSlot-b.orbitSlot);
   let index=0;const workers=Array.from({length:4},()=>{const next=()=>{
    if(this.disposed||index>=queue.length)return;
    const card=queue[index++],url=this.faceAssetForId(card.id),img=new Image();img.decoding='async';this.images.push(img);
@@ -136,12 +137,12 @@ export class RitualWorld{
   this.resize();const gl=this.gl;gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(this.program);gl.bindVertexArray(this.vao);
   gl.uniformMatrix4fv(this.locProj,false,perspective(this.canvas.width/this.canvas.height));gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.uniform1i(this.locAtlas,0);
   const vertices=[];
-  for(const card of this.cards)appendBox(vertices,card,sampleLandingPose(card,this.elapsed),this.elapsed);
+  for(const card of this.cards)appendBox(vertices,card,sampleLandingPose(card,this.elapsed,this.entranceMode),this.elapsed,this.entranceMode);
   gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.DYNAMIC_DRAW);
   gl.drawArrays(gl.TRIANGLES,0,vertices.length/6);
   this.onStatus({state:this.phase,rendered:78,elapsed:this.elapsed,loaded:this.loadedCount,failed:this.failedAssets.length});
  }
- getDiagnostics(){return {phase:this.phase,cards:this.cards.length,loaded:this.loadedCount,failed:this.failedAssets.length,elapsed:this.elapsed,visualSeed:this.visualSeed,...orbitDiagnostics(this.cards,this.elapsed),webgl:this.gl.getParameter(this.gl.VERSION),textureTile:[TILE_W,TILE_H],cardGeometry:'rounded-beveled-thin',canvasWidth:this.canvas.width,canvasHeight:this.canvas.height}}
+ getDiagnostics(){return {phase:this.phase,cards:this.cards.length,loaded:this.loadedCount,failed:this.failedAssets.length,elapsed:this.elapsed,visualSeed:this.visualSeed,entranceMode:this.entranceMode,opaqueCards:true,...orbitDiagnostics(this.cards,this.elapsed),webgl:this.gl.getParameter(this.gl.VERSION),textureTile:[TILE_W,TILE_H],cardGeometry:'rounded-beveled-thin',canvasWidth:this.canvas.width,canvasHeight:this.canvas.height}}
  dispose(){if(this.disposed)return;this.disposed=true;cancelAnimationFrame(this.frame);this.resizeObserver?.disconnect();for(const img of this.images){img.onload=null;img.onerror=null}
   const gl=this.gl;if(!gl.isContextLost()){gl.deleteTexture(this.texture);gl.deleteBuffer(this.buffer);gl.deleteVertexArray(this.vao);gl.deleteProgram(this.program)}this.canvas.remove();}
 }

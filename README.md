@@ -133,3 +133,7 @@ The landing visual preview on `feat/v083-gate-a-persistent-world` now uses one r
 ## Gate A v5 — Compact core sphere + sparse outer orbit (DRAFT)
 
 A synchronized 20-second CTA-off comparison exposed that the v4 sphere was almost entirely outside the viewing frustum and that the renderer blocked all animation until 78 JPEGs had finished decoding. The new visual candidate uses a 62-card core shell with clearly readable ~235px projected radius and a 16-card secondary orbit with natural close passes. Both use one constant shared angular velocity and no radial lunge. Obsidian backs appear immediately; authentic RWS fronts replace the back-only fallback as they load. **Do not merge/deploy without actual GPU visual approval.** See [Gate A v5 video audit](docs/GATE_A_V5_REFERENCE_AUDIT.md).
+
+## Gate A v6 — Cinematic orbit polish (DRAFT, unmerged)
+
+Following a 30-second reference comparison, the landing preview adds opaque card materials, four related rigid orbital scales (50 core + 12 halo + 10 middle + 6 flyby; still exactly 78 cards), seeded restrained nebulae and bottom-edge glow, and two distinct refresh/QA-selectable entrance rituals. **Do not merge or deploy without visual sign-off.** Run `npm run preview:gate-a` on the feature branch, press **H** to hide CTA, then use **SWITCH ENTRY** / **REPLAY** to compare both entrance styles. [Evidence and acceptance checks](docs/GATE_A_V6_VIDEO_REVIEW.md).
