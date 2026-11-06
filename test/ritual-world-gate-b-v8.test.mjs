@@ -42,10 +42,10 @@ test('Independent sheet velocities vary within a coherent spiral rather than rig
  assert.ok(spread<4,'No ballistic discontinuities or randomized spinning');
 });
 
-test('Camera pitches a deep tube into the reference tall edge-on cyclone smoothly',()=>{
- assert.ok(vortexCamera(2.1).pitch>.50&&vortexCamera(2.1).pitch<.75);
- assert.ok(vortexCamera(3.8).pitch>.95);
- assert.ok(vortexCamera(4.7).pitch>1.10);
+test('Camera preserves a wide tilted spiral until the final collapse, with smooth bank',()=>{
+ assert.ok(vortexCamera(2.1).pitch>.10&&vortexCamera(2.1).pitch<.30);
+ assert.ok(vortexCamera(3.8).pitch>.40&&vortexCamera(3.8).pitch<.62);
+ assert.ok(vortexCamera(4.7).pitch>.55&&vortexCamera(4.7).pitch<.72);
  assert.ok(vortexCamera(5.45).pitch<.2);
  for(let t=1.1;t<5.45;t+=.025){
   const a=vortexCamera(t),b=vortexCamera(t+.002);
