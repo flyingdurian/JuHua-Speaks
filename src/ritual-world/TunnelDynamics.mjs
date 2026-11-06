@@ -65,8 +65,8 @@ export function sampleTunnelTrajectory(index,seed,t,{mote=false}={}){
  // This is a reversible world-space camera transform, shared with mist.
  const tiltY=.55*Math.sin(.80*local+.35);
  const tiltX=.28*Math.cos(.72*local+.80);
- const oy=z+20,cy=Math.cos(tiltY),sy=Math.sin(tiltY);
- const bx=x*cy+oy*sy,bz=-x*sy+oy*cy;
+ const oy=z+20,cosY=Math.cos(tiltY),sinY=Math.sin(tiltY);
+ const bx=x*cosY+oy*sinY,bz=-x*sinY+oy*cosY;
  const cx2=Math.cos(tiltX),sx2=Math.sin(tiltX);
  const oldY=y;
  x=bx;y=oldY*cx2-bz*sx2;z=oldY*sx2+bz*cx2-20;
