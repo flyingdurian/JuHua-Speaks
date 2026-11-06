@@ -4,11 +4,11 @@ import {readFile} from 'node:fs/promises';
 import {vortexCamera,sampleVortexCard} from '../src/ritual-world/VortexRibbon.mjs';
 
 test('reference camera banks dynamically from face-on into a vertical corkscrew',()=>{
- const samples=[[1.10,.10],[2.10,.25],[3.00,.40],[3.75,1.02],[4.40,1.21],[5.45,.15]];
- for(const [t,yaw] of samples)assert.ok(Math.abs(vortexCamera(t).yaw-yaw)<1e-9);
+ const samples=[[1.10,.05],[2.10,.20],[3.00,.42],[3.75,1.06],[4.40,1.20],[5.45,0]];
+ for(const [t,pitch] of samples)assert.ok(Math.abs(vortexCamera(t).pitch-pitch)<1e-9);
  for(let t=1.1;t<=5.44;t+=.025){
   const a=vortexCamera(t),b=vortexCamera(t+.002);
-  assert.ok(Math.abs(a.yaw-b.yaw)<.05,'Unphysical camera yaw jump');
+  assert.ok(Math.abs(a.pitch-b.pitch)<.05,'Unphysical camera pitch jump');
   assert.ok(Math.hypot(a.px-b.px,a.py-b.py)<4,'Camera rail jumped');
  }
 });
