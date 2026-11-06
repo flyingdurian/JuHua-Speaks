@@ -197,11 +197,12 @@ function directGlobe(p,t){
  ],p.attitude,p.scale*globeDirection(t,'cardScale'));
 }
 function detonationPose(card,t){
- const delay=(card.orbitSlot%7)*.020;
+ const k=card.orbitSlot,seed=card.visualSeed>>>0;
+ // Reference begins with a few substantial flying sheets. The rest follow
+ // in overlapping waves; 78 cards must NOT appear fully expanded at once.
+ const delay=(k%13)*.032+.025*hash(k+29,seed);
  const u=clamp((t-7.10-delay)/(1.05-delay));
- // This is deliberately front-loaded rather than double-smoothstep, so
- // the 78-card globe is already enormous at the first quarter of the beat.
- const p=Math.pow(u,.43);
+ const p=Math.pow(u,.72);
  const start=pocketPose(card,t),end=chaoticGlobePose(card,t);
  const result=blend(start,end,p);
  const arc=.48*Math.sin(Math.PI*p);
