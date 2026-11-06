@@ -69,7 +69,7 @@ test('V7 tunnel sweeps independent Tarot sheets through near, middle and far per
  const measured=audit(3.55);
  assert.ok(depthChanged>=55,'Sheets must sweep through distinct axial layers, not fixed-Z rings');
  assert.ok(angleTraveled>=50,'Cards traverse substantial curved screen paths');
- assert.ok(measured.depthRatio>4,'Coexisting foreground and background sheets form a real tunnel');
+ assert.ok(Math.max(...measured.positions.map(p=>p[2]))-Math.min(...measured.positions.map(p=>p[2]))>20,'Coexisting near and far sheets must occupy distinct 3D depths');
  assert.ok(measured.near>=8&&measured.far>=13,'The camera looks into the opening of a volumetric tunnel');
  assert.ok(states.flat().every(p=>p.position.every(Number.isFinite)));
 });
