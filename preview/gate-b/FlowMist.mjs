@@ -56,7 +56,7 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
     else ctx.lineTo(p.x,p.y);
     previous=p;
    }
-   const haze=(.07+.025*(lane===0?1:0))*fade*plume;
+   const haze=(.13+.045*(lane===0?1:0))*fade*plume;
    ctx.globalAlpha=1;
    ctx.strokeStyle='rgba(154,165,176,'+haze+')';
    ctx.lineWidth=reduceMotion?9:23;ctx.stroke();
