@@ -39,7 +39,7 @@ test('automatic coherent tornado has bounded radius and real depth without face-
  assert.ok(Math.max(...x)-Math.min(...x)>3.5,'Controlled tornado has a wide readable radius');
  assert.ok(Math.max(...z)-Math.min(...z)>2,'Tornado moves through 3D depth');
  assert.ok(poses.filter(p=>p.attitude.normal[2]<0).length>=45,'The helical storm must predominantly show dark backs');
- assert.ok(poses.every(p=>p.position[2]<-3&&p.position[2]>-48),'The vacuum retains distant layers and a few near-camera passes');
+ assert.ok(poses.every(p=>p.position[2]<-3&&p.position[2]>-66),'Dolly-out preserves long-range tunnel perspective');
  assert.equal(shuffleBeat('auto',2.5),'vortex');
  assert.equal(shuffleBeat('auto',3.7),'vortex');
  assert.equal(shuffleBeat('auto',5.2),'vortex');
