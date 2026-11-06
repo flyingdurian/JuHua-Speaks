@@ -193,3 +193,9 @@
 /* V6: no spinning background disk, animated smoke sprite or CSS tornado. */
 .gate-b .ritual-vortex-glow,.gate-b.vacuum-active .ritual-vortex-glow{display:none!important}
 .gate-b.vacuum-active .space-background .nebula-texture{opacity:.16!important}
+
+/* V6: subtle actual advected mist following the card-flow timeline. No static tornado. */
+.gate-b .ritual-vortex-glow{display:block!important;opacity:0;z-index:0;mix-blend-mode:screen;transition:opacity .18s}
+.gate-b.vacuum-active .ritual-vortex-glow{display:block!important;opacity:.59}
+.advected-mist{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;filter:blur(8px)}
+@media(max-width:650px){.gate-b.vacuum-active .ritual-vortex-glow{opacity:.44}.advected-mist{filter:blur(5px)}}
