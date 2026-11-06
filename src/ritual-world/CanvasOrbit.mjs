@@ -4,7 +4,7 @@
  * It is a real perspective projection, not a scattered CSS animation.
  */
 import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,landingAttitude,landingVisible,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
-import {PHYSICAL_CARD,samplePhysicalShuffle,deckPose,shuffleDuration,shuffleBeat,SHUFFLE_CHOICES} from './ShuffleChoreography.mjs';
+import {PHYSICAL_CARD,samplePhysicalShuffle,deckPose,shuffleDuration,shuffleBeat,SHUFFLE_CHOICES,assertShuffleGeometry} from './ShuffleChoreography.mjs';
 const TAU=Math.PI*2;
 const norm=a=>{const l=Math.hypot(...a)||1;return a.map(v=>v/l)};
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
@@ -36,11 +36,13 @@ export class CanvasOrbit{
  }
  beginAutoShuffle(){
   if(this.phase!=='landing')throw Error('Auto shuffle requires landing');
+  assertShuffleGeometry(this.cards,{style:'auto',landingAt:this.elapsed,worldTime:this.elapsed});
   this.shuffleStyle='auto';this.shuffleLandingAt=this.elapsed;this.shuffleStartedAt=this.elapsed;this.shuffleRound++;this.setPhase('shuffle_ritual');
  }
  playShuffle(style){
   if(this.phase!=='deck_formed')throw Error('Shuffle choice requires formed deck');
   if(!SHUFFLE_CHOICES.includes(style))throw Error('Unknown shuffle style');
+  assertShuffleGeometry(this.cards,{style,landingAt:this.shuffleLandingAt,worldTime:this.elapsed});
   this.shuffleStyle=style;this.shuffleStartedAt=this.elapsed;this.shuffleRound++;this.setPhase('shuffle_ritual');
  }
  resetGateB(){this.setPhase('landing');this.restartEntrance(this.entranceMode);this.shuffleStyle='auto';this.shuffleStartedAt=0}

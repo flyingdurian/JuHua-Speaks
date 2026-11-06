@@ -49,3 +49,29 @@ The startup command imports and audits original RWS images before preview. The l
 
 ### Exit criteria
 Passing CI is an engineering gate, **not** a visual-quality judgment. Product Owner approves B1–B3 from actual browser-recorded demonstrations. Gate B stays unmerged until approved. Gate C does **not** begin until Gate B has a stable, satisfactory physical ritual.
+
+## Gate B v1.1 hotfix — Invisible card renderer (2026-11-06)
+
+**User test:** Landing cards are visible, but clicking **START DIVINATION** leaves only stars/CTA; the tornado, deck collapse, and all optional shuffles are visually absent. The UI still advances because a separate status timer runs normally. **This is an actual rendering regression, not a browser-setting issue or a request for a video.**
+
+### Root cause
+
+`ShuffleChoreography.mjs` defined a faulty 3D cross product as an array of two values rather than three. The computed `right` and `up` orientation vectors therefore had no Z component. `CardSurface.appendPremiumCard` uses all XYZ components, so each vertex contained invalid coordinates (NaN) and the GPU discarded the mesh. The Canvas fallback was affected as well. The existing tests checked pose counts and X/Y/Z position, but **failed to verify all three orientation-basis components and generated mesh vertices**.
+
+### Corrective action
+
+- Restore the full `cross(a,b) = [a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x]` implementation.
+- Before starting each shuffle type, validate all 78 cards' position, orientation basis and scale at representative time points; reject a broken sequence before changing world phase.
+- Surface a persistent **SHUFFLE RENDER ERROR** in the preview if preflight fails, rather than proceeding with a blank sky and inaccurate shuffle completion message.
+- Add regression tests that generate the **actual GPU vertex arrays** through `appendPremiumCard`, require every coordinate to be finite, every orientation vector to have length three, and confirm deck/tornado centers project into the camera frame.
+- Direct reproduction using the exact repository motion and mesh functions: **before** correction: 134,784 non-finite vertex values among 269,568 values per frame; **after** correction: 0 non-finite values across all tested phases and all four shuffle styles. All test phases project at least 70 card centers into a 720p camera reference (most project 78/78).
+
+### Required browser retest
+
+1. Refresh the local Gate B preview after pulling the new branch commit; press **START DIVINATION**. **Within the first second** you must see the same 78 cards visibly converging toward a helical tornado, with no blank frames.
+2. Observe the complete ~6.6-second tornado and collapse; the fully formed deck must appear hovering in the center with physically distinguishable thickness.
+3. Select Cosmic, Riffle and Wash individually; the cards must stay visible during each sequence and return to the same deck.
+4. Check DevTools Console for JavaScript errors and `window.__ritualGateB.diagnostics()` for `stackedCards:78` once the deck has formed. If the fallback renderer is active, it must also remain visible.
+5. The visual quality of choreography remains subject to Product Owner approval. Green CI proves valid coordinates and APIs only—not that the motion looks as polished as the reference.
+
+**Release policy:** Keep PR #10 draft and unmerged. Do not modify production Gate A v7 or proceed to Gate C.

@@ -7,7 +7,7 @@
 import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,landingAttitude,landingVisible,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
 export {makeLandingCardEntities,sampleLandingPose} from './OrbitalField.mjs';
 import {appendPremiumCard} from './CardSurface.mjs';
-import {PHYSICAL_CARD,samplePhysicalShuffle,deckPose,shuffleDuration,shuffleBeat,SHUFFLE_CHOICES} from './ShuffleChoreography.mjs';
+import {PHYSICAL_CARD,samplePhysicalShuffle,deckPose,shuffleDuration,shuffleBeat,SHUFFLE_CHOICES,assertShuffleGeometry} from './ShuffleChoreography.mjs';
 const TAU = Math.PI * 2;
 const clamp = (v,a,b) => Math.max(a, Math.min(b,v));
 const hash = (x) => { x = Math.imul(x ^ x >>> 16, 0x7feb352d); x = Math.imul(x ^ x >>> 15,0x846ca68b); return ((x ^ x >>> 16) >>> 0) / 4294967296; };
@@ -116,12 +116,14 @@ export class RitualWorld{
  setPhase(phase){if(!['landing','question_submitted','shuffle_ritual','deck_formed','sphere_selection','three_reveal'].includes(phase))throw Error('Unsupported world phase');this.phase=phase;this.onStatus({state:phase,cards:this.cards.length})}
  beginAutoShuffle(){
   if(this.phase!=='landing')throw Error('Auto shuffle requires landing');
+  assertShuffleGeometry(this.cards,{style:'auto',landingAt:this.elapsed,worldTime:this.elapsed});
   this.shuffleStyle='auto';this.shuffleLandingAt=this.elapsed;this.shuffleStartedAt=this.elapsed;
   this.setPhase('shuffle_ritual');this.shuffleRound++;
  }
  playShuffle(style){
   if(this.phase!=='deck_formed')throw Error('Shuffle choice requires a formed deck');
   if(!SHUFFLE_CHOICES.includes(style))throw Error('Unknown physical shuffle style');
+  assertShuffleGeometry(this.cards,{style,landingAt:this.shuffleLandingAt,worldTime:this.elapsed});
   this.shuffleStyle=style;this.shuffleStartedAt=this.elapsed;this.shuffleRound++;
   this.setPhase('shuffle_ritual');
  }

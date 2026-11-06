@@ -25,7 +25,7 @@ const sky=initCelestialSky({
  reduceMotion:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||false
 });
 const faceAssetForId=id=>new URL('../../assets/rws/'+id+'.jpg',import.meta.url).href;
-let world=null,loadCount=0,failedAssets=0,lastStatus='';
+let world=null,loadCount=0,failedAssets=0,lastStatus='',renderError='';
 const onStatus=evt=>{
  if(evt.state==='context-lost'){status.textContent='GRAPHICS CONTEXT LOST';return}
  if(Number.isInteger(evt.loaded))loadCount=evt.loaded;
@@ -55,6 +55,7 @@ const label={
 const statusText=()=>failedAssets?'ARTWORK ERROR · '+failedAssets+' MISSING':'RWS ILLUSTRATIONS · '+loadCount+'/78 LOADED';
 function renderUI(){
  if(!world)return;
+ if(renderError){status.textContent='SHUFFLE RENDER ERROR · '+renderError;return;}
  const phase=world.phase,info=world.getShuffleState();
  const state=phase==='shuffle_ritual'?info.beat:phase;
  const nextStatus=(phase==='landing'?'LANDING UNIVERSE':phase==='shuffle_ritual'?'SHUFFLING · '+info.style.toUpperCase():'DECK FORMED')+' · '+statusText();
@@ -76,14 +77,30 @@ buttonStart.addEventListener('click',()=>{
  const question=document.getElementById('question'),value=question.value.trim();
  if(value.length<3||value.length>600){question.focus();return}
  if(world.phase!=='landing')return;
+ try{world.beginAutoShuffle();}
+ catch(error){
+  console.error('Gate B geometry preflight failed:',error);
+  renderError=error.message;
+  status.textContent='SHUFFLE RENDER ERROR · '+renderError;
+  document.getElementById('gate-b-notice').textContent='Shuffle unavailable: card geometry could not be validated.';
+  overlay.hidden=false;root.classList.add('in-ritual');deckControls.hidden=true;
+  return;
+ }
  root.classList.add('in-ritual');overlay.hidden=false;deckControls.hidden=true;notice.textContent='';
- world.beginAutoShuffle();renderUI();
+ renderUI();
 });
 document.querySelectorAll('[data-shuffle]').forEach(button=>button.addEventListener('click',()=>{
  if(!world||world.phase!=='deck_formed')return;
  const style=button.dataset.shuffle;
  notice.textContent='';
- world.playShuffle(style);deckControls.hidden=true;renderUI();
+ try{world.playShuffle(style);}
+ catch(error){
+  console.error('Gate B optional shuffle geometry failed:',error);
+  renderError=error.message;
+  notice.textContent='Shuffle unavailable: card geometry failed validation.';
+  return;
+ }
+ deckControls.hidden=true;renderUI();
 }));
 document.getElementById('finish-shuffle').addEventListener('click',()=>{
  if(!world||world.phase!=='deck_formed')return;
@@ -98,7 +115,7 @@ buttonPause.addEventListener('click',()=>{
 document.getElementById('reset').addEventListener('click',()=>{
  if(!world)return;
  world.setPaused(false);buttonPause.setAttribute('aria-pressed','false');buttonPause.textContent='PAUSE Ⅱ';
- world.resetGateB();root.classList.remove('in-ritual');overlay.hidden=true;
+ renderError='';world.resetGateB();root.classList.remove('in-ritual');overlay.hidden=true;
  notice.textContent='';lastStatus='';renderUI();
 });
 const statusTimer=setInterval(renderUI,180);

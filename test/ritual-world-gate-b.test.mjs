@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {DECK} from '../src/deck.mjs';
 import {makeLandingCardEntities,sampleLandingPose} from '../src/ritual-world/OrbitalField.mjs';
+import {appendPremiumCard} from '../src/ritual-world/CardSurface.mjs';
 import {
  AUTO_SHUFFLE_SECONDS,SHUFFLE_CHOICES,SHUFFLE_DURATIONS,PHYSICAL_CARD,
- samplePhysicalShuffle,deckPose,deckThickness,shuffleDuration,shuffleBeat
+ samplePhysicalShuffle,deckPose,deckThickness,shuffleDuration,shuffleBeat,assertShuffleGeometry
 } from '../src/ritual-world/ShuffleChoreography.mjs';
 
 const cards=makeLandingCardEntities(DECK,702509);
@@ -131,4 +132,72 @@ test('Gate B preview starts independently of production and uses port 4184',asyn
  assert.match(server,/GATE_B_PORT\|\|4184/);
  assert.match(pkg.scripts['preview:gate-b'],/serve-gate-b\.mjs/);
  assert.ok(!js.includes('sendLocalExodia'));
+});
+
+
+test('REGRESSION: every post-CTA card has a complete XYZ basis and finite GPU vertices',()=>{
+ const phases={
+  auto:[0.05,.35,1.4,2.8,4.5,5.4,6.6],
+  cosmic:[.15,1.3,3.6,4.7],
+  riffle:[.15,.74,1.5,3.2,4.8],
+  wash:[.15,1.5,3.8,5.2]
+ };
+ const uv=(slot,u,v)=>[(slot%9+u)/9,(Math.floor(slot/9)+v)/9];
+ let checked=0;
+ for(const [style,times] of Object.entries(phases)){
+  for(const age of times){
+   const vertices=[];
+   for(const card of cards){
+    const p=samplePhysicalShuffle(card,{style,age,landingAt:7,worldTime:24.5});
+    const basis=p.attitude;
+    for(const name of ['normal','right','up']){
+     assert.equal(basis[name].length,3,style+' '+age+' '+card.id+' has incomplete '+name+' vector');
+     assert.ok(basis[name].every(Number.isFinite),style+' '+age+' '+card.id+' has non-finite '+name);
+     assert.ok(Math.abs(Math.hypot(...basis[name])-1)<.001,style+' '+age+' '+name+' must be unit length');
+    }
+    assert.ok(p.position.length===3&&p.position.every(Number.isFinite),'Finite 3D position required');
+    appendPremiumCard(vertices,{...card,...PHYSICAL_CARD},p.position,basis,p.scale,card.light,uv);
+    checked++;
+   }
+   assert.ok(vertices.length>200000,'WebGL must receive non-empty actual geometry for '+style+' '+age);
+   assert.equal(vertices.length%6,0,'Each GPU vertex has XYZ, UV and brightness');
+   assert.ok(vertices.every(Number.isFinite),'No NaN or Infinity may enter GPU for '+style+' at '+age+' seconds');
+  }
+ }
+ assert.equal(checked,cards.length*Object.values(phases).flat().length);
+});
+
+test('REGRESSION: stacked backs and 3D tornado project to visible screen space',()=>{
+ // Matches the actual WebGL camera: 58-degree vertical FOV, 720px reference.
+ const focal=720/(2*Math.tan(58*Math.PI/360));
+ const screen=p=>({x:430+p[0]*focal/(-p[2]),y:360-p[1]*focal/(-p[2])});
+ for(const [label,t] of [['tornado',2.7],['collapse',5.5],['stack',6.6]]){
+  const samples=cards.map(card=>samplePhysicalShuffle(card,{style:'auto',age:t,landingAt:7,worldTime:24.5}));
+  const visible=samples.filter(({position})=>{
+   const p=screen(position);
+   return position[2]<-1.5&&p.x>=0&&p.x<=860&&p.y>=0&&p.y<=720;
+  });
+  assert.ok(visible.length>=70,label+': at least 70 of 78 card centers must project on screen');
+  assert.ok(samples.every(p=>p.attitude.right.length===3&&p.attitude.up.length===3),
+   label+': rendering normals must not be truncated');
+ }
+});
+
+
+test('REGRESSION: invalid orientation must fail preflight visibly, not silently blank a frame',()=>{
+ for(const style of ['auto',...SHUFFLE_CHOICES]){
+  assert.equal(assertShuffleGeometry(cards,{style,landingAt:7,worldTime:24.5}),true);
+  const corrupt={...cards[0],orbitSlot:NaN};
+  assert.throws(()=>assertShuffleGeometry([corrupt],{style,landingAt:7,worldTime:24.5}),/Invalid shuffle XYZ geometry/);
+ }
+});
+test('Both renderers validate geometry before changing ritual phases',async()=>{
+ for(const path of ['RitualWorld.mjs','CanvasOrbit.mjs']){
+  const code=await readFile(new URL('../src/ritual-world/'+path,import.meta.url),'utf8');
+  assert.match(code,/assertShuffleGeometry\(this\.cards,\{style:'auto'/);
+  assert.match(code,/assertShuffleGeometry\(this\.cards,\{style,landingAt/);
+ }
+ const preview=await readFile(new URL('../preview/gate-b/gate-b.mjs',import.meta.url),'utf8');
+ assert.match(preview,/renderError=error\.message/);
+ assert.match(preview,/SHUFFLE RENDER ERROR/);
 });

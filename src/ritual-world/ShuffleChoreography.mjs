@@ -16,7 +16,11 @@ const ease=x=>{x=clip(x);return x*x*(3-2*x)};
 const lerp=(a,b,t)=>a+(b-a)*t;
 const length=a=>Math.hypot(...a);
 const norm=a=>{const l=length(a)||1;return a.map(v=>v/l)};
-const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2]];
+const cross=(a,b)=>[
+ a[1]*b[2]-a[2]*b[1],
+ a[2]*b[0]-a[0]*b[2],
+ a[0]*b[1]-a[1]*b[0]
+];
 const mixVec=(a,b,t)=>a.map((v,i)=>lerp(v,b[i],t));
 const hash=(i,seed=1)=>{
  let x=(Math.imul(i+1,0x9e3779b9)^seed)>>>0;
@@ -164,4 +168,25 @@ export function shuffleBeat(style,age){
  if(style==='riffle')return age<.72?'splitting':age<2.95?'interleaving':'closing';
  if(style==='wash')return age<.90?'spreading':age<3.70?'table_wash':'gathering';
  return age<.85?'expanding':age<3.28?'orbital_shuffle':'gathering';
+}
+
+
+/**
+ * Validate complete physical 3D basis before starting a ritual. Fail closed
+ * with a visible preview error instead of accepting a cardless GPU animation.
+ * It runs on a control transition only, never every animation frame.
+ */
+export function assertShuffleGeometry(cards,{style='auto',landingAt=0,worldTime=0}={}){
+ const stop=shuffleDuration(style);
+ for(const age of [0.05,.6,1.6,3.2,stop]){
+  for(const card of cards){
+   const p=samplePhysicalShuffle(card,{style,age,landingAt,worldTime});
+   const values=[p.position,p.attitude?.right,p.attitude?.up,p.attitude?.normal];
+   if(values.some(a=>!Array.isArray(a)||a.length!==3||a.some(v=>!Number.isFinite(v)))){
+    throw new Error('Invalid shuffle XYZ geometry: '+style+' at '+age+'s, '+card.id);
+   }
+   if(!(p.scale>0&&Number.isFinite(p.scale)))throw new Error('Invalid shuffle scale: '+style+', '+card.id);
+  }
+ }
+ return true;
 }
