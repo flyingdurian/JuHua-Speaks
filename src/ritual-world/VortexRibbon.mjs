@@ -107,6 +107,21 @@ function sample(lane,q,t,seed=0,motionBias=1){
  z=lerp(z,-16.2,f*.42);
  return {position:[x,y,z],theta,depth:-z,lane,collapse:f};
 }
+/**
+ * Orient a local physical card basis with the SAME camera-bank rotation
+ * applied to its centre in sample(). Translation, anamorphic framing and
+ * projection do not rotate or distort the card's actual mesh.
+ */
+export function rotateVortexBasis(vector,t){
+ const c=vortexCamera(t);
+ let [x,y,z]=vector;
+ const cy=Math.cos(c.yaw),sy=Math.sin(c.yaw);
+ const yawX=x*cy+z*sy,yawZ=-x*sy+z*cy;
+ const cp=Math.cos(c.pitch),sp=Math.sin(c.pitch);
+ const pitchY=y*cp-yawZ*sp,pitchZ=y*sp+yawZ*cp;
+ const cr=Math.cos(c.roll),sr=Math.sin(c.roll);
+ return [yawX*cr-pitchY*sr,yawX*sr+pitchY*cr,pitchZ];
+}
 /** Shared smooth 3D ribbon used for both real cards and atmosphere. */
 export function sampleVortexRibbon(lane,q,t,seed=0){return sample(lane,q,t,seed)}
 export function sampleVortexCard(index,seed,t){
@@ -141,5 +156,5 @@ export function sampleVortexCard(index,seed,t){
  const p1=sample(lane,clamp(q+.001),t,seed,motionBias).position;
  const tangent=p1.map((v,j)=>v-p0[j]);
  const l=Math.hypot(...tangent)||1;
- return {...result,q,tangent:tangent.map(v=>v/l)};
+ return {...result,q,tangent:tangent.map(v=>v/l),gust};
 }
