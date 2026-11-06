@@ -13,6 +13,34 @@ export function tunnelHash(i,s=0){
  x^=x>>>16;x=Math.imul(x,0x7feb352d);x^=x>>>15;x=Math.imul(x,0x846ca68b);x^=x>>>16;
  return (x>>>0)/4294967296;
 }
+// Reference-anchored cinematography. Each entry is a *camera pose* matched
+// to a semantic point of the owner-provided comparison (not wall-clock sync).
+// Values are focal-plane zoom and pixel-equivalent lens shift on 860x720.
+// An interpolated camera rail changes ALL materials coherently in 3D.
+const SHOT_RAIL=Object.freeze([
+ {t:1.10,zoom:1.00,px:0,py:0},
+ {t:1.55,zoom:1.08,px:96,py:86},
+ {t:2.10,zoom:1.36,px:231,py:139},
+ {t:3.00,zoom:.86,px:230,py:22},
+ {t:3.80,zoom:.54,px:32,py:-40},
+ {t:4.42,zoom:.68,px:15,py:-14},
+ {t:5.45,zoom:1.00,px:0,py:0},
+]);
+function railValue(t,key){
+ if(t<=SHOT_RAIL[0].t)return SHOT_RAIL[0][key];
+ const len=SHOT_RAIL.length;
+ if(t>=SHOT_RAIL[len-1].t)return SHOT_RAIL[len-1][key];
+ let i=0;
+ while(i<len-2&&t>SHOT_RAIL[i+1].t)i++;
+ const a=SHOT_RAIL[i],b=SHOT_RAIL[i+1],p=SHOT_RAIL[Math.max(0,i-1)],n=SHOT_RAIL[Math.min(len-1,i+2)];
+ const d=b.t-a.t,u=(t-a.t)/d,u2=u*u,u3=u2*u;
+ const m0=(b[key]-p[key])/(b.t-p.t),m1=(n[key]-a[key])/(n.t-a.t);
+ return (2*u3-3*u2+1)*a[key]+(u3-2*u2+u)*d*m0+
+  (-2*u3+3*u2)*b[key]+(u3-u2)*d*m1;
+}
+export function sampleTunnelCameraRail(t){
+ return {zoom:Math.max(.30,railValue(t,'zoom')),px:railValue(t,'px'),py:railValue(t,'py')};
+}
 export function sampleTunnelTrajectory(index,seed,t,{mote=false}={}){
  const k=index,rand=n=>tunnelHash(k+n,seed);
  const local=Math.max(0,t-1.10);
@@ -79,5 +107,11 @@ export function sampleTunnelTrajectory(index,seed,t,{mote=false}={}){
  const contraction=smoother((t-4.47)/.98);
  x*=1-.70*contraction;y*=1-.70*contraction;
  z=z*(1-.34*contraction)-16.2*(.34*contraction);
+ const shot=sampleTunnelCameraRail(t);
+ // Equivalent to smoothly shifting an off-axis physical lens: lateral
+ // displacement scales with depth, preserving parallax and true Z spacing.
+ const focal=720/(2*Math.tan(58*Math.PI/360));
+ x=shot.zoom*x+shot.px*(-z)/focal;
+ y=shot.zoom*y-shot.py*(-z)/focal;
  return {position:[x,y,z],azimuth,axial,depth:-z,radius,transport};
 }
