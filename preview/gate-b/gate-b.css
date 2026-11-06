@@ -189,3 +189,7 @@
  .vortex-smoke-texture{animation:none!important;transform:translate(-50%,-50%) scale(1)!important;will-change:auto}
  .gate-b .ritual-vortex-glow{transition:none!important}
 }
+
+/* V6: no spinning background disk, animated smoke sprite or CSS tornado. */
+.gate-b .ritual-vortex-glow,.gate-b.vacuum-active .ritual-vortex-glow{display:none!important}
+.gate-b.vacuum-active .space-background .nebula-texture{opacity:.16!important}
