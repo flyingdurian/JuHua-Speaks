@@ -39,8 +39,14 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
     else ctx.lineTo(p.x,p.y);
     previous=p;
    }
-   ctx.strokeStyle='rgba(178,186,191,'+(.20*fade)+')';
-   ctx.lineWidth=1.15;ctx.globalAlpha=1;ctx.stroke();
+   ctx.globalAlpha=1;
+   // Dynamic gas tubes sample the actual card streamlines each render.
+   ctx.strokeStyle='rgba(143,153,166,'+(.12*fade)+')';
+   ctx.lineWidth=24;ctx.stroke();
+   ctx.strokeStyle='rgba(185,192,190,'+(.14*fade)+')';
+   ctx.lineWidth=5;ctx.stroke();
+   ctx.strokeStyle='rgba(213,217,217,'+(.26*fade)+')';
+   ctx.lineWidth=1.2;ctx.stroke();
   }
   // A camera-perspective filament is a trail of the same material coordinate,
   // not a CSS/Canvas spiral that spins behind stationary sheets.
