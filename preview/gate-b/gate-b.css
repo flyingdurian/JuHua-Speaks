@@ -199,3 +199,11 @@
 .gate-b.vacuum-active .ritual-vortex-glow{display:block!important;opacity:.59}
 .advected-mist{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;filter:blur(8px)}
 @media(max-width:650px){.gate-b.vacuum-active .ritual-vortex-glow{opacity:.44}.advected-mist{filter:blur(5px)}}
+
+/* V7 reference: the ritual happens against deep near-black space, not the
+   bright landing-sky star field. Gate A landing is unchanged. The independent
+   dynamically advected mist stays above this dark background. */
+.gate-b.in-ritual .space-background{opacity:.13!important;transition:opacity .35s ease}
+.gate-b.in-ritual .space-background .nebula-texture{opacity:.09!important}
+.gate-b.in-ritual .space-background::before{opacity:.12!important}
+.gate-b:not(.in-ritual) .space-background{opacity:1}
