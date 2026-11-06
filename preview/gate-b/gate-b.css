@@ -207,3 +207,10 @@
 .gate-b.in-ritual .space-background .nebula-texture{opacity:.09!important}
 .gate-b.in-ritual .space-background::before{opacity:.12!important}
 .gate-b:not(.in-ritual) .space-background{opacity:1}
+
+/* V8: Sequence 1 ONLY — faint celestial gas behind the 3D material ribbons.
+   The approved globe and later steps retain their unchanged sky levels. */
+.gate-b.in-ritual.vacuum-active .space-background{opacity:.26!important}
+.gate-b.in-ritual.vacuum-active .space-background .nebula-texture{opacity:.28!important}
+.gate-b.vacuum-active .advected-mist{filter:blur(4px)}
+@media(max-width:650px){.gate-b.vacuum-active .advected-mist{filter:blur(3px)}}
