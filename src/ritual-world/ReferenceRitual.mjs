@@ -97,12 +97,12 @@ function suctionPose(card,t){
  const rnd=n=>hash(k+n,seed);
  const v=sampleTunnelTrajectory(k,seed,t);
  const theta=v.azimuth,axial=v.axial;
- const face=k%7===1||k%13===4||k%17===6;
+ const face=k%9===2||k%17===6;
  const yaw=(face?Math.PI:0)+.33*Math.sin(theta*.69+k*.31)
     +.38*Math.sin(axial*1.24+t*1.7+k*.15);
  const pitch=.34*Math.sin(theta*.47+k*.52)+.21*Math.sin(t*2.6+k*.39);
  const roll=-theta*.60+.32*Math.sin(axial*.87+k*.2);
- const scale=.55+.16*rnd(39)+.035*Math.sin(t*1.5+k*.31);
+ const scale=(face?.76:.33)+(face?.12:.09)*rnd(39)+.018*Math.sin(t*1.5+k*.31);
  return pose(v.position,facing(yaw,pitch,roll),scale);
 }
 function pocketPose(card,t){
@@ -144,7 +144,7 @@ function chaoticGlobePose(card,t){
  const bank=.20+.13*Math.sin(time*.67);
  const cb=Math.cos(bank),sb=Math.sin(bank);
  const y=p[1]*cb-zz*sb,z=p[1]*sb+zz*cb;
- const R=(k<66?5.18:4.32)+.38*Math.sin(k*.74+time*1.5);
+ const R=(k<66?6.00:4.95)+.40*Math.sin(k*.74+time*1.5);
  const pos=[R*x+.10*Math.sin(time*1.1+k*.7),
     R*y+.12*Math.sin(time*.9+k*.61),
     -13.75+R*z];
@@ -152,9 +152,10 @@ function chaoticGlobePose(card,t){
  // therefore reveals historical fronts, rear hemisphere shows engraved backs.
  // Limited tangential rock preserves edge silhouettes without random flipping.
  const wobble=.16*Math.sin(time*2.8+k*.43);
- const normal=norm([x+.13*Math.sin(time*2.2+k),
+ let normal=norm([x+.13*Math.sin(time*2.2+k),
                     y+.10*Math.sin(time*1.8+k*.63),
                     z+wobble]);
+ // The back-facing sheets form the dark inner scaffold seen in ChatARot.\n if(k%3===0)normal=norm([normal[0],normal[1],-Math.abs(normal[2])]);
  const roll=.82*Math.sin(time*2.3+k*.53)+.28*Math.cos(k*.37);
  const attitude=orientedFrom(normal,[Math.cos(roll),Math.sin(roll),.06]);
  const scale=.76+.13*rnd(37)+(k<66?0:-.05);
@@ -165,9 +166,9 @@ function detonationPose(card,t){
  const u=clamp((t-7.10-delay)/(1.05-delay));
  // This is deliberately front-loaded rather than double-smoothstep, so
  // the 78-card globe is already enormous at the first quarter of the beat.
- const p=1-Math.pow(1-u,2.45);
+ const p=Math.pow(u,.28);
  const start=pocketPose(card,t),end=chaoticGlobePose(card,t);
- const result=blend(start,end,Math.sqrt(p));
+ const result=blend(start,end,p);
  const arc=.48*Math.sin(Math.PI*p);
  const theta=card.orbitSlot*GOLDEN+t*4.6;
  result.position[0]+=arc*Math.cos(theta);
