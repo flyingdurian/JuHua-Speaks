@@ -36,3 +36,13 @@ The Product Owner requested visual deviation no worse than ±10%. This must be *
 
 ## Release discipline
 Branch `feat/v083-gate-b-physical-shuffle`, PR #10 draft, production Gate A v7 untouched. Rollback anchor `checkpoint/gate-b-v6-rejected-2026-11-06`. Do not merge until the owner *explicitly* visually approves and the reference-aligned comparison contract passes. Preserve the 78 RWS IDs, deterministic draw, AI/session systems and three-deck finish.
+
+## Latest v7 technical delta — new synchronized owner video evaluation
+- PR #10 remains draft and **visually rejected until owner sign-off**, even when source CI passes.
+- A fixed `?seed=2165840022` review seed and camera-direction rail make recordings comparable. The owner footage is not distributed with the repository.
+- Source-level tests and a separate browser record workflow use WebGL2; `scripts/score-gate-b-v7.py` compares seven reference-aligned visual beats on five 2D composition proxies (card-back area, width, height, x/y center). Browser workflow **fails** if any exceeds 10%; metrics do NOT determine creative fidelity or approval.
+- Gate B's ritual starfield is substantially darkened; the approved Gate A landing remains unaltered. The old painted tornado is removed.
+- The stage-one geometry is no longer a fourfold ring. `TunnelDynamics.mjs` now transports 48/22/8 Tarot sheets in three intentionally asymmetric helices with physical Z movement, banked camera, off-axis lens shifts, and camera-keyframed vertical perspective.
+- Stage two now has a wave of 12 physically ejected lead sheets followed by staggered remaining arrivals to build a recognisable globe rather than a whole 78-card mass at once. Canonical hollow sphere geometry and camera framing are tested separately.
+- The near-final measured GPU review achieved within-10%-proxy tolerances on the first full globe and late rotation while Sequence 1 opening and globe bloom remained out of range. Later corrections are being evaluated with newly recorded footage. **This is not 90% perceptual fidelity.**
+- GitHub GPU workflow cancels superseded captures to avoid redundant concurrent testing. Detailed per-beat measurements and full recordings are retained as Actions artifacts.
