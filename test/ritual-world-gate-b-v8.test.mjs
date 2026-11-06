@@ -64,7 +64,7 @@ test('Atmospheric trails and cards share the same 3D physical helix',async()=>{
  assert.ok(card.position.every(Number.isFinite));
 });
 
-test('Card faces, backs and edges rotate rigidly with the same camera bank as their world-space centres',()=>{
+test('Card faces, backs and edges rotate rigidly with the same camera bank as their world-space centres',async()=>{
  const dot=(a,b)=>a.reduce((sum,x,i)=>sum+x*b[i],0);
  const norm=a=>Math.hypot(...a);
  for(const t of [1.25,2.1,3.0,3.8,4.7,5.2]){
