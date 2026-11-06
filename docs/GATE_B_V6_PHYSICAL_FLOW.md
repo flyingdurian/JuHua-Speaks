@@ -13,11 +13,11 @@ The v5 suction function coupled a card's fixed orbit slot to its static depth an
 Each of the original 78 Tarot sheets now has its own continuous time-parametrized motion through three interacting components:
 1. **Axial suction**: release-dependent travel increases nonlinearly with normalized time; near/far depth changes within a sheet, not only across sheet indices.
 2. **Angular advection**: each card rotates through a continuously accelerating azimuth, with individual phase offsets.
-3. **Radial collapse**: radial displacement contracts during motion; skew and transverse perturbations prevent a synchronized mechanical doughnut.
+3. **Radial collapse**: radial displacement contracts during motion; each sheet has a different radial cross-section and skew, intentionally eliminating the hollow ring seen in the first GPU recording.
 4. **Foreground passes**: a small deterministic subset executes smooth camera-directed arcs that join the main flow without teleporting.
 5. **Card attitude**: per-sheet pitch, yaw and roll vary continuously over the sweep. These are actual source meshes and RWS faces, not sprites for the tornado.
 
-The independently rotating vortex Canvas is no longer instantiated and its DOM layer is hidden. The approved background sky and one persistent GPU card renderer remain. Existing suspension, second globe, three 26-card decks and canonical final deck are retained to limit regression risk. The globe remains subject to the user's separate visual approval.
+The independently rotating vortex Canvas is no longer instantiated and its DOM layer is hidden. The approved background sky and one persistent GPU card renderer remain. The secondary globe now has time-varying latitude and independent axis precession, crossing inner/outer depth planes rather than maintaining fixed spherical latitude rings. Suspension, three 26-card decks and canonical final deck remain. The globe remains subject to visual approval.
 
 ## Validation
 - Branch unit suite includes tests for individual increasing near-camera depth, XY travel, 78 distinct objects, 78-layer finish, exact timeline seams, physical mesh orientation, and full GPU vertex finiteness.
