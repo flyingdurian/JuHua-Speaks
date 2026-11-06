@@ -157,3 +157,7 @@ The production Gate A v7 remains approved and unchanged. A **separate unmerged b
 ## Gate B v2 — Reference-led choreography overhaul (unmerged)
 
 A 30.906-second synchronized comparison identified that the first Gate B version skipped the satisfying progressions of the reference. The revised dedicated preview stages the landing rush, helical tornado, 3D card globe, three 26-card stacks, and gradual final 78-card deck over ~9.45 seconds. The Cosmic, Riffle and Wash shuffles have separate physical motion families; WebGL/Canvas share deterministic choreography, with 3D basis and vertex/continuity tests. **Gate B remains a draft visual candidate, not a production release.** Run `npm run preview:gate-b` and see [the video audit and acceptance gate](docs/GATE_B_PHYSICAL_SHUFFLE.md).
+
+## Gate B v3 — Automatic ritual visual rebuild (DRAFT)
+
+The first two Gate B builds did not match the ChatARot reference's spatial choreography. The new **automatic-only** Gate B v3 uses a separate 10-beat reference-directed sampler (`ReferenceRitual.mjs`): full-screen rushing helix → tiny suspended pocket deck → second huge illustrated card globe → three separated 26-card piles → final 78-layer floating deck. Cosmic/Riffle/Wash are not offered in this preview. The public Gate A v7 is unchanged. [Detailed visual storyboard and acceptance criteria](docs/GATE_B_V3_REFERENCE_STORYBOARD.md). Run `npm run preview:gate-b` on the unmerged feature branch.

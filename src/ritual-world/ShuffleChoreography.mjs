@@ -1,4 +1,10 @@
 /**
+ * Gate B v3: the automatic ritual is authored independently in
+ * ReferenceRitual.mjs; the optional shuffle methods below are INACTIVE
+ * in the Gate B v3 UI pending separate product review.
+ * Every style shares the same immutable 78 card IDs and physical deck pose.
+ */
+/**
  * Gate B v2 — authored physical Tarot ritual.
  * Reference footage (30.906s split-screen, 2026-11-06) demonstrates:
  * orbit rush -> compact helical storm -> irregular globe -> three piles ->
@@ -6,7 +12,7 @@
  * Cosmetic choreography never changes identities or divination probabilities.
  * All 78 objects exist throughout; no new renderer or camera is created.
  */
-import {sampleLandingPose,landingAttitude} from './OrbitalField.mjs';
+import {sampleReferenceRitual,referenceBeat,RITUAL_DURATION,RITUAL_BEATS} from './ReferenceRitual.mjs';
 
 const N=78, TAU=Math.PI*2, GOLDEN=Math.PI*(3-Math.sqrt(5));
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
@@ -27,19 +33,11 @@ const hash=(i,seed=1)=>{
  return (x>>>0)/4294967296;
 };
 const PITCH=-.12;
-export const PHYSICAL_CARD=Object.freeze({width:1.28,height:2.12,thickness:.0048});
-export const AUTO_SHUFFLE_SECONDS=9.45;
+export const PHYSICAL_CARD=Object.freeze({width:1.28,height:2.12,thickness:.0145});
+export const AUTO_SHUFFLE_SECONDS=RITUAL_DURATION;
 export const SHUFFLE_CHOICES=Object.freeze(['cosmic','riffle','wash']);
 export const SHUFFLE_DURATIONS=Object.freeze({cosmic:5.65,riffle:5.75,wash:5.85});
-export const AUTO_RITUAL_BEATS=Object.freeze([
- Object.freeze({id:'gathering',start:0,end:1.3}),
- Object.freeze({id:'tornado',start:1.3,end:3.05}),
- Object.freeze({id:'storm_to_globe',start:3.05,end:3.9}),
- Object.freeze({id:'globe',start:3.9,end:5.95}),
- Object.freeze({id:'three_piles',start:5.95,end:6.95}),
- Object.freeze({id:'pile_shuffling',start:6.95,end:7.8}),
- Object.freeze({id:'consolidating',start:7.8,end:AUTO_SHUFFLE_SECONDS})
-]);
+export const AUTO_RITUAL_BEATS=RITUAL_BEATS;
 export function shuffleDuration(style){
  if(style==='auto')return AUTO_SHUFFLE_SECONDS;
  if(!Object.hasOwn(SHUFFLE_DURATIONS,style))throw Error('Unknown physical shuffle '+style);
@@ -90,10 +88,6 @@ function blend(a,b,t){
  const right=vMix(a.attitude.right,b.attitude.right,w);
  return pose(vMix(a.position,b.position,w),attitudeFrom(fixedNormal,right),mix(a.scale,b.scale,w));
 }
-function startPose(card,landingAt,entranceMode='inside-out'){
- const position=sampleLandingPose(card,landingAt,entranceMode);
- return pose(position,landingAttitude(card,position,landingAt),1);
-}
 function stackPose(card,{center=[0,-.16,-17.0],yaw=1.14,pitch=PITCH,roll=0,scale=1.14,rank=card.orbitSlot,count=N,step=.0145}={}){
  const basis=backAttitude(yaw,pitch,roll);
  const layer=(rank-(count-1)/2)*step;
@@ -114,54 +108,6 @@ export function deckThickness(cards){
  const first=deckPose(cards[0],0),axis=first.attitude.normal;
  const values=cards.map(c=>dot(deckPose(c,0).position,axis));
  return Math.max(...values)-Math.min(...values);
-}
-function tornadoPose(card,t){
- const rank=card.orbitSlot,u=(rank+.5)/N,vertical=2*u-1;
- const az=rank*GOLDEN+t*4.25+(card.visualSeed||0)*.0000025;
- const r=1.70+1.05*(1-vertical*vertical)+.18*Math.sin(t*2+rank*.28);
- const x=r*Math.cos(az),y=vertical*4.45+.15*Math.sin(az*.8),z=-17.2+r*.7*Math.sin(az);
- const tilt=(rank%9===0)? .11:.18;
- const direction=backAttitude(.46*Math.sin(az),.25*Math.sin(t*2+rank*.2),tilt*Math.cos(az+.3));
- return pose([x,y,z],direction,1.13);
-}
-function globePose(card,t){
- const rank=card.orbitSlot,u=(rank+.5)/N,y=1-2*u;
- const az=rank*GOLDEN+(t-3)*1.65+(card.visualSeed||0)*.000001;
- const ring=Math.sqrt(Math.max(.001,1-y*y)),r=2.70+.14*Math.sin(rank*1.23);
- const x=r*ring*Math.cos(az),z=-16.45+r*ring*Math.sin(az)*.86;
- const isFace=rank%7===0;
- const attitude=backAttitude((isFace?Math.PI:0)+.42*Math.sin(az),.21*Math.cos(az+rank*.2),.13*Math.sin(t*.6+rank));
- return pose([x,r*y,z],attitude,1.05);
-}
-function pilePose(card,t){
- const rank=card.orbitSlot,pile=rank%3,slot=Math.floor(rank/3),side=pile-1;
- return stackPose(card,{
-  center:[side*2.25,-.24+.05*(pile===1),-17.1+Math.abs(side)*.35],
-  yaw:.87+side*.11+.025*Math.sin(t*.5+pile),
-  pitch:-.10,roll:side*.025,scale:1.05,rank:slot,count:26,step:.016
- });
-}
-function livingPilesPose(card,t){
- const result=pilePose(card,t),amount=Math.sin(Math.PI*clamp((t-6.95)/.85));
- const group=card.orbitSlot%3,sign=group-1;
- result.position[0]+=sign*amount*.26;
- result.position[1]+=.10*amount*Math.sin(group*2.1);
- result.position[2]+=.12*amount*(group===1?-1:1);
- return result;
-}
-function autoPose(card,t,landingAt,worldTime,entranceMode){
- if(t<1.3)return blend(startPose(card,landingAt,entranceMode),tornadoPose(card,t),t/1.3);
- if(t<3.05)return tornadoPose(card,t);
- if(t<3.9)return blend(tornadoPose(card,t),globePose(card,t),(t-3.05)/.85);
- if(t<5.95)return globePose(card,t);
- if(t<6.95)return blend(globePose(card,t),pilePose(card,t),(t-5.95)/1);
- if(t<7.8)return livingPilesPose(card,t);
- if(t<AUTO_SHUFFLE_SECONDS){
-  const delay=(card.orbitSlot/77)*.42;
-  const w=(t-7.8-delay)/(AUTO_SHUFFLE_SECONDS-7.8-delay);
-  return blend(pilePose(card,t),deckPose(card,worldTime),w);
- }
- return deckPose(card,worldTime);
 }
 function cosmicHalvesPose(card,t){
  const rank=card.orbitSlot,half=rank%2,index=Math.floor(rank/2),side=half?-1:1;
@@ -250,7 +196,7 @@ function washPose(card,t,worldTime){
 }
 export function samplePhysicalShuffle(card,{style='auto',age=0,landingAt=2.5,worldTime=0,entranceMode='inside-out'}={}){
  const t=Math.max(0,Number(age)||0);
- if(style==='auto')return autoPose(card,t,landingAt,worldTime,entranceMode);
+ if(style==='auto')return sampleReferenceRitual(card,{age:t,landingAt,worldTime,entranceMode,deckPose});
  if(style==='cosmic')return cosmicPose(card,t,worldTime);
  if(style==='riffle')return rifflePose(card,t,worldTime);
  if(style==='wash')return washPose(card,t,worldTime);
@@ -258,10 +204,7 @@ export function samplePhysicalShuffle(card,{style='auto',age=0,landingAt=2.5,wor
 }
 export function shuffleBeat(style,age){
  const t=Math.max(0,Number(age)||0);
- if(style==='auto'){
-  for(const beat of AUTO_RITUAL_BEATS)if(t<beat.end)return beat.id;
-  return 'deck_ready';
- }
+ if(style==='auto')return referenceBeat(t);
  if(!SHUFFLE_CHOICES.includes(style))throw Error('Unknown shuffle variant');
  if(t>=shuffleDuration(style))return 'deck_ready';
  if(style==='cosmic')return t<1.05?'splitting':t<1.8?'unfurling':t<3.9?'orbital_shuffle':'gathering';

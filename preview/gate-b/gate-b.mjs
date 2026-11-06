@@ -40,21 +40,17 @@ try{
 }
 if(world)document.getElementById('card-counter').textContent=String(world.cards.length)+' INDIVIDUAL CARDS';
 const label={
- gathering:['Shuffling…','Please meditate on your question.'],
- tornado:['Shuffling…','Please meditate on your question.'],
- storm_to_globe:['Shuffling…','Please meditate on your question.'],
+ approach:['Shuffling…','Please meditate on your question.'],
+ vortex:['Shuffling…','Please meditate on your question.'],
+ implosion:['Shuffling…','Please meditate on your question.'],
+ suspension:['Shuffling…','Please meditate on your question.'],
+ detonation:['Shuffling…','Please meditate on your question.'],
  globe:['Shuffling…','Please meditate on your question.'],
+ dispersal:['Shuffling…','Please meditate on your question.'],
  three_piles:['Shuffling…','Please meditate on your question.'],
- pile_shuffling:['Shuffling…','Please meditate on your question.'],
- consolidating:['Shuffling…','Please meditate on your question.'],
- splitting:['Riffle Shuffle','The deck separates into two complete halves.'],
- interleaving:['Riffle Shuffle','Cards weave together in an alternating bridge.'],
- bridging:['Riffle Shuffle','The interleaved deck arches and settles.'],
- unfurling:['Cosmic Orbit','Two suspended card streams unfold into space.'],
- orbital_shuffle:['Cosmic Orbit','Two orbiting halves move in a coordinated ritual.'],
- spreading:['Table Wash','The deck spreads across the divination plane.'],
- table_wash:['Table Wash','Cards move and overlap on a shared surface.'],
- deck_ready:['The deck is ready','Seventy-eight cards. One complete deck.']
+ pile_shuffle:['Shuffling…','Please meditate on your question.'],
+ consolidation:['Shuffling…','Please meditate on your question.'],
+ deck_ready:['The cards are ready','Your complete 78-card deck is prepared.']
 };
 const statusText=()=>failedAssets?'ARTWORK ERROR · '+failedAssets+' MISSING':'RWS ILLUSTRATIONS · '+loadCount+'/78 LOADED';
 function renderUI(){
@@ -69,12 +65,12 @@ function renderUI(){
  root.classList.toggle('deck-ready',phase==='deck_formed');
  const entry=label[state]||label.deck_ready;
  const newTitle=entry[0],newDescription=entry[1];
- const beatText=info.style==='auto'?'✧ HOLD YOUR QUESTION IN MIND ✧':'✧ '+info.style.toUpperCase()+' SHUFFLE ✧';
+ const beatText=phase==='deck_formed'?'✧ YOUR DECK IS READY ✧':'✧ HOLD YOUR QUESTION IN MIND ✧';
  if(beatLabel.textContent!==beatText)beatLabel.textContent=beatText;
  if(title.textContent!==newTitle)title.textContent=newTitle;
  if(description.textContent!==newDescription)description.textContent=newDescription;
  if(phase==='deck_formed'){
-  document.querySelectorAll('[data-shuffle]').forEach(b=>b.disabled=false);
+  // Extra shuffle options intentionally withheld from Gate B v3.
   document.getElementById('finish-shuffle').disabled=false;
  }
 }
@@ -95,19 +91,6 @@ buttonStart.addEventListener('click',()=>{
  root.classList.add('in-ritual');overlay.hidden=false;deckControls.hidden=true;notice.textContent='';
  renderUI();
 });
-document.querySelectorAll('[data-shuffle]').forEach(button=>button.addEventListener('click',()=>{
- if(!world||world.phase!=='deck_formed')return;
- const style=button.dataset.shuffle;
- notice.textContent='';
- try{world.playShuffle(style);}
- catch(error){
-  console.error('Gate B optional shuffle geometry failed:',error);
-  renderError=error.message;
-  notice.textContent='Shuffle unavailable: card geometry failed validation.';
-  return;
- }
- deckControls.hidden=true;renderUI();
-}));
 document.getElementById('finish-shuffle').addEventListener('click',()=>{
  if(!world||world.phase!=='deck_formed')return;
  notice.textContent='Gate B complete. The cosmic launch and sphere-selection transition are Gate C.';
@@ -130,6 +113,6 @@ window.__ritualGateB={
  world,diagnostics:()=>world?{...world.getDiagnostics(),sky:sky.diagnostics()}:null,
  get phase(){return world?.phase||'unavailable'},
  get shuffle(){return world?.getShuffleState()||null},
- version:'Gate B physical shuffle / draft',
+ version:'Gate B v3 automatic ritual / draft',
 };
 window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();world?.dispose()},{once:true});

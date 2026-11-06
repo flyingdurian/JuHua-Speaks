@@ -20,7 +20,7 @@ test('all 78 original cards remain distinct physical objects and visual shuffle 
  assert.equal(new Set(cards.map(x=>x.orbitSlot)).size,78);
  assert.deepEqual(SHUFFLE_CHOICES,['cosmic','riffle','wash']);
  assert.ok(PHYSICAL_CARD.width>0&&PHYSICAL_CARD.height>0);
- assert.ok(AUTO_SHUFFLE_SECONDS>=9&&AUTO_SHUFFLE_SECONDS<=10.5);
+ assert.ok(AUTO_SHUFFLE_SECONDS>=10&&AUTO_SHUFFLE_SECONDS<=12);
  for(const style of ['auto',...SHUFFLE_CHOICES]){
   for(const t of [0,.25,1.2,2.3,3.8,6.6]){
    const poses=cards.map(c=>point(c,t,style));
@@ -38,13 +38,14 @@ test('automatic coherent tornado has bounded radius and real depth without face-
  assert.ok(Math.max(...y)-Math.min(...y)>7,'Real vertical funnel / helical height');
  assert.ok(Math.max(...x)-Math.min(...x)>3.5,'Controlled tornado has a wide readable radius');
  assert.ok(Math.max(...z)-Math.min(...z)>2,'Tornado moves through 3D depth');
- assert.ok(poses.every(p=>p.attitude.normal[2]<0),'No front-illustrated card pile after start');
- assert.ok(poses.every(p=>p.position[2]<-10&&p.position[2]>-22));
- assert.equal(shuffleBeat('auto',2.5),'tornado');
- assert.equal(shuffleBeat('auto',5.2),'globe');
- assert.equal(shuffleBeat('auto',6.4),'three_piles');
- assert.equal(shuffleBeat('auto',7.25),'pile_shuffling');
- assert.equal(shuffleBeat('auto',8.3),'consolidating');
+ assert.ok(poses.filter(p=>p.attitude.normal[2]<0).length>=65,'The helical storm must predominantly show dark backs');
+ assert.ok(poses.every(p=>p.position[2]<-7&&p.position[2]>-23));
+ assert.equal(shuffleBeat('auto',2.5),'vortex');
+ assert.equal(shuffleBeat('auto',3.7),'suspension');
+ assert.equal(shuffleBeat('auto',5.2),'detonation');
+ assert.equal(shuffleBeat('auto',6.4),'globe');
+ assert.equal(shuffleBeat('auto',8.25),'three_piles');
+ assert.equal(shuffleBeat('auto',9.8),'consolidation');
 });
 test('physical deck is 78 closely stacked backs, not a singular facing card',()=>{
  const deck=cards.map(c=>deckPose(c,24.5));
@@ -126,11 +127,11 @@ test('Gate B preview starts independently of production and uses port 4184',asyn
  const pkg=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
  const server=await readFile(new URL('../scripts/serve-gate-a.mjs',import.meta.url),'utf8');
  assert.match(html,/GATE B/);
- assert.match(html,/data-shuffle="cosmic"/);
- assert.match(html,/data-shuffle="riffle"/);
- assert.match(html,/data-shuffle="wash"/);
+ assert.doesNotMatch(html,/data-shuffle="cosmic"/);
+ assert.doesNotMatch(html,/data-shuffle="riffle"/);
+ assert.doesNotMatch(html,/data-shuffle="wash"/);
  assert.match(js,/world\.beginAutoShuffle\(\)/);
- assert.match(js,/world\.playShuffle\(style\)/);
+ assert.doesNotMatch(js,/world\.playShuffle\(style\)/);
  assert.match(js,/Gate B complete/);
  assert.match(css,/gate-b \.ritual-panel/);
  assert.match(server,/GATE_B_PORT\|\|4184/);
@@ -175,7 +176,7 @@ test('REGRESSION: stacked backs and 3D tornado project to visible screen space',
  // Matches the actual WebGL camera: 58-degree vertical FOV, 720px reference.
  const focal=720/(2*Math.tan(58*Math.PI/360));
  const screen=p=>({x:430+p[0]*focal/(-p[2]),y:360-p[1]*focal/(-p[2])});
- for(const [label,t] of [['tornado',2.7],['globe',5.5],['piles',7.2],['stack',9.45]]){
+ for(const [label,t] of [['vortex',2.1],['pocket',3.7],['globe',5.8],['piles',8.3],['stack',10.8]]){
   const samples=cards.map(card=>samplePhysicalShuffle(card,{style:'auto',age:t,landingAt:7,worldTime:24.5}));
   const visible=samples.filter(({position})=>{
    const p=screen(position);
@@ -209,8 +210,8 @@ test('Both renderers validate geometry before changing ritual phases',async()=>{
 
 test('Reference-driven automatic ritual uses seven distinct authored beats and correct order',()=>{
  assert.deepEqual(AUTO_RITUAL_BEATS.map(x=>x.id),[
-  'gathering','tornado','storm_to_globe','globe',
-  'three_piles','pile_shuffling','consolidating'
+  'approach','vortex','implosion','suspension','detonation','globe',
+  'dispersal','three_piles','pile_shuffle','consolidation'
  ]);
  assert.equal(AUTO_RITUAL_BEATS[0].start,0);
  assert.equal(AUTO_RITUAL_BEATS.at(-1).end,AUTO_SHUFFLE_SECONDS);
@@ -221,7 +222,7 @@ test('Reference-driven automatic ritual uses seven distinct authored beats and c
 });
 
 test('Reference-style globe actually reveals a modest selection of authentic faces',()=>{
- const globe=cards.map(card=>point(card,4.8));
+ const globe=cards.map(card=>point(card,5.8));
  const backs=globe.filter(p=>p.attitude.normal[2]<0);
  const faces=globe.filter(p=>p.attitude.normal[2]>0);
  assert.ok(faces.length>=8&&faces.length<=18,'Only some RWS fronts are visible during the mini-sphere');
@@ -230,7 +231,7 @@ test('Reference-style globe actually reveals a modest selection of authentic fac
  assert.ok(maxZ-minZ>3,'Mini-globe has real 3D depth');
 });
 test('Three actual 26-card stacks assemble before the final deck consolidation',()=>{
- const piles=cards.map(c=>({card:c,position:point(c,7.0).position}));
+ const piles=cards.map(c=>({card:c,position:point(c,8.3).position}));
  const groups=[0,1,2].map(j=>piles.filter(p=>p.card.orbitSlot%3===j));
  assert.deepEqual(groups.map(g=>g.length),[26,26,26]);
  const centers=groups.map(g=>g.reduce((s,p)=>s+p.position[0],0)/g.length);
@@ -258,7 +259,7 @@ test('Every storyboard boundary and every optional shuffle is position-continuou
  }
 });
 test('Washing covers the center of the table and keeps cards thin and physically back-facing',()=>{
- assert.ok(PHYSICAL_CARD.thickness>0&&PHYSICAL_CARD.thickness<.01);
+ assert.ok(PHYSICAL_CARD.thickness>=.012&&PHYSICAL_CARD.thickness<=.018);
  const spread=cards.map(c=>point(c,2.2,'wash'));
  const center=spread.filter(p=>Math.hypot(p.position[0],p.position[1])<1.65);
  assert.ok(center.length>=12,'No hollow ring of cards in the Table Wash');
@@ -282,4 +283,44 @@ test('Canvas and WebGL both show real RWS illustrated faces during the reference
  assert.match(cv,/const src=pose\.frontFacingCamera\?this\.fronts\.get\(card\.id\)/);
  assert.match(gl,/appendPremiumCard\(vertices,\{\.\.\.card,\.\.\.PHYSICAL_CARD\}/);
  assert.match(mesh,/card\.thickness \?\? \(EDGE_THICKNESS\*card\.width\)/);
+});
+
+
+test('cinematic scale changes dramatically across reference-matched time-coded scenes',()=>{
+ const f=720/(2*Math.tan(58*Math.PI/360));
+ function envelope(t){
+  const coords=cards.map(card=>point(card,t).position);
+  const projected=coords.map(p=>f*p[0]/(-p[2]));
+  return Math.max(...projected)-Math.min(...projected);
+ }
+ const rush=envelope(1.9),pocket=envelope(3.65);
+ const globe=envelope(5.8),piles=envelope(8.3),deck=envelope(AUTO_SHUFFLE_SECONDS);
+ assert.ok(rush>400,'The helical camera rush must span hundreds of screen pixels');
+ assert.ok(globe>400,'The SECOND spectacle must explode into a huge 3D globe');
+ assert.ok(piles>300,'Three stacks must be visibly separated, not a compact cluster');
+ assert.ok(pocket<90,'There is a genuine almost-empty visual pause, not a persistent clump');
+ assert.ok(deck<90,'Consolidation ends in a small physically stacked deck');
+ assert.ok(rush/pocket>6,'Rush to pocket must be a large spatial contrast');
+ assert.ok(globe/pocket>6,'Pocket to globe must be a second large spatial contrast');
+});
+test('automatic story is wholly isolated from dormant optional shuffle UI',async()=>{
+ const preview=await readFile(new URL('../preview/gate-b/gate-b.mjs',import.meta.url),'utf8');
+ const html=await readFile(new URL('../preview/gate-b/index.html',import.meta.url),'utf8');
+ const choreography=await readFile(new URL('../src/ritual-world/ShuffleChoreography.mjs',import.meta.url),'utf8');
+ const ritual=await readFile(new URL('../src/ritual-world/ReferenceRitual.mjs',import.meta.url),'utf8');
+ assert.match(choreography,/sampleReferenceRitual/);
+ assert.match(ritual,/RITUAL_DURATION=10\.8/);
+ assert.doesNotMatch(preview,/document\.querySelectorAll\('\[data-shuffle\]'\)/);
+ assert.doesNotMatch(html,/shuffle-buttons/);
+ assert.match(html,/FINISH SHUFFLING/);
+});
+test('10 authored stages use one coherent persistent 78-card timeline',()=>{
+ assert.equal(AUTO_RITUAL_BEATS.length,10);
+ for(let i=1;i<AUTO_RITUAL_BEATS.length;i++)
+  assert.equal(AUTO_RITUAL_BEATS[i].start,AUTO_RITUAL_BEATS[i-1].end);
+ assert.equal(AUTO_RITUAL_BEATS.at(-1).end,AUTO_SHUFFLE_SECONDS);
+ const grouped=[0,1,2].map(g=>cards.filter(card=>card.orbitSlot%3===g));
+ assert.deepEqual(grouped.map(g=>g.length),[26,26,26]);
+ for(const [age,expected] of [[1.8,'vortex'],[3.7,'suspension'],[5.7,'globe'],[8.3,'three_piles'],[9.05,'pile_shuffle'],[10,'consolidation']])
+  assert.equal(shuffleBeat('auto',age),expected);
 });

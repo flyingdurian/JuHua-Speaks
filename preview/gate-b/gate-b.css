@@ -61,3 +61,33 @@
  .gate-b .ritual-copy h1{font-size:20px}
  .gate-b .ritual-copy p{font-size:11px}
 }
+
+
+/* Gate B v3: cinematic-only product test — protect the reference's negative
+   space and make the card storm/globe, not a giant panel, the centerpiece. */
+.gate-b.in-ritual .space-background .nebula-texture{opacity:.14!important}
+.gate-b.in-ritual .space-background:before{opacity:.20!important}
+.gate-b .ritual-copy{top:50%}
+.gate-b .ritual-copy h1{
+ font:normal clamp(18px,2.05vw,25px)/1.2 Georgia,serif;
+ font-weight:400;text-shadow:0 2px 12px #000,0 1px 24px #000;
+}
+.gate-b .ritual-copy p{
+ font-size:13px;color:rgba(241,237,235,.84);
+ text-shadow:0 2px 14px #000;
+}
+.gate-b .ritual-copy .small-caps{display:none}
+.gate-b.deck-ready .ritual-copy{top:22%}
+.gate-b .ritual-actions{
+ background:none;border:0;box-shadow:none;backdrop-filter:none;
+ min-width:0;width:min(340px,90vw);gap:7px;
+ bottom:clamp(92px,19vh,180px);padding:4px 8px;
+}
+.gate-b .ritual-actions>.small-caps{display:none}
+.gate-b .ritual-actions .start-button{padding:11px 21px;letter-spacing:.13em}
+.gate-b .gate-b-notice{max-width:300px;color:#dbd1bb;text-shadow:0 2px 12px #000}
+@media(max-width:650px){
+ .gate-b .ritual-actions{bottom:clamp(76px,17vh,130px);width:90vw}
+ .gate-b .ritual-copy{top:51%}
+ .gate-b.deck-ready .ritual-copy{top:20%}
+}
