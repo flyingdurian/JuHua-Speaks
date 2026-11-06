@@ -19,9 +19,9 @@ export function tunnelHash(i,s=0){
 // An interpolated camera rail changes ALL materials coherently in 3D.
 const SHOT_RAIL=Object.freeze([
  {t:1.10,zoom:1.00,px:0,py:0,zx:1,zy:1,dx:0,dy:0},
- {t:1.55,zoom:1.08,px:96,py:86,zx:1.03,zy:1.06,dx:100,dy:25},
- {t:2.10,zoom:1.36,px:231,py:139,zx:1.056,zy:1.081,dx:268,dy:69},
- {t:3.00,zoom:.86,px:230,py:22,zx:.751,zy:1.34,dx:56,dy:-89},
+ {t:1.55,zoom:1.08,px:96,py:86,zx:1.12,zy:1.12,dx:140,dy:55},
+ {t:2.10,zoom:1.36,px:231,py:139,zx:1.227,zy:1.20,dx:339,dy:114},
+ {t:3.00,zoom:.86,px:230,py:22,zx:.838,zy:1.54,dx:66,dy:-97},
  {t:3.80,zoom:.54,px:32,py:-40,zx:.965,zy:1.889,dx:-7,dy:49},
  {t:4.42,zoom:.68,px:15,py:-14,zx:.72,zy:1.41,dx:-35,dy:18},
  {t:4.70,zoom:.76,px:11,py:-11,zx:.613,zy:1.196,dx:-49,dy:5},
