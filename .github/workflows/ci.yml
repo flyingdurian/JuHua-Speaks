@@ -1,7 +1,7 @@
 name: Verify and deploy JuHua Speaks
 on:
   push:
-    branches: [main]
+    branches: [main, feat/v083-gate-a-persistent-world]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -70,8 +70,29 @@ jobs:
           cp -R assets _site/assets
           touch _site/.nojekyll
       - uses: actions/configure-pages@v5
+      - name: Clear a stuck Pages deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {owner, repo} = context.repo;
+            const busy = new Set(['queued', 'deployment_queued', 'syncing_files', 'in_progress', 'building']);
+            const {data} = await github.rest.repos.listPagesDeployments({owner, repo, per_page: 20});
+            for (const deployment of data) {
+              if (!busy.has(deployment.status)) continue;
+              core.warning(`Cancelling Pages deployment ${deployment.id} (${deployment.status})`);
+              try {
+                await github.rest.repos.cancelPagesDeployment({owner, repo, pages_deployment_id: deployment.id});
+              } catch (error) {
+                core.warning(`Could not cancel ${deployment.id}: ${error.message}`);
+              }
+            }
+            await new Promise(resolve => setTimeout(resolve, 15000));
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+          name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
       - id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
+          timeout: 600000
