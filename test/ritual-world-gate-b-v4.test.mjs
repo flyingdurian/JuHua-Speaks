@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {DECK} from '../src/deck.mjs';
 import {makeLandingCardEntities} from '../src/ritual-world/OrbitalField.mjs';
 import {samplePhysicalShuffle,deckPose,PHYSICAL_CARD,assertShuffleGeometry} from '../src/ritual-world/ShuffleChoreography.mjs';
-import {RITUAL_DURATION,RITUAL_BEATS} from '../src/ritual-world/ReferenceRitual.mjs';
+import {RITUAL_DURATION,RITUAL_BEATS,sampleReferenceGlobeCanonical} from '../src/ritual-world/ReferenceRitual.mjs';
 import {buildVortexTexture} from '../preview/gate-b/VortexAtmosphere.mjs';
 
 // Earlier Gate B builds tested the span of CARD CENTERS only. A 78-card
@@ -83,7 +83,7 @@ test('V7 globe forms a legible hollow sphere with circumferential card silhouett
   assert.ok(m.depthRatio>1.8,'Large actual near and far hemisphere separation');
   assert.ok(m.coverageFraction>.17&&m.coverageFraction<.74,'Readable sphere, not an invisible ring or a solid page of cards');
   assert.ok(m.boundsX>390,'Globe extends to a meaningful round silhouette');
-  const radius=cards.map(c=>pose(c,t).position).map(p=>Math.hypot(p[0],p[1],p[2]+13.75));
+  const radius=cards.map(c=>sampleReferenceGlobeCanonical(c,t).position).map(p=>Math.hypot(p[0],p[1],p[2]+13.75));
   assert.ok(radius.filter(r=>r>4.10&&r<6.20).length>=76,'Most sheets must occupy the shell, not a central pile');
  }
 });
