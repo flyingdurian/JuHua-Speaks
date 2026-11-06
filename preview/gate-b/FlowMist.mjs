@@ -41,7 +41,7 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
   last=t;ctx.clearRect(0,0,512,428);
   const {collapse}=vortexProgress(t);
   const fade=clamp((t-1.12)/.44)*clamp((6.26-t)/.7);
-  const plume=clamp((t-3.44)/.76)*clamp((5.50-t)/.80);
+  const plume=clamp((t-2.94)/.90)*clamp((5.50-t)/.80);
   ctx.save();ctx.globalCompositeOperation='screen';
   for(let lane=0;lane<3;lane++){
    // Curved streaks are computed from the WHOLE moving 3D ribbon, not
@@ -60,7 +60,7 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
    ctx.globalAlpha=1;
    ctx.strokeStyle='rgba(154,165,176,'+haze+')';
    ctx.lineWidth=reduceMotion?9:23;ctx.stroke();
-   ctx.strokeStyle='rgba(214,216,211,'+(.11*fade)+')';
+   ctx.strokeStyle='rgba(214,216,211,'+(.29*fade)+')';
    ctx.lineWidth=1.3;ctx.stroke();
   }
   const n=reduceMotion?55:185;
@@ -69,8 +69,8 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
    const q=((i*0.6180339887498949+seed*.00000017)%1+1)%1;
    const p=project(sampleVortexRibbon(lane,q,t,seed));
    if(!p||p.x<-40||p.x>552||p.y<-40||p.y>468)continue;
-   const size=clamp(190/p.z,2.5,19);
-   ctx.globalAlpha=fade*(.07+.085*((i*37%101)/101))*(1-.35*collapse);
+   const size=clamp((540+110*(i%7))/p.z,4,85);
+   ctx.globalAlpha=fade*(.016+.020*((i*37%101)/101))*(.28+.72*plume)*(1-.35*collapse);
    ctx.drawImage(mote,p.x-size/2,p.y-size/2,size,size);
   }
   ctx.restore();
