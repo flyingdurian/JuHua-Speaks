@@ -1,11 +1,9 @@
 /**
- * Gate B v5 — automatic ritual, authored from the actual 15.813s split screen.
+ * Gate B v6 — automatic ritual, authored from the actual 15.813s split screen.
  *
- * The previous four revisions confused card-center spread with cinematic
- * motion. The first effect below is a genuine ADVECTING, four-stream,
- * helical suction: each card moves through the funnel's z axis while
- * rotating, with 8 individually timed near-camera whips. NOT a circular
- * wreath with static assigned depths.
+ * A fully time-parametrized, coherent flow carries 78 independently moving
+ * cards through axial suction, accelerated angular travel and radial collapse.
+ * No card is assigned a fixed stream, frozen ring or static depth.
  *
  * A complete 78-layer deck forms, then detonates into a turbulent,
  * multi-radius 3D card globe. 39 outer + 25 inner + 14 roving cards,
@@ -93,49 +91,54 @@ function currentLanding(card,time,entranceMode){
  const position=sampleLandingPose(card,time,entranceMode);
  return pose(position,landingAttitude(card,position,time),1);
 }
-// This is NOT a torus: 4 flowing spiral STREAMS, each occupying 2.65 loops
-// across the full 3D axial depth. Their axial coordinate changes with time.
-// The camera-facing projection has an actual center throat and long filaments.
-// Several cards whip extremely close without moving/deleting the camera.
+// Gate B v6: 78 independent Lagrangian card trajectories, NOT a rotating
+// spiral illustration or four frozen tubes. Each sheet is sampled through the
+// same accelerating flow field. Card index affects release/drag, never its
+// fixed slot in a ring. The camera sees crossing paths, overtakes and parallax.
+// Three components form a continuous trajectory: axial suction, angular
+// advection and an asymmetric, damped radial collapse.
 function suctionPose(card,t){
  const k=card.orbitSlot,seed=card.visualSeed>>>0;
- const lane=k%4,step=Math.floor(k/4),u=(step+.5)/20;
- const flow=Math.max(0,t-1.0);
- const s=clamp(u-.135*flow-.024*hash(k,seed),-.14,1.06);
- const depth=5.9+36*Math.pow(clamp((s+.14)/1.2),.90); // near/middle/far depth
- const theta=lane*TAU/4+TAU*2.65*s+
-  7.15*t+1.25*flow*flow+.25*(hash(k+81,seed)-.5);
- // Projected spiral radius varies nonlinearly with axial depth. Fixed
- // world-radius/depth ratios would simply appear as another static ring.
- const rho=.105+.78*Math.pow(clamp((s+.14)/1.2),.75);
- const radius=depth*.91*rho*(.92+.12*Math.sin(k*.45+t*.9));
- let position=[
-  radius*Math.cos(theta)+.18*Math.sin(t*1.1+k*.2),
-  radius*.87*Math.sin(theta),
-  -depth+.55*Math.sin(theta*.65+k*.13)
+ const rnd=n=>hash(k+n,seed);
+ const release=.70+.30*rnd(113);
+ const age=Math.max(0,t-release);
+ const duration=2.60-.35*rnd(29);
+ const u=clamp(age/duration);
+ // Material particles advance towards the lens and through a narrow throat.
+ // Travel is time-driven (not k/78), with staggered entry and acceleration.
+ const travel=u*u*(1.52-.52*u);
+ const far=23+15*rnd(33);
+ const depth=far-(far-4.25)*travel;
+ const theta=TAU*rnd(43)+TAU*(.42*u+1.90*u*u+.32*u*u*u)
+   +.22*Math.sin(u*TAU*2+k*1.41);
+ // The atmospheric cloud is only background; cards ARE the moving tornado.
+ // Large, uneven radial travel first expands the field, then tightens it.
+ const startRadius=7.2+5.6*rnd(53);
+ const radial=startRadius*(.90-.66*smoother(u)) + .8*rnd(57);
+ const stretch=1+.26*Math.sin(theta*.54+2*rnd(67));
+ const x=radial*Math.cos(theta)*stretch+.95*Math.sin(u*TAU+k*.77);
+ const y=radial*.86*Math.sin(theta)+1.2*Math.cos(u*TAU*.8+k*.41);
+ const z=-depth+.65*Math.sin(theta*.8+k*.24);
+ // Chosen sheets perform camera-directed ballistic arcs rather than popping
+ // into arbitrarily assigned near-lens locations. The path is C1 smooth and
+ // reunites with the ordinary inward flow on either end.
+ const flyer=k%13===2||k%17===5;
+ const center=2.96+.19*rnd(214);
+ const pulse=clamp((t-center+.35)/.70);
+ const gust=flyer?Math.pow(Math.sin(Math.PI*pulse),2):0;
+ const position=[
+  x*(1-.57*gust)+gust*2.1*Math.sin(theta+.4),
+  y*(1-.57*gust)+gust*1.7*Math.cos(theta-.6),
+  z+gust*(depth-2.75)
  ];
- // Eight independently timed, enormous near-camera passes just before
- // collapse. Their natural perspective produces the reference's startling
- // overscreen illustrated card silhouettes at ~2.5-3.2s.
- const flyer=(k%13===2)||(k%17===5);
- if(flyer){
-  const center=2.98+.21*hash(k+214,seed);
-  const w=clamp((t-(center-.43))/.86);
-  const strength=Math.sin(Math.PI*w);
-  const az=theta*.48+k*.7;
-  const target=[
-   1.05*Math.cos(az)+.23*Math.sin(k*1.1),
-   1.10*Math.sin(az),
-   -2.65-.38*hash(k+19,seed)
-  ];
-  position=vmix(position,target,strength*.91);
- }
- const face=k%11===0||k%17===5;
- const yaw=(face?Math.PI:0)+.67*Math.sin(theta+k*.29)+.35*Math.sin(t*3+k);
- const pitch=.22*Math.sin(theta*.72+k*.25);
- const roll=.65*Math.cos(theta*.85+1.8*t+k*.14);
- const strengthNear=flyer?Math.sin(Math.PI*clamp((t-(2.98+.21*hash(k+214,seed)-.43))/.86)):0;
- const scale=.44+.15*hash(k+27,seed)+.13*Math.pow(1-u,2)+.30*Math.max(0,strengthNear);
+ // Independently spinning papers: orientation follows the moving tangent
+ // with wobble, pitch and roll, not synchronized billiard-ball rotation.
+ const angularVelocity=TAU*(.42+3.80*u+.96*u*u)/duration;
+ const yaw=.18*Math.sin(theta)+.53*Math.sin(2.1*theta+k*.71)
+   +.14*Math.sin(angularVelocity*.1+k);
+ const pitch=.20*Math.sin(1.4*theta+k*.33)+.15*Math.sin(6.8*u+k);
+ const roll=.69*Math.sin(theta*.83+k*.63)+.23*Math.sin(14*u+k*.37);
+ const scale=.72+.22*rnd(93)+.19*gust;
  return pose(position,facing(yaw,pitch,roll),scale);
 }
 function pocketPose(card,t){
