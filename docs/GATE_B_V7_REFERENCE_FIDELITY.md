@@ -46,3 +46,11 @@ Branch `feat/v083-gate-b-physical-shuffle`, PR #10 draft, production Gate A v7 u
 - Stage two now has a wave of 12 physically ejected lead sheets followed by staggered remaining arrivals to build a recognisable globe rather than a whole 78-card mass at once. Canonical hollow sphere geometry and camera framing are tested separately.
 - The near-final measured GPU review achieved within-10%-proxy tolerances on the first full globe and late rotation while Sequence 1 opening and globe bloom remained out of range. Later corrections are being evaluated with newly recorded footage. **This is not 90% perceptual fidelity.**
 - GitHub GPU workflow cancels superseded captures to avoid redundant concurrent testing. Detailed per-beat measurements and full recordings are retained as Actions artifacts.
+
+## Final review candidate — Gate B v7.1 (owner-directed single retry)
+
+- Owner explicitly relaxed the image-composition tolerance from **±10% to ±25%** and requested **one additional development pass** before a reviewable deliverable.
+- The v7 pre-adjustment GPU evidence measured **5 of 7** semantic beats inside the stricter ±10% proxy gate. The first tunnel entrance was 26% low in blue-card coverage; the globe's opening was 20.5% high. This is a limited image metric, **not** an estimate of human perceptual accuracy.
+- In this final pass, only the early vortex card-size envelope was adjusted; the pinned comparison seed, real WebGL2 recording and approved full-globe poses are unchanged. Scoring now enforces ±25% across the same seven beats and five normalized measures.
+- **Visual review remains mandatory**: credible perspective travel, flowing helical sheet motion, intact 78-card deck collapse, dimensional globe and readable fronts/backs/edges. Do not interpret any proxy PASS as 75% visual similarity.
+- Keep PR draft. Once the GPU artifact is produced, stop iterative tuning for this round and present the clip and measured report to the Product Owner for an explicit review decision. Gate A and production remain untouched.
