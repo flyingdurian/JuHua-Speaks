@@ -22,12 +22,12 @@ const hash=(i,s=0)=>{
 // These are visual shot beats, not a fixed-duration benchmark contract.
 // All camera movement is continuous and evaluated on the same world object.
 const CAMERA=[
- {t:1.10,yaw:.10,roll:.10,pitch:.05,zoom:1.0,px:0,py:0,sx:1,sy:1,cardGain:1},
- {t:2.10,yaw:.24,roll:-.10,pitch:.64,zoom:1.22,px:30,py:-62,sx:1.13,sy:1.15,cardGain:1.11},
- {t:3.00,yaw:.22,roll:-.18,pitch:.36,zoom:1.18,px:-45,py:-90,sx:1.12,sy:1.25,cardGain:1.34},
- {t:3.75,yaw:.22,roll:.11,pitch:1.06,zoom:1.09,px:50,py:-126,sx:1.13,sy:1,cardGain:1},
- {t:4.40,yaw:.27,roll:.08,pitch:1.20,zoom:1.07,px:10,py:-100,sx:1.16,sy:.96,cardGain:.96},
- {t:4.75,yaw:.20,roll:.04,pitch:1.26,zoom:1.08,px:-33,py:-74,sx:.94,sy:.58,cardGain:.94},
+ {t:1.10,yaw:.10,roll:.00,pitch:.06,zoom:1.00,px:0,py:0,sx:1,sy:1,cardGain:1},
+ {t:2.10,yaw:.16,roll:-.18,pitch:.18,zoom:1.24,px:22,py:5,sx:1.10,sy:1.08,cardGain:1.06},
+ {t:3.00,yaw:.17,roll:-.32,pitch:.24,zoom:1.24,px:25,py:7,sx:1.10,sy:1.12,cardGain:1.08},
+ {t:3.75,yaw:.22,roll:.10,pitch:.48,zoom:1.17,px:40,py:14,sx:1.10,sy:1.12,cardGain:1.02},
+ {t:4.40,yaw:.28,roll:.15,pitch:.59,zoom:1.10,px:12,py:12,sx:1.08,sy:1.05,cardGain:1.00},
+ {t:4.75,yaw:.26,roll:.20,pitch:.67,zoom:1.04,px:6,py:12,sx:1.05,sy:1.02,cardGain:.97},
  {t:5.45,yaw:.10,roll:0,pitch:0,zoom:1.00,px:0,py:0,sx:1,sy:1,cardGain:1},
 ];
 function cameraValue(t,key){
@@ -47,8 +47,8 @@ export function vortexCamera(t){
 // The reference physically squeezes the wide spiral into a tall, narrow
 // stream as the viewer dives into the helix; this is not a pixel-mask trick.
 const FUNNEL=[
- {t:1.10,r:1.04},{t:2.10,r:1.29},{t:3.00,r:.92},
- {t:3.75,r:.54},{t:4.40,r:.40},{t:4.75,r:.51},{t:5.45,r:.21}
+ {t:1.10,r:1.06},{t:2.10,r:1.20},{t:3.00,r:1.12},
+ {t:3.75,r:.93},{t:4.40,r:.78},{t:4.75,r:.69},{t:5.45,r:.21}
 ];
 function funnelRadius(t){
  if(t<=FUNNEL[0].t)return FUNNEL[0].r;
@@ -80,8 +80,8 @@ function sample(lane,q,t,seed=0,motionBias=1){
  const theta=TAU*(g.turns*u+g.offset+motion)+.095*Math.sin(TAU*u*1.9+lane*1.7);
  // Depth increases monotonically along each ribbon, establishing actual
  // concentric near-to-far layers rather than a fixed camera-facing wreath.
- const depth=11.0+40*u-3.1*state.axial*motionBias+(lane===1?1.5:0);
- const radius=(5.05+.050*depth+g.radius)*funnelRadius(t)*(1-.62*state.collapse);
+ const depth=13.5+33*u-2.5*state.axial*motionBias+(lane===1?1.5:0);
+ const radius=(5.45+.065*depth+g.radius)*funnelRadius(t)*(1-.58*state.collapse);
  const cx=.48*Math.sin(1.3*u*TAU+state.angular*1.5);
  const cy=.32*Math.cos(1.1*u*TAU+state.angular*.8);
  let x=cx+radius*Math.cos(theta);
@@ -143,13 +143,13 @@ export function sampleVortexCard(index,seed,t){
  // Three early cards cut through the developed vortex; the other three
  // follow during the collapse. Every flyby remains C1 smooth.
  const early=(k%2===1);
- const start=(early?3.35:4.03)+.15*hash(k+197,seed);
- const u=clamp((t-start)/(early?.90:.97));
+ const start=(early?3.72:4.25)+.15*hash(k+197,seed);
+ const u=clamp((t-start)/(early?.75:.75));
  const gust=flyby?Math.pow(Math.sin(Math.PI*u),2):0;
  if(gust>0){
-  const target=[(early?-4.2:-4.8)+(early?3.6:6.0)*hash(k+43,seed),
-                (early?-1.6:-2.4)+(early?3.4:3.9)*hash(k+71,seed),
-                (early?-4.9:-5.9)-.8*hash(k+17,seed)];
+  const target=[-3.6+6.0*hash(k+43,seed),
+                -3.0+5.0*hash(k+71,seed),
+                (early?-6.6:-5.9)-.8*hash(k+17,seed)];
   result.position=result.position.map((x,i)=>lerp(x,target[i],gust*.98));
  }
  const p0=sample(lane,clamp(q-.001),t,seed,motionBias).position;
