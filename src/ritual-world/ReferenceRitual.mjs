@@ -12,7 +12,7 @@
  * beyond per-frame pose arrays. Gate A world/camera remain persistent.
  */
 import {sampleLandingPose,landingAttitude} from './OrbitalField.mjs';
-import {sampleVortexCard,vortexCamera} from './VortexRibbon.mjs';
+import {sampleVortexCard,vortexCamera,rotateVortexBasis} from './VortexRibbon.mjs';
 
 const N=78,TAU=2*Math.PI,GOLDEN=Math.PI*(3-Math.sqrt(5));
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -104,13 +104,19 @@ function suctionPose(card,t){
  const yaw=(illustrated?Math.PI:0)+.23*Math.sin(theta*.75+k*.17)
    +.20*Math.sin(t*2.4+k*.31);
  const pitch=.29*Math.sin(theta*.52+k*.47)+.10*Math.sin(t*3+k*.23);
- // Card attitude follows its CURRENT world-space ribbon tangent, including
- // camera pitch/bank, instead of continuing to roll around an obsolete XY ring.
- // Shortest-angle blending preserves organic individual tumble.
- const originalRoll=theta+vortexCamera(t).roll;
- const tangentRoll=Math.atan2(v.tangent[1],v.tangent[0])-Math.PI/2;
- const delta=Math.atan2(Math.sin(tangentRoll-originalRoll),Math.cos(tangentRoll-originalRoll));
- const roll=originalRoll+.64*delta+.16*Math.sin(k*.73)+[0,.10,-.10][stream];
+ // IMPORTANT: both the position AND the card's genuine 3D orientation
+ // must share the same camera bank; otherwise the cards detach visually
+ // from the twister and appear to float through a separately moving image.
+ const localRoll=theta+.20*Math.sin(k*.73)+[0,.16,-.12][stream];
+ const localAtt=facing(yaw,pitch,localRoll);
+ const sceneNormal=rotateVortexBasis(localAtt.normal,t);
+ const sceneRight=rotateVortexBasis(localAtt.right,t);
+ let attitude=orientedFrom(sceneNormal,sceneRight);
+ // During actual near-lens flights, face the viewer just enough to reveal
+ // the authentic RWS illustration while preserving the underlying tumble.
+ if(v.gust>0&&illustrated){
+  attitude=orientedFrom(slerp(attitude.normal,[0,0,1],v.gust*.66),attitude.right);
+ }
  // The actual reference grows dense as sheets rush toward the viewer:
  // distant backs remain small, then their projected area accelerates sharply
  // during the steeply banked terminal corkscrew. The illustrated close
@@ -119,7 +125,7 @@ function suctionPose(card,t){
    +.16*smoother((t-4.23)/.50);
  const scale=((illustrated?.78:(.29+.10*rnd(39))*backGain)
    +.025*Math.sin(t*1.35+k*.24))*vortexCamera(t).cardGain;
- return pose(v.position,facing(yaw,pitch,roll),scale);
+ return pose(v.position,attitude,scale);
 }
 function pocketPose(card,t){
  const k=card.orbitSlot,normal=facing(1.11+.05*Math.sin(t*.32),-.09,.018*Math.sin(t*.5));
