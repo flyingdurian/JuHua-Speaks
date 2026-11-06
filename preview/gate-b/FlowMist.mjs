@@ -56,10 +56,12 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
     else ctx.lineTo(p.x,p.y);
     previous=p;
    }
-   const haze=(.13+.045*(lane===0?1:0))*fade*plume;
+   const haze=(.25+.07*(lane===0?1:0))*fade*plume;
    ctx.globalAlpha=1;
    ctx.strokeStyle='rgba(154,165,176,'+haze+')';
-   ctx.lineWidth=reduceMotion?9:23;ctx.stroke();
+   ctx.lineWidth=reduceMotion?12:48;ctx.stroke();
+   ctx.strokeStyle='rgba(203,207,212,'+(haze*.52)+')';
+   ctx.lineWidth=reduceMotion?5:13;ctx.stroke();
    ctx.strokeStyle='rgba(214,216,211,'+(.29*fade)+')';
    ctx.lineWidth=1.3;ctx.stroke();
   }
@@ -68,13 +70,13 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
   if(!reduceMotion){
    for(let k=0;k<78;k++){
     const a=project(sampleVortexCard(k,seed,t));
-    const b=project(sampleVortexCard(k,seed,t-.055));
+    const b=project(sampleVortexCard(k,seed,t-.12));
     if(!a||!b)continue;
     const len=Math.hypot(a.x-b.x,a.y-b.y);
-    if(len<1||len>80)continue;
+    if(len<1||len>200)continue;
     ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(a.x,a.y);
     ctx.globalAlpha=1;
-    ctx.strokeStyle='rgba(211,216,221,'+(.18*fade*(1-.55*collapse))+')';
+    ctx.strokeStyle='rgba(211,216,221,'+(.15*fade*(1-.55*collapse))+')';
     ctx.lineWidth=clamp(28/a.z,.45,1.55);ctx.stroke();
    }
   }
