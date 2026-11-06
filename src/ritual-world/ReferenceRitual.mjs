@@ -155,7 +155,8 @@ function chaoticGlobePose(card,t){
  let normal=norm([x+.13*Math.sin(time*2.2+k),
                     y+.10*Math.sin(time*1.8+k*.63),
                     z+wobble]);
- // The back-facing sheets form the dark inner scaffold seen in ChatARot.\n if(k%3===0)normal=norm([normal[0],normal[1],-Math.abs(normal[2])]);
+ // The back-facing sheets form the dark inner scaffold seen in ChatARot.
+ if(k%3===0)normal=norm([normal[0],normal[1],-Math.abs(normal[2])]);
  const roll=.82*Math.sin(time*2.3+k*.53)+.28*Math.cos(k*.37);
  const attitude=orientedFrom(normal,[Math.cos(roll),Math.sin(roll),.06]);
  const scale=.76+.13*rnd(37)+(k<66?0:-.05);
