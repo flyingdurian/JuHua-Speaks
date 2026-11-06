@@ -304,7 +304,7 @@ test('automatic story is wholly isolated from dormant optional shuffle UI',async
  const choreography=await readFile(new URL('../src/ritual-world/ShuffleChoreography.mjs',import.meta.url),'utf8');
  const ritual=await readFile(new URL('../src/ritual-world/ReferenceRitual.mjs',import.meta.url),'utf8');
  assert.match(choreography,/sampleReferenceRitual/);
- assert.match(ritual,/RITUAL_DURATION=10\.8/);
+ assert.match(ritual,/RITUAL_DURATION=16\.55/);
  assert.doesNotMatch(preview,/document\.querySelectorAll\('\[data-shuffle\]'\)/);
  assert.doesNotMatch(html,/shuffle-buttons/);
  assert.match(html,/FINISH SHUFFLING/);
