@@ -1,7 +1,7 @@
 name: Verify and deploy JuHua Speaks
 on:
   push:
-    branches: [main, feat/v083-gate-a-persistent-world]
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
