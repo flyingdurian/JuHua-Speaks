@@ -35,3 +35,12 @@ Open http://127.0.0.1:4184/preview/gate-b/ ; header must say **GATE B v6**. Choo
 
 ## Acceptance gate
 PR #10 stays draft and unmerged until Product Owner reviews actual footage. Gate C and optional shuffle variants remain frozen.
+
+## Actual browser evidence — 2026-11-06
+- Latest recorded GPU/browser workflow: https://github.com/flyingdurian/JuHua-Speaks/actions/runs/42289445198 (successful SwiftShader WebGL2, 78/78 historical RWS cards, zero page exceptions). `gate-b-v6-gpu-recording` artifact contains full WebM and ten time-sampled PNGs.
+- Screenshot capture was corrected after its initial attempt: an early version incorrectly equated screenshot completion time with animation age. Current frame metadata records observed ages and beats.
+- Compared PNGs directly with the user-supplied 15.813-second ChatARot comparison.
+- **Visual verdict: not yet reference quality.** Unlike v5, there is no spinning tornado still image; 78 cards physically advance/tumble, independently staggered in depth, and settle into 78-layer deck. However at ~1.9–3.1s the on-screen choreography still reads as a card swarm becoming a clump, not the high-energy luminous spiral tunnel/foreground rush of the benchmark.
+- The globe now tumbles at variable latitudes but still occludes the central sphere more heavily than ChatARot. Its shell/silhouette density needs more purposeful choreography.
+- A low-opacity, per-frame advected mist field was added as support, not a decorative rotating sprite; it does **not** solve the main gap and must not be used as evidence of acceptance.
+- **Next technical step** is shot-directed animation paths + synchronized lens framing, deliberately designed from reference keyframes, rather than another metric-only retuning. Keep v6 rejected internally, PR draft/unmerged and Gate C blocked.
