@@ -68,6 +68,18 @@ export function makeLandingCardEntities(deck,seed=2026){
  for(let i=N-1;i>0;i--){const j=Math.floor(rand01(seed,2200+i)*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]]}
  return deck.map((c,i)=>{
   const slot=slots[shuffled[i]],large=slot.layer==='flyby',outer=slot.family==='outer';
+  // Start with the reference's dark backs predominant, but preserve genuine
+  // physical front/back transitions as the whole orbit turns.
+  const radial=norm(slot.local),tangent=norm([radial[2],0,-radial[0]]);
+  const tangentBias=.43+(rand01(seed,i+470)-.5)*.35;
+  const radialBias=.84+(rand01(seed,i+480)-.5)*.32;
+  const unsignedNormal=norm(radial.map((v,j)=>v*radialBias+tangent[j]*tangentBias));
+  const initialNormal=rotY(unsignedNormal,phase+ORBIT_SPEED*5);
+  const initialPosition=rotY(slot.local,phase+ORBIT_SPEED*5);
+  initialPosition[2]+=slot.centerZ;
+  const unsignedFront=dot(initialNormal,norm(initialPosition.map(v=>-v)))>0;
+  const preferBack=rand01(seed,i+490)<(outer?.67:.74);
+  const normalSign=slot.featured?1:(preferBack?(unsignedFront?-1:1):(unsignedFront?1:-1));
   return Object.freeze({
    id:c.id,index:i,name:c.name,orbitSlot:shuffled[i],ring:slot.band,
    layer:slot.family,orbitScale:slot.layer,centerZ:slot.centerZ,orbitRadius:slot.radius,
@@ -75,8 +87,7 @@ export function makeLandingCardEntities(deck,seed=2026){
    width:large?1.22+rand01(seed,i+335)*.23:outer?1.02+rand01(seed,i+335)*.24:.74+rand01(seed,i+335)*.18,
    height:large?2.06+rand01(seed,i+435)*.37:outer?1.76+rand01(seed,i+435)*.29:1.32+rand01(seed,i+435)*.24,
    light:.83+rand01(seed,i+640)*.15,reversed:rand01(seed,i+230)<.22,frontVisible:true,
-   tangentBias:.43+(rand01(seed,i+470)-.5)*.35,radialBias:.84+(rand01(seed,i+480)-.5)*.32,
-   normalSign:slot.featured?1:(rand01(seed,i+490)<(outer?.48:.25)?1:-1),
+   tangentBias,radialBias,normalSign,
    pitch:(rand01(seed,i+785)-.5)*.31,roll:(rand01(seed,i+540)-.5)*.4,
    spawnIndex:shuffled[i],visualSeed:seed>>>0
   });
