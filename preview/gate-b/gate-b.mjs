@@ -3,6 +3,7 @@ import {createVisualSeed} from '../../src/ritual-world/OrbitalField.mjs';
 import {RitualWorld} from '../../src/ritual-world/RitualWorld.mjs';
 import {CanvasOrbit} from '../../src/ritual-world/CanvasOrbit.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
+import {initFlowMist} from './FlowMist.mjs';
 
 const root=document.getElementById('gate-b');
 const scene=document.getElementById('world-root');
@@ -38,6 +39,11 @@ try{
  try{world=new CanvasOrbit({mount:scene,cards:DECK,faceAssetForId,visualSeed,entranceMode,onStatus})}
  catch(inner){status.textContent='RENDERER UNAVAILABLE';console.error(inner)}
 }
+const flowMist=initFlowMist({
+ mount:document.getElementById('ritual-vortex-glow'),seed:visualSeed,
+ getAge:()=>world?.phase==='shuffle_ritual'?world.getShuffleState().age:-1,
+ reduceMotion:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||false
+});
 if(world)document.getElementById('card-counter').textContent=String(world.cards.length)+' INDIVIDUAL CARDS';
 const label={
  approach:['Shuffling…','Please meditate on your question.'],
@@ -111,9 +117,9 @@ document.getElementById('reset').addEventListener('click',()=>{
 const statusTimer=setInterval(renderUI,180);
 renderUI();
 window.__ritualGateB={
- world,diagnostics:()=>world?{...world.getDiagnostics(),sky:sky.diagnostics(),vortex:{mode:'disabled',reason:'cards carry all rotational motion'}}:null,
+ world,diagnostics:()=>world?{...world.getDiagnostics(),sky:sky.diagnostics(),vortex:flowMist.diagnostics()}:null,
  get phase(){return world?.phase||'unavailable'},
  get shuffle(){return world?.getShuffleState()||null},
  version:'Gate B v6 physical flow / draft',
 };
-window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();world?.dispose()},{once:true});
+window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();flowMist.dispose();world?.dispose()},{once:true});
