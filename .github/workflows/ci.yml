@@ -1,7 +1,7 @@
 name: Verify and deploy JuHua Speaks
 on:
   push:
-    branches: [main, feat/v083-gate-a-persistent-world]
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -73,10 +73,5 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
-          # A retry creates a new immutable artifact; avoid ambiguous old names.
-          name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
       - id: deployment
         uses: actions/deploy-pages@v4
-        with:
-          artifact_name: github-pages-${{ github.run_id }}-${{ github.run_attempt }}
-          timeout: 900000
