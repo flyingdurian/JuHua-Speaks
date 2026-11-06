@@ -98,15 +98,18 @@ function suctionPose(card,t){
  const rnd=n=>hash(k+n,seed);
  const v=sampleVortexCard(k,seed,t);
  const theta=v.theta,stream=v.lane;
- const illustrated=(k%11===2||k%17===6);
+ const illustrated=(k%11===2||k%17===6||k%13===3);
  // Coherent card roll aligns long edges to the curving ribbon. Selected
  // sheets reveal real historic fronts; most show their engraved dark backs.
  const yaw=(illustrated?Math.PI:0)+.23*Math.sin(theta*.75+k*.17)
    +.20*Math.sin(t*2.4+k*.31);
  const pitch=.29*Math.sin(theta*.52+k*.47)+.10*Math.sin(t*3+k*.23);
  const roll=theta+.28*Math.sin(k*.73)+[0,.16,-.14][stream];
- const scale=(illustrated?.78:.27)+(.11*rnd(39))
-   +.025*Math.sin(t*1.35+k*.24);
+ // The middle and deep layers become finer as the cyclone accelerates,
+ // while selected illustrated close passes retain their physical size.
+ const backShrink=1-.29*smoother((t-2.75)/.90);
+ const scale=((illustrated?.78:.27)+(.11*rnd(39))
+   +.025*Math.sin(t*1.35+k*.24))*(illustrated?1:backShrink);
  return pose(v.position,facing(yaw,pitch,roll),scale);
 }
 function pocketPose(card,t){
