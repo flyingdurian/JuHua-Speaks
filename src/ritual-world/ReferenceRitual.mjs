@@ -89,6 +89,21 @@ function currentLanding(card,time,entranceMode){
  const position=sampleLandingPose(card,time,entranceMode);
  return pose(position,landingAttitude(card,position,time),1);
 }
+// A few large close Tarot illustrations must remain legible, but most sheets
+// shrink as the virtual camera dives into the long helix. This modulates
+// physical-sheet scale smoothly, not the number or identity of cards.
+const TUNNEL_SIZE=Object.freeze([
+ {t:1.10,m:1},{t:2.10,m:1.18},{t:3.00,m:1.15},
+ {t:3.80,m:.90},{t:4.70,m:.90},{t:5.45,m:1}
+]);
+function tunnelSize(t){
+ if(t<=TUNNEL_SIZE[0].t)return 1;
+ for(let i=0;i<TUNNEL_SIZE.length-1;i++){
+  const a=TUNNEL_SIZE[i],b=TUNNEL_SIZE[i+1];
+  if(t<=b.t)return mix(a.m,b.m,smoother((t-a.t)/(b.t-a.t)));
+ }
+ return 1;
+}
 // V7: coherent 3D tunnel. Cards and volumetric mist use the SAME material
 // trajectories. The central empty throat, near/far layered arcs and bank
 // arise from per-card changing perspective, never a rotating flat backdrop.
@@ -103,7 +118,7 @@ function suctionPose(card,t){
  const pitch=.34*Math.sin(theta*.47+k*.52)+.21*Math.sin(t*2.6+k*.39);
  const roll=-theta*.60+.32*Math.sin(axial*.87+k*.2);
  const flowScale=1-.27*Math.exp(-Math.pow((t-3.0)/.52,2));
- const scale=((face?.76:.33)+(face?.12:.09)*rnd(39)+.018*Math.sin(t*1.5+k*.31))*flowScale;
+ const scale=((face?.76:.33)+(face?.12:.09)*rnd(39)+.018*Math.sin(t*1.5+k*.31))*flowScale*tunnelSize(t);
  return pose(v.position,facing(yaw,pitch,roll),scale);
 }
 function pocketPose(card,t){
