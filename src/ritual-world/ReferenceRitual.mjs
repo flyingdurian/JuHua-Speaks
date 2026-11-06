@@ -215,9 +215,13 @@ function detonationPose(card,t){
  const k=card.orbitSlot,seed=card.visualSeed>>>0;
  // Reference begins with a few substantial flying sheets. The rest follow
  // in overlapping waves; 78 cards must NOT appear fully expanded at once.
- const delay=(k%13)*.032+.025*hash(k+29,seed);
- const u=clamp((t-7.10-delay)/(1.05-delay));
- const p=Math.pow(u,.72);
+ const firstWave=k%7===0;
+ const delay=firstWave?0:(k%13)*.032+.025*hash(k+29,seed);
+ // A dozen visually prominent sheets establish the outer globe immediately;
+ // the remaining 66 cards follow later, keeping the bloom airy rather than
+ // filling the whole screen with stacked dark backs at once.
+ const u=clamp((t-7.10-delay)/(firstWave?.34:1.05-delay));
+ const p=Math.pow(u,firstWave?.46:.72);
  const start=pocketPose(card,t),end=chaoticGlobePose(card,t);
  const result=blend(start,end,p);
  const arc=.48*Math.sin(Math.PI*p);
