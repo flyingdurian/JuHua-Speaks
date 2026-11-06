@@ -105,11 +105,14 @@ function suctionPose(card,t){
    +.20*Math.sin(t*2.4+k*.31);
  const pitch=.29*Math.sin(theta*.52+k*.47)+.10*Math.sin(t*3+k*.23);
  const roll=theta+.28*Math.sin(k*.73)+[0,.16,-.14][stream];
- // The middle and deep layers become finer as the cyclone accelerates,
- // while selected illustrated close passes retain their physical size.
- const backShrink=1-.29*smoother((t-2.75)/.90);
- const scale=((illustrated?.78:.27)+(.11*rnd(39))
-   +.025*Math.sin(t*1.35+k*.24))*(illustrated?1:backShrink);
+ // The actual reference grows dense as sheets rush toward the viewer:
+ // distant backs remain small, then their projected area accelerates sharply
+ // during the steeply banked terminal corkscrew. The illustrated close
+ // passes retain their own independently authored near-lens scale.
+ const backGain=1+.78*smoother((t-3.05)/.69)
+   +.16*smoother((t-4.23)/.50);
+ const scale=(illustrated?.78:(.29+.10*rnd(39))*backGain)
+   +.025*Math.sin(t*1.35+k*.24);
  return pose(v.position,facing(yaw,pitch,roll),scale);
 }
 function pocketPose(card,t){
