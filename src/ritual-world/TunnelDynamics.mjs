@@ -18,13 +18,14 @@ export function tunnelHash(i,s=0){
 // Values are focal-plane zoom and pixel-equivalent lens shift on 860x720.
 // An interpolated camera rail changes ALL materials coherently in 3D.
 const SHOT_RAIL=Object.freeze([
- {t:1.10,zoom:1.00,px:0,py:0},
- {t:1.55,zoom:1.08,px:96,py:86},
- {t:2.10,zoom:1.36,px:231,py:139},
- {t:3.00,zoom:.86,px:230,py:22},
- {t:3.80,zoom:.54,px:32,py:-40},
- {t:4.42,zoom:.68,px:15,py:-14},
- {t:5.45,zoom:1.00,px:0,py:0},
+ {t:1.10,zoom:1.00,px:0,py:0,zx:1,zy:1,dx:0,dy:0},
+ {t:1.55,zoom:1.08,px:96,py:86,zx:1,zy:1,dx:12,dy:-4},
+ {t:2.10,zoom:1.36,px:231,py:139,zx:1.045,zy:.98,dx:47,dy:-14},
+ {t:3.00,zoom:.86,px:230,py:22,zx:1.047,zy:1.24,dx:-28,dy:-10},
+ {t:3.80,zoom:.54,px:32,py:-40,zx:1.03,zy:1.88,dx:-1,dy:53},
+ {t:4.42,zoom:.68,px:15,py:-14,zx:.77,zy:1.32,dx:-10,dy:-20},
+ {t:4.70,zoom:.76,px:11,py:-11,zx:.64,zy:1.12,dx:-25,dy:-47},
+ {t:5.45,zoom:1.00,px:0,py:0,zx:1,zy:1,dx:0,dy:0},
 ]);
 function railValue(t,key){
  if(t<=SHOT_RAIL[0].t)return SHOT_RAIL[0][key];
@@ -39,7 +40,9 @@ function railValue(t,key){
   (-2*u3+3*u2)*b[key]+(u3-u2)*d*m1;
 }
 export function sampleTunnelCameraRail(t){
- return {zoom:Math.max(.30,railValue(t,'zoom')),px:railValue(t,'px'),py:railValue(t,'py')};
+ return {zoom:Math.max(.30,railValue(t,'zoom')),px:railValue(t,'px'),py:railValue(t,'py'),
+  zx:Math.max(.35,railValue(t,'zx')),zy:Math.max(.6,railValue(t,'zy')),
+  dx:railValue(t,'dx'),dy:railValue(t,'dy')};
 }
 export function sampleTunnelTrajectory(index,seed,t,{mote=false}={}){
  const k=index,rand=n=>tunnelHash(k+n,seed);
@@ -113,5 +116,10 @@ export function sampleTunnelTrajectory(index,seed,t,{mote=false}={}){
  const focal=720/(2*Math.tan(58*Math.PI/360));
  x=shot.zoom*x+shot.px*(-z)/focal;
  y=shot.zoom*y-shot.py*(-z)/focal;
+ // World-space anisotropy follows the vacuum's rising vertical stretch,
+ // while an additional coherent lens shift matches the owner's reference
+ // silhouettes. These move card centres, not the actual card geometry.
+ x=shot.zx*x+shot.dx*(-z)/focal;
+ y=shot.zy*y-shot.dy*(-z)/focal;
  return {position:[x,y,z],azimuth,axial,depth:-z,radius,transport};
 }
