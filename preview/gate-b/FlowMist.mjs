@@ -29,12 +29,13 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
   last=t;ctx.clearRect(0,0,512,428);
   const fade=clamp((t-.95)/.58)*clamp((6.29-t)/.52);
   ctx.save();ctx.globalCompositeOperation='screen';
-  // The four projected gas streamlines are the actual four card filaments.
+  // The three gas paths share the three asymmetrical physical Tarot streams.
   // Their vertices recalculate from the material field as time advances.
-  for(let lane=0;lane<4;lane++){
+  for(let lane=0;lane<3;lane++){
+   const first=[0,48,70][lane],count=[48,22,8][lane];
    ctx.beginPath();let previous=null;
-   for(let step=0;step<44;step++){
-    const p=project(sampleTunnelTrajectory(step*4+lane,seed,t,{mote:true}));
+   for(let step=0;step<count;step++){
+    const p=project(sampleTunnelTrajectory(first+step,seed,t,{mote:true}));
     if(!previous||Math.hypot(p.x-previous.x,p.y-previous.y)>88)ctx.moveTo(p.x,p.y);
     else ctx.lineTo(p.x,p.y);
     previous=p;
