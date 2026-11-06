@@ -1,11 +1,11 @@
-name: Gate B v6 GPU video evidence
+name: Gate B v7 GPU video evidence
 on:
   pull_request:
     branches: [main]
     paths:
       - 'src/ritual-world/**'
       - 'preview/gate-b/**'
-      - 'scripts/capture-gate-b-v6.mjs'
+      - 'scripts/capture-gate-b-v7.mjs'
       - '.github/workflows/gate-b-visual.yml'
   workflow_dispatch:
 permissions:
@@ -29,12 +29,12 @@ jobs:
             if curl -fsS http://127.0.0.1:4184/preview/gate-b/ >/dev/null; then break; fi
             sleep 2
           done
-          node scripts/capture-gate-b-v6.mjs
+          node scripts/capture-gate-b-v7.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: gate-b-v6-gpu-recording
+          name: gate-b-v7-gpu-recording
           path: |
-            artifacts/gate-b-v6
+            artifacts/gate-b-v7
             /tmp/gate-b-preview.log
           retention-days: 14
