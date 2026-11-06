@@ -29,7 +29,19 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
   last=t;ctx.clearRect(0,0,512,428);
   const fade=clamp((t-.95)/.58)*clamp((6.29-t)/.52);
   ctx.save();ctx.globalCompositeOperation='screen';
-  // The four projected gas streamlines are the actual four card filaments.\n  // Their vertices recalculate from the material field as time advances.\n  for(let lane=0;lane<4;lane++){\n   ctx.beginPath();let previous=null;\n   for(let step=0;step<44;step++){\n    const p=project(sampleTunnelTrajectory(step*4+lane,seed,t,{mote:true}));\n    if(!previous||Math.hypot(p.x-previous.x,p.y-previous.y)>88)ctx.moveTo(p.x,p.y);\n    else ctx.lineTo(p.x,p.y);\n    previous=p;\n   }\n   ctx.strokeStyle='rgba(178,186,191,'+(.20*fade)+')';\n   ctx.lineWidth=1.15;ctx.globalAlpha=1;ctx.stroke();\n  }
+  // The four projected gas streamlines are the actual four card filaments.
+  // Their vertices recalculate from the material field as time advances.
+  for(let lane=0;lane<4;lane++){
+   ctx.beginPath();let previous=null;
+   for(let step=0;step<44;step++){
+    const p=project(sampleTunnelTrajectory(step*4+lane,seed,t,{mote:true}));
+    if(!previous||Math.hypot(p.x-previous.x,p.y-previous.y)>88)ctx.moveTo(p.x,p.y);
+    else ctx.lineTo(p.x,p.y);
+    previous=p;
+   }
+   ctx.strokeStyle='rgba(178,186,191,'+(.20*fade)+')';
+   ctx.lineWidth=1.15;ctx.globalAlpha=1;ctx.stroke();
+  }
   // A camera-perspective filament is a trail of the same material coordinate,
   // not a CSS/Canvas spiral that spins behind stationary sheets.
   for(let i=0;i<N;i++){
