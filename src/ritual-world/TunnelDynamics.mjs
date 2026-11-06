@@ -19,12 +19,12 @@ export function tunnelHash(i,s=0){
 // An interpolated camera rail changes ALL materials coherently in 3D.
 const SHOT_RAIL=Object.freeze([
  {t:1.10,zoom:1.00,px:0,py:0,zx:1,zy:1,dx:0,dy:0},
- {t:1.55,zoom:1.08,px:96,py:86,zx:1,zy:1,dx:12,dy:-4},
- {t:2.10,zoom:1.36,px:231,py:139,zx:1.045,zy:.98,dx:47,dy:-14},
- {t:3.00,zoom:.86,px:230,py:22,zx:1.047,zy:1.24,dx:-28,dy:-10},
- {t:3.80,zoom:.54,px:32,py:-40,zx:1.03,zy:1.88,dx:-1,dy:53},
- {t:4.42,zoom:.68,px:15,py:-14,zx:.77,zy:1.32,dx:-10,dy:-20},
- {t:4.70,zoom:.76,px:11,py:-11,zx:.64,zy:1.12,dx:-25,dy:-47},
+ {t:1.55,zoom:1.08,px:96,py:86,zx:1.03,zy:1.06,dx:100,dy:25},
+ {t:2.10,zoom:1.36,px:231,py:139,zx:1.056,zy:1.081,dx:268,dy:69},
+ {t:3.00,zoom:.86,px:230,py:22,zx:.751,zy:1.34,dx:56,dy:-89},
+ {t:3.80,zoom:.54,px:32,py:-40,zx:.965,zy:1.889,dx:-7,dy:49},
+ {t:4.42,zoom:.68,px:15,py:-14,zx:.72,zy:1.41,dx:-35,dy:18},
+ {t:4.70,zoom:.76,px:11,py:-11,zx:.613,zy:1.196,dx:-49,dy:5},
  {t:5.45,zoom:1.00,px:0,py:0,zx:1,zy:1,dx:0,dy:0},
 ]);
 function railValue(t,key){
