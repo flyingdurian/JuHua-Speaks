@@ -1,5 +1,13 @@
 # 菊花说 · JuHua Speaks
 
+## Release v0.8.3 — Gate A approved
+
+**The production homepage now uses the visually approved Gate A v7 landing.** This release preserves a snapshot branch at [`review/gate-a-v7-approved`](https://github.com/flyingdurian/JuHua-Speaks/tree/review/gate-a-v7-approved) for independent review. The [dedicated Gate A-only browser route](./preview/gate-a/) is published within the GitHub Pages artifact, so friends can view/replay Gate A without navigating through unfinished Gate B.
+
+**Temporary continuity bridge:** Until the persistent 3D shuffle is completed in Gate B, submitting a question on the new landing privately passes it through `sessionStorage` to the existing `ritual.html` question/setup and reading experience. It does **not** put the question in a URL or automatically connect to any public AI backend. This handoff is a deliberate release bridge, not the finished full-scene cinematic transition; Gate B replaces it later. The old ritual path remains independently accessible.
+
+**GitHub Pages** serves one site per repository. A standalone review branch does not automatically receive an independent GitHub Pages deployment; the preserved source branch and published `/preview/gate-a/` route serve different purposes. Avoid advertising a branch URL as a playable web app.
+
 An immersive, bilingual Tarot web application built around **authentic historical Rider–Waite–Smith card illustrations**. The name 菊花说 (*Júhuā Shuō*, “JuHua Speaks”) has a playful double meaning; the visual experience itself stays atmospheric and polished.
 
 ## Current milestone: v0.4 — GPU immersion + private AI contract
@@ -118,3 +126,26 @@ No new real model requests are triggered automatically. The local Exodia path st
 A frame-by-frame study of the user's 40-second reference recording now informs the front half of the experience. Full-screen landing uses orbiting original 1909 RWS face textures through WebGL2; the time-based shuffle animates tornado → collapsed pack → mini globe → three deck piles → floating deck. Optional cosmic/riffle/wash shuffles restart a secured fair draw and minimum-duration gate. The deck then travels through a star field into the existing interior card sphere. Hover/pick adds depth and gold aura; users can undo a three-card selection during a short lock window. Reveal now shows all three cards side by side and supports click, edge, or corner peek using a physical 3D card rotation rather than a 2D wipe.
 
 The existing cinematic scripted Past/Present/Future interpretation stage and optional local Exodia adapter remain unchanged. Source: [VIDEO_RITUAL_FIDELITY.md](docs/VIDEO_RITUAL_FIDELITY.md). Full device GPU/touch QA remains a manual release gate.
+
+
+## v0.8.3 Gate A — persistent landing universe (visual review, unmerged)
+
+On branch `feat/v083-gate-a-persistent-world`, run `npm run preview:gate-a` and open `http://127.0.0.1:4183/preview/gate-a/`. This isolated preview replaces the rejected v0.8.2 landing renderer with one persistent WebGL2 world, a durable camera and 78 distinct Tarot entities with original RWS front texture sources, gold-edged backs and thickness. A Canvas2D perspective fallback handles WebGL restrictions. **Only the landing is in scope; shuffle, sphere and reveal gates remain blocked until visual approval.** Production stays v0.8.2; see `docs/GATE_A_WORLD_REBUILD.md`.
+
+**Gate A refinement 2:** The landing cards fly outward from the camera and settle into one huge orbital shell. All 78 show their original RWS face images and a randomized upright/reversed mix. Initial arrangement and close-pass cards change every refresh. The Gate A preview now audits/downloads the 78 verified artwork JPEGs before launching. This remains a draft, unmerged visual gate.
+
+## Gate A v4 — Persistent physical sphere (DRAFT / UNMERGED)
+
+The landing visual preview on `feat/v083-gate-a-persistent-world` now uses one rigidly rotating 78-card spherical shell, with **no artificial close-pass tween**. All card normals and edges rotate with that same shell, naturally revealing genuine RWS faces, backs and edges. The WebGL renderer uses a rounded, substantially thinner card body, redesigned polished obsidian back, and higher-quality 256×448 historical face atlas tiles (2× dimension over v3); 384×664 face previews support the Canvas fallback. Launch with `npm run preview:gate-a`; the preview checks/imports original RWS scans before starting. The draft PR is not merged into production. See [Gate A v4 visual QA](docs/GATE_A_V4_VISUAL_QA.md). Real GPU fidelity is still an acceptance gate.
+
+## Gate A v5 — Compact core sphere + sparse outer orbit (DRAFT)
+
+A synchronized 20-second CTA-off comparison exposed that the v4 sphere was almost entirely outside the viewing frustum and that the renderer blocked all animation until 78 JPEGs had finished decoding. The new visual candidate uses a 62-card core shell with clearly readable ~235px projected radius and a 16-card secondary orbit with natural close passes. Both use one constant shared angular velocity and no radial lunge. Obsidian backs appear immediately; authentic RWS fronts replace the back-only fallback as they load. **Do not merge/deploy without actual GPU visual approval.** See [Gate A v5 video audit](docs/GATE_A_V5_REFERENCE_AUDIT.md).
+
+## Gate A v6 — Cinematic orbit polish (DRAFT, unmerged)
+
+Following a 30-second reference comparison, the landing preview adds opaque card materials, four related rigid orbital scales (50 core + 12 halo + 10 middle + 6 flyby; still exactly 78 cards), seeded restrained nebulae and bottom-edge glow, and two distinct refresh/QA-selectable entrance rituals. **Do not merge or deploy without visual sign-off.** Run `npm run preview:gate-a` on the feature branch, press **H** to hide CTA, then use **SWITCH ENTRY** / **REPLAY** to compare both entrance styles. [Evidence and acceptance checks](docs/GATE_A_V6_VIDEO_REVIEW.md).
+
+## Gate A v7 — Reference-calibrated landing polish (DRAFT / UNMERGED)
+
+After a synchronized 40-second Chatarot vs Gate A v6 video, this candidate moves five cards from the primary core/halo into the middle-distance orbit (**46 core, 11 halo, 15 middle, 6 unchanged flybys**) and sets the main sphere slightly farther from camera. The previous outside-in Star Assembly's screen-plane slide has been replaced with staggered, curved 3D trajectories that assemble onto stable orbital slots over approximately 4.75 seconds. A mostly black starfield with two procedural smoky nebulae, twinkling stars, faint lower-edge light and slow parallax replaces the solid navy gradients; sky textures are generated once per resize, not every frame. The existing Core Expansion, true RWS assets, 78 fixed IDs, solid cards, Step 6 and Exodia are preserved. See [Gate A v7 video analysis and tests](docs/GATE_A_V7_VIDEO_AUDIT.md). Do not merge/deploy until the Product Owner approves the actual GPU browser result.

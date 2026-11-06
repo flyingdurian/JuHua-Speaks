@@ -1,0 +1,171 @@
+:root{color-scheme:dark;--light:#f5edde;--muted:#bdb8c5;--gold:#e1c08b;--background:#02040a;font-family:Inter,'Segoe UI',Arial,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;min-width:320px;background:var(--background);overflow:hidden;color:var(--light)}button,textarea{font:inherit}button{cursor:pointer}
+.gate-a{position:relative;width:100%;height:100dvh;min-height:510px;overflow:hidden;isolation:isolate;background:#010208}
+.space-background,.world-root,.space-vignette{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.space-background{z-index:0;--hue:0deg;filter:hue-rotate(var(--hue))}
+.space-background canvas{width:100%;height:100%;display:block;opacity:.93}
+.world-root{z-index:1;contain:layout paint}
+.world-root canvas{display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.space-vignette{z-index:2;background:radial-gradient(ellipse 38% 53% at 50% 50%,rgba(0,0,0,.48) 0%,rgba(0,0,0,.32) 44%,rgba(0,0,0,.04) 83%,rgba(0,0,0,.18) 100%),linear-gradient(0deg,#03040c82 0%,transparent 17%,transparent 83%,#03040c4d 100%)}
+.gate-header,.gate-footer{position:absolute;left:0;right:0;display:flex;justify-content:space-between;align-items:center;z-index:5;pointer-events:none}
+.gate-header{top:0;padding:25px clamp(22px,4vw,64px)}
+.wordmark{display:flex;gap:13px;align-items:center;color:#e7d2aa;font:17px Georgia,serif;letter-spacing:.09em;white-space:nowrap}.wordmark-sigil{font:36px Georgia,serif;color:#e0b981}.wordmark small{display:block;color:#9e9a9c;font:8px 'Segoe UI',sans-serif;letter-spacing:.26em;margin-top:5px}
+.gate-version,.gate-footer{font:9px 'Segoe UI',Arial,sans-serif;letter-spacing:.22em;color:#8f96a5}.gate-version .dot{font-size:8px;color:#d5ba82;padding:0 8px}
+.question-panel{position:absolute;z-index:4;top:48.5%;left:50%;transform:translate(-50%,-50%);width:min(540px,88vw);display:flex;flex-direction:column;align-items:center;text-align:center;pointer-events:auto}
+.small-caps,.overline{font:9px 'Segoe UI',Arial,sans-serif;letter-spacing:.32em;color:var(--gold)}.small-caps{font-size:11px}.star-small{font:15px Georgia,serif;margin:0 12px}
+.overline{font-size:8px;letter-spacing:.22em;color:#a3a7b3;margin-top:18px}
+h1{font:normal clamp(31px,4.5vw,53px)/1.2 Georgia,'Times New Roman',serif;letter-spacing:-.035em;color:#f8efe1;margin:23px 0 28px;text-shadow:0 2px 32px #000}h1 em{font-style:italic;font-size:.91em;color:#e0c49a}
+.question-panel label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.question-panel textarea{width:100%;height:100px;background:rgba(5,8,17,.85);border:1px solid #9f96a459;border-radius:5px;color:#ede7e6;resize:none;padding:19px 21px;text-align:left;font-size:13px;line-height:1.6;outline:none;box-shadow:0 16px 50px #0005;transition:border-color .2s}
+.question-panel textarea:focus{border-color:#c3a577;box-shadow:0 0 0 2px #ddbf8a29}
+.start-button{margin-top:24px;padding:16px 28px;min-width:204px;border-radius:3px;background:#e4d9c4;color:#0d1119;box-shadow:0 8px 35px #0008;border:1px solid #e8d8b9;font-size:10px;font-weight:700;letter-spacing:.21em;transition:transform .2s,background .2s}.start-button span{font-size:15px;margin-left:7px}.start-button:hover{background:#fff1d7;transform:translateY(-2px)}.start-button:focus-visible,.gate-footer button:focus-visible{outline:2px solid #f3d3a5;outline-offset:4px}
+.demo-notice{min-height:20px;margin-top:15px;color:#d9c9a4;font-size:11px}
+.gate-footer{bottom:0;padding:22px clamp(22px,4vw,64px);gap:18px}.separator{padding:0 10px;color:#918a89}.footer-right{display:flex;align-items:center;gap:23px}.gate-footer button{pointer-events:auto;background:transparent;border:1px solid #8a817c79;color:#d7c9bc;font:9px 'Segoe UI',Arial,sans-serif;letter-spacing:.1em;padding:9px 12px;border-radius:3px}.gate-footer button span{margin-left:8px}
+.debug{position:absolute;bottom:52px;left:20px;pointer-events:none;font:10px monospace;color:#a6a7ba;z-index:8;opacity:0}
+.fallback-orbit{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 23% 40%,#303c7b22,transparent 38%),radial-gradient(ellipse at 79% 20%,#675d8b1b,transparent 43%)}
+.fallback-orbit span{position:absolute;display:block;top:var(--y);left:var(--x);width:16px;height:29px;border:1px solid #bf9b61;border-radius:2px;background:linear-gradient(120deg,#1a2850,#071529);transform:rotate(var(--r));animation:fallbackDrift 45s linear infinite;animation-delay:var(--delay)}
+@keyframes fallbackDrift{0%{transform:rotate(var(--r)) translateY(0)}50%{transform:rotate(calc(var(--r) + 45deg)) translateY(42px)}100%{transform:rotate(calc(var(--r) + 90deg)) translateY(0)}}
+@media(max-width:650px){.gate-header{padding:17px 17px}.gate-version{letter-spacing:.12em;font-size:8px}.wordmark{font-size:14px}.wordmark-sigil{font-size:28px}.question-panel{width:91vw;top:47%}.overline{line-height:1.6}.question-panel h1{margin:22px 0}.gate-footer{padding:18px;letter-spacing:.1em;font-size:8px}.footer-right>span{display:none}}
+@media(prefers-reduced-motion:reduce){.fallback-orbit span{animation:none}.gate-a *{transition:none!important}}
+
+
+/* Gate A v3: space depth is visible, but the CTA remains readable. */
+.space-background:after{content:"";position:absolute;inset:-15%;pointer-events:none;mix-blend-mode:screen;opacity:.82;
+ background:
+ radial-gradient(ellipse 12% 34% at 88% 29%,rgba(175,159,204,.19),transparent 94%),
+ radial-gradient(ellipse 23% 16% at 77% 69%,rgba(118,99,176,.12),transparent 95%),
+ radial-gradient(ellipse 17% 41% at 63% 49%,rgba(118,148,204,.10),transparent 94%),
+ radial-gradient(ellipse 24% 11% at 33% 88%,rgba(154,117,190,.10),transparent 95%);
+ filter:blur(27px);animation:nebulaDrift 37s ease-in-out infinite alternate}
+@keyframes nebulaDrift{0%{transform:translate(-3%,-2%) rotate(-7deg) scale(.93)}100%{transform:translate(4%,3%) rotate(5deg) scale(1.12)}}
+.space-background{filter:hue-rotate(var(--hue)) saturate(1.15)}
+.space-background canvas{opacity:1}
+.space-vignette{background:radial-gradient(ellipse 31% 36% at 50% 50%,rgba(0,0,0,.38) 0%,rgba(0,0,0,.28) 55%,transparent 90%),
+ linear-gradient(0deg,#03040c83 0%,transparent 14%,transparent 86%,#03040c60 100%)}
+.question-panel{width:min(515px,87vw)}
+.question-panel h1{font-size:clamp(28px,3.4vw,43px);margin:19px 0 24px}
+.question-panel textarea{background:rgba(4,7,16,.77)}
+.gate-a.review-no-cta .question-panel{opacity:0;pointer-events:none;visibility:hidden}
+.gate-footer button[aria-pressed="true"]{border-color:#dfbe8b;color:#ffe3ae}
+.gate-footer .review-controls{display:flex;gap:9px;align-items:center}
+@media(prefers-reduced-motion:reduce){.space-background:after{animation:none}}
+
+
+/* Gate A v6: low-cost, restrained atmospheric detail. Palette shifts per refresh. */
+.space-background:before{
+ content:'';position:absolute;inset:0;pointer-events:none;
+ background:
+ radial-gradient(ellipse 45% 28% at 12% 108%,rgba(126,103,177,.16),transparent 89%),
+ radial-gradient(ellipse 47% 27% at 88% 110%,rgba(108,137,182,.15),transparent 87%),
+ linear-gradient(0deg,rgba(82,81,118,.038) 0%,transparent 20%);
+ opacity:.83;z-index:1;
+}
+.space-background:after{z-index:2;mix-blend-mode:screen;opacity:.58;filter:blur(18px)}
+.space-background canvas{position:relative;z-index:0;opacity:1}
+.world-root canvas{opacity:1!important} /* Card opacity is controlled by solid 3D surfaces, never CSS. */
+.space-vignette{background:
+ radial-gradient(ellipse 31% 36% at 50% 50%,rgba(0,0,0,.34),rgba(0,0,0,.25) 55%,transparent 91%),
+ linear-gradient(0deg,#03040c8c 0%,transparent 14%,transparent 87%,#03040c6a 100%)}
+.gate-footer .entry-label{font:8px 'Segoe UI',sans-serif;letter-spacing:.1em;color:#a99cae;white-space:nowrap}
+.gate-footer .entry-label strong{color:#d1bc98;font-weight:500;letter-spacing:.08em}
+.gate-footer .review-controls{gap:6px}
+.gate-footer #change-entrance,.gate-footer #replay-entrance{font-size:8px;padding:8px 9px}
+@media(max-width:870px){
+ .gate-footer{align-items:flex-end;gap:8px;flex-wrap:wrap}
+ .gate-footer .footer-right{width:100%;justify-content:space-between;flex-wrap:wrap;gap:6px}
+ .gate-footer .review-controls{flex-wrap:wrap;justify-content:flex-end}
+ .gate-footer .entry-label{display:none}
+ .gate-footer #change-entrance,.gate-footer #replay-entrance{padding:7px 8px}
+}
+@media(max-width:500px){
+ .gate-footer #change-entrance{font-size:0}
+ .gate-footer #change-entrance:after{content:'ENTRY ↻';font-size:8px}
+ .gate-footer button{padding:6px 7px}
+ .space-background:after{filter:blur(12px);animation:none}
+}
+@media(prefers-reduced-motion:reduce){
+ .space-background:after{animation:none!important}
+}
+
+
+/* Gate A v7 — Black space with separately moving stellar depth and organic smoke.
+   Override inherited v3–v6 gradients that made the background a navy wall. */
+.gate-a{background:#010103}
+.space-background{
+ background:#010103!important;filter:none!important;isolation:isolate;
+}
+.space-background:after{content:none!important;display:none!important}
+.space-background:before{
+ content:"";position:absolute;inset:0;z-index:4;pointer-events:none;
+ opacity:1!important;
+ background:
+ radial-gradient(ellipse 39% 24% at 16% 112%,rgba(166,153,183,.14),transparent 88%),
+ radial-gradient(ellipse 42% 20% at 89% 110%,rgba(143,165,187,.105),transparent 90%),
+ linear-gradient(0deg,rgba(204,193,192,.015) 0%,transparent 22%);
+}
+.space-background #star-canvas{
+ display:block;position:absolute;inset:0;z-index:0;
+ width:100%;height:100%;opacity:1!important;
+ animation:stellarParallax 110s ease-in-out infinite alternate;
+}
+.space-background .nebula-texture{
+ position:absolute;left:-13%;top:-10%;width:126%;height:126%;
+ display:block;pointer-events:none;image-rendering:auto;
+ mix-blend-mode:screen;transform-origin:center;
+}
+.space-background .nebula-back{
+ z-index:1;opacity:.82;
+ animation:cloudWanderA 47s ease-in-out infinite alternate;
+}
+.space-background .nebula-front{
+ z-index:2;opacity:.78;
+ animation:cloudWanderB 65s ease-in-out infinite alternate;
+}
+.space-background .twinkle-canvas{
+ display:block;position:absolute;inset:0;z-index:3;width:100%;height:100%;
+ opacity:.80;pointer-events:none;
+ animation:starBreathe 11s ease-in-out infinite alternate,stellarParallaxNear 92s ease-in-out infinite alternate;
+}
+@keyframes cloudWanderA{
+ from{transform:translate3d(-3%,3%,0) rotate(-5deg) scale(.96)}
+ to{transform:translate3d(6%,-7%,0) rotate(4deg) scale(1.11)}
+}
+@keyframes cloudWanderB{
+ from{transform:translate3d(4%,-5%,0) rotate(5deg) scale(1.06)}
+ to{transform:translate3d(-6%,5%,0) rotate(-4deg) scale(.98)}
+}
+@keyframes stellarParallax{
+ from{transform:translate3d(-.8%,.55%,0)}
+ to{transform:translate3d(.8%,-.55%,0)}
+}
+@keyframes stellarParallaxNear{
+ from{transform:translate3d(-1.8%,1%,0)}
+ to{transform:translate3d(1.8%,-1%,0)}
+}
+@keyframes starBreathe{from{opacity:.61}to{opacity:1}}
+.space-vignette{
+ background:
+ radial-gradient(ellipse 43% 42% at 50% 50%,rgba(0,0,0,.27),rgba(0,0,0,.14) 68%,transparent 95%),
+ linear-gradient(0deg,rgba(0,0,0,.18),transparent 19%,transparent 82%,rgba(0,0,0,.15));
+}
+.gate-a.sky-still .nebula-texture,.gate-a.sky-still #star-canvas,.gate-a.sky-still .twinkle-canvas{
+ animation:none!important;
+}
+@media(max-width:650px){
+ .space-background .nebula-texture{left:-10%;top:-7%;width:120%;height:120%;opacity:.62}
+ .space-background .twinkle-canvas{opacity:.65}
+}
+@media(prefers-reduced-motion:reduce){
+ .space-background .nebula-texture,.space-background #star-canvas,.space-background .twinkle-canvas{animation:none!important}
+}
+
+/* Public landing: review instruments live only in the isolated Gate A preview. */
+.production-landing .gate-footer .review-controls,
+.production-landing .gate-footer .footer-right {display:none!important}
+.production-landing .gate-footer{justify-content:flex-start}
+.production-landing .gate-version{color:#bfb3ab}
+.production-landing.exiting-landing .world-root{opacity:0;transform:scale(1.06);transition:opacity .55s ease,transform .55s ease}
+.production-landing.exiting-landing .question-panel{opacity:0;transition:opacity .35s ease}
+@media(prefers-reduced-motion:reduce){
+ .production-landing.exiting-landing .world-root,.production-landing.exiting-landing .question-panel{transition:none}
+}

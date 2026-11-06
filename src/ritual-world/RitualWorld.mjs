@@ -1,0 +1,149 @@
+/**
+ * Gate A: one durable WebGL2 canvas, camera and 78 card entities.
+ * No dependency on the v0.8.2 cinematic renderer or its trajectories.
+ * DOM overlays may update without disposing this renderer.
+ * Card fronts resolve by immutable DeckConfig card IDs; historical art is never redrawn.
+ */
+import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,landingAttitude,landingVisible,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
+export {makeLandingCardEntities,sampleLandingPose} from './OrbitalField.mjs';
+import {appendPremiumCard} from './CardSurface.mjs';
+const TAU = Math.PI * 2;
+const clamp = (v,a,b) => Math.max(a, Math.min(b,v));
+const hash = (x) => { x = Math.imul(x ^ x >>> 16, 0x7feb352d); x = Math.imul(x ^ x >>> 15,0x846ca68b); return ((x ^ x >>> 16) >>> 0) / 4294967296; };
+const v3 = (x=0,y=0,z=0) => [x,y,z];
+const dot = (a,b) => a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross = (a,b) => [a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const norm = a => {const len=Math.hypot(...a)||1;return a.map(n=>n/len)};
+const rotAround = (a,b,rad) => {
+ const c=Math.cos(rad),s=Math.sin(rad),v=cross(b,a),d=dot(b,a);
+ return [a[0]*c+v[0]*s+b[0]*d*(1-c),a[1]*c+v[1]*s+b[1]*d*(1-c),a[2]*c+v[2]*s+b[2]*d*(1-c)];
+};
+const shader=(gl,type,src)=>{const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s};
+const program=(gl)=>{
+ const vert=shader(gl,gl.VERTEX_SHADER,`#version 300 es
+ precision highp float;
+ layout(location=0) in vec3 pos;layout(location=1) in vec2 uv;layout(location=2) in float brightness;
+ uniform mat4 projection;out vec2 vUv;out float vLight;
+ void main(){gl_Position=projection*vec4(pos,1.0);vUv=uv;vLight=brightness;}`);
+ const frag=shader(gl,gl.FRAGMENT_SHADER,`#version 300 es
+ precision mediump float;
+ in vec2 vUv;in float vLight;uniform sampler2D atlas;out vec4 color;
+ void main(){vec4 base=texture(atlas,vUv);color=vec4(base.rgb*(.72+.28*clamp(vLight,0.0,1.0)),1.0);} // Solid obsidian, real cards, no translucent faces`);
+ const p=gl.createProgram();gl.attachShader(p,vert);gl.attachShader(p,frag);gl.linkProgram(p);
+ gl.deleteShader(vert);gl.deleteShader(frag);
+ if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));return p;
+};
+const perspective=(aspect,fov=58) => {
+ const q=1/Math.tan(fov*Math.PI/360),n=.08,f=160;
+ return new Float32Array([q/aspect,0,0,0,0,q,0,0,0,0,(f+n)/(n-f),-1,0,0,2*n*f/(n-f),0]);
+};
+const ATLAS_COLS=9,ATLAS_ROWS=9,TILE_W=256,TILE_H=448,ATLAS_W=ATLAS_COLS*TILE_W,ATLAS_H=ATLAS_ROWS*TILE_H;
+const BACK_SLOT=78,EDGE_SLOT=79;
+const slotUv=(slot,u,v)=>[(slot%ATLAS_COLS+2/TILE_W+u*(1-4/TILE_W))/ATLAS_COLS,(Math.floor(slot/ATLAS_COLS)+2/TILE_H+v*(1-4/TILE_H))/ATLAS_ROWS];
+function backing(ctx,x,y){
+ // Premium thin obsidian back; a restrained gold bezel and engraved celestial lines.
+ const w=TILE_W,h=TILE_H,r=Math.max(7,w*.04),cx=x+w*.5,cy=y+h*.5;
+ const g=ctx.createLinearGradient(x,y,x+w,y+h);
+ g.addColorStop(0,'#1d2b46');g.addColorStop(.36,'#101d37');g.addColorStop(.79,'#07122a');g.addColorStop(1,'#030b1e');
+ ctx.save();ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.clip();ctx.fillStyle=g;ctx.fillRect(x,y,w,h);
+ const light=ctx.createRadialGradient(x+w*.37,y+h*.24,0,x+w*.37,y+h*.24,w*1.1);
+ light.addColorStop(0,'rgba(205,190,230,.16)');light.addColorStop(.52,'rgba(95,108,166,.035)');light.addColorStop(1,'rgba(0,0,0,0)');
+ ctx.fillStyle=light;ctx.fillRect(x,y,w,h);
+ ctx.strokeStyle='#c4ad7c';ctx.lineWidth=Math.max(.8,w*.005);
+ for(const q of [.035,.068]){ctx.beginPath();ctx.roundRect(x+w*q,y+h*q,w*(1-2*q),h*(1-2*q),r*.58);ctx.stroke()}
+ ctx.strokeStyle='rgba(224,205,157,.78)';ctx.lineWidth=Math.max(.65,w*.004);
+ for(const rad of [w*.255,w*.299,w*.347]){ctx.beginPath();ctx.arc(cx,cy,rad,0,Math.PI*2);ctx.stroke()}
+ for(let i=0;i<24;i++){const a=i*Math.PI/12;ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*w*.35,cy+Math.sin(a)*w*.35);ctx.lineTo(cx+Math.cos(a)*w*.385,cy+Math.sin(a)*w*.385);ctx.stroke()}
+ ctx.fillStyle='#e8d3a6';ctx.textAlign='center';ctx.font=(w*.30)+'px Georgia,serif';ctx.fillText('☽',cx,cy+w*.10);
+ ctx.font=(w*.052)+'px Georgia,serif';ctx.fillText('✧   ✦   ✧',cx,y+h*.136);ctx.fillText('✧   ✦   ✧',cx,y+h*.884);
+ for(let i=0;i<340;i++){const px=(i*89+i*i*17)%w,py=(i*67+i*i*29)%h;
+  ctx.fillStyle=i%3===0?'rgba(235,223,191,.048)':'rgba(13,25,46,.09)';ctx.fillRect(x+px,y+py,1,1)}
+ ctx.restore();
+}
+function makeAtlas(){
+ const canvas=document.createElement('canvas');canvas.width=ATLAS_W;canvas.height=ATLAS_H;
+ const ctx=canvas.getContext('2d',{alpha:false});if(!ctx)throw Error('2D atlas unavailable');
+ ctx.fillStyle='#0a1123';ctx.fillRect(0,0,ATLAS_W,ATLAS_H);
+ for(let i=0;i<78;i++){
+  const x=(i%ATLAS_COLS)*TILE_W,y=Math.floor(i/ATLAS_COLS)*TILE_H;
+  // Authentic fronts stream in asynchronously. Until loaded, display the
+  // existing engraved back, never a fabricated RWS illustration or blank quad.
+  backing(ctx,x,y);
+ }
+ backing(ctx,(BACK_SLOT%ATLAS_COLS)*TILE_W,Math.floor(BACK_SLOT/ATLAS_COLS)*TILE_H);
+ const ex=(EDGE_SLOT%ATLAS_COLS)*TILE_W,ey=Math.floor(EDGE_SLOT/ATLAS_COLS)*TILE_H;
+ ctx.fillStyle='#be9c69';ctx.fillRect(ex,ey,TILE_W,TILE_H);
+ for(let i=0;i<TILE_H;i+=5){ctx.fillStyle=i%3?'#d5bd84':'#76624a';ctx.fillRect(ex,ey+i,TILE_W,1)}
+ return {canvas,ctx};
+}
+function pushQuad(verts,A,B,C,D,slot,brightness){
+ const uv=(u,v)=>slotUv(slot,u,v);
+ const points=[[A,0,0],[B,1,0],[C,1,1],[A,0,0],[C,1,1],[D,0,1]];
+ for(const [p,u,v] of points){const t=uv(u,v);verts.push(p[0],p[1],p[2],t[0],t[1],brightness)}
+}
+function appendBox(verts,card,position,time,entranceMode='inside-out'){
+ if(!landingVisible(card,time,entranceMode))return; // Opaque cards; late arrivals are initially offstage.
+ appendPremiumCard(verts,card,position,landingAttitude(card,position,time),entranceScale(card,time,entranceMode),
+   card.light,slotUv,{backSlot:BACK_SLOT,edgeSlot:EDGE_SLOT});
+}
+
+export class RitualWorld{
+ constructor({mount,cards,faceAssetForId,visualSeed=createVisualSeed(),entranceMode='inside-out',onStatus=()=>{}}){
+  if(!mount)throw Error('RitualWorld requires persistent mount');
+  this.mount=mount;this.visualSeed=visualSeed;this.cards=makeLandingCardEntities(cards,visualSeed);this.faceAssetForId=faceAssetForId;
+  this.onStatus=onStatus;this.disposed=false;this.phase='landing';this.start=performance.now();this.last=0;this.elapsed=0;this.entranceMode=entranceMode;
+  this.pause=false;this.frame=0;this.failedAssets=[];this.loadedCount=0;this.atlas=makeAtlas();this.images=[];this.lastRendered=0;
+  this.canvas=document.createElement('canvas');this.canvas.className='ritual-world-canvas';this.canvas.setAttribute('aria-hidden','true');mount.append(this.canvas);
+  const gl=this.canvas.getContext('webgl2',{alpha:true,antialias:true,depth:true,powerPreference:'high-performance'});
+  if(!gl){this.canvas.remove();throw Error('WebGL2 unavailable (use fallback landing)')}
+  if(gl.getParameter(gl.MAX_TEXTURE_SIZE)<Math.max(ATLAS_W,ATLAS_H)){this.canvas.remove();throw Error('High-resolution atlas exceeds GPU limit; using Canvas fallback')}
+  this.gl=gl;this.program=program(gl);this.vao=gl.createVertexArray();gl.bindVertexArray(this.vao);
+  this.buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);
+  for(const [loc,size,offset] of [[0,3,0],[1,2,12],[2,1,20]]){gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,24,offset)}
+  this.texture=gl.createTexture();gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  const anisotropy=gl.getExtension('EXT_texture_filter_anisotropic')||gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
+  if(anisotropy)gl.texParameterf(gl.TEXTURE_2D,anisotropy.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(8,gl.getParameter(anisotropy.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
+  this.uploadAtlas();gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.depthMask(true);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);
+  this.locProj=gl.getUniformLocation(this.program,'projection');this.locAtlas=gl.getUniformLocation(this.program,'atlas');
+  this.canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();this.contextLost=true;this.pause=true;onStatus({state:'context-lost'})},{once:true});
+  this.setPhase('landing');this.loadCardFaces();this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(mount);
+  this.tick=this.tick.bind(this);this.frame=requestAnimationFrame(this.tick);
+ }
+ setPhase(phase){if(!['landing','question_submitted','shuffle_ritual','deck_formed','sphere_selection','three_reveal'].includes(phase))throw Error('Unsupported world phase');this.phase=phase;this.onStatus({state:phase,cards:this.cards.length})}
+ setPaused(value){this.pause=!!value}
+ restartEntrance(mode){if(!['inside-out','outside-in'].includes(mode))throw Error('Unsupported landing entrance');this.entranceMode=mode;this.elapsed=0;this.last=0;this.lastRendered=0;this.onStatus({state:'entrance',entrance:mode})}
+ // UV v=0 addresses the TOP of the artwork. Keep canvas uploads unflipped for correct upright RWS fronts.
+ uploadAtlas(){const gl=this.gl;if(this.disposed||gl.isContextLost())return;gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,this.atlas.canvas)}
+ uploadTile(index,image){const gl=this.gl;if(this.disposed||gl.isContextLost())return;const small=document.createElement('canvas');small.width=TILE_W;small.height=TILE_H;small.getContext('2d').drawImage(image,2,2,TILE_W-4,TILE_H-4);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);gl.texSubImage2D(gl.TEXTURE_2D,0,(index%ATLAS_COLS)*TILE_W,Math.floor(index/ATLAS_COLS)*TILE_H,gl.RGBA,gl.UNSIGNED_BYTE,small)}
+ loadCardFaces(){
+  // Individual immutable IDs, 78 distinct source URLs; async texture loading never changes identity/order.
+  const queue=[...this.cards].sort((a,b)=>(Number(b.featured)-Number(a.featured))||a.orbitSlot-b.orbitSlot);
+  let index=0;const workers=Array.from({length:4},()=>{const next=()=>{
+   if(this.disposed||index>=queue.length)return;
+   const card=queue[index++],url=this.faceAssetForId(card.id),img=new Image();img.decoding='async';this.images.push(img);
+   img.onload=()=>{if(this.disposed)return;const x=(card.index%ATLAS_COLS)*TILE_W,y=Math.floor(card.index/ATLAS_COLS)*TILE_H;
+    this.atlas.ctx.drawImage(img,x+2,y+2,TILE_W-4,TILE_H-4);this.loadedCount++;this.uploadTile(card.index,img);
+    if(this.loadedCount===78){const gl=this.gl;gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.generateMipmap(gl.TEXTURE_2D);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR)}img.onload=null;img.onerror=null;this.images.splice(this.images.indexOf(img),1);this.onStatus({state:this.phase,loaded:this.loadedCount,cards:78});next()};
+   img.onerror=()=>{if(this.disposed)return;this.failedAssets.push(card.id);this.images.splice(this.images.indexOf(img),1);this.onStatus({state:this.phase,failed:this.failedAssets.length});next()};
+   img.src=url;
+  };next()});return workers;
+ }
+ resize(){if(this.disposed)return;const r=this.mount.getBoundingClientRect();const dpr=Math.min(window.devicePixelRatio||1,1.5);
+  const w=Math.max(2,Math.round(r.width*dpr)),h=Math.max(2,Math.round(r.height*dpr));if(w!==this.canvas.width||h!==this.canvas.height){this.canvas.width=w;this.canvas.height=h;this.gl.viewport(0,0,w,h)}}
+ tick(now){if(this.disposed||this.contextLost)return;this.frame=requestAnimationFrame(this.tick);if(document.hidden||this.pause)return;
+  const dt=Math.min(70,now-this.last||0);this.last=now;this.elapsed+=dt/1000;
+  if(now-this.lastRendered<28)return;this.lastRendered=now;
+  this.resize();const gl=this.gl;gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(this.program);gl.bindVertexArray(this.vao);
+  gl.uniformMatrix4fv(this.locProj,false,perspective(this.canvas.width/this.canvas.height));gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.uniform1i(this.locAtlas,0);
+  const vertices=[];
+  for(const card of this.cards)appendBox(vertices,card,sampleLandingPose(card,this.elapsed,this.entranceMode),this.elapsed,this.entranceMode);
+  gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.DYNAMIC_DRAW);
+  gl.drawArrays(gl.TRIANGLES,0,vertices.length/6);
+  this.onStatus({state:this.phase,rendered:78,elapsed:this.elapsed,loaded:this.loadedCount,failed:this.failedAssets.length});
+ }
+ getDiagnostics(){return {phase:this.phase,cards:this.cards.length,loaded:this.loadedCount,failed:this.failedAssets.length,elapsed:this.elapsed,visualSeed:this.visualSeed,entranceMode:this.entranceMode,opaqueCards:true,...orbitDiagnostics(this.cards,this.elapsed),webgl:this.gl.getParameter(this.gl.VERSION),textureTile:[TILE_W,TILE_H],cardGeometry:'rounded-beveled-thin',canvasWidth:this.canvas.width,canvasHeight:this.canvas.height}}
+ dispose(){if(this.disposed)return;this.disposed=true;cancelAnimationFrame(this.frame);this.resizeObserver?.disconnect();for(const img of this.images){img.onload=null;img.onerror=null}
+  const gl=this.gl;if(!gl.isContextLost()){gl.deleteTexture(this.texture);gl.deleteBuffer(this.buffer);gl.deleteVertexArray(this.vao);gl.deleteProgram(this.program)}this.canvas.remove();}
+}

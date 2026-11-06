@@ -1,6 +1,6 @@
 {
   "name": "juhua-speaks",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "private": true,
   "type": "module",
   "description": "菊花说 · JuHua Speaks — immersive bilingual tarot experience",
@@ -9,7 +9,8 @@
     "test": "node --test test/*.test.mjs",
     "assets:sync": "node scripts/sync-rws-assets.mjs",
     "assets:audit": "node scripts/audit-assets.mjs",
-    "api:test": "node scripts/test-exodia-api.mjs"
+    "api:test": "node scripts/test-exodia-api.mjs",
+    "preview:gate-a": "node scripts/ensure-gate-a-assets.mjs && node scripts/serve-gate-a.mjs"
   },
   "engines": {
     "node": ">=20"

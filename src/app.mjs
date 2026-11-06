@@ -15,11 +15,17 @@ import {renderPhysicalReveal,peekOrigin,peekProgress,clampPeek} from './physical
 import {clampReveal,progressFromCardDrag,progressFromPinch,nextRevealProgress,isRevealed,allCardsRevealed} from './reveal-interaction.mjs';
 
 const root=document.querySelector('#app');
+let incomingGateQuestion='';
+try{
+ incomingGateQuestion=sessionStorage.getItem('juhua:gate-a-question')||'';
+ sessionStorage.removeItem('juhua:gate-a-question');
+ if(incomingGateQuestion.length>600||incomingGateQuestion.length<3)incomingGateQuestion='';
+}catch{incomingGateQuestion='';}
 // Decorative per-refresh hue; never affects deck randomization or selection odds.
 const ritualHues=[0,45,95,168,240];
 const ritualHueIndex=globalThis.crypto?.getRandomValues?globalThis.crypto.getRandomValues(new Uint32Array(1))[0]%ritualHues.length:Math.floor(Math.random()*ritualHues.length);
 root.style.setProperty('--ritual-hue',ritualHues[ritualHueIndex]+'deg');
-const state={step:0,locale:'en',spread:'insight',lens:'western',question:'',optionA:'Accept the new offer',optionB:'Stay in my current role',shuffled:[],picks:[],shuffles:0,rx:-12,ry:-17,modal:null,filter:'all',inspected:null,effects:true,sphereMode:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'2d':'gpu',aiReading:null,aiStatus:'idle',aiError:'',aiRequestId:0,deckId:'rws',privateImages:new Map(),revealIndex:0,revealProgress:0,revealedCards:[false,false,false],orbitPaused:false,orbitHoldUntil:0,readingBeat:-1,demoConversation:[],localExodiaAvailable:false,localMode:'scripted',localReading:'',localTurns:[],localBusy:false,localError:'',localRequestId:0,ritual:createRitualSession(),ritualEpoch:0,ritualLocking:false,ritualOverlay:null,ritualAnimationStartAt:0,landingPhaseOffset:0,peekProgress:[0,0,0],peekAxes:[{ax:0,ay:1},{ax:0,ay:1},{ax:0,ay:1}],autoConfirmAt:null,shuffleStyle:'cosmic'};
+const state={step:incomingGateQuestion?1:0,locale:'en',spread:'insight',lens:'western',question:incomingGateQuestion,optionA:'Accept the new offer',optionB:'Stay in my current role',shuffled:[],picks:[],shuffles:0,rx:-12,ry:-17,modal:null,filter:'all',inspected:null,effects:true,sphereMode:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'2d':'gpu',aiReading:null,aiStatus:'idle',aiError:'',aiRequestId:0,deckId:'rws',privateImages:new Map(),revealIndex:0,revealProgress:0,revealedCards:[false,false,false],orbitPaused:false,orbitHoldUntil:0,readingBeat:-1,demoConversation:[],localExodiaAvailable:false,localMode:'scripted',localReading:'',localTurns:[],localBusy:false,localError:'',localRequestId:0,ritual:createRitualSession(),ritualEpoch:0,ritualLocking:false,ritualOverlay:null,ritualAnimationStartAt:0,landingPhaseOffset:0,peekProgress:[0,0,0],peekAxes:[{ax:0,ay:1},{ax:0,ay:1},{ax:0,ay:1}],autoConfirmAt:null,shuffleStyle:'cosmic'};
 const t=(en,zh)=>state.locale==='zh'?zh:en;
 const h=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const roleNames=()=>state.spread==='crossroads'?[t('Path A','方向 A'),t('Path B','方向 B'),t('Guidance','综合建议')]:[t('Past','过去'),t('Present','现在'),t('Future','未来')];
