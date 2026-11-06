@@ -20,7 +20,13 @@ export function sampleTunnelTrajectory(index,seed,t,{mote=false}={}){
  // object-space path is closed in Z: motes and cards can circulate without
  // a hidden teleport when passing the near-camera throat.
  const transport=.13*local+.065*local*local;
- const phase=(k+.5)*.6180339887498949+.027*(rand(133)-.5);
+ // Four 3D spiral FILAMENTS with discrete sheets transported through them.
+ // The previous quasi-random golden spiral still read as a scattered wreath.
+ // Sheets now inhabit recognizable ordered ribbons; motes densely sample
+ // those exact same ribbons. Slot is NOT a fixed Z plane: transport shifts Z.
+ const lane=k%4,steps=mote?44:20;
+ const step=Math.floor(k/4)%steps;
+ const phase=(step+.5)/steps+.009*(rand(133)-.5);
  const rawAxial=TAU*(phase-.39*transport);
  // The active cyclone has a FAST near-camera throat and slow, populous far
  // layers: avoid sinusoid's dense near-depth dwell that created v7's wall.
@@ -31,7 +37,8 @@ export function sampleTunnelTrajectory(index,seed,t,{mote=false}={}){
  const retreat=16*(1-smoother((t-1.10)/3.25));
  const apparentDepth=depth+retreat;
  const dolly=apparentDepth/depth;
- const azimuth=TAU*(phase*3.10+.47*transport)+.22*Math.sin(axial*1.8+rand(47)*TAU);
+ const azimuth=TAU*(phase*2.65+1.10*transport)+lane*(TAU/4)
+  +.10*Math.sin(axial*1.8+rand(47)*TAU);
  const radius=3.25+.12*depth+.48*Math.sin(axial*1.6+rand(57)*TAU);
  // Camera-relative bank: the twisted cylinder has an eccentric, drifting
  // centreline, unlike flat screen-space concentric rings.
