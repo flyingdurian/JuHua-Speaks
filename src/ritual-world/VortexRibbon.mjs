@@ -22,13 +22,13 @@ const hash=(i,s=0)=>{
 // These are visual shot beats, not a fixed-duration benchmark contract.
 // All camera movement is continuous and evaluated on the same world object.
 const CAMERA=[
- {t:1.10,yaw:.10,roll:0,pitch:.03,zoom:1.0,px:0,py:0},
- {t:2.10,yaw:.25,roll:.07,pitch:.13,zoom:1.20,px:70,py:35},
- {t:3.00,yaw:.40,roll:.10,pitch:.18,zoom:1.28,px:66,py:2},
- {t:3.75,yaw:1.02,roll:.12,pitch:.20,zoom:1.22,px:50,py:7},
- {t:4.40,yaw:1.21,roll:.09,pitch:.12,zoom:1.15,px:20,py:0},
- {t:4.75,yaw:1.24,roll:.04,pitch:.06,zoom:.96,px:14,py:-15},
- {t:5.45,yaw:.15,roll:0,pitch:0,zoom:1.00,px:0,py:0},
+ {t:1.10,yaw:.10,roll:0,pitch:.05,zoom:1.0,px:0,py:0},
+ {t:2.10,yaw:.15,roll:.05,pitch:.20,zoom:1.31,px:70,py:35},
+ {t:3.00,yaw:.18,roll:.10,pitch:.42,zoom:1.18,px:66,py:2},
+ {t:3.75,yaw:.22,roll:.11,pitch:1.06,zoom:1.09,px:50,py:7},
+ {t:4.40,yaw:.27,roll:.08,pitch:1.20,zoom:1.07,px:20,py:0},
+ {t:4.75,yaw:.20,roll:.04,pitch:1.26,zoom:.99,px:14,py:-15},
+ {t:5.45,yaw:.10,roll:0,pitch:0,zoom:1.00,px:0,py:0},
 ];
 function cameraValue(t,key){
  if(t<=CAMERA[0].t)return CAMERA[0][key];
@@ -42,6 +42,20 @@ export function vortexCamera(t){
  return {yaw:cameraValue(t,'yaw'),roll:cameraValue(t,'roll'),
   pitch:cameraValue(t,'pitch'),zoom:cameraValue(t,'zoom'),
   px:cameraValue(t,'px'),py:cameraValue(t,'py')};
+}
+// The reference physically squeezes the wide spiral into a tall, narrow
+// stream as the viewer dives into the helix; this is not a pixel-mask trick.
+const FUNNEL=[
+ {t:1.10,r:1.04},{t:2.10,r:1.29},{t:3.00,r:.92},
+ {t:3.75,r:.54},{t:4.40,r:.40},{t:4.75,r:.36},{t:5.45,r:.21}
+];
+function funnelRadius(t){
+ if(t<=FUNNEL[0].t)return FUNNEL[0].r;
+ for(let i=0;i<FUNNEL.length-1;i++){
+  const a=FUNNEL[i],b=FUNNEL[i+1];
+  if(t<=b.t)return lerp(a.r,b.r,softer((t-a.t)/(b.t-a.t)));
+ }
+ return FUNNEL[FUNNEL.length-1].r;
 }
 export function vortexProgress(t){
  const u=clamp((t-1.10)/4.35);
@@ -62,7 +76,7 @@ function sample(lane,q,t,seed=0){
  // Depth increases monotonically along each ribbon, establishing actual
  // concentric near-to-far layers rather than a fixed camera-facing wreath.
  const depth=11.0+40*u-3.1*state.axial+(lane===1?1.5:0);
- const radius=(5.05+.050*depth+g.radius)*(1-.72*state.collapse);
+ const radius=(5.05+.050*depth+g.radius)*funnelRadius(t)*(1-.62*state.collapse);
  const cx=.48*Math.sin(1.3*u*TAU+state.angular*1.5);
  const cy=.32*Math.cos(1.1*u*TAU+state.angular*.8);
  let x=cx+radius*Math.cos(theta);
