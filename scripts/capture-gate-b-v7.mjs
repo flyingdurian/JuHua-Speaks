@@ -10,7 +10,7 @@ const context=await browser.newContext({viewport:{width:860,height:720},
  recordVideo:{dir,size:{width:860,height:720}}});
 const page=await context.newPage(),errors=[];
 page.on('pageerror',e=>errors.push(String(e)));
-await page.goto('http://127.0.0.1:4184/preview/gate-b/',{waitUntil:'networkidle',timeout:60000});
+await page.goto('http://127.0.0.1:4184/preview/gate-b/?seed=2165840022&entrance=outside-in',{waitUntil:'networkidle',timeout:60000});
 await page.waitForFunction(()=>window.__ritualGateB?.world?.cards?.length===78);
 const renderer=await page.evaluate(()=>{
  const w=window.__ritualGateB.world;
