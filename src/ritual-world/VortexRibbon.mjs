@@ -22,9 +22,9 @@ const hash=(i,s=0)=>{
 // These are visual shot beats, not a fixed-duration benchmark contract.
 // All camera movement is continuous and evaluated on the same world object.
 const CAMERA=[
- {t:1.10,yaw:.10,roll:-.10,pitch:.05,zoom:1.0,px:0,py:0},
- {t:2.10,yaw:.15,roll:-1.10,pitch:.20,zoom:1.31,px:70,py:82},
- {t:3.00,yaw:.18,roll:-.28,pitch:.42,zoom:1.18,px:66,py:29},
+ {t:1.10,yaw:.10,roll:.10,pitch:.05,zoom:1.0,px:0,py:0},
+ {t:2.10,yaw:.15,roll:1.20,pitch:.20,zoom:1.31,px:70,py:82},
+ {t:3.00,yaw:.18,roll:.48,pitch:.42,zoom:1.18,px:66,py:29},
  {t:3.75,yaw:.22,roll:.11,pitch:1.06,zoom:1.09,px:50,py:52},
  {t:4.40,yaw:.27,roll:.08,pitch:1.20,zoom:1.07,px:20,py:45},
  {t:4.75,yaw:.20,roll:.04,pitch:1.26,zoom:.99,px:14,py:65},
@@ -47,7 +47,7 @@ export function vortexCamera(t){
 // stream as the viewer dives into the helix; this is not a pixel-mask trick.
 const FUNNEL=[
  {t:1.10,r:1.04},{t:2.10,r:1.29},{t:3.00,r:.92},
- {t:3.75,r:.54},{t:4.40,r:.40},{t:4.75,r:.36},{t:5.45,r:.21}
+ {t:3.75,r:.54},{t:4.40,r:.40},{t:4.75,r:.45},{t:5.45,r:.21}
 ];
 function funnelRadius(t){
  if(t<=FUNNEL[0].t)return FUNNEL[0].r;
