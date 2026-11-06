@@ -8,6 +8,11 @@ on:
       - 'scripts/capture-gate-b-v7.mjs'
       - '.github/workflows/gate-b-visual.yml'
   workflow_dispatch:
+# Visual renders are expensive. Superseded revisions must not keep
+# consuming GPU CI time while a newer candidate is already available.
+concurrency:
+  group: gate-b-visual-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
