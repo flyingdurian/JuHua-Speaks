@@ -63,7 +63,7 @@ document.getElementById('divine').addEventListener('click',()=>{
  const question=document.getElementById('question'),value=question.value.trim();
  if(value.length<3||value.length>600){question.focus();return}
  if(!isProductionLanding){
-  document.getElementById('demo-notice').textContent='Gate A v7 review: landing only. The production reading continues separately.';
+  document.getElementById('demo-notice').textContent='I am still working on it princess, I hope you like it so far 😋';
   return;
  }
  try{
