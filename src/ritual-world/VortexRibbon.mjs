@@ -23,11 +23,11 @@ const hash=(i,s=0)=>{
 // All camera movement is continuous and evaluated on the same world object.
 const CAMERA=[
  {t:1.10,yaw:.10,roll:0,pitch:.05,zoom:1.0,px:0,py:0},
- {t:2.10,yaw:.15,roll:.05,pitch:.20,zoom:1.31,px:70,py:35},
- {t:3.00,yaw:.18,roll:.10,pitch:.42,zoom:1.18,px:66,py:2},
- {t:3.75,yaw:.22,roll:.11,pitch:1.06,zoom:1.09,px:50,py:7},
- {t:4.40,yaw:.27,roll:.08,pitch:1.20,zoom:1.07,px:20,py:0},
- {t:4.75,yaw:.20,roll:.04,pitch:1.26,zoom:.99,px:14,py:-15},
+ {t:2.10,yaw:.15,roll:.05,pitch:.20,zoom:1.31,px:70,py:82},
+ {t:3.00,yaw:.18,roll:.10,pitch:.42,zoom:1.18,px:66,py:29},
+ {t:3.75,yaw:.22,roll:.11,pitch:1.06,zoom:1.09,px:50,py:52},
+ {t:4.40,yaw:.27,roll:.08,pitch:1.20,zoom:1.07,px:20,py:45},
+ {t:4.75,yaw:.20,roll:.04,pitch:1.26,zoom:.99,px:14,py:65},
  {t:5.45,yaw:.10,roll:0,pitch:0,zoom:1.00,px:0,py:0},
 ];
 function cameraValue(t,key){
@@ -112,6 +112,19 @@ export function sampleVortexCard(index,seed,t){
  const jitter=.0055*(hash(index+100,seed)-.5);
  const q=clamp((k-offset+.5)/n+jitter);
  const result=sample(lane,q,t,seed);
+ // A handful of physical sheets whip past the lens during the terminal
+ // vacuum surge. These are C1-smooth ballistic detours on the SAME cards,
+ // reconnecting naturally to the 78-card compression before deck assembly.
+ const flyby=k%13===3;
+ const start=4.03+.18*hash(k+197,seed);
+ const u=clamp((t-start)/.99);
+ const gust=flyby?Math.pow(Math.sin(Math.PI*u),2):0;
+ if(gust>0){
+  const target=[-4.8+6.0*hash(k+43,seed),
+                -3.8+5.0*hash(k+71,seed),
+                -5.9-.8*hash(k+17,seed)];
+  result.position=result.position.map((x,i)=>lerp(x,target[i],gust*.98));
+ }
  const p0=sample(lane,clamp(q-.001),t,seed).position;
  const p1=sample(lane,clamp(q+.001),t,seed).position;
  const tangent=p1.map((v,j)=>v-p0[j]);
