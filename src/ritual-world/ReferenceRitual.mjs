@@ -104,13 +104,19 @@ function suctionPose(card,t){
  const yaw=(illustrated?Math.PI:0)+.23*Math.sin(theta*.75+k*.17)
    +.20*Math.sin(t*2.4+k*.31);
  const pitch=.29*Math.sin(theta*.52+k*.47)+.10*Math.sin(t*3+k*.23);
- const roll=theta+.28*Math.sin(k*.73)+[0,.16,-.14][stream]+vortexCamera(t).roll;
+ // Card attitude follows its CURRENT world-space ribbon tangent, including
+ // camera pitch/bank, instead of continuing to roll around an obsolete XY ring.
+ // Shortest-angle blending preserves organic individual tumble.
+ const originalRoll=theta+vortexCamera(t).roll;
+ const tangentRoll=Math.atan2(v.tangent[1],v.tangent[0])-Math.PI/2;
+ const delta=Math.atan2(Math.sin(tangentRoll-originalRoll),Math.cos(tangentRoll-originalRoll));
+ const roll=originalRoll+.64*delta+.16*Math.sin(k*.73)+[0,.10,-.10][stream];
  // The actual reference grows dense as sheets rush toward the viewer:
  // distant backs remain small, then their projected area accelerates sharply
  // during the steeply banked terminal corkscrew. The illustrated close
  // passes retain their own independently authored near-lens scale.
  const backGain=1+.78*smoother((t-3.05)/.69)
-   +.48*smoother((t-4.23)/.50);
+   +.16*smoother((t-4.23)/.50);
  const scale=((illustrated?.78:(.29+.10*rnd(39))*backGain)
    +.025*Math.sin(t*1.35+k*.24))*vortexCamera(t).cardGain;
  return pose(v.position,facing(yaw,pitch,roll),scale);
