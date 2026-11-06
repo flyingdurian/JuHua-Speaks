@@ -24,7 +24,7 @@ const hash=(i,s=0)=>{
 const CAMERA=[
  {t:1.10,yaw:.10,roll:.10,pitch:.05,zoom:1.0,px:0,py:0,sx:1,sy:1,cardGain:1},
  {t:2.10,yaw:.24,roll:-.10,pitch:.64,zoom:1.22,px:30,py:-62,sx:1.13,sy:1.15,cardGain:1.11},
- {t:3.00,yaw:.22,roll:.02,pitch:.80,zoom:1.18,px:-65,py:-149,sx:1.10,sy:1.55,cardGain:1.44},
+ {t:3.00,yaw:.22,roll:-.18,pitch:.36,zoom:1.18,px:-45,py:-90,sx:1.12,sy:1.25,cardGain:1.34},
  {t:3.75,yaw:.22,roll:.11,pitch:1.06,zoom:1.09,px:50,py:-126,sx:1.13,sy:1,cardGain:1},
  {t:4.40,yaw:.27,roll:.08,pitch:1.20,zoom:1.07,px:10,py:-100,sx:1.16,sy:.96,cardGain:.96},
  {t:4.75,yaw:.20,roll:.04,pitch:1.26,zoom:1.08,px:-33,py:-74,sx:.94,sy:.58,cardGain:.94},
@@ -132,9 +132,9 @@ export function sampleVortexCard(index,seed,t){
  const u=clamp((t-start)/(early?.90:.97));
  const gust=flyby?Math.pow(Math.sin(Math.PI*u),2):0;
  if(gust>0){
-  const target=[(early?-7.1:-4.8)+(early?2.5:6.0)*hash(k+43,seed),
-                -3.8+5.0*hash(k+71,seed),
-                (early?-5.1:-5.9)-.8*hash(k+17,seed)];
+  const target=[(early?-4.2:-4.8)+(early?3.6:6.0)*hash(k+43,seed),
+                (early?-1.6:-2.4)+(early?3.4:3.9)*hash(k+71,seed),
+                (early?-4.9:-5.9)-.8*hash(k+17,seed)];
   result.position=result.position.map((x,i)=>lerp(x,target[i],gust*.98));
  }
  const p0=sample(lane,clamp(q-.001),t,seed,motionBias).position;
