@@ -1,9 +1,11 @@
 /**
  * Gate B v7 — reference-directed tunnel and hollow globe, authored from the actual 15.813s split screen.
  *
- * Card and smoke use one coherent volumetric tunnel field, a curved camera\n * centreline and depth transport. All 78 sheets remain real geometry.
+ * Card and smoke use one coherent volumetric tunnel field, a curved camera
+ * centreline and depth transport. All 78 sheets remain real geometry.
  *
- * A complete 78-layer deck forms, then blooms into a largely hollow rotating\n * spherical shell with real faces, backs and edge silhouettes. Three physical 26-card decks finish with staggered
+ * A complete 78-layer deck forms, then blooms into a largely hollow rotating
+ * spherical shell with real faces, backs and edge silhouettes. Three physical 26-card decks finish with staggered
  * individual sheet transfers. Total 78 authentic identities unchanged.
  *
  * Pure sampled choreography; no timer, rendering, AI, card draw or allocation
