@@ -3,7 +3,7 @@
  * corkscrew paths as the 78 cards. No painted tornado image, no background
  * rotation, and no effect outside the unapproved first sequence.
  */
-import {sampleVortexRibbon,vortexProgress} from '../../src/ritual-world/VortexRibbon.mjs';
+import {sampleVortexRibbon,sampleVortexCard,vortexProgress} from '../../src/ritual-world/VortexRibbon.mjs';
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const FOCAL=428/(2*Math.tan(58*Math.PI/360));
 function project(p){
@@ -62,6 +62,21 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
    ctx.lineWidth=reduceMotion?9:23;ctx.stroke();
    ctx.strokeStyle='rgba(214,216,211,'+(.29*fade)+')';
    ctx.lineWidth=1.3;ctx.stroke();
+  }
+  // Physically grounded shutter trails: the tip and tail belong to the
+  // SAME sheet at two nearby times. No imitated rotating backdrop exists.
+  if(!reduceMotion){
+   for(let k=0;k<78;k++){
+    const a=project(sampleVortexCard(k,seed,t));
+    const b=project(sampleVortexCard(k,seed,t-.055));
+    if(!a||!b)continue;
+    const len=Math.hypot(a.x-b.x,a.y-b.y);
+    if(len<1||len>80)continue;
+    ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(a.x,a.y);
+    ctx.globalAlpha=1;
+    ctx.strokeStyle='rgba(211,216,221,'+(.18*fade*(1-.55*collapse))+')';
+    ctx.lineWidth=clamp(28/a.z,.45,1.55);ctx.stroke();
+   }
   }
   const n=reduceMotion?55:185;
   for(let i=0;i<n;i++){
