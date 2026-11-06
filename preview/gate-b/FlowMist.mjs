@@ -56,13 +56,13 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
     else ctx.lineTo(p.x,p.y);
     previous=p;
    }
-   const haze=(.25+.07*(lane===0?1:0))*fade*plume;
+   const haze=(.07+.025*(lane===0?1:0))*fade*plume;
    ctx.globalAlpha=1;
    ctx.strokeStyle='rgba(154,165,176,'+haze+')';
-   ctx.lineWidth=reduceMotion?12:48;ctx.stroke();
-   ctx.strokeStyle='rgba(203,207,212,'+(haze*.52)+')';
-   ctx.lineWidth=reduceMotion?5:13;ctx.stroke();
-   ctx.strokeStyle='rgba(214,216,211,'+(.29*fade)+')';
+   ctx.lineWidth=reduceMotion?5:9;ctx.stroke();
+   ctx.strokeStyle='rgba(203,207,212,'+(haze*.48)+')';
+   ctx.lineWidth=reduceMotion?2:3.5;ctx.stroke();
+   ctx.strokeStyle='rgba(214,216,211,'+(.13*fade)+')';
    ctx.lineWidth=1.3;ctx.stroke();
   }
   // Physically grounded shutter trails: the tip and tail belong to the
@@ -86,8 +86,8 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
    const q=((i*0.6180339887498949+seed*.00000017)%1+1)%1;
    const p=project(sampleVortexRibbon(lane,q,t,seed));
    if(!p||p.x<-40||p.x>552||p.y<-40||p.y>468)continue;
-   const size=clamp((540+110*(i%7))/p.z,4,85);
-   ctx.globalAlpha=fade*(.016+.020*((i*37%101)/101))*(.28+.72*plume)*(1-.35*collapse);
+   const size=clamp((160+45*(i%7))/p.z,2,16);
+   ctx.globalAlpha=fade*(.026+.028*((i*37%101)/101))*(.28+.72*plume)*(1-.35*collapse);
    ctx.drawImage(mote,p.x-size/2,p.y-size/2,size,size);
   }
   ctx.restore();
