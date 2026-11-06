@@ -100,9 +100,9 @@ function currentLanding(card,time,entranceMode){
 function suctionPose(card,t){
  const k=card.orbitSlot,seed=card.visualSeed>>>0;
  const rnd=n=>hash(k+n,seed);
- const release=.70+.30*rnd(113);
+ const release=.35+1.18*rnd(113);
  const age=Math.max(0,t-release);
- const duration=2.60-.35*rnd(29);
+ const duration=2.05+.75*rnd(29);
  const u=clamp(age/duration);
  // Material particles advance towards the lens and through a narrow throat.
  // Travel is time-driven (not k/78), with staggered entry and acceleration.
