@@ -102,7 +102,7 @@ function suctionPose(card,t){
     +.38*Math.sin(axial*1.24+t*1.7+k*.15);
  const pitch=.34*Math.sin(theta*.47+k*.52)+.21*Math.sin(t*2.6+k*.39);
  const roll=-theta*.60+.32*Math.sin(axial*.87+k*.2);
- const scale=.78+.14*rnd(39)+.08*Math.sin(t*1.5+k*.31);
+ const scale=.55+.16*rnd(39)+.035*Math.sin(t*1.5+k*.31);
  return pose(v.position,facing(yaw,pitch,roll),scale);
 }
 function pocketPose(card,t){
@@ -144,7 +144,7 @@ function chaoticGlobePose(card,t){
  const bank=.20+.13*Math.sin(time*.67);
  const cb=Math.cos(bank),sb=Math.sin(bank);
  const y=p[1]*cb-zz*sb,z=p[1]*sb+zz*cb;
- const R=(k<66?5.18:4.32)+.22*Math.sin(k*.74+time*1.5);
+ const R=(k<66?5.18:4.32)+.38*Math.sin(k*.74+time*1.5);
  const pos=[R*x+.10*Math.sin(time*1.1+k*.7),
     R*y+.12*Math.sin(time*.9+k*.61),
     -13.75+R*z];
@@ -155,7 +155,7 @@ function chaoticGlobePose(card,t){
  const normal=norm([x+.13*Math.sin(time*2.2+k),
                     y+.10*Math.sin(time*1.8+k*.63),
                     z+wobble]);
- const roll=.42*Math.sin(time*2.3+k*.53)+.18*Math.cos(k*.37);
+ const roll=.82*Math.sin(time*2.3+k*.53)+.28*Math.cos(k*.37);
  const attitude=orientedFrom(normal,[Math.cos(roll),Math.sin(roll),.06]);
  const scale=.76+.13*rnd(37)+(k<66?0:-.05);
  return pose(pos,attitude,scale);
