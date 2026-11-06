@@ -144,7 +144,7 @@ function chaoticGlobePose(card,t){
  const bank=.20+.13*Math.sin(time*.67);
  const cb=Math.cos(bank),sb=Math.sin(bank);
  const y=p[1]*cb-zz*sb,z=p[1]*sb+zz*cb;
- const R=(k<66?6.00:4.95)+.40*Math.sin(k*.74+time*1.5);
+ const R=(k<66?5.70:4.62)+.36*Math.sin(k*.74+time*1.5);
  const pos=[R*x+.10*Math.sin(time*1.1+k*.7),
     R*y+.12*Math.sin(time*.9+k*.61),
     -13.75+R*z];
@@ -156,7 +156,7 @@ function chaoticGlobePose(card,t){
                     y+.10*Math.sin(time*1.8+k*.63),
                     z+wobble]);
  // The back-facing sheets form the dark inner scaffold seen in ChatARot.
- if(k%3===0)normal=norm([normal[0],normal[1],-Math.abs(normal[2])]);
+ if(k%8===0)normal=norm([normal[0],normal[1],-Math.abs(normal[2])]);
  const roll=.82*Math.sin(time*2.3+k*.53)+.28*Math.cos(k*.37);
  const attitude=orientedFrom(normal,[Math.cos(roll),Math.sin(roll),.06]);
  const scale=.76+.13*rnd(37)+(k<66?0:-.05);
@@ -167,7 +167,7 @@ function detonationPose(card,t){
  const u=clamp((t-7.10-delay)/(1.05-delay));
  // This is deliberately front-loaded rather than double-smoothstep, so
  // the 78-card globe is already enormous at the first quarter of the beat.
- const p=Math.pow(u,.28);
+ const p=Math.pow(u,.43);
  const start=pocketPose(card,t),end=chaoticGlobePose(card,t);
  const result=blend(start,end,p);
  const arc=.48*Math.sin(Math.PI*p);
