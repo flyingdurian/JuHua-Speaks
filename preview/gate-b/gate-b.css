@@ -28,3 +28,36 @@
  .gate-b .shuffle-buttons button{padding:9px 10px;font-size:9px}
 }
 @media(prefers-reduced-motion:reduce){.gate-b .question-panel,.gate-b .shuffle-buttons button{transition:none!important}}
+
+
+/* Gate B v2 — keep spectacle visible: understated reference-style meditation
+   copy, small options beneath the deck, no full-page obstructing card wall. */
+.gate-b .ritual-panel{display:block;z-index:4;pointer-events:none}
+.gate-b .ritual-copy{
+ position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);
+ width:min(460px,90vw);max-width:none;pointer-events:none;
+ text-shadow:0 2px 15px #000c;
+}
+.gate-b .ritual-copy h1{
+ font:normal clamp(19px,2.25vw,28px)/1.2 Georgia,'Times New Roman',serif;
+ letter-spacing:-.025em;margin:8px 0;color:rgba(249,241,231,.91);
+}
+.gate-b .ritual-copy p{font-size:12px;line-height:1.5;color:rgba(238,225,224,.79)}
+.gate-b .ritual-copy .small-caps{font-size:8px;letter-spacing:.19em;opacity:.78}
+.gate-b.deck-ready .ritual-copy{top:18%}
+.gate-b .ritual-actions{
+ position:absolute;left:50%;bottom:clamp(52px,11vh,100px);
+ transform:translateX(-50%);min-width:min(435px,90vw);
+ max-width:min(475px,92vw);
+ padding:12px 13px;background:rgba(4,7,15,.65);
+ border:1px solid rgba(182,156,107,.21);box-shadow:0 8px 32px rgba(0,0,0,.22);
+}
+.gate-b .ritual-actions .start-button{margin:3px 0 0;min-width:170px;padding:12px 16px}
+.gate-b .ritual-actions .shuffle-buttons button{padding:9px 11px}
+@media(max-width:650px){
+ .gate-b .ritual-copy{top:43%;width:91vw}
+ .gate-b.deck-ready .ritual-copy{top:19%}
+ .gate-b .ritual-actions{bottom:58px;min-width:90vw;padding:10px}
+ .gate-b .ritual-copy h1{font-size:20px}
+ .gate-b .ritual-copy p{font-size:11px}
+}

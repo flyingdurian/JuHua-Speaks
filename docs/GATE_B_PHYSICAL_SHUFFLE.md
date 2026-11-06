@@ -75,3 +75,49 @@ Passing CI is an engineering gate, **not** a visual-quality judgment. Product Ow
 5. The visual quality of choreography remains subject to Product Owner approval. Green CI proves valid coordinates and APIs only—not that the motion looks as polished as the reference.
 
 **Release policy:** Keep PR #10 draft and unmerged. Do not modify production Gate A v7 or proceed to Gate C.
+
+---
+
+# Gate B v2 — 30.906-second video choreography audit (November 6, 2026)
+
+**User-provided evidence:** "Side by side comparison_Chatarot and Gate B.mp4", 1720×720, 30fps, 30.906 seconds. ChatARot reference is on the **left** and JuHua Gate B v1.1 is on the **right**. The footage is a local review attachment; do not copy the benchmark video into this GitHub repository.
+
+## Verified visual timeline (approximate video seconds)
+
+| Time | ChatARot benchmark (left) | Gate B v1.1 (right) | Director's correction |
+|---|---|---|---|
+| 0–2s | Start CTA: existing cosmic orbit surges toward a central region, changing depth and velocity | Cards abruptly converge into one compact card cluster | Use a progressive, visible high-speed helical gather; keep 78 physical entities |
+| 2–4s | Depth rush and swirling/helical cloud, intermittent dramatic reframing | A dense column of predominantly blue backs forms and largely holds shape | Maintain coherent multi-depth whirl, no dead-air/static cluster |
+| 4–7s | An irregular 3D mini-globe, rotating with a mixture of RWS fronts, blue backs, silhouettes and near passes | The same packed column with limited depth contrast or identity | Explicit spherical rearrangement with modest (~12/78) face visibility |
+| 7–10s | Rotating globe resolves into separate card groups/piles, then consolidates into a single compact physical deck | Abrupt collapse to an oversized, front-on card stack around 7–8s | Three 26-card piles before progressive recollection into a small edge-visible stacked deck |
+| 10–13s | A small deck floats slowly with its edge turning into view and a minimal Finish Shuffling CTA | A large deck and prominent bordered options overlay dominate | Scale and angle to a slender physically stacked deck; shrink/soften controls and meditate copy |
+| 14–18s | Still a small deck; custom shuffles not demonstrated in the reference | Cosmic creates two conspicuous rectangular-looking rows rather than convincing physical card streams | Two 39-card coherent moving halves that unfurl into coordinated trajectories |
+| 19–23s | Still a small deck | Riffle panels overlap and separate without a clear physical bend/interleave | Two halves, alternating staggered interleave events, a distinct arch/bridge, and closure |
+| 24–30s | Still a small floating deck | Wash makes a hollow ring of backs, leaving an obvious empty middle | Phyllotaxis-based populated center, shallow-plane sliding, restrained overlapping/circulating motion |
+
+**Important:** The benchmark footage contains the ChatARot **automatic** shuffle only; our three optional shuffle variants have no reference equivalent in this video. Their new choreography is an original physical treatment, not a claim to reproduce unavailable reference variants. Video timing may be offset slightly by clicking and recording synchronization.
+
+## Gate B v2 technical implementation
+
+- **Persistent GPU world**: no new renderer, card identities or changes to original 78 RWS artwork.
+- **Seven authored automatic beats, 9.45s total:** gather (0–1.30), tornado (1.30–3.05), tornado→globe (3.05–3.90), globe (3.90–5.95), globe→three piles (5.95–6.95), three piles animate (6.95–7.80), staggered three-to-one consolidation (7.80–9.45). The longer duration reflects observed reference choreography and must be judged visually, not only by seconds.
+- **Actual starting pose:** use the real current Gate A entrance mode (\`inside-out\` or \`outside-in\`), including users who click while entrance animations are underway; the path begins from existing card positions, not hardcoded stale orbit positions.
+- **Compact physical deck:** individual slots still have finite XYZ basis and separate layer thickness; v2 uses thinner card cross sections for the physical paper deck (\`PHYSICAL_CARD.thickness\`), leaving the original stone/slab Gate A rendering geometry unchanged. Deck scale ~1.14 rather than 2.23 and yaw ~1.14 radians rather than ~0.2, producing a smaller edge-visible finish.
+- **Cinematic visual hierarchy:** the automatic meditation line remains legible without a large competing title. The controls and replay panel sit below the deck, with reduced size and softer glass. Same pre-existing celestial backdrop from Gate A v7.
+- **Cosmic:** split 39/39, unfurl coordinated paired streams, orbit/fan in opposing directions, reconstitute the original complete deck.
+- **Riffle:** split 39/39; stagger alternate physical entries across the 78 distinct identities, form a visible arched bridge, then close the deck.
+- **Wash:** fill a bounded elliptical tabletop plane, slide cards along shallow overlapping trajectories, and progressively gather to a complete deck; never form an empty central ring.
+- **Stable orientation:** spherical interpolation of opposed card normals during transitions avoids sudden flipped orientations; complete orthonormal XYZ basis and finite vertices are validated at many timestamps. No card is a fake single-card deck.
+- **Canvas parity:** fallback now shows the true RWS face when a card physically rotates toward the viewer during the globe stage (not just during landing), using the same choreography as WebGL.
+
+## Engineering acceptance and actual browser gate
+
+1. CI must validate 78 persistent IDs, all seven authored beats and their order, 3×26-card temporary pile topology, final 78-card canonical deck, 39/39 Riffle, no hollow wash center, and differentiated paths.
+2. A direct 3D check confirmed **zero invalid GPU vertex values** across evaluated key timestamps for automatic/Cosmic/Riffle/Wash; all tested stages project 69–78 of 78 card centers inside an 860×720 comparison viewport. This is **not** proof of attractive or physically collision-free motion.
+3. Boundary tests sample either side of each beat transition and bound sudden position jumps, rather than testing the first and last frame only.
+4. Re-run \`npm run preview:gate-b\` on the draft branch, watch **the entire automatic 9.45-second performance** before testing optional shuffles. Compare the sequence with the uploaded left/right video: depth rush, energetic spiral, rotating globe, triple deck piles, compact stack.
+5. Observe each variant individually: Cosmic should not be two motionless rows, Riffle must visibly alternate and bridge, Wash must not form a hollow wreath. Reassess whether card scale and orientation are natural.
+6. Confirm no rendering disappearance, no missing historical art, no resource or device stability regression, and no Step 6/Exodia code changes.
+7. Product Owner must approve an **actual GPU browser recording** of Gate B v2 before Gate B merge or Gate C. Passing CI is not visual approval.
+
+**Status:** Gate B v2 is a draft visual candidate. Production Gate A v7 and the approved friend-review branch are protected. GitHub PR #10 remains unmerged. The new choreography is original source code, not a copy of the reference app's code or assets.

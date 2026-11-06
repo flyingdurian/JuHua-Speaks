@@ -153,3 +153,7 @@ After a synchronized 40-second Chatarot vs Gate A v6 video, this candidate moves
 ## Gate B in development — isolated physical shuffle
 
 The production Gate A v7 remains approved and unchanged. A **separate unmerged branch** `feat/v083-gate-b-physical-shuffle` introduces a persistent 78-card tornado, true deck formation, and three mechanical shuffle variants (Cosmic, Riffle, Wash). Test locally using `npm run preview:gate-b` at `http://127.0.0.1:4184/preview/gate-b/`. No production deployment or Gate C integration yet; see [Gate B review contract](docs/GATE_B_PHYSICAL_SHUFFLE.md).
+
+## Gate B v2 — Reference-led choreography overhaul (unmerged)
+
+A 30.906-second synchronized comparison identified that the first Gate B version skipped the satisfying progressions of the reference. The revised dedicated preview stages the landing rush, helical tornado, 3D card globe, three 26-card stacks, and gradual final 78-card deck over ~9.45 seconds. The Cosmic, Riffle and Wash shuffles have separate physical motion families; WebGL/Canvas share deterministic choreography, with 3D basis and vertex/continuity tests. **Gate B remains a draft visual candidate, not a production release.** Run `npm run preview:gate-b` and see [the video audit and acceptance gate](docs/GATE_B_PHYSICAL_SHUFFLE.md).

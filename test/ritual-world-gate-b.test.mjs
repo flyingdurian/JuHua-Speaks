@@ -5,7 +5,7 @@ import {DECK} from '../src/deck.mjs';
 import {makeLandingCardEntities,sampleLandingPose} from '../src/ritual-world/OrbitalField.mjs';
 import {appendPremiumCard} from '../src/ritual-world/CardSurface.mjs';
 import {
- AUTO_SHUFFLE_SECONDS,SHUFFLE_CHOICES,SHUFFLE_DURATIONS,PHYSICAL_CARD,
+ AUTO_SHUFFLE_SECONDS,SHUFFLE_CHOICES,SHUFFLE_DURATIONS,PHYSICAL_CARD,AUTO_RITUAL_BEATS,
  samplePhysicalShuffle,deckPose,deckThickness,shuffleDuration,shuffleBeat,assertShuffleGeometry
 } from '../src/ritual-world/ShuffleChoreography.mjs';
 
@@ -20,7 +20,7 @@ test('all 78 original cards remain distinct physical objects and visual shuffle 
  assert.equal(new Set(cards.map(x=>x.orbitSlot)).size,78);
  assert.deepEqual(SHUFFLE_CHOICES,['cosmic','riffle','wash']);
  assert.ok(PHYSICAL_CARD.width>0&&PHYSICAL_CARD.height>0);
- assert.ok(AUTO_SHUFFLE_SECONDS>=5&&AUTO_SHUFFLE_SECONDS<=8);
+ assert.ok(AUTO_SHUFFLE_SECONDS>=9&&AUTO_SHUFFLE_SECONDS<=10.5);
  for(const style of ['auto',...SHUFFLE_CHOICES]){
   for(const t of [0,.25,1.2,2.3,3.8,6.6]){
    const poses=cards.map(c=>point(c,t,style));
@@ -41,15 +41,18 @@ test('automatic coherent tornado has bounded radius and real depth without face-
  assert.ok(poses.every(p=>p.attitude.normal[2]<0),'No front-illustrated card pile after start');
  assert.ok(poses.every(p=>p.position[2]<-10&&p.position[2]>-22));
  assert.equal(shuffleBeat('auto',2.5),'tornado');
- assert.equal(shuffleBeat('auto',5.2),'collapsing');
+ assert.equal(shuffleBeat('auto',5.2),'globe');
+ assert.equal(shuffleBeat('auto',6.4),'three_piles');
+ assert.equal(shuffleBeat('auto',7.25),'pile_shuffling');
+ assert.equal(shuffleBeat('auto',8.3),'consolidating');
 });
 test('physical deck is 78 closely stacked backs, not a singular facing card',()=>{
  const deck=cards.map(c=>deckPose(c,24.5));
  assert.equal(deck.length,78);
  assert.equal(unique(deck.map(p=>p.position)),78);
  assert.ok(deckThickness(cards)>1&&deckThickness(cards)<1.6,'Actual stack thickness');
- assert.ok(deck.every(p=>p.attitude.normal[2]<-.65),'backs face the viewer');
- assert.ok(deck.every(p=>p.scale>2),'legible complete deck in front of camera');
+ assert.ok(deck.every(p=>p.attitude.normal[2]<-.25),'tilted backs face the viewer without flat billboard presentation');
+ assert.ok(deck.every(p=>p.scale>=1&&p.scale<=1.3),'compact reference-scaled deck, not oversized slab');
  const end=cards.map(c=>point(c,AUTO_SHUFFLE_SECONDS));
  for(let i=0;i<78;i++)assert.deepEqual(end[i],deck[i]);
  assert.equal(shuffleBeat('auto',AUTO_SHUFFLE_SECONDS),'deck_ready');
@@ -64,7 +67,8 @@ test('Riffle has two genuine 39-card stacks before alternating interleave',()=>{
  assert.ok(left.every(x=>x<0));
  assert.ok(right.every(x=>x>0));
  assert.equal(shuffleBeat('riffle',1.4),'interleaving');
- assert.equal(shuffleBeat('riffle',3.6),'closing');
+ assert.equal(shuffleBeat('riffle',3.6),'interleaving');
+ assert.equal(shuffleBeat('riffle',4.6),'bridging');
 });
 
 test('Cosmic, Riffle and Wash use visibly different movement rather than the same random spin',()=>{
@@ -171,7 +175,7 @@ test('REGRESSION: stacked backs and 3D tornado project to visible screen space',
  // Matches the actual WebGL camera: 58-degree vertical FOV, 720px reference.
  const focal=720/(2*Math.tan(58*Math.PI/360));
  const screen=p=>({x:430+p[0]*focal/(-p[2]),y:360-p[1]*focal/(-p[2])});
- for(const [label,t] of [['tornado',2.7],['collapse',5.5],['stack',6.6]]){
+ for(const [label,t] of [['tornado',2.7],['globe',5.5],['piles',7.2],['stack',9.45]]){
   const samples=cards.map(card=>samplePhysicalShuffle(card,{style:'auto',age:t,landingAt:7,worldTime:24.5}));
   const visible=samples.filter(({position})=>{
    const p=screen(position);
@@ -200,4 +204,82 @@ test('Both renderers validate geometry before changing ritual phases',async()=>{
  const preview=await readFile(new URL('../preview/gate-b/gate-b.mjs',import.meta.url),'utf8');
  assert.match(preview,/renderError=error\.message/);
  assert.match(preview,/SHUFFLE RENDER ERROR/);
+});
+
+
+test('Reference-driven automatic ritual uses seven distinct authored beats and correct order',()=>{
+ assert.deepEqual(AUTO_RITUAL_BEATS.map(x=>x.id),[
+  'gathering','tornado','storm_to_globe','globe',
+  'three_piles','pile_shuffling','consolidating'
+ ]);
+ assert.equal(AUTO_RITUAL_BEATS[0].start,0);
+ assert.equal(AUTO_RITUAL_BEATS.at(-1).end,AUTO_SHUFFLE_SECONDS);
+ for(let i=1;i<AUTO_RITUAL_BEATS.length;i++)
+  assert.equal(AUTO_RITUAL_BEATS[i].start,AUTO_RITUAL_BEATS[i-1].end);
+ for(const beat of AUTO_RITUAL_BEATS)
+  assert.equal(shuffleBeat('auto',(beat.start+beat.end)/2),beat.id);
+});
+
+test('Reference-style globe actually reveals a modest selection of authentic faces',()=>{
+ const globe=cards.map(card=>point(card,4.8));
+ const backs=globe.filter(p=>p.attitude.normal[2]<0);
+ const faces=globe.filter(p=>p.attitude.normal[2]>0);
+ assert.ok(faces.length>=8&&faces.length<=18,'Only some RWS fronts are visible during the mini-sphere');
+ assert.ok(backs.length>=60,'The rest keep historic navy card backs visible');
+ const minZ=Math.min(...globe.map(x=>x.position[2])),maxZ=Math.max(...globe.map(x=>x.position[2]));
+ assert.ok(maxZ-minZ>3,'Mini-globe has real 3D depth');
+});
+test('Three actual 26-card stacks assemble before the final deck consolidation',()=>{
+ const piles=cards.map(c=>({card:c,position:point(c,7.0).position}));
+ const groups=[0,1,2].map(j=>piles.filter(p=>p.card.orbitSlot%3===j));
+ assert.deepEqual(groups.map(g=>g.length),[26,26,26]);
+ const centers=groups.map(g=>g.reduce((s,p)=>s+p.position[0],0)/g.length);
+ assert.ok(centers[1]-centers[0]>1.4&&centers[2]-centers[1]>1.4);
+ const completed=cards.map(c=>point(c,AUTO_SHUFFLE_SECONDS));
+ assert.ok(completed.every((p,i)=>dist(p.position,deckPose(cards[i],24.5).position)<1e-8));
+});
+test('Every storyboard boundary and every optional shuffle is position-continuous',()=>{
+ const stages={
+  auto:AUTO_RITUAL_BEATS.map(b=>b.end).slice(0,-1),
+  cosmic:[1.05,1.8,3.9],
+  riffle:[1,1.4,4],
+  wash:[1.3,3.95]
+ };
+ for(const [style,times] of Object.entries(stages)){
+  for(const boundary of times){
+   let maxTravel=0;
+   for(const card of cards){
+    const left=point(card,boundary-.002,style).position;
+    const right=point(card,boundary+.002,style).position;
+    maxTravel=Math.max(maxTravel,dist(left,right));
+   }
+   assert.ok(maxTravel<.50,style+' jump around '+boundary+'s: '+maxTravel.toFixed(4));
+  }
+ }
+});
+test('Washing covers the center of the table and keeps cards thin and physically back-facing',()=>{
+ assert.ok(PHYSICAL_CARD.thickness>0&&PHYSICAL_CARD.thickness<.01);
+ const spread=cards.map(c=>point(c,2.2,'wash'));
+ const center=spread.filter(p=>Math.hypot(p.position[0],p.position[1])<1.65);
+ assert.ok(center.length>=12,'No hollow ring of cards in the Table Wash');
+ assert.ok(spread.every(p=>p.attitude.normal[2]<-.50),'Cards remain face down');
+});
+
+
+test('Start Divination uses the actual current Gate A entrance, never a hardcoded entrance pose',()=>{
+ const t=1.1;
+ for(const mode of ['inside-out','outside-in']){
+  for(const card of cards){
+   const sample=samplePhysicalShuffle(card,{style:'auto',age:0,landingAt:t,worldTime:t,entranceMode:mode});
+   assert.deepEqual(sample.position,sampleLandingPose(card,t,mode));
+  }
+ }
+});
+test('Canvas and WebGL both show real RWS illustrated faces during the reference-style mini-globe',async()=>{
+ const cv=await readFile(new URL('../src/ritual-world/CanvasOrbit.mjs',import.meta.url),'utf8');
+ const gl=await readFile(new URL('../src/ritual-world/RitualWorld.mjs',import.meta.url),'utf8');
+ const mesh=await readFile(new URL('../src/ritual-world/CardSurface.mjs',import.meta.url),'utf8');
+ assert.match(cv,/const src=pose\.frontFacingCamera\?this\.fronts\.get\(card\.id\)/);
+ assert.match(gl,/appendPremiumCard\(vertices,\{\.\.\.card,\.\.\.PHYSICAL_CARD\}/);
+ assert.match(mesh,/card\.thickness \?\? \(EDGE_THICKNESS\*card\.width\)/);
 });

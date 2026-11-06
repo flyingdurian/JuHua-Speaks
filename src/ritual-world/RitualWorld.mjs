@@ -116,7 +116,7 @@ export class RitualWorld{
  setPhase(phase){if(!['landing','question_submitted','shuffle_ritual','deck_formed','sphere_selection','three_reveal'].includes(phase))throw Error('Unsupported world phase');this.phase=phase;this.onStatus({state:phase,cards:this.cards.length})}
  beginAutoShuffle(){
   if(this.phase!=='landing')throw Error('Auto shuffle requires landing');
-  assertShuffleGeometry(this.cards,{style:'auto',landingAt:this.elapsed,worldTime:this.elapsed});
+  assertShuffleGeometry(this.cards,{style:'auto',landingAt:this.elapsed,worldTime:this.elapsed,entranceMode:this.entranceMode});
   this.shuffleStyle='auto';this.shuffleLandingAt=this.elapsed;this.shuffleStartedAt=this.elapsed;
   this.setPhase('shuffle_ritual');this.shuffleRound++;
  }
@@ -165,7 +165,7 @@ export class RitualWorld{
    }else{
     const age=this.elapsed-this.shuffleStartedAt;
     const sample=this.phase==='shuffle_ritual'
-     ?samplePhysicalShuffle(card,{style:this.shuffleStyle,age,landingAt:this.shuffleLandingAt,worldTime:this.elapsed})
+     ?samplePhysicalShuffle(card,{style:this.shuffleStyle,age,landingAt:this.shuffleLandingAt,worldTime:this.elapsed,entranceMode:this.entranceMode})
      :deckPose(card,this.elapsed);
     appendPremiumCard(vertices,{...card,...PHYSICAL_CARD},sample.position,sample.attitude,sample.scale,card.light,slotUv,{backSlot:BACK_SLOT,edgeSlot:EDGE_SLOT});
    }

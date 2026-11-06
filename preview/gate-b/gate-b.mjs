@@ -40,17 +40,21 @@ try{
 }
 if(world)document.getElementById('card-counter').textContent=String(world.cards.length)+' INDIVIDUAL CARDS';
 const label={
- gathering:['THE CARDS ARE RESPONDING','The Tarot is beginning to gather around your question.'],
- tornado:['THE COSMIC TORNADO','Meditate on your question as the 78 cards move in harmony.'],
- collapsing:['THE CARDS RETURN','A complete deck is forming in front of you.'],
- splitting:['RIFFLE SHUFFLE','Two physical stacks separate from the same 78-card deck.'],
- interleaving:['THE RITUAL INTERLEAVES','The two halves weave together, one card after another.'],
- closing:['THE DECK SETTLES','The interwoven cards return to one complete deck.'],
- expanding:['COSMIC SHUFFLE','A disciplined pair of orbital rings emerges from the deck.'],
- orbital_shuffle:['THE RINGS TURN','A second, controlled shuffle through celestial motion.'],
- spreading:['TABLE WASH','The backs spread onto a shallow floating table plane.'],
- table_wash:['THE CARDS CIRCULATE','A casino-style wash, not a pile of face-up illustrations.'],
- deck_ready:['THE DECK IS READY','78 physical Tarot cards, stacked into one complete deck.']
+ gathering:['Shuffling…','Please meditate on your question.'],
+ tornado:['Shuffling…','Please meditate on your question.'],
+ storm_to_globe:['Shuffling…','Please meditate on your question.'],
+ globe:['Shuffling…','Please meditate on your question.'],
+ three_piles:['Shuffling…','Please meditate on your question.'],
+ pile_shuffling:['Shuffling…','Please meditate on your question.'],
+ consolidating:['Shuffling…','Please meditate on your question.'],
+ splitting:['Riffle Shuffle','The deck separates into two complete halves.'],
+ interleaving:['Riffle Shuffle','Cards weave together in an alternating bridge.'],
+ bridging:['Riffle Shuffle','The interleaved deck arches and settles.'],
+ unfurling:['Cosmic Orbit','Two suspended card streams unfold into space.'],
+ orbital_shuffle:['Cosmic Orbit','Two orbiting halves move in a coordinated ritual.'],
+ spreading:['Table Wash','The deck spreads across the divination plane.'],
+ table_wash:['Table Wash','Cards move and overlap on a shared surface.'],
+ deck_ready:['The deck is ready','Seventy-eight cards. One complete deck.']
 };
 const statusText=()=>failedAssets?'ARTWORK ERROR · '+failedAssets+' MISSING':'RWS ILLUSTRATIONS · '+loadCount+'/78 LOADED';
 function renderUI(){
@@ -62,9 +66,11 @@ function renderUI(){
  if(lastStatus!==nextStatus){status.textContent=nextStatus;lastStatus=nextStatus}
  if(!root.classList.contains('in-ritual'))return;
  deckControls.hidden=phase!=='deck_formed';
+ root.classList.toggle('deck-ready',phase==='deck_formed');
  const entry=label[state]||label.deck_ready;
  const newTitle=entry[0],newDescription=entry[1];
- if(beatLabel.textContent!==('THE SHUFFLE RITUAL · '+String(info.round).padStart(2,'0')))beatLabel.textContent='THE SHUFFLE RITUAL · '+String(info.round).padStart(2,'0');
+ const beatText=info.style==='auto'?'✧ HOLD YOUR QUESTION IN MIND ✧':'✧ '+info.style.toUpperCase()+' SHUFFLE ✧';
+ if(beatLabel.textContent!==beatText)beatLabel.textContent=beatText;
  if(title.textContent!==newTitle)title.textContent=newTitle;
  if(description.textContent!==newDescription)description.textContent=newDescription;
  if(phase==='deck_formed'){
@@ -115,7 +121,7 @@ buttonPause.addEventListener('click',()=>{
 document.getElementById('reset').addEventListener('click',()=>{
  if(!world)return;
  world.setPaused(false);buttonPause.setAttribute('aria-pressed','false');buttonPause.textContent='PAUSE Ⅱ';
- renderError='';world.resetGateB();root.classList.remove('in-ritual');overlay.hidden=true;
+ renderError='';world.resetGateB();root.classList.remove('in-ritual','deck-ready');overlay.hidden=true;
  notice.textContent='';lastStatus='';renderUI();
 });
 const statusTimer=setInterval(renderUI,180);
