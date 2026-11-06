@@ -163,6 +163,9 @@ function chaoticGlobePose(card,t){
  const scale=.76+.13*rnd(37)+(k<66?0:-.05);
  return pose(pos,attitude,scale);
 }
+// The canonical, pre-camera globe is exposed for physical-shell integrity
+// regression checks. The director rail only changes how it is photographed.
+export function sampleReferenceGlobeCanonical(card,t){return chaoticGlobePose(card,t)}
 // Director's coherent globe camera rail: a restrained first bloom, then a
 // denser near hemisphere, then a more open rotating shell. Matched against
 // actual 860x720 reference frames rather than a 10.8-second stopwatch.
