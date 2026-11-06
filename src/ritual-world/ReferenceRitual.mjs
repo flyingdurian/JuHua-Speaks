@@ -167,33 +167,45 @@ function implosionPose(card,t){
 // 14 foreground flyers: genuine close-up faces/backs/edge silhouettes.
 function chaoticGlobePose(card,t){
  const k=card.orbitSlot,seed=card.visualSeed>>>0;
- const outer=k<39,inner=k>=39&&k<64,idx=outer?k:inner?k-39:k-64;
+ const rnd=n=>hash(k+n,seed);
+ // The 39/25/14 groups define broad density, not three static mathematical
+ // shells. Each sphere sheet precesses around a different inclined axis,
+ // crosses depth layers and changes latitude while the whole cloud tumbles.
+ const outer=k<39,inner=k>=39&&k<64,roamer=k>=64;
+ const idx=outer?k:inner?k-39:k-64;
  const size=outer?39:inner?25:14;
- const latitude=1-2*(idx+.5)/size;
- const ring=Math.sqrt(Math.max(.0001,1-latitude*latitude));
- const globalAngle=(idx*GOLDEN)+(t-4.42)*(outer?2.12:inner?-1.63:2.67)
-  +hash(k+107,seed)*.58;
- const r=(outer?5.55:inner?3.06:6.43)+.32*Math.sin(k*.82+t*1.73);
+ const time=t-4.42;
+ const baseLat=1-2*(idx+.5)/size;
+ const lat=clamp(baseLat+.29*Math.sin(time*2.4+k*.74),-.96,.96);
+ const radial=Math.sqrt(1-lat*lat);
+ const omega=(outer?2.3:inner?-2.1:3.15)*(1+.18*(rnd(81)-.5));
+ const theta=idx*GOLDEN+TAU*rnd(107)*.34+omega*time
+   +.28*Math.sin(time*3+k*.63);
+ const radius=(outer?5.55:inner?3.15:6.00)
+   *(.90+.19*rnd(91)+.075*Math.sin(time*4.1+k*.8));
+ const orbitalX=radius*radial*Math.cos(theta);
+ const orbitalZ=radius*radial*Math.sin(theta);
+ const incline=.34+.20*Math.sin(time*.74);
  let position=[
-  r*ring*Math.cos(globalAngle)+.28*Math.sin(t*2.1+k*.38),
-  r*latitude+.38*Math.cos(t*1.5+k*.51),
-  -13.35+r*ring*Math.sin(globalAngle)+.18*Math.sin(t*2.7+k)
+  orbitalX+.44*Math.sin(time*1.8+k*.27),
+  radius*lat+incline*orbitalZ+.32*Math.cos(time*2.5+k*.41),
+  -13.45+orbitalZ*.91-incline*orbitalX*.36
  ];
- if(!inner&&!outer){
-  const wave=Math.sin(Math.PI*clamp((t-(5.1+(idx%4)*.31))/.73));
-  const active=wave*wave;
-  // Roaming silhouettes deliberately intersect the near plane's visual
-  // foreground; do NOT line them up at the same radius as the outer shell.
-  position[0]=mix(position[0],1.60*Math.cos(globalAngle),active*.64);
-  position[1]=mix(position[1],1.45*Math.sin(globalAngle),active*.64);
-  position[2]+=active*3.65;
+ if(roamer){
+  // Outer cards pass across and THROUGH the globe's silhouette, entering
+  // foreground then receding rather than sitting in a fixed outer sphere.
+  const pulse=Math.pow(Math.sin(Math.PI*clamp((t-(5.02+(idx%4)*.32))/.98)),2);
+  position[0]=mix(position[0],1.35*Math.cos(theta),pulse*.57);
+  position[1]=mix(position[1],1.80*Math.sin(theta),pulse*.57);
+  position[2]+=pulse*3.4;
  }
- const spin=t*(1.95+.44*hash(k+72,seed))+k*.67;
- const frontBias=(k%4===0||k%7===3)?Math.PI:0;
- const yaw=frontBias+1.18*Math.sin(spin)+.52*Math.sin(globalAngle);
- const pitch=.74*Math.sin(t*2.35+k*.39);
- const roll=.98*Math.sin(t*2.90+k*.31)+.12*Math.cos(k);
- const scale=(outer?1.11:inner?.96:1.25)+.26*hash(k+37,seed);
+ // Local attitude spin is independent of the cloud's global tumble.
+ const spin=time*(2.4+.84*rnd(72))+k*.67;
+ const frontBias=k%4===0||k%7===3?Math.PI:0;
+ const yaw=frontBias+1.12*Math.sin(spin)+.46*Math.sin(theta);
+ const pitch=.79*Math.sin(time*3.1+k*.39);
+ const roll=.91*Math.sin(time*3.6+k*.31)+.15*Math.cos(k);
+ const scale=(outer?1.11:inner?.95:1.25)+.22*rnd(37);
  return pose(position,facing(yaw,pitch,roll),scale);
 }
 function detonationPose(card,t){
