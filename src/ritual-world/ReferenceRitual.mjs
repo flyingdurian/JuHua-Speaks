@@ -186,8 +186,8 @@ export function sampleReferenceGlobeCanonical(card,t){return chaoticGlobePose(ca
 // actual 860x720 reference frames rather than a 10.8-second stopwatch.
 const GLOBE_RAIL=Object.freeze([
  {t:7.10,xs:1,ys:1,px:0,py:0,cardScale:1},
- {t:7.50,xs:1.13,ys:.96,px:96,py:-13,cardScale:.74},
- {t:8.25,xs:1.08,ys:1.06,px:75,py:8,cardScale:.92},
+ {t:7.50,xs:1.33,ys:1.26,px:75,py:-2,cardScale:.63},
+ {t:8.25,xs:1.24,ys:1.22,px:56,py:14,cardScale:.90},
  {t:9.20,xs:1.12,ys:1.17,px:32,py:33,cardScale:1.23},
  {t:10.70,xs:1.06,ys:.94,px:27,py:35,cardScale:.97},
  {t:12.35,xs:1,ys:1,px:0,py:0,cardScale:1}
