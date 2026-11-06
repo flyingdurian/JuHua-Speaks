@@ -51,13 +51,15 @@ export function sampleTunnelTrajectory(index,seed,t,{mote=false}={}){
  // object-space path is closed in Z: motes and cards can circulate without
  // a hidden teleport when passing the near-camera throat.
  const transport=.13*local+.065*local*local;
- // Four 3D spiral FILAMENTS with discrete sheets transported through them.
- // The previous quasi-random golden spiral still read as a scattered wreath.
- // Sheets now inhabit recognizable ordered ribbons; motes densely sample
- // those exact same ribbons. Slot is NOT a fixed Z plane: transport shifts Z.
- const lane=k%4,steps=mote?44:20;
- const step=Math.floor(k/4)%steps;
- const phase=(step+.5)/steps+.009*(rand(133)-.5);
+ // Three asymmetrical helical streams, not a symmetric fourfold wreath.
+ // The major 48-card ribbon dominates the visual twister; the 22-card
+ // countercurrent adds depth and the last eight make dramatic close passes.
+ // Each ribbon is physically continuous through depth as time evolves.
+ const base=k%78;
+ const lane=base<48?0:base<70?1:2;
+ const slot=lane===0?base:lane===1?base-48:base-70;
+ const size=lane===0?48:lane===1?22:8;
+ const phase=(slot+.5)/size+(mote?.021:.008)*(rand(133)-.5);
  const rawAxial=TAU*(phase-.39*transport);
  // The active cyclone has a FAST near-camera throat and slow, populous far
  // layers: avoid sinusoid's dense near-depth dwell that created v7's wall.
@@ -72,9 +74,9 @@ export function sampleTunnelTrajectory(index,seed,t,{mote=false}={}){
     +1.8*smoother((t-3.40)/1.20);
  const apparentDepth=depth+retreat+lensTrack;
  const dolly=apparentDepth/depth;
- const azimuth=TAU*(phase*2.65+1.10*transport)+lane*(TAU/4)
-  +.10*Math.sin(axial*1.8+rand(47)*TAU);
- const radius=3.25+.12*depth+.48*Math.sin(axial*1.6+rand(57)*TAU);
+ const azimuth=TAU*(phase*(lane===0?2.80:lane===1?2.25:1.75)+1.78*transport+
+   [0,.22,.57][lane])+.12*Math.sin(axial*1.8+rand(47)*TAU);
+ const radius=3.05+.115*depth+[0,1.10,-.72][lane]+.47*Math.sin(axial*1.6+rand(57)*TAU);
  // Camera-relative bank: the twisted cylinder has an eccentric, drifting
  // centreline, unlike flat screen-space concentric rings.
  const bank=.055*Math.sin(local*1.18);
