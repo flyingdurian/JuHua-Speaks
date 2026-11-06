@@ -113,7 +113,7 @@ function suctionPose(card,t){
    +.22*Math.sin(u*TAU*2+k*1.41);
  // The atmospheric cloud is only background; cards ARE the moving tornado.
  // Large, uneven radial travel first expands the field, then tightens it.
- const startRadius=10.2+4.8*rnd(53);
+ const startRadius=2.0+11.5*rnd(53);
  const radial=startRadius*(.90-.66*smoother(u)) + .8*rnd(57);
  const stretch=1+.26*Math.sin(theta*.54+2*rnd(67));
  const x=radial*Math.cos(theta)*stretch+.95*Math.sin(u*TAU+k*.77);
