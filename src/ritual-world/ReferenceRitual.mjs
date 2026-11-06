@@ -93,7 +93,7 @@ function currentLanding(card,time,entranceMode){
 // shrink as the virtual camera dives into the long helix. This modulates
 // physical-sheet scale smoothly, not the number or identity of cards.
 const TUNNEL_SIZE=Object.freeze([
- {t:1.10,m:1},{t:2.10,m:1.35},{t:3.00,m:1.15},
+ {t:1.10,m:1},{t:2.10,m:1.43},{t:3.00,m:1.15},
  {t:3.80,m:.90},{t:4.70,m:.86},{t:5.45,m:1}
 ]);
 function tunnelSize(t){
