@@ -35,7 +35,11 @@ export function sampleTunnelTrajectory(index,seed,t,{mote=false}={}){
  // An explicit virtual dolly-in. Early cards are small BUT fill the same
  // projected tunnel; late sheets naturally grow as the observer approaches.
  const retreat=16*(1-smoother((t-1.10)/3.25));
- const apparentDepth=depth+retreat;
+ // A reference-directed camera rail adds transient perspective depth while
+ // preserving each card's true size and sightline; no material card scaling.
+ const lensTrack=6.0*Math.exp(-Math.pow((t-3.10)/.80,2))
+    +1.8*smoother((t-3.40)/1.20);
+ const apparentDepth=depth+retreat+lensTrack;
  const dolly=apparentDepth/depth;
  const azimuth=TAU*(phase*2.65+1.10*transport)+lane*(TAU/4)
   +.10*Math.sin(axial*1.8+rand(47)*TAU);
