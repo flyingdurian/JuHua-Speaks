@@ -68,6 +68,7 @@ export function sampleTunnelTrajectory(index,seed,t,{mote=false}={}){
  const oy=z+20,cy=Math.cos(tiltY),sy=Math.sin(tiltY);
  const bx=x*cy+oy*sy,bz=-x*sy+oy*cy;
  const cx2=Math.cos(tiltX),sx2=Math.sin(tiltX);
- x=bx;y=y*cx2-bz*sx2;z=y*sx2+bz*cx2-20;
+ const oldY=y;
+ x=bx;y=oldY*cx2-bz*sx2;z=oldY*sx2+bz*cx2-20;
  return {position:[x,y,z],azimuth,axial,depth:-z,radius,transport};
 }
