@@ -17,7 +17,7 @@ test('Sequence 1 cards are carried through substantial 3D depth while revolving 
    'All physical sheets must remain in front of the camera with finite geometry');
   const zs=v.map(x=>x.position[2]);
   assert.ok(Math.max(...zs)-Math.min(...zs)>7,'The spiral must have real Z separation');
-  const angles=v.slice(0,52).map(p=>p.theta);
+  const angles=v.filter(p=>p.lane===0).sort((a,b)=>a.q-b.q).map(p=>p.theta);
   for(let i=1;i<angles.length;i++)assert.ok(angles[i]>angles[i-1]-.2,
    'Dominant ribbon must remain longitudinally ordered instead of randomized');
  }
@@ -38,7 +38,7 @@ test('Camera moves from face-on to edge-on, making sweeping perspective changes 
  for(let t=1.1;t<5.45;t+=.025){
   const a=vortexCamera(t),b=vortexCamera(t+.002);
   assert.ok(Math.abs(a.yaw-b.y)<.05&&Math.abs(a.roll-b.roll)<.04,
-   'Camera must not snap during the high-speed vortex');
+   'Camera must not snap at t='+t+' (yaw delta '+Math.abs(a.yaw-b.y)+', roll delta '+Math.abs(a.roll-b.roll)+')');
  }
 });
 
