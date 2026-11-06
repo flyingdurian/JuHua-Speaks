@@ -57,18 +57,21 @@ function audit(time){
   positions:poses.map(p=>p.position)
  };
 }
-test('V5 advecting cosmic vacuum stays open across true near/middle/far layers',()=>{
- const x=audit(1.9),y=audit(2.4);
- for(const result of [x,y]){
-  assert.ok(result.depthRatio>5,'Cards require real near/middle/far Z layers');
-  assert.ok(result.near>=10,'Multiple near depth planes, but no permanently close pile');
-  assert.ok(result.far>=20,'The vast majority of spiral depth remains visible');
-  assert.ok(result.centerOverlap<=5,'The funnel throat must not fill with a wall of cards');
-  assert.ok(result.maxOverlap<=8,'No stack of dozens of faces at vortex time');
-  assert.ok(result.overpaint<2.2,'Real projected card area must stay mostly unoccluded');
-  assert.ok(result.coverageFraction>.10&&result.coverageFraction<.30,'Grey smoky vortex needs negative space between cards');
-  assert.ok(result.boundsX>550,'The first vacuum must reach the broad screen edges');
+test('V6: independent sheets advance along Z, accelerate and orbit instead of sitting in a ring',()=>{
+ const times=[1.4,1.9,2.4,2.8];
+ const states=times.map(t=>cards.map(card=>pose(card,t)));
+ let advancing=0,rotating=0,near=0;
+ for(let i=0;i<78;i++){
+  const z=states.map(st=>st[i].position[2]);
+  if(z[3]>z[0]+3)advancing++;
+  const p=states.map(st=>st[i].position);
+  if(Math.hypot(p[2][0]-p[0][0],p[2][1]-p[0][1])>3)rotating++;
+  if(z[3]>-14)near++;
  }
+ assert.ok(advancing>=60,'The majority must actually flow toward the camera');
+ assert.ok(rotating>=50,'Each sheet must travel on a substantial curved path');
+ assert.ok(near>=20,'Multiple physical cards reach foreground depths');
+ assert.ok(states.flat().every(p=>p.position.every(Number.isFinite)));
 });
 test('V5 second globe is denser, voluminous, asymmetric and illustrative',()=>{
  const before=audit(3.7),start=audit(4.7),globe=audit(5.8),later=audit(6.5);
@@ -119,26 +122,15 @@ test('reference sequence stays continuous and all 78 entities finish the same ca
  }
  assert.equal(assertShuffleGeometry(cards,{style:'auto',landingAt:7,worldTime:24.5}),true);
 });
-test('only automatic ritual is exposed, with a temporary vortex behind the real cards',async()=>{
+test('V6 preview removes rotating atmospheric sprite and preserves automatic controls',async()=>{
  const markup=await readFile(new URL('../preview/gate-b/index.html',import.meta.url),'utf8');
  const script=await readFile(new URL('../preview/gate-b/gate-b.mjs',import.meta.url),'utf8');
  const css=await readFile(new URL('../preview/gate-b/gate-b.css',import.meta.url),'utf8');
- assert.match(markup,/GATE B v5/);
- assert.match(markup,/id="ritual-vortex-glow"/);
+ assert.match(markup,/GATE B v6/);
  assert.doesNotMatch(markup,/data-shuffle=/);
  assert.match(markup,/FINISH SHUFFLING/);
- assert.match(script,/vacuum-active/);
- assert.match(css,/gateBV5Spiral/);
- assert.match(script,/VortexAtmosphere/);
- assert.match(css,/prefers-reduced-motion/);
-});
-
-
-test('v5 close-up cards appear as temporary whips, not persistent screen occlusion',()=>{
- const calm=audit(1.9),funnel=audit(2.4),whip=audit(3.05),hold=audit(3.7);
- assert.ok(calm.coverageFraction<.25&&funnel.coverageFraction<.30);
- assert.ok(whip.coverageFraction>funnel.coverageFraction*1.8,'Near-camera pass must have a cinematic impact');
- assert.ok(hold.coverageFraction<.04,'All 78 sheets really collapse into a small suspended deck');
+ assert.doesNotMatch(script,/initVortexAtmosphere/);
+ assert.match(css,/ritual-vortex-glow\{display:none!important\}/);
 });
 test('seeded gas vortex is rendered once in bounded texture memory',()=>{
  let pixels=null,paintCount=0,segments=0;
