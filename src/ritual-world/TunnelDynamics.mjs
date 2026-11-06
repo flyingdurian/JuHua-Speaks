@@ -70,5 +70,10 @@ export function sampleTunnelTrajectory(index,seed,t,{mote=false}={}){
  const cx2=Math.cos(tiltX),sx2=Math.sin(tiltX);
  const oldY=y;
  x=bx;y=oldY*cx2-bz*sx2;z=oldY*sx2+bz*cx2-20;
+ // The tunnel tightens physically BEFORE the final stacking beat; the old
+ // algorithm retained a wreath and then abruptly tweened 78 cards at once.
+ const contraction=smoother((t-4.47)/.98);
+ x*=1-.70*contraction;y*=1-.70*contraction;
+ z=z*(1-.34*contraction)-16.2*(.34*contraction);
  return {position:[x,y,z],azimuth,axial,depth:-z,radius,transport};
 }
