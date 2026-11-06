@@ -23,11 +23,11 @@ const hash=(i,s=0)=>{
 // All camera movement is continuous and evaluated on the same world object.
 const CAMERA=[
  {t:1.10,yaw:.10,roll:.10,pitch:.05,zoom:1.0,px:0,py:0},
- {t:2.10,yaw:.15,roll:1.20,pitch:.20,zoom:1.31,px:70,py:82},
- {t:3.00,yaw:.18,roll:.48,pitch:.42,zoom:1.18,px:66,py:29},
+ {t:2.10,yaw:.24,roll:1.06,pitch:.64,zoom:1.22,px:-35,py:15},
+ {t:3.00,yaw:.22,roll:.43,pitch:.80,zoom:1.18,px:66,py:29},
  {t:3.75,yaw:.22,roll:.11,pitch:1.06,zoom:1.09,px:50,py:52},
  {t:4.40,yaw:.27,roll:.08,pitch:1.20,zoom:1.07,px:20,py:45},
- {t:4.75,yaw:.20,roll:.04,pitch:1.26,zoom:.99,px:14,py:65},
+ {t:4.75,yaw:.20,roll:.04,pitch:1.26,zoom:1.08,px:14,py:65},
  {t:5.45,yaw:.10,roll:0,pitch:0,zoom:1.00,px:0,py:0},
 ];
 function cameraValue(t,key){
@@ -47,7 +47,7 @@ export function vortexCamera(t){
 // stream as the viewer dives into the helix; this is not a pixel-mask trick.
 const FUNNEL=[
  {t:1.10,r:1.04},{t:2.10,r:1.29},{t:3.00,r:.92},
- {t:3.75,r:.54},{t:4.40,r:.40},{t:4.75,r:.45},{t:5.45,r:.21}
+ {t:3.75,r:.54},{t:4.40,r:.40},{t:4.75,r:.51},{t:5.45,r:.21}
 ];
 function funnelRadius(t){
  if(t<=FUNNEL[0].t)return FUNNEL[0].r;
@@ -69,13 +69,13 @@ const LANES=Object.freeze([
  {offset:.57,radius:.50,turns:2.10,count:8}
 ]);
 const FOCAL=720/(2*Math.tan(58*Math.PI/360));
-function sample(lane,q,t,seed=0){
+function sample(lane,q,t,seed=0,motionBias=1){
  const u=clamp(q),state=vortexProgress(t),g=LANES[lane],c=vortexCamera(t);
- const motion=state.angular*(lane===0?1:lane===1?-.81:1.18);
+ const motion=state.angular*motionBias*(lane===0?1:lane===1?-.81:1.18);
  const theta=TAU*(g.turns*u+g.offset+motion)+.095*Math.sin(TAU*u*1.9+lane*1.7);
  // Depth increases monotonically along each ribbon, establishing actual
  // concentric near-to-far layers rather than a fixed camera-facing wreath.
- const depth=11.0+40*u-3.1*state.axial+(lane===1?1.5:0);
+ const depth=11.0+40*u-3.1*state.axial*motionBias+(lane===1?1.5:0);
  const radius=(5.05+.050*depth+g.radius)*funnelRadius(t)*(1-.62*state.collapse);
  const cx=.48*Math.sin(1.3*u*TAU+state.angular*1.5);
  const cy=.32*Math.cos(1.1*u*TAU+state.angular*.8);
@@ -111,7 +111,11 @@ export function sampleVortexCard(index,seed,t){
  const n=LANES[lane].count;
  const jitter=.0055*(hash(index+100,seed)-.5);
  const q=clamp((k-offset+.5)/n+jitter);
- const result=sample(lane,q,t,seed);
+ // Individual sheets acquire slightly different axial and tangential
+ // velocities. This prevents the whole field from revolving as one rigid
+ // ring while retaining coherent circulation through the same vortex.
+ const motionBias=.88+.24*hash(k+431,seed);
+ const result=sample(lane,q,t,seed,motionBias);
  // A handful of physical sheets whip past the lens during the terminal
  // vacuum surge. These are C1-smooth ballistic detours on the SAME cards,
  // reconnecting naturally to the 78-card compression before deck assembly.
@@ -125,8 +129,8 @@ export function sampleVortexCard(index,seed,t){
                 -5.9-.8*hash(k+17,seed)];
   result.position=result.position.map((x,i)=>lerp(x,target[i],gust*.98));
  }
- const p0=sample(lane,clamp(q-.001),t,seed).position;
- const p1=sample(lane,clamp(q+.001),t,seed).position;
+ const p0=sample(lane,clamp(q-.001),t,seed,motionBias).position;
+ const p1=sample(lane,clamp(q+.001),t,seed,motionBias).position;
  const tangent=p1.map((v,j)=>v-p0[j]);
  const l=Math.hypot(...tangent)||1;
  return {...result,q,tangent:tangent.map(v=>v/l)};
