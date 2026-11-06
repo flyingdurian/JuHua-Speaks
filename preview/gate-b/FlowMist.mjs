@@ -40,13 +40,15 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
     previous=p;
    }
    ctx.globalAlpha=1;
-   // Dynamic gas tubes sample the actual card streamlines each render.
-   ctx.strokeStyle='rgba(143,153,166,'+(.12*fade)+')';
-   ctx.lineWidth=24;ctx.stroke();
-   ctx.strokeStyle='rgba(185,192,190,'+(.14*fade)+')';
-   ctx.lineWidth=5;ctx.stroke();
-   ctx.strokeStyle='rgba(213,217,217,'+(.26*fade)+')';
-   ctx.lineWidth=1.2;ctx.stroke();
+   // In the benchmark, the opening storm is primarily dark CARD MOTION.
+   // A broad smoke plume only develops during the terminal lens rush.
+   const plume=clamp((t-3.38)/.75)*clamp((5.28-t)/.85);
+   ctx.strokeStyle='rgba(143,153,166,'+(.075*fade*plume)+')';
+   ctx.lineWidth=20;ctx.stroke();
+   ctx.strokeStyle='rgba(185,192,190,'+(.10*fade*plume)+')';
+   ctx.lineWidth=4;ctx.stroke();
+   ctx.strokeStyle='rgba(213,217,217,'+(.18*fade)+')';
+   ctx.lineWidth=1;ctx.stroke();
   }
   // A camera-perspective filament is a trail of the same material coordinate,
   // not a CSS/Canvas spiral that spins behind stationary sheets.
