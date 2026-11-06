@@ -84,7 +84,7 @@ test('V7 globe forms a legible hollow sphere with circumferential card silhouett
   assert.ok(m.coverageFraction>.17&&m.coverageFraction<.74,'Readable sphere, not an invisible ring or a solid page of cards');
   assert.ok(m.boundsX>390,'Globe extends to a meaningful round silhouette');
   const radius=cards.map(c=>pose(c,t).position).map(p=>Math.hypot(p[0],p[1],p[2]+13.75));
-  assert.ok(radius.filter(r=>r>4.25&&r<6.5).length>=76,'Most sheets must occupy the shell, not a central pile');
+  assert.ok(radius.filter(r=>r>4.10&&r<6.20).length>=76,'Most sheets must occupy the shell, not a central pile');
  }
 });
 
