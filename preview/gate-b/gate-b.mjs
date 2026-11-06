@@ -16,8 +16,11 @@ const deckControls=document.getElementById('deck-controls');
 const notice=document.getElementById('gate-b-notice');
 const buttonStart=document.getElementById('start-shuffle');
 const buttonPause=document.getElementById('pause');
-const visualSeed=createVisualSeed();
-const entrance=new URLSearchParams(location.search).get('entrance');
+const reviewParams=new URLSearchParams(location.search);
+const requestedSeed=reviewParams.get('seed');
+const visualSeed=requestedSeed!==null&&/^\\d+$/.test(requestedSeed)&&Number.isSafeInteger(Number(requestedSeed))
+ ? Number(requestedSeed)>>>0 : createVisualSeed();
+const entrance=reviewParams.get('entrance');
 const entranceMode=['inside-out','outside-in'].includes(entrance)?entrance:(visualSeed%2?'inside-out':'outside-in');
 const sky=initCelestialSky({
  mount:document.getElementById('space-background'),
