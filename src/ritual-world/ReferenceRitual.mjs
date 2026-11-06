@@ -102,7 +102,8 @@ function suctionPose(card,t){
     +.38*Math.sin(axial*1.24+t*1.7+k*.15);
  const pitch=.34*Math.sin(theta*.47+k*.52)+.21*Math.sin(t*2.6+k*.39);
  const roll=-theta*.60+.32*Math.sin(axial*.87+k*.2);
- const scale=(face?.76:.33)+(face?.12:.09)*rnd(39)+.018*Math.sin(t*1.5+k*.31);
+ const flowScale=1-.27*Math.exp(-Math.pow((t-3.0)/.52,2));
+ const scale=((face?.76:.33)+(face?.12:.09)*rnd(39)+.018*Math.sin(t*1.5+k*.31))*flowScale;
  return pose(v.position,facing(yaw,pitch,roll),scale);
 }
 function pocketPose(card,t){
