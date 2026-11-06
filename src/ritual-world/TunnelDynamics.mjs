@@ -59,5 +59,15 @@ export function sampleTunnelTrajectory(index,seed,t,{mote=false}={}){
   y=y*(1-.68*pulse)+pulse*1.30*Math.sin(azimuth);
   z=z*(1-pulse)-2.9*pulse;
  }
- return {position:[x,y,z],azimuth,axial,depth: -z,radius,transport};
+ // Reference camera does not stare squarely down the tube. Banking its
+ // viewing axis makes the same physical 3D helix foreshorten into sweeping,
+ // eccentric arcs, with foreground cards crossing one side of the lens.
+ // This is a reversible world-space camera transform, shared with mist.
+ const tiltY=.55*Math.sin(.80*local+.35);
+ const tiltX=.28*Math.cos(.72*local+.80);
+ const oy=z+20,cy=Math.cos(tiltY),sy=Math.sin(tiltY);
+ const bx=x*cy+oy*sy,bz=-x*sy+oy*cy;
+ const cx2=Math.cos(tiltX),sx2=Math.sin(tiltX);
+ x=bx;y=y*cx2-bz*sx2;z=y*sx2+bz*cx2-20;
+ return {position:[x,y,z],azimuth,axial,depth:-z,radius,transport};
 }
