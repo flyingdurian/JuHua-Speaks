@@ -163,6 +163,36 @@ function chaoticGlobePose(card,t){
  const scale=.76+.13*rnd(37)+(k<66?0:-.05);
  return pose(pos,attitude,scale);
 }
+// Director's coherent globe camera rail: a restrained first bloom, then a
+// denser near hemisphere, then a more open rotating shell. Matched against
+// actual 860x720 reference frames rather than a 10.8-second stopwatch.
+const GLOBE_RAIL=Object.freeze([
+ {t:7.10,xs:1,ys:1,px:0,py:0,cardScale:1},
+ {t:7.50,xs:1.13,ys:.96,px:96,py:-13,cardScale:.74},
+ {t:8.25,xs:1.08,ys:1.06,px:75,py:8,cardScale:.92},
+ {t:9.20,xs:1.12,ys:1.17,px:32,py:33,cardScale:1.23},
+ {t:10.70,xs:1.06,ys:.94,px:27,py:35,cardScale:.97},
+ {t:12.35,xs:1,ys:1,px:0,py:0,cardScale:1}
+]);
+function globeDirection(t,key){
+ if(t<=GLOBE_RAIL[0].t)return GLOBE_RAIL[0][key];
+ const n=GLOBE_RAIL.length;
+ if(t>=GLOBE_RAIL[n-1].t)return GLOBE_RAIL[n-1][key];
+ let i=0;while(i<n-2&&t>GLOBE_RAIL[i+1].t)i++;
+ const a=GLOBE_RAIL[i],b=GLOBE_RAIL[i+1];
+ return mix(a[key],b[key],smoother((t-a.t)/(b.t-a.t)));
+}
+function directGlobe(p,t){
+ const f=720/(2*Math.tan(58*Math.PI/360));
+ const depth=Math.max(2,-p.position[2]);
+ const xs=globeDirection(t,'xs'),ys=globeDirection(t,'ys');
+ const px=globeDirection(t,'px'),py=globeDirection(t,'py');
+ return pose([
+  p.position[0]*xs+px*depth/f,
+  p.position[1]*ys-py*depth/f,
+  p.position[2]
+ ],p.attitude,p.scale*globeDirection(t,'cardScale'));
+}
 function detonationPose(card,t){
  const delay=(card.orbitSlot%7)*.020;
  const u=clamp((t-7.10-delay)/(1.05-delay));
@@ -228,8 +258,8 @@ export function sampleReferenceRitual(card,{age=0,landingAt=0,worldTime=0,entran
  if(t<5.45)return suctionPose(card,t);
  if(t<6.30)return implosionPose(card,t);
  if(t<7.10)return pocketPose(card,t);
- if(t<8.15)return detonationPose(card,t);
- if(t<12.35)return chaoticGlobePose(card,t);
+ if(t<8.15)return directGlobe(detonationPose(card,t),t);
+ if(t<12.35)return directGlobe(chaoticGlobePose(card,t),t);
  if(t<13.20)return splitPose(card,t);
  if(t<14.00)return subdeckPose(card,t);
  if(t<15.30)return transferPose(card,t);
