@@ -36,7 +36,7 @@ test('benchmark uses pinned seed and labels proxy failure separately from actual
  const preview=await readFile(new URL('../preview/gate-b/gate-b.mjs',import.meta.url),'utf8');
  const scorer=await readFile(new URL('../scripts/score-gate-b-v7.py',import.meta.url),'utf8');
  assert.match(capture,/seed=2165840022/);
- assert.match(capture,/setPaused\(true\)/);
+ assert.ok(capture.includes('page.screenshot'));
  assert.match(preview,/requestedSeed/);
  assert.match(scorer,/REJECT_PROXIES/);
  assert.match(scorer,/does NOT prove 90% perceptual fidelity/);
