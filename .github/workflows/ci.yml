@@ -76,17 +76,25 @@ jobs:
           script: |
             const {owner, repo} = context.repo;
             const busy = new Set(['queued', 'deployment_queued', 'syncing_files', 'in_progress', 'building']);
-            const {data} = await github.rest.repos.listPagesDeployments({owner, repo, per_page: 20});
-            for (const deployment of data) {
+            let deployments = [];
+            try {
+              const response = await github.request('GET /repos/{owner}/{repo}/pages/deployments', {owner, repo, per_page: 20});
+              deployments = response.data;
+            } catch (error) {
+              core.warning(`Could not list Pages deployments: ${error.message}`);
+            }
+            for (const deployment of deployments) {
               if (!busy.has(deployment.status)) continue;
               core.warning(`Cancelling Pages deployment ${deployment.id} (${deployment.status})`);
               try {
-                await github.rest.repos.cancelPagesDeployment({owner, repo, pages_deployment_id: deployment.id});
+                await github.request('POST /repos/{owner}/{repo}/pages/deployments/{pages_deployment_id}/cancel', {owner, repo, pages_deployment_id: deployment.id});
               } catch (error) {
                 core.warning(`Could not cancel ${deployment.id}: ${error.message}`);
               }
             }
-            await new Promise(resolve => setTimeout(resolve, 15000));
+            if (deployments.some(deployment => busy.has(deployment.status))) {
+              await new Promise(resolve => setTimeout(resolve, 20000));
+            }
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
