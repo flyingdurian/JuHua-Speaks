@@ -21,6 +21,7 @@ jobs:
           node-version: '22'
       - run: npm install --no-save playwright
       - run: npx playwright install --with-deps chromium
+      - run: python3 -m pip install --break-system-packages --quiet pillow
       - run: npm run assets:sync
       - name: Run dedicated preview and record WebGL2 frames
         run: |
@@ -30,6 +31,8 @@ jobs:
             sleep 2
           done
           node scripts/capture-gate-b-v7.mjs
+      - name: Enforce reference-aligned visual-envelope gate
+        run: python3 scripts/score-gate-b-v7.py artifacts/gate-b-v7
       - uses: actions/upload-artifact@v4
         if: always()
         with:
