@@ -28,3 +28,12 @@ Reference-derived composition: the dominant dark-card field's principal axis adv
 
 ## Workflow
 Keep detailed screenshots, motion review and CI measurements here and in Actions artifacts. Chat milestone updates remain delta-only. Do not merge PR #10 until explicit approval.
+
+## v9.0 perspective and source-proof delta (November 6, 2026)
+- The v8.6–v8.9 screenshot proxy results were insufficient for Sequence 1 acceptance. Previous camera edits sometimes improved the five 2D envelope measures while leaving the wrong angle, overly narrow S-shaped path, or near-lens illustrated sheets completely offscreen.
+- `VortexRibbon.mjs` now carries actual cards longitudinally through the 3D path; cards have slightly different axial speeds. Attitudes interpolate toward *projected material tangents*, and three physical close-pass sheets appear during the mature vortex with another three during the collapse.
+- v9.0 specifically changes the middle shot back to a larger, more frontal circular tunnel, then progressively tilts toward the tall near-edge-on cyclone. Close-pass targets have been moved inside the visible lens rather than passing invisibly beyond the viewport.
+- `FlowMist.mjs` now draws broader, low-opacity strokes sampled from each dynamic 3D spiral, with physical card streaks extending through their actual temporal trajectories. No static rotating texture has been reinstated.
+- First-sequence scorer now also checks the original video’s blue-card principal axis (reference values 35.4°, 61.1°, 69.8°, 79.8° for four semantic frames; ±13 degrees), in addition to five composition measures with ±13% relative tolerance. This is a *proxy*, not subjective visual acceptance.
+- **Honest visual gate:** v8.9 failed; v9.0 is a new experimental candidate and is NOT declared visually accepted until actual Chromium WebGL2 footage is reviewed.
+- The approved Sequence 2 has not been retuned. The source fingerprint from `function pocketPose(` onward remains `3b577ed3`.
