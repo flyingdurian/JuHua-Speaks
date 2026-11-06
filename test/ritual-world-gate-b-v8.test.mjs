@@ -18,8 +18,9 @@ test('Sequence 1 cards are carried through substantial 3D depth while revolving 
   const zs=v.map(x=>x.position[2]);
   assert.ok(Math.max(...zs)-Math.min(...zs)>7,'The spiral must have real Z separation');
   const angles=v.filter(p=>p.lane===0).sort((a,b)=>a.q-b.q).map(p=>p.theta);
-  for(let i=1;i<angles.length;i++)assert.ok(angles[i]>angles[i-1]-.2,
-   'Dominant ribbon must remain longitudinally ordered instead of randomized');
+  const gaps=angles.slice(1).map((v,i)=>v-angles[i]);
+  assert.ok(gaps.filter(g=>Math.abs(g)<3.5).length>=44,
+   'Independent sheets may overtake, but must remain in the same coherent spiral');
  }
  let moved=0;
  for(const c of cards){
@@ -28,6 +29,17 @@ test('Sequence 1 cards are carried through substantial 3D depth while revolving 
   if(Math.hypot(...a.position.map((x,i)=>x-b.position[i]))>.3)moved++;
  }
  assert.ok(moved>=60,'Cards must actually travel through the vortex over time');
+});
+
+test('Independent sheet velocities vary within a coherent spiral rather than rigid-ring rotation',()=>{
+ const speeds=cards.map(c=>{
+  const x=sampleVortexCard(c.orbitSlot,c.visualSeed,2.65);
+  const y=sampleVortexCard(c.orbitSlot,c.visualSeed,2.82);
+  return y.theta-x.theta;
+ });
+ const spread=Math.max(...speeds)-Math.min(...speeds);
+ assert.ok(spread>.06,'Slightly different sheet speeds must create natural overtakes');
+ assert.ok(spread<4,'No ballistic discontinuities or randomized spinning');
 });
 
 test('Camera pitches a deep tube into the reference tall edge-on cyclone smoothly',()=>{
