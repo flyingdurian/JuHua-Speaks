@@ -57,58 +57,59 @@ function audit(time){
   positions:poses.map(p=>p.position)
  };
 }
-test('V6: independent sheets advance along Z, accelerate and orbit instead of sitting in a ring',()=>{
- const times=[1.4,1.9,2.4,2.8];
- const states=times.map(t=>cards.map(card=>pose(card,t)));
- let advancing=0,rotating=0,near=0;
+test('V7 tunnel sweeps independent Tarot sheets through near, middle and far perspective',()=>{
+ const times=[1.65,2.5,3.55,4.75];
+ const states=times.map(t=>cards.map(c=>pose(c,t)));
+ let depthChanged=0,angleTraveled=0;
  for(let i=0;i<78;i++){
-  const z=states.map(st=>st[i].position[2]);
-  if(z[3]>z[0]+3)advancing++;
   const p=states.map(st=>st[i].position);
-  if(Math.hypot(p[2][0]-p[0][0],p[2][1]-p[0][1])>3)rotating++;
-  if(z[3]>-14)near++;
+  if(Math.max(...p.map(q=>q[2]))-Math.min(...p.map(q=>q[2]))>2.5)depthChanged++;
+  if(Math.hypot(p[3][0]-p[0][0],p[3][1]-p[0][1])>3)angleTraveled++;
  }
- assert.ok(advancing>=60,'The majority must actually flow toward the camera');
- assert.ok(rotating>=50,'Each sheet must travel on a substantial curved path');
- assert.ok(near>=20,'Multiple physical cards reach foreground depths');
+ const measured=audit(3.55);
+ assert.ok(depthChanged>=55,'Sheets must sweep through distinct axial layers, not fixed-Z rings');
+ assert.ok(angleTraveled>=50,'Cards traverse substantial curved screen paths');
+ assert.ok(measured.depthRatio>4,'Coexisting foreground and background sheets form a real tunnel');
+ assert.ok(measured.near>=8&&measured.far>=13,'The camera looks into the opening of a volumetric tunnel');
  assert.ok(states.flat().every(p=>p.position.every(Number.isFinite)));
 });
-test('V5 second globe is denser, voluminous, asymmetric and illustrative',()=>{
- const before=audit(3.7),start=audit(4.7),globe=audit(5.8),later=audit(6.5);
- assert.ok(start.coverageFraction>before.coverageFraction*8,'Detonation must expand promptly, not linger as a clump');
- for(const result of [globe,later]){
-  assert.ok(result.faces>=18&&result.faces<=45,'Genuine original RWS faces must appear among the dark backs');
-  assert.ok(result.depthRatio>1.8,'Not a flat screen-plane collage');
-  assert.ok(result.maxOverlap<=12,'Local physical overlaps are fine; no flat 78-card wall');
-  assert.ok(result.overpaint<2.2,'Reference globe has rich but legible layering');
-  assert.ok(result.coverageFraction>.37&&result.coverageFraction<.70,'The second bloom must be notably fuller than v4');
-  assert.ok(result.boundsX>430,'The sphere genuinely expands outward across the screen');
+
+test('V7 globe forms a legible hollow sphere with circumferential card silhouettes',()=>{
+ const before=audit(6.75),opening=audit(7.90);
+ assert.ok(opening.coverageFraction>before.coverageFraction*5,'The stack must bloom visibly into a globe');
+ for(const t of [8.8,10.2,11.4]){
+  const m=audit(t);
+  assert.ok(m.faces>=18&&m.faces<=60,'Historic illustrated fronts and dark backs both present');
+  assert.ok(m.depthRatio>1.8,'Large actual near and far hemisphere separation');
+  assert.ok(m.coverageFraction>.17&&m.coverageFraction<.74,'Readable sphere, not an invisible ring or a solid page of cards');
+  assert.ok(m.boundsX>390,'Globe extends to a meaningful round silhouette');
+  const radius=cards.map(c=>pose(c,t).position).map(p=>Math.hypot(p[0],p[1],p[2]+13.75));
+  assert.ok(radius.filter(r=>r>4.0&&r<5.8).length>=76,'Most sheets must occupy the shell, not a central pile');
  }
 });
-test('there are exactly three separate complete decks, not three props',()=>{
- const piles=cards.map(card=>({card,position:pose(card,8.3).position}));
+
+test('three separate 26-sheet decks follow the globe after the longer reference pacing',()=>{
+ const piles=cards.map(card=>({card,position:pose(card,13.60).position}));
  const groups=[0,1,2].map(i=>piles.filter(x=>x.card.orbitSlot%3===i));
  assert.deepEqual(groups.map(a=>a.length),[26,26,26]);
  const centers=groups.map(g=>g.reduce((v,c)=>v+c.position[0],0)/g.length);
  assert.ok(centers[1]-centers[0]>3.5&&centers[2]-centers[1]>3.5);
 });
-test('the quick shuffle is a true card-by-card transfer, not three rigid moving piles',()=>{
- const halves=cards.filter(c=>c.orbitSlot%3!==1);
- const states={waiting:0,arrived:0,inflight:0};
- for(const card of halves){
-  const before=pose(card,8.3).position;
-  const middle=pose(card,8.9).position;
-  const after=pose(card,9.45).position;
-  const toSource=dist(middle,before),toTarget=dist(middle,after);
-  if(toSource<.20)states.waiting++;
-  else if(toTarget<.20)states.arrived++;
+
+test('each of the three decks continues to transfer distinct sheets independently',()=>{
+ const chosen=cards.filter(c=>c.orbitSlot%3!==1),states={waiting:0,arrived:0,inflight:0};
+ for(const card of chosen){
+  const before=pose(card,13.75).position;
+  const mid=pose(card,14.65).position;
+  const after=pose(card,15.25).position;
+  if(dist(mid,before)<.2)states.waiting++;
+  else if(dist(mid,after)<.2)states.arrived++;
   else states.inflight++;
  }
- assert.equal(halves.length,52);
- assert.ok(states.waiting>=7,'Some cards are still waiting in side decks');
- assert.ok(states.arrived>=7,'Other cards have already joined the combined deck');
- assert.ok(states.inflight>=7,'Multiple individual cards are actively crossing between piles');
+ assert.ok(states.waiting>=5&&states.arrived>=5&&states.inflight>=5,
+  'Interleave has waiting, arrived and in-flight individual sheets '+JSON.stringify(states));
 });
+
 test('reference sequence stays continuous and all 78 entities finish the same canonical deck',()=>{
  assert.equal(RITUAL_BEATS.length,10);
  assert.equal(RITUAL_BEATS.at(-1).end,RITUAL_DURATION);
@@ -122,16 +123,17 @@ test('reference sequence stays continuous and all 78 entities finish the same ca
  }
  assert.equal(assertShuffleGeometry(cards,{style:'auto',landingAt:7,worldTime:24.5}),true);
 });
-test('V6 preview removes rotating atmospheric sprite and preserves automatic controls',async()=>{
+test('V7 uses material-synchronized atmosphere, no decorative tornado decal',async()=>{
  const markup=await readFile(new URL('../preview/gate-b/index.html',import.meta.url),'utf8');
  const script=await readFile(new URL('../preview/gate-b/gate-b.mjs',import.meta.url),'utf8');
- const css=await readFile(new URL('../preview/gate-b/gate-b.css',import.meta.url),'utf8');
- assert.match(markup,/GATE B v6/);
+ const mist=await readFile(new URL('../preview/gate-b/FlowMist.mjs',import.meta.url),'utf8');
+ assert.match(markup,/GATE B v7/);
  assert.doesNotMatch(markup,/data-shuffle=/);
  assert.match(markup,/FINISH SHUFFLING/);
  assert.doesNotMatch(script,/initVortexAtmosphere/);
- assert.match(css,/ritual-vortex-glow\{display:none!important\}/);
+ assert.match(mist,/sampleTunnelTrajectory/);
 });
+
 test('seeded gas vortex is rendered once in bounded texture memory',()=>{
  let pixels=null,paintCount=0,segments=0;
  const context={
