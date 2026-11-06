@@ -165,3 +165,7 @@ The first two Gate B builds did not match the ChatARot reference's spatial chore
 ## Gate B v4 — Cosmic vacuum / open globe rebuild (DRAFT)
 
 The Product Owner rejected Gate B v3's compact-cluster composition. The new automatic ritual creates a deep helical **cosmic vacuum** with near/far separation and a visible open center, rapidly funnels all 78 RWS cards into a small pocket deck, erupts into a low-density sphere with multiple orientations, splits into three 26-card decks with **individual transfer/interleaving**, and gently forms the final deck. The UI still excludes optional shuffles. True-card screen-raster overlap tests now guard visual density; see [Gate B v4 audit](docs/GATE_B_V4_COSMIC_VACUUM.md). Test using `npm run preview:gate-b` on the unmerged feature branch, not production.
+
+## Gate B v5 — Cosmic vacuum and tumbling globe (DRAFT)
+
+The reference-directed automatic Gate B v5 replaces the decorative first ring with four advecting helical card streams and a restrained procedural four-arm smoky vacuum. Giant near-lens passes lead to a real 78-layer deck, followed by a dense, chaotic 3D card globe (39 outer / 25 inner / 14 roaming), three 26-card decks, and a gentle final assembly. Optional shuffle options remain withheld. Actual **projected card-surface density** tests guard previous clumping regressions. See [Gate B v5 reference analysis](docs/GATE_B_V5_CINEMATIC_REBUILD.md). Production Gate A v7 remains unchanged.

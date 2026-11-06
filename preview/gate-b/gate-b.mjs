@@ -3,6 +3,7 @@ import {createVisualSeed} from '../../src/ritual-world/OrbitalField.mjs';
 import {RitualWorld} from '../../src/ritual-world/RitualWorld.mjs';
 import {CanvasOrbit} from '../../src/ritual-world/CanvasOrbit.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
+import {initVortexAtmosphere} from './VortexAtmosphere.mjs';
 
 const root=document.getElementById('gate-b');
 const scene=document.getElementById('world-root');
@@ -21,6 +22,11 @@ const entranceMode=['inside-out','outside-in'].includes(entrance)?entrance:(visu
 const sky=initCelestialSky({
  mount:document.getElementById('space-background'),
  starCanvas:document.getElementById('star-canvas'),
+ seed:visualSeed,
+ reduceMotion:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||false
+});
+const atmosphere=initVortexAtmosphere({
+ mount:document.getElementById('ritual-vortex-glow'),
  seed:visualSeed,
  reduceMotion:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||false
 });
@@ -65,7 +71,7 @@ function renderUI(){
  root.classList.toggle('deck-ready',phase==='deck_formed');
  root.classList.toggle('vacuum-active',phase==='shuffle_ritual'&&['approach','vortex','implosion'].includes(state));
  const entry=label[state]||label.deck_ready;
- const newTitle=entry[0],newDescription=entry[1];
+ const newTitle=phase==='shuffle_ritual'?'Shuffling… Please meditate on your question':entry[0],newDescription=entry[1];
  const beatText=phase==='deck_formed'?'✧ YOUR DECK IS READY ✧':'✧ HOLD YOUR QUESTION IN MIND ✧';
  if(beatLabel.textContent!==beatText)beatLabel.textContent=beatText;
  if(title.textContent!==newTitle)title.textContent=newTitle;
@@ -111,9 +117,9 @@ document.getElementById('reset').addEventListener('click',()=>{
 const statusTimer=setInterval(renderUI,180);
 renderUI();
 window.__ritualGateB={
- world,diagnostics:()=>world?{...world.getDiagnostics(),sky:sky.diagnostics()}:null,
+ world,diagnostics:()=>world?{...world.getDiagnostics(),sky:sky.diagnostics(),vortex:atmosphere.diagnostics()}:null,
  get phase(){return world?.phase||'unavailable'},
  get shuffle(){return world?.getShuffleState()||null},
- version:'Gate B v4 vacuum ritual / draft',
+ version:'Gate B v5 reference cinematic / draft',
 };
-window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();world?.dispose()},{once:true});
+window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();atmosphere.dispose();world?.dispose()},{once:true});

@@ -5,6 +5,7 @@ import {DECK} from '../src/deck.mjs';
 import {makeLandingCardEntities} from '../src/ritual-world/OrbitalField.mjs';
 import {samplePhysicalShuffle,deckPose,PHYSICAL_CARD,assertShuffleGeometry} from '../src/ritual-world/ShuffleChoreography.mjs';
 import {RITUAL_DURATION,RITUAL_BEATS} from '../src/ritual-world/ReferenceRitual.mjs';
+import {buildVortexTexture} from '../preview/gate-b/VortexAtmosphere.mjs';
 
 // Earlier Gate B builds tested the span of CARD CENTERS only. A 78-card
 // billboard clump can pass that metric. This inexpensive software rasterizer
@@ -56,28 +57,28 @@ function audit(time){
   positions:poses.map(p=>p.position)
  };
 }
-test('V4 cosmic vacuum is a deep OPEN helical tunnel, not a compact cluster',()=>{
+test('V5 advecting cosmic vacuum stays open across true near/middle/far layers',()=>{
  const x=audit(1.9),y=audit(2.4);
  for(const result of [x,y]){
   assert.ok(result.depthRatio>5,'Cards require real near/middle/far Z layers');
-  assert.ok(result.near>=12,'A few large near-camera passes are essential');
-  assert.ok(result.far>=20,'Far ring must not collapse into one screen plane');
-  assert.ok(result.centerOverlap<=2,'Vortex center must remain open');
+  assert.ok(result.near>=10,'Multiple near depth planes, but no permanently close pile');
+  assert.ok(result.far>=20,'The vast majority of spiral depth remains visible');
+  assert.ok(result.centerOverlap<=5,'The funnel throat must not fill with a wall of cards');
   assert.ok(result.maxOverlap<=8,'No stack of dozens of faces at vortex time');
-  assert.ok(result.overpaint<2.5,'Projected true-card overdraw is low');
-  assert.ok(result.coverageFraction>.23&&result.coverageFraction<.45,'Visible but not screen-filling wall');
-  assert.ok(result.boundsX>420,'The first cosmic rush must occupy most of the center screen');
+  assert.ok(result.overpaint<2.2,'Real projected card area must stay mostly unoccluded');
+  assert.ok(result.coverageFraction>.10&&result.coverageFraction<.30,'Grey smoky vortex needs negative space between cards');
+  assert.ok(result.boundsX>550,'The first vacuum must reach the broad screen edges');
  }
 });
-test('second globe is airy with independent tumbling, real illustrations and mostly visible gaps',()=>{
+test('V5 second globe is denser, voluminous, asymmetric and illustrative',()=>{
  const before=audit(3.7),start=audit(4.7),globe=audit(5.8),later=audit(6.5);
  assert.ok(start.coverageFraction>before.coverageFraction*8,'Detonation must expand promptly, not linger as a clump');
  for(const result of [globe,later]){
-  assert.ok(result.faces>=12&&result.faces<=24,'Genuine RWS fronts visible among the backs');
+  assert.ok(result.faces>=18&&result.faces<=45,'Genuine original RWS faces must appear among the dark backs');
   assert.ok(result.depthRatio>1.8,'Not a flat screen-plane collage');
-  assert.ok(result.maxOverlap<=5,'Individual cards remain separate, not a solid cluster');
-  assert.ok(result.overpaint<1.6,'Airy sparse globe has limited card-on-card coverage');
-  assert.ok(result.coverageFraction>.10&&result.coverageFraction<.28,'Cards occupy a meaningful but airy region');
+  assert.ok(result.maxOverlap<=12,'Local physical overlaps are fine; no flat 78-card wall');
+  assert.ok(result.overpaint<2.2,'Reference globe has rich but legible layering');
+  assert.ok(result.coverageFraction>.37&&result.coverageFraction<.70,'The second bloom must be notably fuller than v4');
   assert.ok(result.boundsX>430,'The sphere genuinely expands outward across the screen');
  }
 });
@@ -111,7 +112,7 @@ test('reference sequence stays continuous and all 78 entities finish the same ca
  for(const beat of RITUAL_BEATS.slice(0,-1)){
   const delta=Math.max(...cards.map(card=>dist(
    pose(card,beat.end-.002).position,pose(card,beat.end+.002).position)));
-  assert.ok(delta<.5,beat.id+' has a visible position teleport '+delta);
+  assert.ok(delta<.8,beat.id+' has a teleport beyond intentional high-speed camera whip '+delta);
  }
  for(const card of cards){
   assert.deepEqual(pose(card,RITUAL_DURATION),deckPose(card,24.5));
@@ -122,11 +123,41 @@ test('only automatic ritual is exposed, with a temporary vortex behind the real 
  const markup=await readFile(new URL('../preview/gate-b/index.html',import.meta.url),'utf8');
  const script=await readFile(new URL('../preview/gate-b/gate-b.mjs',import.meta.url),'utf8');
  const css=await readFile(new URL('../preview/gate-b/gate-b.css',import.meta.url),'utf8');
- assert.match(markup,/GATE B v4/);
+ assert.match(markup,/GATE B v5/);
  assert.match(markup,/id="ritual-vortex-glow"/);
  assert.doesNotMatch(markup,/data-shuffle=/);
  assert.match(markup,/FINISH SHUFFLING/);
  assert.match(script,/vacuum-active/);
- assert.match(css,/juhuaVortexSpin/);
+ assert.match(css,/gateBV5Spiral/);
+ assert.match(script,/VortexAtmosphere/);
  assert.match(css,/prefers-reduced-motion/);
+});
+
+
+test('v5 close-up cards appear as temporary whips, not persistent screen occlusion',()=>{
+ const calm=audit(1.9),funnel=audit(2.4),whip=audit(3.05),hold=audit(3.7);
+ assert.ok(calm.coverageFraction<.25&&funnel.coverageFraction<.30);
+ assert.ok(whip.coverageFraction>funnel.coverageFraction*1.8,'Near-camera pass must have a cinematic impact');
+ assert.ok(hold.coverageFraction<.04,'All 78 sheets really collapse into a small suspended deck');
+});
+test('seeded gas vortex is rendered once in bounded texture memory',()=>{
+ let pixels=null,paintCount=0,segments=0;
+ const context={
+  createImageData(w,h){return {width:w,height:h,data:new Uint8ClampedArray(w*h*4)}},
+  putImageData(img){pixels=img.data;paintCount++},
+  save(){},translate(){},restore(){},beginPath(){},moveTo(){},
+  lineTo(){segments++},stroke(){},
+  set lineWidth(v){this._lineWidth=v},
+  set strokeStyle(v){this._strokeStyle=v}
+ };
+ const mock={width:0,height:0,getContext(){return context}};
+ const profile=buildVortexTexture(mock,37851,true);
+ assert.equal(profile.arms,4);
+ assert.equal(profile.width,352);
+ assert.equal(profile.height,352);
+ assert.equal(profile.animatedPixelsPerFrame,0);
+ assert.equal(paintCount,1);
+ assert.ok(pixels.filter((v,i)=>i%4===3&&v>0).length>25000,'Smoke texture has organic transparent gas arms');
+ assert.ok(pixels.filter((v,i)=>i%4===3&&v===0).length>3000,'Gas texture leaves black voids');
+ assert.ok(segments>200,'Faint spiral filaments are embedded in the texture');
 });

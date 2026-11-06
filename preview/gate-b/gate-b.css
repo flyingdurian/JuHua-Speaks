@@ -143,3 +143,49 @@
  .ritual-vortex-glow::before,.ritual-vortex-glow::after{animation:none!important}
  .ritual-vortex-glow{transition:none!important;opacity:.18}
 }
+
+
+/* Gate B v5 — replace v4's purple concentric-gradient disk with a seeded,
+   textured silver/green four-stream vacuum. Generated exactly once per load.
+   CSS only animates one composited layer, no per-frame canvas repaint. */
+.ritual-vortex-glow::before,
+.ritual-vortex-glow::after{content:none!important;display:none!important}
+.gate-b .ritual-vortex-glow{z-index:0;mix-blend-mode:screen;opacity:0;transition:opacity .28s ease}
+.gate-b.vacuum-active .ritual-vortex-glow{opacity:1}
+.vortex-smoke-texture{
+ position:absolute;top:50%;left:50%;
+ width:min(142vw,145vh);height:auto;aspect-ratio:1;
+ max-width:none;opacity:.96;pointer-events:none;
+ transform-origin:center;
+ animation:gateBV5Spiral 2.85s linear infinite;
+ animation-play-state:paused;
+ filter:blur(3.5px);
+ will-change:transform;
+}
+.gate-b.vacuum-active .vortex-smoke-texture{animation-play-state:running}
+@keyframes gateBV5Spiral{
+ from{transform:translate(-50%,-50%) rotate(0) scale(.94)}
+ to{transform:translate(-50%,-50%) rotate(360deg) scale(1.08)}
+}
+/* Keep the benchmark's minimalist centered meditation line without
+   the tiny competing subtitle that hid the performance in v3/v4. */
+.gate-b.in-ritual .ritual-copy{top:50%;width:min(820px,96vw)}
+.gate-b.in-ritual .ritual-copy h1{
+ font:normal clamp(23px,2.9vw,33px)/1.25 'Segoe UI',Arial,sans-serif;
+ letter-spacing:-.025em;color:rgba(246,242,239,.93);
+ text-shadow:0 2px 18px #000,0 1px 25px #000;
+}
+.gate-b.in-ritual .ritual-copy p{display:none}
+.gate-b.deck-ready .ritual-copy{opacity:0}
+.gate-b.deck-ready .ritual-actions{
+ bottom:clamp(83px,16vh,135px);
+}
+.gate-b.vacuum-active .space-background .nebula-texture{opacity:.34!important}
+@media(max-width:650px){
+ .vortex-smoke-texture{width:min(175vw,145vh);filter:blur(2px);opacity:.8;will-change:auto}
+ .gate-b.in-ritual .ritual-copy h1{font-size:clamp(17px,5.2vw,24px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .vortex-smoke-texture{animation:none!important;transform:translate(-50%,-50%) scale(1)!important;will-change:auto}
+ .gate-b .ritual-vortex-glow{transition:none!important}
+}

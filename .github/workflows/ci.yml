@@ -24,6 +24,7 @@ jobs:
           node --check src/ritual-world/ShuffleChoreography.mjs
           node --check src/ritual-world/ReferenceRitual.mjs
           node --check preview/gate-b/gate-b.mjs
+          node --check preview/gate-b/VortexAtmosphere.mjs
           node --check scripts/serve-gate-b.mjs
           node --check preview/gate-a/gate-a.mjs
           node --check src/ritual-world/CanvasOrbit.mjs
