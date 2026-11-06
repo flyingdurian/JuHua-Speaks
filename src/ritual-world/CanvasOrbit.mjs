@@ -3,7 +3,7 @@
  * entities, world-space orbit, camera projection and lifecycle as RitualWorld.
  * It is a real perspective projection, not a scattered CSS animation.
  */
-import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,landingAttitude,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
+import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,landingAttitude,landingVisible,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
 const TAU=Math.PI*2;
 const norm=a=>{const l=Math.hypot(...a)||1;return a.map(v=>v/l)};
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
@@ -43,7 +43,7 @@ export class CanvasOrbit{
   if(now-this.lastPaint<29)return;this.lastPaint=now;
   this.resize();const ctx=this.ctx,w=this.canvas.width,h=this.canvas.height,f=h/(2*Math.tan(Math.PI*58/360));
   ctx.clearRect(0,0,w,h);
-  const items=this.cards.map(c=>({card:c,pos:sampleLandingPose(c,this.elapsed,this.entranceMode)})).filter(o=>o.pos[2]<-1.4);
+  const items=this.cards.filter(c=>landingVisible(c,this.elapsed,this.entranceMode)).map(c=>({card:c,pos:sampleLandingPose(c,this.elapsed,this.entranceMode)})).filter(o=>o.pos[2]<-1.4);
   items.sort((a,b)=>a.pos[2]-b.pos[2]);
   const project=p=>[w*.5+p[0]*f/(-p[2]),h*.5-p[1]*f/(-p[2])];
   for(const {card,pos} of items){

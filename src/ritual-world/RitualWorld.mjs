@@ -4,7 +4,7 @@
  * DOM overlays may update without disposing this renderer.
  * Card fronts resolve by immutable DeckConfig card IDs; historical art is never redrawn.
  */
-import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,landingAttitude,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
+import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,landingAttitude,landingVisible,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
 export {makeLandingCardEntities,sampleLandingPose} from './OrbitalField.mjs';
 import {appendPremiumCard} from './CardSurface.mjs';
 const TAU = Math.PI * 2;
@@ -82,6 +82,7 @@ function pushQuad(verts,A,B,C,D,slot,brightness){
  for(const [p,u,v] of points){const t=uv(u,v);verts.push(p[0],p[1],p[2],t[0],t[1],brightness)}
 }
 function appendBox(verts,card,position,time,entranceMode='inside-out'){
+ if(!landingVisible(card,time,entranceMode))return; // Opaque cards; late arrivals are initially offstage.
  appendPremiumCard(verts,card,position,landingAttitude(card,position,time),entranceScale(card,time,entranceMode),
    card.light,slotUv,{backSlot:BACK_SLOT,edgeSlot:EDGE_SLOT});
 }

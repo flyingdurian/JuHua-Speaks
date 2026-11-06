@@ -8,10 +8,10 @@ test('78 unique RWS card IDs persist across four seeded orbital scales',()=>{
  const a=makeLandingCardEntities(DECK,47925),b=makeLandingCardEntities(DECK,10002);
  assert.equal(a.length,78);assert.equal(new Set(a.map(x=>x.id)).size,78);
  assert.equal(a.filter(c=>c.frontVisible).length,78);
- assert.deepEqual(ORBIT_LAYERS.map(l=>l.count),[50,12,10,6]);
- assert.deepEqual(ORBIT_LAYERS.map(l=>a.filter(c=>c.orbitScale===l.id).length),[50,12,10,6]);
- assert.equal(a.filter(c=>c.layer==='inner').length,62);
- assert.equal(a.filter(c=>c.layer==='outer').length,16);
+ assert.deepEqual(ORBIT_LAYERS.map(l=>l.count),[46,11,15,6]);
+ assert.deepEqual(ORBIT_LAYERS.map(l=>a.filter(c=>c.orbitScale===l.id).length),[46,11,15,6]);
+ assert.equal(a.filter(c=>c.layer==='inner').length,57);
+ assert.equal(a.filter(c=>c.layer==='outer').length,21);
  assert.equal(new Set(a.map(c=>c.orbitSlot)).size,78);
  assert.deepEqual(a.map(c=>c.id),b.map(c=>c.id));
  assert.notDeepEqual(a.map(c=>c.local),b.map(c=>c.local));
@@ -85,7 +85,7 @@ test('preview remains isolated and CTA hiding does not recreate GPU world',async
  const js=await readFile(new URL('../preview/gate-a/gate-a.mjs',import.meta.url),'utf8');
  const css=await readFile(new URL('../preview/gate-a/gate-a.css',import.meta.url),'utf8');
  const server=await readFile(new URL('../scripts/serve-gate-a.mjs',import.meta.url),'utf8');
- assert.match(html,/v0\.8\.3 \/ GATE A v6/);
+ assert.match(html,/v0\.8\.3 \/ GATE A v7/);
  assert.match(html,/id="hide-cta"/);
  assert.match(html,/id="change-entrance"/);
  assert.match(html,/id="replay-entrance"/);

@@ -86,3 +86,75 @@ h1{font:normal clamp(31px,4.5vw,53px)/1.2 Georgia,'Times New Roman',serif;letter
 @media(prefers-reduced-motion:reduce){
  .space-background:after{animation:none!important}
 }
+
+
+/* Gate A v7 — Black space with separately moving stellar depth and organic smoke.
+   Override inherited v3–v6 gradients that made the background a navy wall. */
+.gate-a{background:#010103}
+.space-background{
+ background:#010103!important;filter:none!important;isolation:isolate;
+}
+.space-background:after{content:none!important;display:none!important}
+.space-background:before{
+ content:"";position:absolute;inset:0;z-index:4;pointer-events:none;
+ opacity:1!important;
+ background:
+ radial-gradient(ellipse 39% 24% at 16% 112%,rgba(166,153,183,.14),transparent 88%),
+ radial-gradient(ellipse 42% 20% at 89% 110%,rgba(143,165,187,.105),transparent 90%),
+ linear-gradient(0deg,rgba(204,193,192,.015) 0%,transparent 22%);
+}
+.space-background #star-canvas{
+ display:block;position:absolute;inset:0;z-index:0;
+ width:100%;height:100%;opacity:1!important;
+ animation:stellarParallax 110s ease-in-out infinite alternate;
+}
+.space-background .nebula-texture{
+ position:absolute;left:-13%;top:-10%;width:126%;height:126%;
+ display:block;pointer-events:none;image-rendering:auto;
+ mix-blend-mode:screen;transform-origin:center;
+}
+.space-background .nebula-back{
+ z-index:1;opacity:.82;
+ animation:cloudWanderA 47s ease-in-out infinite alternate;
+}
+.space-background .nebula-front{
+ z-index:2;opacity:.78;
+ animation:cloudWanderB 65s ease-in-out infinite alternate;
+}
+.space-background .twinkle-canvas{
+ display:block;position:absolute;inset:0;z-index:3;width:100%;height:100%;
+ opacity:.80;pointer-events:none;
+ animation:starBreathe 11s ease-in-out infinite alternate,stellarParallaxNear 92s ease-in-out infinite alternate;
+}
+@keyframes cloudWanderA{
+ from{transform:translate3d(-3%,3%,0) rotate(-5deg) scale(.96)}
+ to{transform:translate3d(6%,-7%,0) rotate(4deg) scale(1.11)}
+}
+@keyframes cloudWanderB{
+ from{transform:translate3d(4%,-5%,0) rotate(5deg) scale(1.06)}
+ to{transform:translate3d(-6%,5%,0) rotate(-4deg) scale(.98)}
+}
+@keyframes stellarParallax{
+ from{transform:translate3d(-.8%,.55%,0)}
+ to{transform:translate3d(.8%,-.55%,0)}
+}
+@keyframes stellarParallaxNear{
+ from{transform:translate3d(-1.8%,1%,0)}
+ to{transform:translate3d(1.8%,-1%,0)}
+}
+@keyframes starBreathe{from{opacity:.61}to{opacity:1}}
+.space-vignette{
+ background:
+ radial-gradient(ellipse 43% 42% at 50% 50%,rgba(0,0,0,.27),rgba(0,0,0,.14) 68%,transparent 95%),
+ linear-gradient(0deg,rgba(0,0,0,.18),transparent 19%,transparent 82%,rgba(0,0,0,.15));
+}
+.gate-a.sky-still .nebula-texture,.gate-a.sky-still #star-canvas,.gate-a.sky-still .twinkle-canvas{
+ animation:none!important;
+}
+@media(max-width:650px){
+ .space-background .nebula-texture{left:-10%;top:-7%;width:120%;height:120%;opacity:.62}
+ .space-background .twinkle-canvas{opacity:.65}
+}
+@media(prefers-reduced-motion:reduce){
+ .space-background .nebula-texture,.space-background #star-canvas,.space-background .twinkle-canvas{animation:none!important}
+}

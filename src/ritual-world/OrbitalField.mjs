@@ -1,5 +1,5 @@
 /**
- * Gate A v6: four visually related orbital scales, still exactly 78 persistent
+ * Gate A v7: 46-core, 11-halo, 15-middle and 6 unchanged natural flybys, still exactly 78 persistent
  * historical Tarot IDs and no radial lunge at any point after entry.
  * Entrance styles are cosmetic; secure Tarot card odds remain independent.
  */
@@ -14,18 +14,18 @@ const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]]
 const rotY=(v,a)=>[Math.cos(a)*v[0]+Math.sin(a)*v[2],v[1],-Math.sin(a)*v[0]+Math.cos(a)*v[2]];
 const rotate=(vec,axis,angle)=>{const k=norm(axis),c=Math.cos(angle),s=Math.sin(angle),v=cross(k,vec),d=dot(k,vec);return vec.map((n,i)=>n*c+v[i]*s+k[i]*d*(1-c))};
 export const ORBIT_CARD_COUNT=N;
-export const INNER_CARD_COUNT=62,OUTER_CARD_COUNT=16;
+export const INNER_CARD_COUNT=57,OUTER_CARD_COUNT=21;
 export const ORBIT_SPEED=.034;
-export const ORBIT_RADIUS=7.8,ORBIT_CENTER_Z=-23.5;
+export const ORBIT_RADIUS=7.9,ORBIT_CENTER_Z=-25.1;
 export const OUTER_ORBIT_RADIUS=23.5,OUTER_ORBIT_CENTER_Z=-28.5;
 export const SHELL_CENTER=Object.freeze([0,0,ORBIT_CENTER_Z]);
 export const ENTRANCE_MODES=Object.freeze(['inside-out','outside-in']);
 export const ENTRANCE_SECONDS=1.7; // preserved v5 entrance
-export const OUTSIDE_ENTRANCE_SECONDS=4.2;
+export const OUTSIDE_ENTRANCE_SECONDS=4.75;
 export const ORBIT_LAYERS=Object.freeze([
- Object.freeze({id:'core',family:'inner',count:50,radius:ORBIT_RADIUS,centerZ:ORBIT_CENTER_Z,counts:Object.freeze([3,5,8,9,10,7,5,3]),lats:Object.freeze([-1.14,-.85,-.52,-.17,.16,.52,.85,1.14])}),
- Object.freeze({id:'halo',family:'inner',count:12,radius:10.25,centerZ:-24.0,counts:Object.freeze([2,2,2,2,2,2]),lats:Object.freeze([-.91,-.59,-.24,.24,.59,.91])}),
- Object.freeze({id:'orbit',family:'outer',count:10,radius:18.7,centerZ:-27.1,counts:Object.freeze([2,3,3,2]),lats:Object.freeze([-.52,-.19,.19,.52])}),
+ Object.freeze({id:'core',family:'inner',count:46,radius:ORBIT_RADIUS,centerZ:ORBIT_CENTER_Z,counts:Object.freeze([3,5,7,8,9,7,4,3]),lats:Object.freeze([-1.14,-.85,-.52,-.17,.16,.52,.85,1.14])}),
+ Object.freeze({id:'halo',family:'inner',count:11,radius:10.10,centerZ:-25.7,counts:Object.freeze([2,2,2,2,2,1]),lats:Object.freeze([-.91,-.59,-.24,.24,.59,.91])}),
+ Object.freeze({id:'orbit',family:'outer',count:15,radius:18.0,centerZ:-28.1,counts:Object.freeze([3,4,5,3]),lats:Object.freeze([-.58,-.19,.19,.58])}),
  Object.freeze({id:'flyby',family:'outer',count:6,radius:OUTER_ORBIT_RADIUS,centerZ:OUTER_ORBIT_CENTER_Z,counts:Object.freeze([1,2,2,1]),lats:Object.freeze([-.48,-.15,.15,.48])})
 ]);
 export function rand01(seed,tag){
@@ -98,38 +98,60 @@ export function sphericalPose(card,seconds){
  const p=rotY(card.local,orbitAngle(card,seconds));return [p[0],p[1],p[2]+card.centerZ];
 }
 export function entranceDuration(mode='inside-out'){return mode==='outside-in'?OUTSIDE_ENTRANCE_SECONDS:ENTRANCE_SECONDS}
+export function entranceDelay(card,mode='inside-out'){
+ return mode==='outside-in'?card.spawnIndex*.037:card.spawnIndex*.0024;
+}
 export function entranceProgress(card,seconds,mode='inside-out'){
- const duration=entranceDuration(mode),delay=mode==='outside-in'?card.spawnIndex*.014:card.spawnIndex*.0024;
- return smooth((Math.max(0,seconds)-delay)/(duration-delay*.13));
+ const t=Math.max(0,seconds),delay=entranceDelay(card,mode);
+ if(mode==='outside-in'){
+  // Each card takes a different 0.9–1.7s curved flight. The late arrivals
+  // attach between ~3.5s and 4.7s, matching an assembled world, not a mural.
+  const duration=.87+rand01(card.visualSeed,5700+card.index)*.92;
+  return smooth((t-delay)/duration);
+ }
+ return smooth((t-delay)/(ENTRANCE_SECONDS-delay*.13));
 }
 export function entranceScale(card,seconds,mode='inside-out'){
- return mode==='outside-in'?.76+.24*entranceProgress(card,seconds,mode):.34+.66*entranceProgress(card,seconds,mode);
+ return mode==='outside-in'?.53+.47*entranceProgress(card,seconds,mode):.34+.66*entranceProgress(card,seconds,mode);
 }
-function outsideSpawn(card,end){
- // Spawn beyond the frame edges (not at the camera) then join each preassigned
- // orbital slot with staggered easing. Uses stable slot position; no draw change.
- const a=card.phase+card.orbitSlot*2.3999632297;
- const ux=Math.cos(a),uy=Math.sin(a);
- const depth=Math.max(11,-end[2]),edge=depth*.80;
- const length=Math.max(1,Math.hypot(ux,uy));
- return [end[0]+(ux/length)*edge*1.8,end[1]+(uy/length)*edge*1.45,end[2]-2.5];
+export function landingVisible(card,seconds,mode='inside-out'){
+ return mode!=='outside-in'||seconds>=entranceDelay(card,mode);
+}
+function bezier(start,c1,c2,end,p){
+ const q=1-p,a=q*q*q,b=3*q*q*p,c=3*q*p*p,d=p*p*p;
+ return [0,1,2].map(i=>a*start[i]+b*c1[i]+c*c2[i]+d*end[i]);
+}
+export function outsideArrivalPose(card,seconds){
+ // Physical space: a near/far mixture of arrival depths and tangential arcs.
+ // The starting point lies beyond the camera frustum in 16:9 or narrower view.
+ const destination=sphericalPose(card,seconds);
+ const p=entranceProgress(card,seconds,'outside-in');
+ if(p>=1)return destination;
+ const zabs=30+rand01(card.visualSeed,6200+card.index)*17;
+ const angle=card.phase+card.orbitSlot*2.399963229728653;
+ const ca=Math.cos(angle),sa=Math.sin(angle),sgn=rand01(card.visualSeed,6500+card.index)<.5?-1:1;
+ const start=[zabs*1.08*ca,zabs*.91*sa,-zabs];
+ const curvature=4.5+rand01(card.visualSeed,6650+card.index)*7;
+ const ctrl1=[start[0]*.75-sa*curvature*sgn,
+              start[1]*.75+ca*curvature*sgn,
+              start[2]-(3.5+rand01(card.visualSeed,6800+card.index)*5)];
+ const tangent=[destination[2]-card.centerZ,0,-destination[0]];
+ const tnorm=norm(tangent);
+ const ctrl2=[destination[0]-tnorm[0]*curvature*.65,
+              destination[1]+sgn*curvature*.28,
+              destination[2]-tnorm[2]*curvature*.65-3.0];
+ return bezier(start,ctrl1,ctrl2,destination,p);
 }
 export function sampleLandingPose(card,seconds,mode='inside-out'){
  const p=entranceProgress(card,seconds,mode),end=sphericalPose(card,seconds);
  if(p>=1)return end;
- if(mode==='outside-in'){
-  const start=outsideSpawn(card,end),sway=Math.sin(Math.PI*p)*(1-p)*.35;
-  return [mix(start[0],end[0],p)-Math.sin(card.phase)*sway,
-          mix(start[1],end[1],p)+Math.cos(card.phase)*sway,
-          mix(start[2],end[2],p)];
- }
+ if(mode==='outside-in')return outsideArrivalPose(card,seconds);
  const a=card.phase+card.orbitSlot*.16,start=[Math.cos(a)*.73,Math.sin(a)*.43,-7.8-card.spawnIndex*.018];
  return start.map((v,i)=>mix(v,end[i],p));
 }
 export function landingOpacity(card,seconds,mode='inside-out'){
- const delay=mode==='outside-in'?card.spawnIndex*.014:card.spawnIndex*.0024;
- // Opaque physical cards after entrance; no per-card translucency animation.
- return Math.max(0,Math.min(1,(Math.max(0,seconds)-delay)*8));
+ // Retained for API compatibility only: physical cards are ALWAYS opaque.
+ return landingVisible(card,seconds,mode)?1:0;
 }
 export function landingAttitude(card,position,seconds){
  const radial=norm(card.local),tangent=norm([radial[2],0,-radial[0]]);
