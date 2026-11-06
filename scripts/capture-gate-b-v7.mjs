@@ -23,23 +23,15 @@ await page.locator('#start-shuffle').click();
 await page.waitForTimeout(17400);
 const frameSamples=[];
 for(const t of [1.25,2.1,3.0,3.8,4.65,5.2,5.85,6.75,7.5,8.25,9.2,10.7,11.8,13.5,14.65,16.55]){
- const prior=await page.evaluate(age=>{
+ await page.evaluate(age=>{
   const w=window.__ritualGateB.world;
-  w.setPaused(true);
+  w.setPaused(false);
   w.setPhase('shuffle_ritual');
   w.elapsed=w.shuffleStartedAt+age;
-  w.last=performance.now();
-  const prev=w.lastRendered;
-  w.setPaused(false);
-  return prev;
  },t);
- await page.waitForFunction(prev=>window.__ritualGateB.world.lastRendered>prev,
-   prior,{timeout:20000});
- const observed=await page.evaluate(()=>{
-  const w=window.__ritualGateB.world;
-  w.setPaused(true);return w.getShuffleState();
- });
- await page.screenshot({path:dir+'/frame-'+t.toFixed(1)+'.png'});
+ await page.waitForTimeout(105);
+ const observed=await page.evaluate(()=>window.__ritualGateB.world.getShuffleState());
+ await page.screenshot({path:dir+'/frame-'+t.toFixed(1)+'.png',animations:'allow',timeout:60000});
  frameSamples.push({requested:t,observed:observed.age,beat:observed.beat});
 }
 const state=await page.evaluate(()=>window.__ritualGateB.diagnostics());
