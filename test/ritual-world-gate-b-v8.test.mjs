@@ -74,7 +74,7 @@ test('Card faces, backs and edges rotate rigidly with the same camera bank as th
   assert.ok(Math.abs(dot(basis[0],basis[2]))<1e-9);
   assert.ok(Math.abs(dot(basis[1],basis[2]))<1e-9);
  }
- const a=rotateVortexBasis([1,0,0],1.25),b=rotateVortexBasis([1,0,0],3.8);
+ const a=rotateVortexBasis([0,1,0],1.25),b=rotateVortexBasis([0,1,0],3.8);
  assert.ok(Math.hypot(...a.map((x,i)=>x-b[i]))>.25,
   'The camera bank must physically rotate the card basis, not only its centre');
  const source=await readFile(new URL('../src/ritual-world/ReferenceRitual.mjs',import.meta.url),'utf8');
