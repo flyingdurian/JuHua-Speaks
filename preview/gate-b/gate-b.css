@@ -91,3 +91,55 @@
  .gate-b .ritual-copy{top:51%}
  .gate-b.deck-ready .ritual-copy{top:20%}
 }
+
+
+/* Gate B v4 — temporary cosmic vacuum light, BEHIND the existing card world.
+   The real 78-card deep helix is the choreography; this low-cost composited
+   atmospheric spiral exists only during the first three seconds. */
+.ritual-vortex-glow{
+ position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+ opacity:0;transition:opacity .27s ease;mix-blend-mode:screen;
+}
+.gate-b.vacuum-active .ritual-vortex-glow{opacity:.94}
+.ritual-vortex-glow::before,.ritual-vortex-glow::after{
+ content:"";position:absolute;left:50%;top:50%;
+ width:min(114vw,118vh);height:min(114vw,118vh);
+ border-radius:50%;pointer-events:none;
+ transform-origin:center;
+ -webkit-mask-image:radial-gradient(circle,transparent 4%,#000 15%,#000 69%,transparent 92%);
+ mask-image:radial-gradient(circle,transparent 4%,#000 15%,#000 69%,transparent 92%);
+}
+.ritual-vortex-glow::before{
+ margin-left:calc(-.5 * min(114vw,118vh));margin-top:calc(-.5 * min(114vw,118vh));
+ background:
+  conic-gradient(from 32deg,transparent 0deg,rgba(189,168,222,.22) 27deg,transparent 78deg,
+   rgba(175,161,200,.16) 113deg,transparent 170deg,rgba(207,191,226,.24) 215deg,
+   transparent 268deg,rgba(172,154,205,.21) 300deg,transparent 352deg),
+  repeating-radial-gradient(circle,transparent 0 29px,rgba(199,179,218,.08) 37px,
+   rgba(198,166,217,.035) 49px,transparent 75px);
+ filter:blur(12px);
+ animation:juhuaVortexSpin 2.2s linear infinite;
+}
+.ritual-vortex-glow::after{
+ margin-left:calc(-.5 * min(114vw,118vh));margin-top:calc(-.5 * min(114vw,118vh));
+ width:min(114vw,118vh);height:min(114vw,118vh);
+ background:
+  conic-gradient(from 165deg,transparent 0deg,rgba(221,211,231,.14) 18deg,
+   transparent 39deg,rgba(179,168,214,.13) 89deg,transparent 136deg,
+   rgba(193,179,210,.18) 179deg,transparent 224deg,rgba(203,190,222,.13) 295deg,
+   transparent 345deg);
+ filter:blur(20px);opacity:.69;
+ animation:juhuaVortexSpinReverse 3.1s linear infinite;
+}
+@keyframes juhuaVortexSpin{from{transform:rotate(0) scale(.99)}to{transform:rotate(360deg) scale(1.09)}}
+@keyframes juhuaVortexSpinReverse{from{transform:rotate(360deg) scale(1.07)}to{transform:rotate(0) scale(.98)}}
+.gate-b.vacuum-active .space-background .nebula-texture{opacity:.48!important}
+.gate-b .ritual-copy{pointer-events:none}
+@media(max-width:650px){
+ .ritual-vortex-glow::before,.ritual-vortex-glow::after{filter:blur(7px);opacity:.62}
+ .gate-b.vacuum-active .ritual-vortex-glow{opacity:.72}
+}
+@media(prefers-reduced-motion:reduce){
+ .ritual-vortex-glow::before,.ritual-vortex-glow::after{animation:none!important}
+ .ritual-vortex-glow{transition:none!important;opacity:.18}
+}

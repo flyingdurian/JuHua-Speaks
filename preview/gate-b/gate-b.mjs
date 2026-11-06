@@ -63,6 +63,7 @@ function renderUI(){
  if(!root.classList.contains('in-ritual'))return;
  deckControls.hidden=phase!=='deck_formed';
  root.classList.toggle('deck-ready',phase==='deck_formed');
+ root.classList.toggle('vacuum-active',phase==='shuffle_ritual'&&['approach','vortex','implosion'].includes(state));
  const entry=label[state]||label.deck_ready;
  const newTitle=entry[0],newDescription=entry[1];
  const beatText=phase==='deck_formed'?'✧ YOUR DECK IS READY ✧':'✧ HOLD YOUR QUESTION IN MIND ✧';
@@ -70,7 +71,7 @@ function renderUI(){
  if(title.textContent!==newTitle)title.textContent=newTitle;
  if(description.textContent!==newDescription)description.textContent=newDescription;
  if(phase==='deck_formed'){
-  // Extra shuffle options intentionally withheld from Gate B v3.
+  // Optional shuffle choices remain withheld to focus solely on the automatic ritual.
   document.getElementById('finish-shuffle').disabled=false;
  }
 }
@@ -104,7 +105,7 @@ buttonPause.addEventListener('click',()=>{
 document.getElementById('reset').addEventListener('click',()=>{
  if(!world)return;
  world.setPaused(false);buttonPause.setAttribute('aria-pressed','false');buttonPause.textContent='PAUSE Ⅱ';
- renderError='';world.resetGateB();root.classList.remove('in-ritual','deck-ready');overlay.hidden=true;
+ renderError='';world.resetGateB();root.classList.remove('in-ritual','deck-ready','vacuum-active');overlay.hidden=true;
  notice.textContent='';lastStatus='';renderUI();
 });
 const statusTimer=setInterval(renderUI,180);
@@ -113,6 +114,6 @@ window.__ritualGateB={
  world,diagnostics:()=>world?{...world.getDiagnostics(),sky:sky.diagnostics()}:null,
  get phase(){return world?.phase||'unavailable'},
  get shuffle(){return world?.getShuffleState()||null},
- version:'Gate B v3 automatic ritual / draft',
+ version:'Gate B v4 vacuum ritual / draft',
 };
 window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();world?.dispose()},{once:true});

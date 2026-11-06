@@ -39,7 +39,7 @@ test('automatic coherent tornado has bounded radius and real depth without face-
  assert.ok(Math.max(...x)-Math.min(...x)>3.5,'Controlled tornado has a wide readable radius');
  assert.ok(Math.max(...z)-Math.min(...z)>2,'Tornado moves through 3D depth');
  assert.ok(poses.filter(p=>p.attitude.normal[2]<0).length>=65,'The helical storm must predominantly show dark backs');
- assert.ok(poses.every(p=>p.position[2]<-7&&p.position[2]>-23));
+ assert.ok(poses.every(p=>p.position[2]<-5&&p.position[2]>-38),'The full funnel must preserve widely separated front/middle/far Z layers');
  assert.equal(shuffleBeat('auto',2.5),'vortex');
  assert.equal(shuffleBeat('auto',3.7),'suspension');
  assert.equal(shuffleBeat('auto',5.2),'detonation');

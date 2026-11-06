@@ -161,3 +161,7 @@ A 30.906-second synchronized comparison identified that the first Gate B version
 ## Gate B v3 — Automatic ritual visual rebuild (DRAFT)
 
 The first two Gate B builds did not match the ChatARot reference's spatial choreography. The new **automatic-only** Gate B v3 uses a separate 10-beat reference-directed sampler (`ReferenceRitual.mjs`): full-screen rushing helix → tiny suspended pocket deck → second huge illustrated card globe → three separated 26-card piles → final 78-layer floating deck. Cosmic/Riffle/Wash are not offered in this preview. The public Gate A v7 is unchanged. [Detailed visual storyboard and acceptance criteria](docs/GATE_B_V3_REFERENCE_STORYBOARD.md). Run `npm run preview:gate-b` on the unmerged feature branch.
+
+## Gate B v4 — Cosmic vacuum / open globe rebuild (DRAFT)
+
+The Product Owner rejected Gate B v3's compact-cluster composition. The new automatic ritual creates a deep helical **cosmic vacuum** with near/far separation and a visible open center, rapidly funnels all 78 RWS cards into a small pocket deck, erupts into a low-density sphere with multiple orientations, splits into three 26-card decks with **individual transfer/interleaving**, and gently forms the final deck. The UI still excludes optional shuffles. True-card screen-raster overlap tests now guard visual density; see [Gate B v4 audit](docs/GATE_B_V4_COSMIC_VACUUM.md). Test using `npm run preview:gate-b` on the unmerged feature branch, not production.
