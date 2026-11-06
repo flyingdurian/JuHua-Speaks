@@ -12,7 +12,7 @@
  * beyond per-frame pose arrays. Gate A world/camera remain persistent.
  */
 import {sampleLandingPose,landingAttitude} from './OrbitalField.mjs';
-import {sampleVortexCard} from './VortexRibbon.mjs';
+import {sampleVortexCard,vortexCamera} from './VortexRibbon.mjs';
 
 const N=78,TAU=2*Math.PI,GOLDEN=Math.PI*(3-Math.sqrt(5));
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -104,7 +104,7 @@ function suctionPose(card,t){
  const yaw=(illustrated?Math.PI:0)+.23*Math.sin(theta*.75+k*.17)
    +.20*Math.sin(t*2.4+k*.31);
  const pitch=.29*Math.sin(theta*.52+k*.47)+.10*Math.sin(t*3+k*.23);
- const roll=theta+.28*Math.sin(k*.73)+[0,.16,-.14][stream];
+ const roll=theta+.28*Math.sin(k*.73)+[0,.16,-.14][stream]+vortexCamera(t).roll;
  // The actual reference grows dense as sheets rush toward the viewer:
  // distant backs remain small, then their projected area accelerates sharply
  // during the steeply banked terminal corkscrew. The illustrated close
