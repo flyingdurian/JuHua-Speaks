@@ -20,9 +20,9 @@ if(renderer.type!=='WebGL2')throw Error('Actual GPU browser review requires WebG
 await page.locator('#start-shuffle').click();
 // Capture a full, real-time browser movie first. GPU frames are not inferred
 // from screenshot wait durations (which can be slow under SwiftShader).
-await page.waitForTimeout(17400);
+await page.waitForTimeout(6700);
 const frameSamples=[];
-for(const t of [1.25,2.1,2.5,3.0,3.4,3.8,4.2,4.65,5.2,5.45,6.2,7.5,9.2,10.7,13.5,16.55]){
+for(const t of [1.25,2.1,2.5,3.0,3.4,3.8,4.2,4.7,5.2,5.45,6.2]){
  await page.evaluate(age=>{
   const w=window.__ritualGateB.world;
   w.setPaused(false);
@@ -38,4 +38,4 @@ const state=await page.evaluate(()=>window.__ritualGateB.diagnostics());
 await context.close();await browser.close();
 await writeFile(dir+'/browser-report.json',JSON.stringify({renderer,state,frameSamples,errors},null,2));
 if(errors.length)throw Error('Page errors: '+errors.join(' | '));
-console.log('Captured WebGL2 video + 16 screenshots',renderer);
+console.log('Captured WebGL2 Sequence 1 video + 11 screenshots',renderer);
