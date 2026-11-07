@@ -15,10 +15,10 @@ test('three genuine temporal card echoes fade with age and increase with project
  assert.equal(sequenceOneEchoEnvelope(5.5),0);
  assert.ok(velocityEchoWeight(8)===0);
  assert.ok(velocityEchoWeight(160)>.9);
- const slow=cardEchoOpacity(3,.054,10),fast=cardEchoOpacity(3,.054,170);
+ const slow=cardEchoOpacity(2.6,.054,10,11),fast=cardEchoOpacity(2.6,.054,170,11);
  assert.equal(slow,0);
  assert.ok(fast>.15);
- assert.equal(cardEchoOpacity(10,.054,200),0);
+ assert.equal(cardEchoOpacity(10,.054,200,11),0);
 });
 
 test('projected speed uses actual camera-space near/far perspective',()=>{
