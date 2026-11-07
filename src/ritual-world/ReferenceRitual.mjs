@@ -133,8 +133,10 @@ function suctionPose(card,t){
  // distant backs remain small, then their projected area accelerates sharply
  // during the steeply banked terminal corkscrew. The illustrated close
  // passes retain their own independently authored near-lens scale.
- const backGain=1+.78*smoother((t-3.05)/.69)
-   +.16*smoother((t-4.23)/.50);
+ // Preserve contrast between a handful of big hero fronts and fine
+ // background blue backs; a uniform growth ramp previously crowded the eye.
+ const backGain=1+.42*smoother((t-3.05)/.69)
+   +.08*smoother((t-4.23)/.50);
  const visualFocus=heroAccent(k,t);
  const scale=((illustrated?.69:(.30+.10*rnd(39))*backGain)
    +.025*Math.sin(t*1.35+k*.24))*vortexCamera(t).cardGain
