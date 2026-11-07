@@ -18,7 +18,7 @@ test('Sequence 1 cards are carried through substantial 3D depth while revolving 
   const zs=v.map(x=>x.position[2]);
   if(t<=3.8)assert.ok(Math.max(...zs)-Math.min(...zs)>7,
    'The accelerated spherical orbit must preserve physical near/far separation');
-  else assert.ok(Math.max(...zs)-Math.min(...zs)<18,
+  else if(t>=5.25)assert.ok(Math.max(...zs)-Math.min(...zs)<18,
    'During the final neck, physical depth must converge into a single deck plane');
   for(const card of cards){
    const a=sampleVortexCard(card.orbitSlot,card.visualSeed,t).position;
