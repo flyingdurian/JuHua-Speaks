@@ -8,9 +8,9 @@
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 const smooth=x=>{x=clamp(x);return x*x*(3-2*x)};
 export const CARD_ECHO_HISTORY=Object.freeze([
- Object.freeze({lag:.19,opacity:.075}),
- Object.freeze({lag:.115,opacity:.115}),
- Object.freeze({lag:.054,opacity:.175})
+ Object.freeze({lag:.19,opacity:.13}),
+ Object.freeze({lag:.115,opacity:.23}),
+ Object.freeze({lag:.054,opacity:.34})
 ]);
 export function sequenceOneEchoEnvelope(age){
  return smooth((age-1.37)/.38)*(1-smooth((age-5.08)/.32));
