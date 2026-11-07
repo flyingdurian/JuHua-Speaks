@@ -15,7 +15,7 @@ test('reference camera banks dynamically from face-on into a vertical corkscrew'
 
 test('the same material path drives actual sheets and filament motes',async()=>{
  const mist=await readFile(new URL('../preview/gate-b/FlowMist.mjs',import.meta.url),'utf8');
- assert.match(mist,/sampleVortexRibbon/);
+ assert.match(mist,/sampleVortexCard/);
  const a=sampleVortexCard(19,702509,3.28);
  const b=sampleVortexCard(19,702509,3.30);
  assert.equal(a.position.length,3);
