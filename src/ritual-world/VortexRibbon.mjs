@@ -62,7 +62,7 @@ export function vortexProgress(t){
  const u=clamp((t-1.10)/4.35);
  return {u,angular:.11*u+3.35*u*u+.78*u*u*u,
   axial:3.1*(.15*u+.85*u*u),
-  collapse:softer((t-4.52)/.93)};
+  collapse:softer((t-4.62)/.80)};
 }
 // Three genuinely nested, inclined orbital scales: not three decorative
 // concentric 2D circles. Each layer has independent 3D depth and precession.
@@ -110,11 +110,15 @@ function sample(lane,q,t,seed=0,motionBias=1){
  // offsets scale with depth and preserve all cards as world-space meshes.
  x=c.zoom*c.sx*x+c.px*(-z)/FOCAL;
  y=c.zoom*c.sy*y-c.py*(-z)/FOCAL;
- // Cards are drawn into a common throat BEFORE the 78-layer deck beat.
+ // Each orbit begins entering the neck at a slightly different material
+ // phase. This creates a genuine transport funnel, not a simultaneous pile.
+ // By the end of the beat every card has a narrow lateral footprint AND
+ // nearly the same deck-depth plane, ready for the approved pocket assembly.
  const f=state.collapse;
- x*=1-.65*f;y*=1-.65*f;
- z=lerp(z,-16.2,f*.42);
- return {position:[x,y,z],theta,depth:-z,lane,collapse:f};
+ const neck=softer((t-4.61-.10*q)/.74);
+ x*=1-.84*neck;y*=1-.84*neck;
+ z=lerp(z,-16.2,.96*neck);
+ return {position:[x,y,z],theta,depth:-z,lane,collapse:f,neck};
 }
 /**
  * Orient a local physical card basis with the SAME camera-bank rotation
