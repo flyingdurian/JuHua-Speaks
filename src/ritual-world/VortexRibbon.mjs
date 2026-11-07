@@ -67,9 +67,9 @@ export function vortexProgress(t){
 // Three genuinely nested, inclined orbital scales: not three decorative
 // concentric 2D circles. Each layer has independent 3D depth and precession.
 const LANES=Object.freeze([
- {offset:0,radius:9.25,depth:18.8,turns:3.05,count:40,tilt:.27},
+ {offset:0,radius:9.25,depth:17.8,turns:3.05,count:40,tilt:.27},
  {offset:.24,radius:6.35,depth:22.2,turns:2.30,count:24,tilt:-.31},
- {offset:.61,radius:4.05,depth:25.8,turns:1.85,count:14,tilt:.44}
+ {offset:.61,radius:4.05,depth:29.0,turns:1.85,count:14,tilt:.44}
 ]);
 const FOCAL=720/(2*Math.tan(58*Math.PI/360));
 function sample(lane,q,t,seed=0,motionBias=1){
@@ -94,7 +94,7 @@ function sample(lane,q,t,seed=0,motionBias=1){
  const axialCenter=g.depth-1.6*state.axial*motionBias;
  // Orbit phase also changes Z: sheets continuously pass from back to front
  // rather than rotating in a flat billboard wreath.
- let z=-Math.max(4.5,axialCenter-shell*(.70*latCos*wave+.11*Math.sin(latitude+theta*.63))
+ let z=-Math.max(4.5,axialCenter-shell*(.98*latCos*wave+.14*Math.sin(latitude+theta*.63))
        -2.3*(u-.5));
  // Camera tilt is around the focal plane (z=-24). This turns a face-on
  // multi-loop tunnel into the reference's tall off-axis corkscrew in motion.
