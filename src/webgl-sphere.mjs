@@ -181,9 +181,9 @@ export function mountWebGLSphere(scene,cards,picks,getRotation,options={}){
    for(let i=0;i<layout.length;i++){
     if(hidden.has(ids[i]))continue;
     const id=ids[i],marked=selected.has(id),hovered=hoveredId===id;
-    const desired=marked?.78:hovered?.35:0;
+    const desired=marked?1.42:hovered?.35:0;
     const current=liftState.get(id)||0;
-    const lift=current+(desired-current)*Math.min(1,delta/170+.13);
+    const lift=current+(desired-current)*Math.min(1,delta/240+.09);
     liftState.set(id,lift);
     if(marked)appendQuad(layout[i],angle,vertices,true,false,lift,true);
     appendQuad(layout[i],angle,vertices,marked,hovered,lift,false);
@@ -195,6 +195,7 @@ export function mountWebGLSphere(scene,cards,picks,getRotation,options={}){
   scene.classList.add('webgl-active');frame=requestAnimationFrame(paint);
   return {
    canvas,
+   syncSelection(nextPicks){selected.clear();for(const pick of nextPicks)selected.add(pick.card.id)},
    pick(clientX,clientY){const b=canvas.getBoundingClientRect(),a=lastPaintRotation||rot();return pickSphereCard(layout,ids,selected,a.rx,a.ry,clientX-b.left,clientY-b.top,b.width,b.height,true)},
    pickCenter(){const b=canvas.getBoundingClientRect(),a=lastPaintRotation||rot();return pickSphereCard(layout,ids,selected,a.rx,a.ry,b.width/2,b.height/2,b.width,b.height,true)},
    projectCard(id){

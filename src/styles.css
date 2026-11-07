@@ -339,3 +339,227 @@
 @keyframes sphere-lock-pulse{to{opacity:.68}}
 @media(max-width:700px){.site.ritual-focused .masthead{position:relative}.site.ritual-focused .ritual-shuffle{padding-top:32px}.site.ritual-focused .physical-reveal{padding-top:40px}.site.ritual-focused .sphere-page{padding-top:40px}.site.ritual-focused .sphere-scene{height:470px}.site.ritual-focused .ritual-landing{min-height:calc(100vh - 80px)}}
 @media(prefers-reduced-motion:reduce){.sphere-auto-lock{animation:none}}
+
+/* Phase 8.2 – physical card reveal meter and restrained Artemis tabletop */
+.physical-card-meter{width:100%;display:flex;gap:6px;align-items:center;margin-top:10px;color:#dcc69f;font-size:9px}
+.physical-card-meter progress{width:100%;height:4px;accent-color:#d9bb85}
+.artemis-stage{max-width:1100px;min-height:80vh;margin:auto;text-align:center;padding:25px 18px 50px}
+.artemis-stage h1{font:normal clamp(29px,4vw,46px) Georgia,serif;margin:15px 0}
+.artemis-scene{position:relative;overflow:hidden;min-height:480px;margin:25px auto;border:1px solid #bca37c4a;border-radius:18px;background:radial-gradient(ellipse at 50% 25%,#36314e,#151629 45%,#080b13 80%);perspective:900px}
+.artemis-moon{position:absolute;width:240px;height:240px;border:1px solid #e0c58f79;box-shadow:0 0 90px #9d92bd45,inset 0 0 65px #a79ab33a;border-radius:50%;top:4%;left:50%;transform:translateX(-50%)}
+.artemis-portrait-placeholder{position:absolute;top:7%;left:50%;transform:translateX(-50%);height:245px;width:220px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:#eee1c8;z-index:1;font-size:11px;letter-spacing:.17em}
+.artemis-sigil{display:grid;place-items:center;border:1px solid #e1c38b8a;border-radius:50%;height:115px;width:115px;font:75px Georgia,serif;text-shadow:0 0 23px #e3d4af}
+.artemis-tabletop{position:absolute;bottom:12%;left:50%;transform:translateX(-50%) rotateX(33deg);width:min(730px,95%);height:160px;border:1px solid #c9a97c99;border-radius:50%;background:radial-gradient(ellipse,#55465e,#1e2035 65%,#12131f 82%);box-shadow:0 18px 65px #000c;display:flex;justify-content:center;align-items:center;gap:7%;z-index:3}
+.artemis-table-smoke{position:absolute;inset:-90% 0 -30%;border-radius:50%;background:radial-gradient(ellipse,#d7c7de2b,transparent 65%);filter:blur(22px);pointer-events:none;animation:artemis-smoke 6s ease-in-out infinite alternate}
+@keyframes artemis-smoke{from{transform:translate(-4%,3%) scale(.8);opacity:.3}to{transform:translate(4%,-5%) scale(1.1);opacity:.7}}
+.artemis-table-card{transform:rotateX(-33deg) translateY(-25px);width:clamp(65px,12vw,110px);font-size:10px;color:#e4ceab;letter-spacing:.1em}
+.artemis-table-face{width:100%;aspect-ratio:1100/1920;border:2px solid #caaa74;border-radius:5px;box-shadow:0 9px 25px #000b;overflow:hidden}
+.artemis-table-face .card-face{width:100%;height:100%}
+.artemis-table-card span{display:block;margin-top:6px}
+.artemis-invitation{max-width:680px;margin:0 auto}
+.artemis-invitation p{font:clamp(17px,2vw,23px)/1.5 Georgia,serif;color:#efe5db}
+.artemis-source-note{font-size:11px;letter-spacing:.05em;color:#bdb0c2;margin:12px 0 18px}
+.artemis-reading-table{margin:0 0 23px;padding:15px;border:1px solid #c7a8755b;border-radius:15px;background:radial-gradient(ellipse at 50% 100%,#4e3d5a9c,#131526 75%);text-align:center}
+.artemis-reading-table header{font-size:11px;letter-spacing:.12em;color:#e5d2ae}
+.artemis-reading-table header small{font-size:10px;color:#bdb4c2;margin-left:12px;letter-spacing:0}
+.artemis-reading-cards{display:flex;justify-content:center;gap:clamp(15px,5vw,52px);margin-top:16px}
+.artemis-reading-card{width:clamp(85px,13vw,137px);color:#dfca9f;font-size:11px;display:flex;flex-direction:column;gap:8px}
+.artemis-reading-card .card-face{aspect-ratio:1100/1920;border:2px solid #caaa74;border-radius:5px;box-shadow:0 10px 25px #0009}
+@media(max-width:650px){.artemis-scene{min-height:400px}.artemis-tabletop{height:110px}.artemis-table-card{width:clamp(55px,19vw,90px)}.physical-card-meter{flex-direction:column}.artemis-reading-table header small{display:block}}
+@media(prefers-reduced-motion:reduce){.artemis-table-smoke{animation:none}}
+
+
+/* Gate C / Gate D. Full viewport scene, independent of the old chamber box. */
+.site:has(.gate-sphere) .stage {max-width:none;width:100%;padding:0;margin:0}
+.site:has(.gate-sphere) .masthead {position:absolute;top:0;left:0;right:0;z-index:32;background:linear-gradient(#040710ec,#04071000);border:0}
+.site:has(.gate-sphere) .progress,.site:has(.gate-sphere) .site-footer{display:none}
+.gate-sphere{position:relative;isolation:isolate;width:100vw;min-height:100vh;min-height:100svh;margin-left:calc(50% - 50vw);color:#f8ebd4;background:#02040e;overflow:hidden}
+.gate-sphere .gate-cosmos,.gate-sphere .sphere-scene.inside-dome{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:100%!important;max-height:none!important;max-width:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important}
+.gate-sphere .gate-cosmos{z-index:0;background:radial-gradient(ellipse at 48% 52%,#26314b80 0%,#0a0e20 55%,#010309 100%)}
+.gate-sphere .gate-starfield{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(1px 1px at 19% 32%,#faf1cabb 99%,transparent),radial-gradient(1px 1px at 76% 47%,#dac8ffb3 99%,transparent),radial-gradient(2px 2px at 36% 77%,#d6e8ff8c 99%,transparent);background-size:143px 117px,211px 167px,373px 247px;opacity:.9}
+.gate-sphere .gate-nebula{position:absolute;inset:-8%;background:radial-gradient(ellipse at 40% 40%,#aa8ac52b,transparent 52%),radial-gradient(ellipse at 67% 65%,#477ba12b,transparent 47%);pointer-events:none;filter:blur(48px)}
+.gate-sphere .gate-vortex-core{position:absolute;left:50%;top:50%;width:min(70vh,70vw);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;background:radial-gradient(circle,#101b3830,transparent 72%);box-shadow:0 0 140px #afadd50c}
+.gate-sphere .gate-reticle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;color:#e8d2a180;opacity:.65;font:34px Georgia,serif;text-shadow:0 0 24px #e3c99a}
+.gate-sphere .sphere-webgl{position:absolute;inset:0;width:100%;height:100%;z-index:8;touch-action:none}
+.gate-sphere-header{position:absolute;top:clamp(94px,14vh,148px);left:0;right:0;text-align:center;z-index:17;pointer-events:none;padding:0 18px;text-shadow:0 2px 24px #000}
+.gate-sphere-header .gate-eyebrow{font:10px ui-monospace,monospace;color:#dfc69c;letter-spacing:.25em}
+.gate-sphere-header h1{font:normal clamp(24px,3.3vw,48px) Georgia,serif;margin:12px 0 8px}
+.gate-sphere-header h1 em{color:#e5cb93}
+.gate-sphere-header p{color:#c2bfd0;font-size:clamp(11px,1.2vw,14px);margin:0}
+.gate-interaction-rail{position:absolute;z-index:19;left:50%;bottom:clamp(185px,24vh,242px);transform:translateX(-50%);display:flex;align-items:center;justify-content:center;gap:10px;max-width:calc(100% - 20px);border:1px solid #bcab8159;border-radius:50px;background:#080b19bb;padding:6px 13px;backdrop-filter:blur(15px);white-space:nowrap}
+.gate-interaction-rail span{font:9px ui-monospace,monospace;letter-spacing:.1em;color:#d9ccb7}
+.gate-interaction-rail button{border:0;color:#f0ddbd;background:#222438b3;padding:7px 10px;border-radius:20px;font-size:11px}
+.gate-interaction-rail button:focus-visible,.gate-commit-actions button:focus-visible{outline:2px solid #ffe1a5}
+.gate-selection-area{position:absolute;z-index:22;left:50%;transform:translateX(-50%);bottom:clamp(14px,2.8vh,28px);width:min(710px,calc(100% - 20px));text-align:center;padding:12px 15px 13px;border:1px solid #e1c49440;border-radius:18px;background:linear-gradient(125deg,#080c1dd9,#171024bb);box-shadow:0 10px 40px #0009;backdrop-filter:blur(16px)}
+.gate-selection-grid{display:flex;justify-content:center;gap:clamp(18px,5.2vw,78px)}
+.gate-slot{width:clamp(65px,11vw,103px);display:flex;flex-direction:column;align-items:center;gap:4px}
+.gate-slot-card{display:grid;place-items:center;border:1px solid #c0ac886e;width:clamp(38px,4.4vw,56px);height:clamp(61px,7vw,86px);border-radius:5px;color:#c4b6a1;background:#101b2bde;box-shadow:inset 0 0 30px #060a18}
+.gate-slot.is-chosen .gate-slot-card{box-shadow:0 0 18px #f1d58a6a,0 0 5px #fff4c7;border-color:#f0d491}
+.gate-slot-card .card-back{width:100%;height:100%}
+.gate-slot-label{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#e7d0ac}
+.gate-slot-undo{font-size:9px;color:#d8c59b;background:none;border:0;text-decoration:underline}
+.gate-selection-count{font:10px ui-monospace,monospace;color:#e1d4c5;margin:9px auto}
+.gate-commit-actions{display:flex;justify-content:center;gap:9px}
+.gate-commit-actions .btn{font-size:11px;padding:8px 15px}
+.gate-flat-cosmos{overflow-y:auto!important;padding:145px 15px 240px}
+.gate-flat-cosmos .flat-table{max-height:none;min-height:60vh;background:#0c1326d9}
+@media(max-width:740px){
+ .gate-sphere-header{top:92px}.gate-sphere-header h1{font-size:26px}
+ .gate-sphere-header p{font-size:11px;max-width:310px;margin:auto}
+ .gate-interaction-rail{bottom:205px;gap:4px;padding:5px}
+ .gate-interaction-rail span{font-size:7px;letter-spacing:0}
+ .gate-interaction-rail button{font-size:10px;padding:6px}
+ .gate-selection-area{bottom:9px;padding:7px 9px}
+ .gate-selection-grid{gap:14px}
+ .gate-slot-card{width:34px;height:54px}
+ .gate-slot{gap:2px}
+ .gate-commit-actions .btn{padding:8px 9px}
+}
+@media(max-height:680px){
+ .gate-sphere-header{top:75px}.gate-sphere-header p{display:none}
+ .gate-interaction-rail{bottom:156px}
+ .gate-selection-area{padding:6px}.gate-slot-card{width:29px;height:47px}
+}
+/* Scripted flight through the same spatial, square/card language as Gate A. */
+.gate-entry-cinematic{position:fixed;inset:0;z-index:1500;overflow:hidden;pointer-events:all;background:radial-gradient(circle at center,#1a2948 0%,#040718 65%,#010206 100%);perspective:850px;animation:gate-entry-curtain 2.35s ease-out both}
+.gate-entry-depth{position:absolute;top:50%;left:50%;width:min(65vw,70vh);aspect-ratio:1;border:1px solid #d2ba8f8a;box-shadow:0 0 55px #b5a7d55b,inset 0 0 38px #a0b7de38;transform-style:preserve-3d;animation:gate-flight 2.2s cubic-bezier(.55,.05,.15,1) both}
+.gate-entry-depth-a{--turn:0deg;animation-delay:0ms}
+.gate-entry-depth-b{--turn:36deg;animation-delay:80ms;border-color:#b9b6dd8a}
+.gate-entry-depth-c{--turn:72deg;animation-delay:150ms;border-color:#d6ba8696}
+.gate-entry-portal{position:absolute;left:50%;top:50%;width:min(38vw,42vh);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#05020b,#090e2c 48%,#8c84bd53 63%,transparent 71%);filter:blur(7px);animation:gate-portal-enter 2.3s both}
+.gate-entry-words{position:absolute;bottom:17%;left:0;right:0;text-align:center;color:#e1d1ac;font:11px ui-monospace,monospace;letter-spacing:.3em;animation:gate-words 2.3s both}
+@keyframes gate-flight{0%{opacity:0;transform:translate(-50%,-50%) translateZ(-490px) rotateZ(var(--turn)) rotateX(34deg)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) translateZ(470px) rotateZ(calc(var(--turn) + 34deg)) rotateX(64deg)}}
+@keyframes gate-portal-enter{0%{opacity:.3;transform:translate(-50%,-50%) scale(.15)}68%{opacity:1;transform:translate(-50%,-50%) scale(1.7)}100%{opacity:0;transform:translate(-50%,-50%) scale(4)}}
+@keyframes gate-entry-curtain{0%,72%{opacity:1}100%{opacity:0}}
+@keyframes gate-words{0%,65%{opacity:.9}100%{opacity:0}}
+/* All 75 cards spiral through a compact gravitational throat. */
+.gate-collapse-transition .ritual-vortex-debris>div{animation:gate-spiral-collapse 1.35s cubic-bezier(.55,.05,.76,.24) both;animation-delay:var(--delay)}
+.gate-collapse-transition .ritual-vortex-debris>div .card-back{box-shadow:0 0 13px #cfb6e755}
+.gate-collapse-transition .ritual-black-hole{box-shadow:0 0 0 15px #b8a1e129,0 0 0 55px #735aa920,0 0 105px 44px #b2a8f16c}
+@keyframes gate-spiral-collapse{
+ 0%{opacity:1;transform:translate(-50%,-50%) rotate(var(--angle)) translateX(var(--radius)) rotate(-20deg) scale(1)}
+ 50%{opacity:1;transform:translate(-50%,-50%) rotate(calc(var(--angle) + 350deg)) translateX(17vw) rotate(-110deg) scale(.55)}
+ 100%{opacity:0;transform:translate(-50%,-50%) rotate(calc(var(--angle) + 720deg)) translateX(0) rotate(-170deg) scale(.015)}
+}
+/* Gate D: artwork stays motionless UNDER the deforming back material. */
+.physical-card-row{perspective:1200px}
+.gate-peel-card{position:relative;display:block;overflow:visible;border-radius:9px;isolation:isolate;transform-style:preserve-3d;filter:drop-shadow(0 16px 25px #0009)}
+.gate-peel-art,.gate-peel-cover{position:absolute;inset:0;overflow:hidden;border-radius:9px}
+.gate-peel-art{z-index:1;background:#111b2b;box-shadow:0 0 0 2px #d4b781}
+.gate-peel-art .card-face{width:100%;height:100%;display:block}
+.gate-peel-art .card-image{display:block;width:100%;height:100%;object-fit:cover}
+.gate-peel-cover{z-index:2;filter:drop-shadow(1px 0 4px #05050cc0)}
+.gate-peel-cover .card-back{height:100%;width:100%;border-radius:9px}
+.gate-peel-fold{position:absolute;z-index:4;left:calc(var(--p)*100% - 11%);top:0;width:13%;height:100%;transform:perspective(360px) rotateY(-55deg);transform-origin:left center;pointer-events:none;background:linear-gradient(90deg,#f0d4a0 0%,#a47f5f 9%,#08132a 42%,#182944 80%,#d6b078 100%);box-shadow:5px 0 13px #000a;opacity:clamp(0,calc(var(--p)*7),1)}
+.gate-peel-glint{position:absolute;z-index:3;left:calc(var(--p)*100%);top:0;width:2px;height:100%;pointer-events:none;background:#fff3cf;box-shadow:0 0 11px 3px #eac98e9c;opacity:clamp(0,calc(var(--p)*5),.7)}
+.gate-peel-card[data-peek-direction="left"] .gate-peel-cover{clip-path:inset(0 0 0 calc(var(--p)*100%))}
+.gate-peel-card[data-peek-direction="right"] .gate-peel-cover{clip-path:inset(0 calc(var(--p)*100%) 0 0)}
+.gate-peel-card[data-peek-direction="right"] .gate-peel-fold{left:auto;right:calc(var(--p)*100% - 11%);transform:perspective(360px) rotateY(55deg)}
+.gate-peel-card[data-peek-direction="right"] .gate-peel-glint{left:auto;right:calc(var(--p)*100%)}
+.gate-peel-card[data-peek-direction="top"] .gate-peel-cover{clip-path:inset(calc(var(--p)*100%) 0 0 0)}
+.gate-peel-card[data-peek-direction="bottom"] .gate-peel-cover{clip-path:inset(0 0 calc(var(--p)*100%) 0)}
+.gate-peel-card:is([data-peek-direction="top"],[data-peek-direction="bottom"]) .gate-peel-fold{width:100%;height:13%;left:0;top:calc(var(--p)*100% - 11%);transform:perspective(360px) rotateX(55deg);background:linear-gradient(#eccd93,#132442 48%,#cca56b)}
+.gate-peel-card[data-peek-direction="bottom"] .gate-peel-fold{top:auto;bottom:calc(var(--p)*100% - 11%);transform:perspective(360px) rotateX(-55deg)}
+.gate-peel-card:is([data-peek-direction="top"],[data-peek-direction="bottom"]) .gate-peel-glint{left:0;top:calc(var(--p)*100%);width:100%;height:2px}
+.gate-peel-card[data-peek-direction="bottom"] .gate-peel-glint{top:auto;bottom:calc(var(--p)*100%)}
+.gate-peel-card[data-peek-direction="top-left"] .gate-peel-cover{clip-path:polygon(calc(var(--p)*100%) 0,100% 0,100% 100%,0 100%,0 calc(var(--p)*100%))}
+.gate-peel-card[data-peek-direction="top-right"] .gate-peel-cover{clip-path:polygon(0 0,calc(100% - var(--p)*100%) 0,100% calc(var(--p)*100%),100% 100%,0 100%)}
+.gate-peel-card[data-peek-direction="bottom-left"] .gate-peel-cover{clip-path:polygon(0 0,100% 0,100% 100%,calc(var(--p)*100%) 100%,0 calc(100% - var(--p)*100%))}
+.gate-peel-card[data-peek-direction="bottom-right"] .gate-peel-cover{clip-path:polygon(0 0,100% 0,100% calc(100% - var(--p)*100%),calc(100% - var(--p)*100%) 100%,0 100%)}
+.gate-peel-card[data-peek-direction*="-"] .gate-peel-fold{height:35%;top:0;transform-origin:top left;transform:rotate(-40deg) rotateY(-48deg)}
+.gate-peel-card[data-peek-direction*="-"] .gate-peel-glint{height:35%;top:0;transform:rotate(45deg)}
+.gate-peel-card[data-peek-direction^="bottom-"] .gate-peel-fold,.gate-peel-card[data-peek-direction^="bottom-"] .gate-peel-glint{top:auto;bottom:0}
+.physical-card-entry.has-revealed .gate-peel-cover,.physical-card-entry.has-revealed .gate-peel-fold,.physical-card-entry.has-revealed .gate-peel-glint{opacity:0;pointer-events:none}
+.gate-instant-reveal{margin:8px 0 0;background:transparent;border:0;color:#e3cb9c;text-decoration:underline;font-size:10px}
+.gate-instant-reveal:disabled{opacity:.3}
+@media(prefers-reduced-motion:reduce){.gate-entry-cinematic{display:none}.gate-sphere .gate-cosmos{background:#10172b}.gate-collapse-transition .ritual-vortex-debris>div{animation:none;display:none}.gate-peel-cover,.gate-peel-fold,.gate-peel-glint{transition:none!important}}
+
+
+/* Artemis: three distinguishable Japanese-inspired *blocking studies*.
+   Not an approved portrait. One CSS rig demonstrates expression/action states. */
+.site:has(.artemis-stage-immersive) .stage{max-width:none;width:100%;padding:0}
+.artemis-stage.artemis-stage-immersive{max-width:none;min-height:100vh;min-height:100svh;padding:105px 18px 54px;background:radial-gradient(ellipse at 50% 30%,#34304a80,#070b1b 70%,#03050d)}
+.artemis-stage-immersive .artemis-design-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:min(1120px,100%);margin:20px auto}
+.artemis-stage-immersive .artemis-style-choice{background:#0c142bd6;color:#e4d3ba;border:1px solid #b6a48a65;border-radius:12px;text-align:left;padding:12px 13px;display:flex;flex-direction:column;gap:8px;min-height:95px}
+.artemis-style-choice strong{font:15px Georgia,serif}
+.artemis-style-choice small{font-size:10px;line-height:1.45;color:#b9b5c9}
+.artemis-style-choice.active{background:#2a233ecc;border-color:#f1d095;box-shadow:inset 0 0 16px #d7b77c24}
+.artemis-stage-immersive .artemis-scene-preview{max-width:1120px;min-height:475px;border-radius:0;border-inline:0;border-color:#e1c48b2b;background:radial-gradient(ellipse at 50% 40%,#4e44677b,#0b1121 60%,#03050d 92%);overflow:hidden}
+.artemis-stage-immersive .artemis-moon{top:2%;width:310px;height:310px}
+.artemis-stage-immersive .artemis-tabletop{z-index:6;bottom:0%;height:158px}
+.artemis-persona{position:absolute;z-index:4;width:280px;height:380px;left:50%;top:4%;transform:translateX(-50%);--hair:#17243d;--hairshine:#51647f;--cloth:#34334c;--trim:#e8c690;--skin:#f4d1bc;--iris:#3b3449;filter:drop-shadow(0 0 25px #bbb1ff29);animation:artemis-idle-float 5.5s ease-in-out infinite}
+.artemis-persona-halo{position:absolute;width:270px;height:270px;border-radius:50%;left:50%;top:0;transform:translateX(-50%);border:1px solid #e7d9bc59;box-shadow:0 0 54px #c6bce52f;opacity:.55}
+.artemis-persona-hair-back{position:absolute;left:75px;top:33px;width:135px;height:240px;border-radius:70px 70px 43px 43px;background:linear-gradient(100deg,#0b1021,var(--hair) 44%,var(--hairshine) 75%,var(--hair));box-shadow:14px 12px 20px #030615a9}
+.artemis-persona-body{position:absolute;left:28px;top:225px;width:226px;height:165px;border-radius:95px 95px 10px 10px;background:linear-gradient(100deg,#141828,var(--cloth) 45%,#1a1830);border-top:2px solid var(--trim);clip-path:polygon(23% 0,77% 0,100% 48%,100% 100%,0 100%,0 48%)}
+.artemis-persona-collar{position:absolute;left:38%;top:0;width:24%;height:100px;clip-path:polygon(0 0,100% 0,65% 100%,35% 100%);background:linear-gradient(90deg,var(--trim),#241c37 43%,var(--trim))}
+.artemis-persona-charm{position:absolute;top:75px;left:50%;transform:translateX(-50%);color:var(--trim);font-size:22px;text-shadow:0 0 12px #fff5ce}
+.artemis-persona-neck{position:absolute;top:202px;left:125px;width:35px;height:45px;border-radius:15px;background:linear-gradient(90deg,#d5aa9c,var(--skin))}
+.artemis-persona-face{position:absolute;top:80px;left:94px;width:100px;height:146px;background:linear-gradient(100deg,#d7a99b,var(--skin) 44%,#e9bdaa);border-radius:46% 46% 50% 50% / 34% 34% 60% 60%;box-shadow:0 10px 17px #100d1a9c;transform-origin:50% 77%;transition:transform .35s ease}
+.artemis-persona-eye{position:absolute;top:57px;width:18px;height:11px;border-radius:50% 50% 35% 35%;border-top:2px solid #211d31;background:radial-gradient(circle at center,var(--iris) 0 43%,#f7f1ef 46%);transition:height .25s}
+.artemis-persona-eye.eye-left{left:19px}.artemis-persona-eye.eye-right{right:19px}
+.artemis-persona-mouth{position:absolute;bottom:33px;left:42px;width:17px;height:5px;border-bottom:2px solid #a76f73;border-radius:0 0 50% 50%;transition:height .2s}
+.artemis-persona-blush{position:absolute;left:13px;bottom:44px;width:74px;height:14px;background:radial-gradient(ellipse at 0% 50%,#b86c7129,transparent 25%),radial-gradient(ellipse at 100% 50%,#b86c7129,transparent 25%)}
+.artemis-persona-hair-front{position:absolute;left:85px;top:35px;width:125px;height:88px;background:linear-gradient(125deg,var(--hair),var(--hairshine) 64%,var(--hair));border-radius:75px 75px 45px 10px;clip-path:polygon(0 18%,80% 0,100% 32%,93% 97%,68% 74%,50% 98%,22% 55%,0 100%)}
+.artemis-persona-arm{position:absolute;top:239px;width:77px;height:130px;background:linear-gradient(100deg,var(--cloth),#121525);border:1px solid #d3b58550;border-radius:43px 43px 17px 17px;transform-origin:50% 20%;transition:transform .35s}
+.artemis-persona-arm.arm-left{left:30px;transform:rotate(18deg)}.artemis-persona-arm.arm-right{right:30px;transform:rotate(-18deg)}
+.artemis-persona-spark{position:absolute;top:195px;right:3px;font:35px Georgia,serif;color:var(--trim);opacity:.4;animation:artemis-spark 3s ease-in-out infinite}
+.artemis-persona-modern{--hair:#1b152b;--hairshine:#71536e;--cloth:#27223c;--trim:#ddd4eb;--skin:#e9c8b9;--iris:#57436a}
+.artemis-persona-modern .artemis-persona-hair-back{height:155px;border-radius:58px 63px 40px 23px;transform:rotate(-10deg)}
+.artemis-persona-modern .artemis-persona-hair-front{height:65px;transform:rotate(-9deg)}
+.artemis-persona-modern .artemis-persona-body{border-radius:15px 15px 4px 4px;clip-path:polygon(17% 0,83% 0,100% 72%,100% 100%,0 100%,0 72%)}
+.artemis-persona-modern .artemis-persona-halo{border-style:dashed;opacity:.36}
+.artemis-persona-storybook{--hair:#8270a7;--hairshine:#d1b4d9;--cloth:#a59ac8;--trim:#fff1d8;--skin:#f2d6ca;--iris:#6b5b95}
+.artemis-persona-storybook .artemis-persona-hair-back{width:165px;left:60px;height:270px;border-radius:85px 90px 53px 55px}
+.artemis-persona-storybook .artemis-persona-body{background:linear-gradient(110deg,#5d567d,#b0a2d2 55%,#655780);border-radius:95px 95px 4px 4px}
+.artemis-persona-storybook .artemis-persona-halo{box-shadow:0 0 70px #c0b0eb6b}
+.artemis-action-observe .artemis-persona-face,.artemis-action-thoughtful .artemis-persona-face{transform:rotate(7deg)}
+.artemis-action-observe .artemis-persona-eye,.artemis-action-thoughtful .artemis-persona-eye{height:6px}
+.artemis-action-surprised .artemis-persona-eye{height:17px}.artemis-action-surprised .artemis-persona-mouth{height:12px;border:2px solid #a76f73;border-radius:50%}
+.artemis-action-reassure .artemis-persona-mouth,.artemis-action-welcome .artemis-persona-mouth{height:9px;border-bottom-width:3px}
+.artemis-action-present .artemis-persona-arm.arm-right{transform:rotate(-85deg) translateY(-7px)}
+.artemis-action-present .artemis-persona-arm.arm-left{transform:rotate(55deg)}
+.artemis-action-welcome .artemis-persona-arm.arm-right{transform:rotate(-52deg)}
+.artemis-stage-actions{width:min(820px,100%);margin:15px auto;display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.artemis-stage-actions button{border:1px solid #c4a76c66;border-radius:20px;background:#111728;color:#d8c4a3;padding:7px 12px;font-size:11px}
+.artemis-stage-actions button.active{background:#514464;color:#fff0cf;border-color:#f0d69c}
+@keyframes artemis-idle-float{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-9px)}}
+@keyframes artemis-spark{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:.8;transform:scale(1.2)}}
+@media(max-width:680px){.artemis-stage-immersive .artemis-design-options{grid-template-columns:1fr;gap:5px}.artemis-style-choice{min-height:0!important;padding:8px 11px!important}.artemis-style-choice strong{font-size:13px}.artemis-style-choice small{font-size:9px}.artemis-stage-immersive .artemis-scene-preview{min-height:430px}.artemis-persona{transform:translateX(-50%) scale(.88);transform-origin:top center}.artemis-stage-actions button{font-size:10px;padding:6px 9px}}
+@media(prefers-reduced-motion:reduce){.artemis-persona,.artemis-persona-spark{animation:none!important}}
+/* The reveal remains in the same immersive cosmic environment after collapse. */
+.site:has(.physical-reveal) .stage{max-width:none;width:100%;padding:0}
+.site:has(.physical-reveal) .physical-reveal{max-width:none;min-height:100vh;min-height:100svh;background:radial-gradient(ellipse at 50% 46%,#34315099,#090d22 65%,#03060e 100%);padding:clamp(105px,13vh,160px) 18px 45px}
+.site:has(.physical-reveal) .physical-card-row{gap:clamp(10px,4vw,75px)}
+.site:has(.physical-reveal) .physical-card-entry{flex-basis:clamp(115px,18vw,238px)}
+
+/* Locked Modern Occult × Dreamlike Artemis character */
+.artemis-final-design .artemis-scene-final{max-width:1160px;min-height:clamp(460px,69vh,740px);overflow:hidden;margin:18px auto;border-radius:0;border-left:0;border-right:0;background:radial-gradient(ellipse at 50% 16%,#74588b45,transparent 45%),radial-gradient(ellipse at 50% 65%,#2b254cdd,#090d20 65%,#040812)}
+.artemis-final-design .artemis-moon{width:min(62vw,450px);height:min(62vw,450px);top:-6%;box-shadow:0 0 70px #ab8bc96a,inset 0 0 90px #8968c34b;border-color:#e8cb994b;opacity:.7}
+.artemis-avatar-mount{position:absolute;inset:0;display:flex;justify-content:center;align-items:flex-start;z-index:4;pointer-events:none}
+.artemis-avatar{width:clamp(240px,38vw,500px);height:auto;max-height:calc(100% - 35px);overflow:visible;filter:drop-shadow(0 20px 25px #03050eaf);transform-origin:center 72%;animation:artemis-natural-breath 6.2s ease-in-out infinite}
+.artemis-avatar .artemis-hair-layer{transform-origin:50% 32%;animation:artemis-hair-drift 8.5s ease-in-out infinite}
+.artemis-avatar .artemis-arms{transition:transform .45s ease;transform-origin:50% 72%}
+.artemis-avatar .artemis-head{transition:transform .45s ease;transform-origin:50% 61%}
+.artemis-avatar.artemis-pose-observe .artemis-head{transform:rotate(5deg) translateY(4px)}
+.artemis-avatar.artemis-pose-acknowledge .artemis-head{transform:translateY(6px) rotate(-3deg)}
+.artemis-avatar.artemis-pose-reassure .artemis-head{transform:rotate(-4deg)}
+.artemis-avatar.artemis-pose-speak .artemis-head{transform:rotate(-2deg)}
+.artemis-avatar.artemis-pose-invoke .artemis-celestial-focus,.artemis-avatar.artemis-expression-mystical .artemis-celestial-focus{opacity:.83;animation:artemis-focus-pulse 3.5s ease-in-out infinite}
+.artemis-final-design .artemis-tabletop{bottom:0;z-index:6;height:clamp(110px,22vh,175px)}
+.artemis-expression-studio{max-width:1080px;margin:24px auto 10px;padding:17px;text-align:left;border:1px solid #d6b88a4d;background:#101225bb;border-radius:14px}
+.artemis-expression-studio>summary{cursor:pointer;color:#d9c99d;font:14px Georgia,serif}
+.artemis-studio-heading{font-size:11px;color:#e6d0ab;letter-spacing:.15em;margin:17px 0 10px;text-transform:uppercase}
+.artemis-state-picker{display:flex;gap:8px;flex-wrap:wrap}
+.artemis-state-picker button{border:1px solid #a98eac5c;background:#101428d9;border-radius:16px;color:#dacada;padding:8px 11px;font-size:11px;transition:background .22s,border-color .22s}
+.artemis-state-picker button:hover,.artemis-state-picker button:focus-visible{border-color:#f0dcbd}
+.artemis-state-picker button.active{border-color:#e5bd83;background:#514063;color:#fff0d0}
+.artemis-reading-table.artemis-reading-character{display:flex;align-items:center;justify-content:center;gap:clamp(6px,2.6vw,42px);overflow:hidden;min-height:235px}
+.artemis-reading-figure{flex:0 0 clamp(105px,20vw,220px);align-self:flex-end;height:clamp(160px,25vw,235px);display:flex;align-items:flex-start;justify-content:center}
+.artemis-reading-figure .artemis-avatar{width:100%;max-height:none;transform:translateY(-25px);animation:none;filter:drop-shadow(0 6px 16px #06040c)}
+.artemis-reading-content{flex:1;max-width:610px;min-width:0}
+.artemis-reading-content .artemis-reading-cards{gap:clamp(8px,3vw,35px);margin-top:12px}
+@keyframes artemis-natural-breath{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.003)}}
+@keyframes artemis-hair-drift{0%,100%{transform:rotate(0)}50%{transform:rotate(1.3deg)}}
+@keyframes artemis-focus-pulse{0%,100%{opacity:.5}50%{opacity:.86}}
+@media(max-width:690px){.artemis-final-design .artemis-scene-final{min-height:550px}.artemis-final-design .artemis-moon{width:290px;height:290px;top:2%}.artemis-avatar-mount .artemis-avatar{width:min(88vw,380px);max-height:410px}.artemis-final-design .artemis-tabletop{height:115px;bottom:0}.artemis-reading-table.artemis-reading-character{gap:2px;padding:10px 5px}.artemis-reading-figure{flex-basis:95px;height:165px}.artemis-reading-content .artemis-reading-card{width:clamp(65px,19vw,96px)}.artemis-reading-content header{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.artemis-avatar,.artemis-avatar .artemis-hair-layer,.artemis-avatar .artemis-celestial-focus{animation:none!important}.artemis-avatar .artemis-arms,.artemis-avatar .artemis-head{transition:none!important}}
