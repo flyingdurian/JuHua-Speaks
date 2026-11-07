@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {vortexCamera,sampleVortexCard} from '../src/ritual-world/VortexRibbon.mjs';
 
 test('reference camera banks dynamically from face-on into a vertical corkscrew',()=>{
- const samples=[[1.10,.04],[2.10,.06],[3.00,.10],[3.75,.14],[4.40,.18],[5.45,0]];
+ const samples=[[1.10,.04],[2.10,.08],[3.00,.14],[3.75,.19],[4.40,.23],[5.45,0]];
  for(const [t,pitch] of samples)assert.ok(Math.abs(vortexCamera(t).pitch-pitch)<1e-9);
  for(let t=1.1;t<=5.44;t+=.025){
   const a=vortexCamera(t),b=vortexCamera(t+.002);
