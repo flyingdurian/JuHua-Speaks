@@ -1,26 +1,22 @@
 /**
- * Gate B Sequence 1: velocity-aligned ink/light tails.
- *
- * Every trail samples actual previous positions of the 78 real 3D Tarot
- * meshes; no image of a tornado, no static moving ring, no cloned identities.
- * Real afterimage CARD artwork is rendered separately by WebGL2.
+ * Selective temporal streaks for the ~5 staged hero cards. Ordinary Tarot
+ * sheets NEVER receive their own trail. No evenly spaced orbit drawings.
  */
 import {sampleVortexCard} from '../../src/ritual-world/VortexRibbon.mjs';
+import {HERO_TRAIL_SLOTS,trailStrength} from '../../src/ritual-world/ShotDirector.mjs';
 import {sequenceOneEchoEnvelope} from '../../src/ritual-world/TemporalEcho.mjs';
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
-const FOCAL=428/(2*Math.tan(58*Math.PI/360));
-const HISTORY=[0,.032,.074,.126,.195,.281,.348];
-function project(point){
- const z=-point.position[2];
- if(z<=2||!Number.isFinite(z))return null;
- return {x:256+FOCAL*point.position[0]/z,
-         y:214-FOCAL*point.position[1]/z,z};
+const focal=428/(2*Math.tan(58*Math.PI/360));
+const HISTORY=[0,.041,.088,.150,.220];
+function project(p){
+ const z=-p.position[2];
+ return z>2&&Number.isFinite(z)?{x:256+focal*p.position[0]/z,y:214-focal*p.position[1]/z,z}:null;
 }
 export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
  if(!mount)throw Error('FlowMist requires a mount');
- const canvas=document.createElement('canvas');canvas.className='advected-mist';
- canvas.width=512;canvas.height=428;canvas.setAttribute('aria-hidden','true');
- mount.append(canvas);
+ const canvas=document.createElement('canvas');
+ canvas.className='advected-mist';canvas.width=512;canvas.height=428;
+ canvas.setAttribute('aria-hidden','true');mount.append(canvas);
  const ctx=canvas.getContext('2d',{alpha:true});
  let frame=0,last=-1,disposed=false;
  const draw=()=>{
@@ -28,44 +24,40 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
   frame=requestAnimationFrame(draw);
   if(document.hidden)return;
   const t=getAge();
-  if(t<1.10||t>=5.45){
+  if(t<1.10||t>5.45||reduceMotion){
    if(last>=0)ctx.clearRect(0,0,512,428);
    last=-1;return;
   }
-  if(Math.abs(t-last)<.025)return;
+  if(Math.abs(t-last)<.024)return;
   last=t;ctx.clearRect(0,0,512,428);
   const envelope=sequenceOneEchoEnvelope(t);
-  if(envelope<.005||reduceMotion)return;
+  if(envelope<.005)return;
   ctx.save();ctx.globalCompositeOperation='screen';
-  // Each visible stroke follows one independently moving card through 3D
-  // perspective, including curved paths and accelerated foreground passes.
-  for(let k=0;k<78;k++){
-   const trace=HISTORY.map(lag=>project(sampleVortexCard(k,seed,Math.max(1.10,t-lag))));
-   if(trace.some(v=>!v))continue;
-   const [now,prior]=trace,delta=Math.hypot(now.x-prior.x,now.y-prior.y);
-   const apparentSpeed=delta/HISTORY[1];
-   const strength=clamp((apparentSpeed-14)/115)*envelope;
-   if(strength<.07)continue;
-   const close=clamp(26/now.z,.42,2.2);
-   const isBright=k%11===2||k%13===3;
-   const color=isBright?[214,201,183]:[139,155,206];
+  for(const k of HERO_TRAIL_SLOTS){
+   const focus=trailStrength(k,t);
+   if(focus<.18)continue;
+   const path=HISTORY.map(lag=>project(sampleVortexCard(k,seed,Math.max(1.10,t-lag))));
+   if(path.some(p=>!p))continue;
+   const v=Math.hypot(path[0].x-path[1].x,path[0].y-path[1].y)/HISTORY[1];
+   const speed=clamp((v-30)/180);
+   if(speed<.1)continue;
+   const alpha=focus*speed*envelope;
+   const c=k%2===0?'215,198,169':'156,178,235';
    for(let j=HISTORY.length-1;j>0;j--){
-    const a=trace[j],b=trace[j-1];
-    const length=Math.hypot(a.x-b.x,a.y-b.y);
-    if(length>140||length<.25)continue;
-    const weight=Math.pow(1-j/HISTORY.length,1.22);
+    const a=path[j],b=path[j-1];
+    const length=Math.hypot(b.x-a.x,b.y-a.y);
+    if(length<.35||length>90)continue;
+    const tip=(HISTORY.length-j)/HISTORY.length;
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
-    ctx.lineWidth=close*(.51+1.40*weight);
-    ctx.strokeStyle='rgba('+color.join(',')+','+(strength*(.12+.49*weight))+')';
+    ctx.lineWidth=clamp(12/b.z,.35,1.4)*(0.5+tip);
+    ctx.strokeStyle='rgba('+c+','+(alpha*(.04+.31*tip*tip))+')';
     ctx.stroke();
    }
   }
   ctx.restore();
  };
  frame=requestAnimationFrame(draw);
- return {diagnostics:()=>({
-  type:'individual-card-temporal-streaks',cardCount:78,
-  tailSamples:HISTORY.length,velocityDriven:true,staticTornado:false,
-  approvedSphereUnaffected:true
- }),dispose(){disposed=true;cancelAnimationFrame(frame);canvas.remove()}};
+ return {diagnostics:()=>({type:'directed-hero-streaks',maxTrailCards:5,
+  historySamples:HISTORY.length,otherCardsNeverTrail:true,
+  approvedSphereUnaffected:true}),dispose(){disposed=true;cancelAnimationFrame(frame);canvas.remove()}};
 }
