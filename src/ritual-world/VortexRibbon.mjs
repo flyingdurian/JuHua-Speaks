@@ -24,11 +24,11 @@ const hash=(i,s=0)=>{
 // All camera movement is continuous and evaluated on the same world object.
 const CAMERA=[
  {t:1.10,yaw:.06,roll:-.07,pitch:.04,zoom:1.00,px:0,py:0,sx:1,sy:1,cardGain:1},
- {t:2.10,yaw:.09,roll:.08,pitch:.06,zoom:1.13,px:8,py:0,sx:1.06,sy:1.05,cardGain:1.04},
- {t:3.00,yaw:.12,roll:.25,pitch:.10,zoom:1.12,px:8,py:0,sx:.91,sy:1.16,cardGain:1.04},
- {t:3.75,yaw:.14,roll:.49,pitch:.14,zoom:1.09,px:5,py:0,sx:.90,sy:1.38,cardGain:1.00},
- {t:4.40,yaw:.18,roll:.70,pitch:.18,zoom:1.02,px:0,py:0,sx:.85,sy:1.28,cardGain:.97},
- {t:4.75,yaw:.18,roll:.78,pitch:.18,zoom:.99,px:0,py:0,sx:.82,sy:1.20,cardGain:.94},
+ {t:2.10,yaw:.10,roll:-.06,pitch:.08,zoom:1.13,px:-42,py:-56,sx:1.06,sy:1.12,cardGain:1.01},
+ {t:3.00,yaw:.17,roll:-.10,pitch:.14,zoom:1.16,px:-50,py:-64,sx:.97,sy:1.30,cardGain:1.00},
+ {t:3.75,yaw:.25,roll:.53,pitch:.19,zoom:1.12,px:-32,py:-60,sx:.83,sy:1.60,cardGain:.96},
+ {t:4.40,yaw:.28,roll:.72,pitch:.23,zoom:1.03,px:-22,py:-48,sx:.77,sy:1.48,cardGain:.94},
+ {t:4.75,yaw:.22,roll:.63,pitch:.20,zoom:1.01,px:-23,py:-30,sx:.78,sy:1.21,cardGain:.93},
  {t:5.45,yaw:.10,roll:0,pitch:0,zoom:1,px:0,py:0,sx:1,sy:1,cardGain:1},
 ];
 function cameraValue(t,key){
