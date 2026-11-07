@@ -17,10 +17,12 @@ test('Sequence 1 cards are carried through substantial 3D depth while revolving 
    'All physical sheets must remain in front of the camera with finite geometry');
   const zs=v.map(x=>x.position[2]);
   assert.ok(Math.max(...zs)-Math.min(...zs)>7,'The spiral must have real Z separation');
-  const angles=v.filter(p=>p.lane===0).sort((a,b)=>a.q-b.q).map(p=>p.theta);
-  const gaps=angles.slice(1).map((v,i)=>v-angles[i]);
-  assert.ok(gaps.filter(g=>Math.abs(g)<3.5).length>=34,
-   'Independent sheets may overtake, but must remain in the same coherent spiral');
+  for(const card of cards){
+   const a=sampleVortexCard(card.orbitSlot,card.visualSeed,t).position;
+   const b=sampleVortexCard(card.orbitSlot,card.visualSeed,t+.005).position;
+   assert.ok(Math.hypot(...a.map((v,i)=>v-b[i]))<2.7,
+    'A material Tarot sheet must not teleport as orbital phases overtake');
+  }
  }
  let moved=0;
  for(const c of cards){
@@ -98,4 +100,15 @@ test('Approved Sequence 2 choreography and all subsequent steps are byte-for-byt
   const poses=cards.map(c=>sample(c,t));
   assert.ok(poses.every(p=>p.position.every(Number.isFinite)));
  }
+});
+
+test('Final neck compresses all 78 moving cards into a narrow aligned physical throat',()=>{
+ const positions=t=>cards.map(c=>sampleVortexCard(c.orbitSlot,c.visualSeed,t).position);
+ const radial=t=>positions(t).reduce((n,p)=>n+Math.hypot(p[0],p[1]),0)/78;
+ const wide=radial(4.68),neck=radial(5.42);
+ assert.ok(neck<wide*.45,'The neck must contract laterally, not scatter into a pile');
+ const near=positions(5.42).map(p=>p[2]);
+ assert.ok(Math.max(...near)-Math.min(...near)<3.8,
+   'The neck must converge to a common deck depth');
+ assert.equal(cards.length,78);
 });
