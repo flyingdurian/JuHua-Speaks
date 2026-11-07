@@ -30,7 +30,7 @@ const program=(gl)=>{
  const frag=shader(gl,gl.FRAGMENT_SHADER,`#version 300 es
  precision mediump float;
  in vec2 vUv;in float vLight;uniform sampler2D atlas;uniform float passAlpha;uniform float echoTone;out vec4 color;
- void main(){vec4 base=texture(atlas,vUv);vec3 lit=base.rgb*(.72+.28*clamp(vLight,0.0,1.0));vec3 tinted=mix(lit,lit*.83+vec3(.055,.075,.14),echoTone);color=vec4(tinted,passAlpha);} // Main 78 sheets stay fully opaque; ghost pass is time-sampled only.`);
+ void main(){vec4 base=texture(atlas,vUv);vec3 lit=base.rgb*(.72+.28*clamp(vLight,0.0,1.0));vec3 tinted=mix(lit,lit*.91+vec3(.11,.12,.18),echoTone);color=vec4(tinted,passAlpha);} // Main 78 sheets stay fully opaque; ghost pass is time-sampled only.`);
  const p=gl.createProgram();gl.attachShader(p,vert);gl.attachShader(p,frag);gl.linkProgram(p);
  gl.deleteShader(vert);gl.deleteShader(frag);
  if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));return p;
@@ -167,7 +167,7 @@ export class RitualWorld{
      &&age>1.37&&age<5.42&&sequenceOneEchoEnvelope(age)>.002;
   if(echoes){
    gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
-   gl.depthMask(false);gl.uniform1f(this.locEchoTone,.62);
+   gl.depthMask(false);gl.uniform1f(this.locEchoTone,.75);
    const pNow=this.cards.map(card=>samplePhysicalShuffle(card,{
     style:'auto',age,landingAt:this.shuffleLandingAt,worldTime:this.elapsed,
     entranceMode:this.entranceMode
