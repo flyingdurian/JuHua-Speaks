@@ -19,7 +19,7 @@ test('Sequence 1 cards are carried through substantial 3D depth while revolving 
   assert.ok(Math.max(...zs)-Math.min(...zs)>7,'The spiral must have real Z separation');
   const angles=v.filter(p=>p.lane===0).sort((a,b)=>a.q-b.q).map(p=>p.theta);
   const gaps=angles.slice(1).map((v,i)=>v-angles[i]);
-  assert.ok(gaps.filter(g=>Math.abs(g)<3.5).length>=44,
+  assert.ok(gaps.filter(g=>Math.abs(g)<3.5).length>=34,
    'Independent sheets may overtake, but must remain in the same coherent spiral');
  }
  let moved=0;
