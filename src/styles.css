@@ -531,3 +531,35 @@
 .site:has(.physical-reveal) .physical-reveal{max-width:none;min-height:100vh;min-height:100svh;background:radial-gradient(ellipse at 50% 46%,#34315099,#090d22 65%,#03060e 100%);padding:clamp(105px,13vh,160px) 18px 45px}
 .site:has(.physical-reveal) .physical-card-row{gap:clamp(10px,4vw,75px)}
 .site:has(.physical-reveal) .physical-card-entry{flex-basis:clamp(115px,18vw,238px)}
+
+/* Locked Modern Occult × Dreamlike Artemis character */
+.artemis-final-design .artemis-scene-final{max-width:1160px;min-height:clamp(460px,69vh,740px);overflow:hidden;margin:18px auto;border-radius:0;border-left:0;border-right:0;background:radial-gradient(ellipse at 50% 16%,#74588b45,transparent 45%),radial-gradient(ellipse at 50% 65%,#2b254cdd,#090d20 65%,#040812)}
+.artemis-final-design .artemis-moon{width:min(62vw,450px);height:min(62vw,450px);top:-6%;box-shadow:0 0 70px #ab8bc96a,inset 0 0 90px #8968c34b;border-color:#e8cb994b;opacity:.7}
+.artemis-avatar-mount{position:absolute;inset:0;display:flex;justify-content:center;align-items:flex-start;z-index:4;pointer-events:none}
+.artemis-avatar{width:clamp(240px,38vw,500px);height:auto;max-height:calc(100% - 35px);overflow:visible;filter:drop-shadow(0 20px 25px #03050eaf);transform-origin:center 72%;animation:artemis-natural-breath 6.2s ease-in-out infinite}
+.artemis-avatar .artemis-hair-layer{transform-origin:50% 32%;animation:artemis-hair-drift 8.5s ease-in-out infinite}
+.artemis-avatar .artemis-arms{transition:transform .45s ease;transform-origin:50% 72%}
+.artemis-avatar .artemis-head{transition:transform .45s ease;transform-origin:50% 61%}
+.artemis-avatar.artemis-pose-observe .artemis-head{transform:rotate(5deg) translateY(4px)}
+.artemis-avatar.artemis-pose-acknowledge .artemis-head{transform:translateY(6px) rotate(-3deg)}
+.artemis-avatar.artemis-pose-reassure .artemis-head{transform:rotate(-4deg)}
+.artemis-avatar.artemis-pose-speak .artemis-head{transform:rotate(-2deg)}
+.artemis-avatar.artemis-pose-invoke .artemis-celestial-focus,.artemis-avatar.artemis-expression-mystical .artemis-celestial-focus{opacity:.83;animation:artemis-focus-pulse 3.5s ease-in-out infinite}
+.artemis-final-design .artemis-tabletop{bottom:0;z-index:6;height:clamp(110px,22vh,175px)}
+.artemis-expression-studio{max-width:1080px;margin:24px auto 10px;padding:17px;text-align:left;border:1px solid #d6b88a4d;background:#101225bb;border-radius:14px}
+.artemis-expression-studio>summary{cursor:pointer;color:#d9c99d;font:14px Georgia,serif}
+.artemis-studio-heading{font-size:11px;color:#e6d0ab;letter-spacing:.15em;margin:17px 0 10px;text-transform:uppercase}
+.artemis-state-picker{display:flex;gap:8px;flex-wrap:wrap}
+.artemis-state-picker button{border:1px solid #a98eac5c;background:#101428d9;border-radius:16px;color:#dacada;padding:8px 11px;font-size:11px;transition:background .22s,border-color .22s}
+.artemis-state-picker button:hover,.artemis-state-picker button:focus-visible{border-color:#f0dcbd}
+.artemis-state-picker button.active{border-color:#e5bd83;background:#514063;color:#fff0d0}
+.artemis-reading-table.artemis-reading-character{display:flex;align-items:center;justify-content:center;gap:clamp(6px,2.6vw,42px);overflow:hidden;min-height:235px}
+.artemis-reading-figure{flex:0 0 clamp(105px,20vw,220px);align-self:flex-end;height:clamp(160px,25vw,235px);display:flex;align-items:flex-start;justify-content:center}
+.artemis-reading-figure .artemis-avatar{width:100%;max-height:none;transform:translateY(-25px);animation:none;filter:drop-shadow(0 6px 16px #06040c)}
+.artemis-reading-content{flex:1;max-width:610px;min-width:0}
+.artemis-reading-content .artemis-reading-cards{gap:clamp(8px,3vw,35px);margin-top:12px}
+@keyframes artemis-natural-breath{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.003)}}
+@keyframes artemis-hair-drift{0%,100%{transform:rotate(0)}50%{transform:rotate(1.3deg)}}
+@keyframes artemis-focus-pulse{0%,100%{opacity:.5}50%{opacity:.86}}
+@media(max-width:690px){.artemis-final-design .artemis-scene-final{min-height:550px}.artemis-final-design .artemis-moon{width:290px;height:290px;top:2%}.artemis-avatar-mount .artemis-avatar{width:min(88vw,380px);max-height:410px}.artemis-final-design .artemis-tabletop{height:115px;bottom:0}.artemis-reading-table.artemis-reading-character{gap:2px;padding:10px 5px}.artemis-reading-figure{flex-basis:95px;height:165px}.artemis-reading-content .artemis-reading-card{width:clamp(65px,19vw,96px)}.artemis-reading-content header{font-size:9px}}
+@media(prefers-reduced-motion:reduce){.artemis-avatar,.artemis-avatar .artemis-hair-layer,.artemis-avatar .artemis-celestial-focus{animation:none!important}.artemis-avatar .artemis-arms,.artemis-avatar .artemis-head{transition:none!important}}
