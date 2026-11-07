@@ -1,99 +1,71 @@
 /**
- * Gate B v8: actual material-wake filaments along the same physical 3D
- * corkscrew paths as the 78 cards. No painted tornado image, no background
- * rotation, and no effect outside the unapproved first sequence.
+ * Gate B Sequence 1: velocity-aligned ink/light tails.
+ *
+ * Every trail samples actual previous positions of the 78 real 3D Tarot
+ * meshes; no image of a tornado, no static moving ring, no cloned identities.
+ * Real afterimage CARD artwork is rendered separately by WebGL2.
  */
-import {sampleVortexRibbon,sampleVortexCard,vortexProgress} from '../../src/ritual-world/VortexRibbon.mjs';
+import {sampleVortexCard} from '../../src/ritual-world/VortexRibbon.mjs';
+import {sequenceOneEchoEnvelope} from '../../src/ritual-world/TemporalEcho.mjs';
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const FOCAL=428/(2*Math.tan(58*Math.PI/360));
-function project(p){
- const v=p.position,z=-v[2];
- if(z<=2)return null;
- return {x:256+FOCAL*v[0]/z,y:214-FOCAL*v[1]/z,z};
-}
-function sprite(){
- const c=document.createElement('canvas');c.width=64;c.height=64;
- const x=c.getContext('2d');
- const g=x.createRadialGradient(32,32,0,32,32,32);
- g.addColorStop(0,'rgba(228,229,218,.65)');
- g.addColorStop(.23,'rgba(188,193,199,.20)');
- g.addColorStop(1,'rgba(143,155,175,0)');
- x.fillStyle=g;x.fillRect(0,0,64,64);
- return c;
+const HISTORY=[0,.032,.070,.115,.170,.237];
+function project(point){
+ const z=-point.position[2];
+ if(z<=2||!Number.isFinite(z))return null;
+ return {x:256+FOCAL*point.position[0]/z,
+         y:214-FOCAL*point.position[1]/z,z};
 }
 export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
  if(!mount)throw Error('FlowMist requires a mount');
  const canvas=document.createElement('canvas');canvas.className='advected-mist';
  canvas.width=512;canvas.height=428;canvas.setAttribute('aria-hidden','true');
  mount.append(canvas);
- const ctx=canvas.getContext('2d',{alpha:true}),mote=sprite();
- let last=-1,frame=0,disposed=false;
+ const ctx=canvas.getContext('2d',{alpha:true});
+ let frame=0,last=-1,disposed=false;
  const draw=()=>{
   if(disposed)return;
   frame=requestAnimationFrame(draw);
   if(document.hidden)return;
   const t=getAge();
-  if(t<1.12||t>6.30){
+  if(t<1.10||t>=5.45){
    if(last>=0)ctx.clearRect(0,0,512,428);
    last=-1;return;
   }
-  if(Math.abs(t-last)<.027)return;
+  if(Math.abs(t-last)<.025)return;
   last=t;ctx.clearRect(0,0,512,428);
-  const {collapse}=vortexProgress(t);
-  const fade=clamp((t-1.12)/.44)*clamp((6.26-t)/.7);
-  const plume=clamp((t-2.94)/.90)*clamp((5.50-t)/.80);
+  const envelope=sequenceOneEchoEnvelope(t);
+  if(envelope<.005||reduceMotion)return;
   ctx.save();ctx.globalCompositeOperation='screen';
-  for(let lane=0;lane<3;lane++){
-   // Curved streaks are computed from the WHOLE moving 3D ribbon, not
-   // rotating images. The foreground moves differently from far segments.
-   const steps=reduceMotion?40:96;
-   ctx.beginPath();let previous=null;
-   for(let i=0;i<=steps;i++){
-    const q=i/steps,p=project(sampleVortexRibbon(lane,q,t,seed));
-    if(!p){previous=null;continue}
-    if(!previous||Math.hypot(p.x-previous.x,p.y-previous.y)>100)
-      ctx.moveTo(p.x,p.y);
-    else ctx.lineTo(p.x,p.y);
-    previous=p;
+  // Each visible stroke follows one independently moving card through 3D
+  // perspective, including curved paths and accelerated foreground passes.
+  for(let k=0;k<78;k++){
+   const trace=HISTORY.map(lag=>project(sampleVortexCard(k,seed,Math.max(1.10,t-lag))));
+   if(trace.some(v=>!v))continue;
+   const [now,prior]=trace,delta=Math.hypot(now.x-prior.x,now.y-prior.y);
+   const apparentSpeed=delta/HISTORY[1];
+   const strength=clamp((apparentSpeed-17)/135)*envelope;
+   if(strength<.07)continue;
+   const close=clamp(26/now.z,.42,2.2);
+   const isBright=k%11===2||k%13===3;
+   const color=isBright?[214,201,183]:[139,155,206];
+   for(let j=HISTORY.length-1;j>0;j--){
+    const a=trace[j],b=trace[j-1];
+    const length=Math.hypot(a.x-b.x,a.y-b.y);
+    if(length>110||length<.25)continue;
+    const weight=Math.pow(1-j/HISTORY.length,1.45);
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+    ctx.lineWidth=close*(.47+1.2*weight);
+    ctx.strokeStyle='rgba('+color.join(',')+','+(strength*(.09+.36*weight))+')';
+    ctx.stroke();
    }
-   const haze=(.07+.025*(lane===0?1:0))*fade*plume;
-   ctx.globalAlpha=1;
-   ctx.strokeStyle='rgba(154,165,176,'+haze+')';
-   ctx.lineWidth=reduceMotion?5:9;ctx.stroke();
-   ctx.strokeStyle='rgba(203,207,212,'+(haze*.48)+')';
-   ctx.lineWidth=reduceMotion?2:3.5;ctx.stroke();
-   ctx.strokeStyle='rgba(214,216,211,'+(.13*fade)+')';
-   ctx.lineWidth=1.3;ctx.stroke();
-  }
-  // Physically grounded shutter trails: the tip and tail belong to the
-  // SAME sheet at two nearby times. No imitated rotating backdrop exists.
-  if(!reduceMotion){
-   for(let k=0;k<78;k++){
-    const a=project(sampleVortexCard(k,seed,t));
-    const b=project(sampleVortexCard(k,seed,t-.12));
-    if(!a||!b)continue;
-    const len=Math.hypot(a.x-b.x,a.y-b.y);
-    if(len<1||len>200)continue;
-    ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(a.x,a.y);
-    ctx.globalAlpha=1;
-    ctx.strokeStyle='rgba(211,216,221,'+(.15*fade*(1-.55*collapse))+')';
-    ctx.lineWidth=clamp(28/a.z,.45,1.55);ctx.stroke();
-   }
-  }
-  const n=reduceMotion?55:185;
-  for(let i=0;i<n;i++){
-   const lane=i%3;
-   const q=((i*0.6180339887498949+seed*.00000017)%1+1)%1;
-   const p=project(sampleVortexRibbon(lane,q,t,seed));
-   if(!p||p.x<-40||p.x>552||p.y<-40||p.y>468)continue;
-   const size=clamp((160+45*(i%7))/p.z,2,16);
-   ctx.globalAlpha=fade*(.026+.028*((i*37%101)/101))*(.28+.72*plume)*(1-.35*collapse);
-   ctx.drawImage(mote,p.x-size/2,p.y-size/2,size,size);
   }
   ctx.restore();
  };
  frame=requestAnimationFrame(draw);
- return {diagnostics:()=>({type:'shared-3D-card-ribbon-wake',count:reduceMotion?55:185,
-  staticTornado:false,approvedSphereUnaffected:true}),
-  dispose(){disposed=true;cancelAnimationFrame(frame);canvas.remove()}};
+ return {diagnostics:()=>({
+  type:'individual-card-temporal-streaks',cardCount:78,
+  tailSamples:HISTORY.length,velocityDriven:true,staticTornado:false,
+  approvedSphereUnaffected:true
+ }),dispose(){disposed=true;cancelAnimationFrame(frame);canvas.remove()}};
 }
