@@ -225,3 +225,9 @@
 .gate-b .shuffle-buttons{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
 .gate-b .shuffle-buttons button{border:1px solid #bca7835e;background:#07111bbd;color:#e9dec9;font-size:10px;letter-spacing:.09em;padding:8px 10px;border-radius:4px}
 .gate-b .shuffle-buttons button:hover,.gate-b .shuffle-buttons button:focus-visible{border-color:#eacb89;background:#152137}
+
+/* Gate B -> Phase 8.2 one-way route transition: no false shuffle-only endpoint. */
+.gate-b-entering-selection .world-root{opacity:0;transform:scale(1.35);transition:opacity .6s ease,transform .6s ease}
+.gate-b-entering-selection .ritual-copy{opacity:0;transition:opacity .35s ease}
+.gate-b-entering-selection #gate-b-notice{color:#f7db9e;text-shadow:0 0 14px #dcb96e9c}
+@media(prefers-reduced-motion:reduce){.gate-b-entering-selection .world-root,.gate-b-entering-selection .ritual-copy{transition:none}}

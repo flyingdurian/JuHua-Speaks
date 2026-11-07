@@ -1,4 +1,5 @@
-import {DECK} from '../../src/deck.mjs';
+import {DECK,shuffleDeck} from '../../src/deck.mjs';
+import {GATE_B_HANDOFF_KEY,createGateBHandoff} from '../../src/gate-b-handoff.mjs';
 import {createVisualSeed} from '../../src/ritual-world/OrbitalField.mjs';
 import {RitualWorld} from '../../src/ritual-world/RitualWorld.mjs';
 import {CanvasOrbit} from '../../src/ritual-world/CanvasOrbit.mjs';
@@ -30,6 +31,7 @@ const sky=initCelestialSky({
 });
 const faceAssetForId=id=>new URL('../../assets/rws/'+id+'.jpg',import.meta.url).href;
 let world=null,loadCount=0,failedAssets=0,lastStatus='',renderError='';
+let selectionOrder=null,handingOff=false;
 const onStatus=evt=>{
  if(evt.state==='context-lost'){status.textContent='GRAPHICS CONTEXT LOST';return}
  if(Number.isInteger(evt.loaded))loadCount=evt.loaded;
@@ -98,6 +100,8 @@ buttonStart.addEventListener('click',()=>{
   overlay.hidden=false;root.classList.add('in-ritual');deckControls.hidden=true;
   return;
  }
+ // Securely sample the 78-card order once, at the start of the actual ritual.
+ selectionOrder=shuffleDeck().map(card=>card.id);
  root.classList.add('in-ritual');overlay.hidden=false;deckControls.hidden=true;notice.textContent='';
  renderUI();
 });
@@ -108,8 +112,22 @@ document.getElementById('shuffle-buttons').addEventListener('click',event=>{
  catch(error){renderError=error.message;status.textContent='SHUFFLE RENDER ERROR · '+renderError;console.error(error)}
 });
 document.getElementById('finish-shuffle').addEventListener('click',()=>{
- if(!world||world.phase!=='deck_formed')return;
- notice.textContent='78 cards formed. Phase 8.2 Reveal + Artemis is developed separately; this studio remains a shuffle-only visual gate.';
+ if(!world||world.phase!=='deck_formed'||handingOff||!selectionOrder)return;
+ const question=document.getElementById('question').value.trim();
+ try{
+  // One-use, same-origin, same-tab transfer; neither question nor order enters URL.
+  const payload=createGateBHandoff({question,orderedCardIds:selectionOrder});
+  sessionStorage.setItem(GATE_B_HANDOFF_KEY,JSON.stringify(payload));
+ }catch(error){
+  console.error('Private Gate B handoff failed',error);
+  notice.textContent='Cannot enter the selection chamber: private session storage is required. '+error.message;
+  return;
+ }
+ handingOff=true;
+ const button=document.getElementById('finish-shuffle');button.disabled=true;
+ root.classList.add('gate-b-entering-selection');
+ notice.textContent='Entering the 78-card celestial sphere…';
+ window.setTimeout(()=>window.location.assign(new URL('../../ritual.html',import.meta.url).href),650);
 });
 buttonPause.addEventListener('click',()=>{
  if(!world)return;
@@ -120,7 +138,7 @@ buttonPause.addEventListener('click',()=>{
 document.getElementById('reset').addEventListener('click',()=>{
  if(!world)return;
  world.setPaused(false);buttonPause.setAttribute('aria-pressed','false');buttonPause.textContent='PAUSE Ⅱ';
- renderError='';world.resetGateB();root.classList.remove('in-ritual','deck-ready','vacuum-active');overlay.hidden=true;
+ renderError='';handingOff=false;selectionOrder=null;world.resetGateB();root.classList.remove('in-ritual','deck-ready','vacuum-active','gate-b-entering-selection');overlay.hidden=true;
  notice.textContent='';lastStatus='';renderUI();
 });
 const statusTimer=setInterval(renderUI,180);
