@@ -12,6 +12,7 @@ import {prepareQuestionPreflight} from './reading-orchestrator.mjs';
 import {renderRitualLanding,renderRitualShuffle} from './ritual-views.mjs';
 import {mountRitualCinema,LAUNCH_DURATION_MS} from './ritual-cinema.mjs';
 import {renderPhysicalReveal,peekOrigin,peekProgress,clampPeek} from './physical-reveal.mjs';
+import {renderArtemisInvitation,renderArtemisTable} from './artemis-stage.mjs';
 import {clampReveal,progressFromCardDrag,progressFromPinch,nextRevealProgress,isRevealed,allCardsRevealed} from './reveal-interaction.mjs';
 
 const root=document.querySelector('#app');
@@ -91,6 +92,7 @@ async function runLocalReading(followup=''){
 }
 
 function reading(){
+ if(state.ritual.phase==='reader_invitation')return renderArtemisInvitation({state,t,h,btn,eyebrow,cardFace,description,roleNames});
  const demo=scriptedReading(),beat=state.readingBeat,full=beat===3,opening=beat<0;
  const active=beat>=0&&beat<3?demo.cards[beat]:null;
  const narration=opening?{
@@ -109,6 +111,7 @@ function reading(){
  const nextLabel=opening?t('Begin the interpretation ✧','开始解读 ✧'):beat<2?t('Illuminate the next card →','照亮下一张牌 →'):beat===2?t('Bring the three meanings together →','汇聚三张牌的含义 →'):t('Revisit the first card','重温第一张牌');
  const phaseName=opening?'00':full?'04':String(beat+1).padStart(2,'0');
  return `<section class="reading-page reading-v07 ${state.localMode==='exodia'?'reading-exodia-mode':''}">
+   ${renderArtemisTable({state,t,h,cardFace,roleNames})}
    <div class="reading-header"><div>${eyebrow('05 / '+t('THE READING COMES ALIVE','让解读鲜活起来'))}<h1>${t('The story <em>between the stars.</em>','星辰之间，<em>藏着怎样的线索？</em>')}</h1></div><div class="reading-demo-status"><strong>✧ ${state.localMode==='exodia'?t('LOCAL EXODIA · EXPERIMENTAL','本地 EXODIA · 实验版'):t('SCRIPTED DEMO','脚本演示')}</strong><span>${state.localMode==='exodia'?t('Only on this computer','仅限本机'):t('No live AI · No AI network calls','无实时 AI · 无 AI 网络请求')}</span></div></div>
    ${description()}
    ${state.localExodiaAvailable&&state.deckId==='rws'?`<div class="reading-source-switch" role="group" aria-label="${t('Reading source','解读来源')}"><button type="button" data-action="reading-scripted" aria-pressed="${state.localMode==='scripted'}" class="${state.localMode==='scripted'?'active':''}">${t('Scripted demo','脚本演示')}</button><button type="button" data-action="reading-exodia" aria-pressed="${state.localMode==='exodia'}" class="${state.localMode==='exodia'?'active':''}">${t('Local Exodia AI','本地 Exodia AI')}</button></div>`:''}
@@ -229,11 +232,11 @@ function finishVortex(token){
  state.ritual=transitionRitual(state.ritual,'VORTEX_COMPLETE');go(4);
 }
 
-function go(step){if(step!==3)cancelAutoConfirm();if(step===3&&state.ritual.phase!=='sphere_selection')return;if(step===4&&state.ritual.phase!=='three_reveal')return;if(step===2&&state.ritual.phase==='sphere_selection')return;if(step>=4&&state.picks.length!==3)return;if(step===5&&!allCardsRevealed(state.revealedCards))return;if(step===5&&state.ritual.phase==='three_reveal'){state.ritual=transitionRitual(state.ritual,'ALL_REVEALED');state.ritual=transitionRitual(state.ritual,'INVITE_READER');}if(step===4&&state.step<4){state.revealIndex=0;state.revealProgress=0;state.revealedCards=[false,false,false];state.peekProgress=[0,0,0];state.peekAxes=[{ax:0,ay:1},{ax:0,ay:1},{ax:0,ay:1}];}state.step=Math.max(0,Math.min(5,step));render()}
+function go(step){if(step!==3)cancelAutoConfirm();if(step===3&&state.ritual.phase!=='sphere_selection')return;if(step===4&&state.ritual.phase!=='three_reveal')return;if(step===2&&state.ritual.phase==='sphere_selection')return;if(step>=4&&state.picks.length!==3)return;if(step===5&&!allCardsRevealed(state.revealedCards))return;if(step===5&&state.ritual.phase==='three_reveal'){state.ritual=transitionRitual(state.ritual,'ALL_REVEALED');}if(step===4&&state.step<4){state.revealIndex=0;state.revealProgress=0;state.revealedCards=[false,false,false];state.peekProgress=[0,0,0];state.peekAxes=[{ax:0,ay:1},{ax:0,ay:1},{ax:0,ay:1}];}state.step=Math.max(0,Math.min(5,step));render()}
 function reshuffle(){cancelAutoConfirm();resetDemo();state.shuffled=shuffleDeck();state.picks=[];state.shuffles++;state.revealIndex=0;state.revealProgress=0;state.revealedCards=[false,false,false]}
 function selectCard(card){if(!card||state.ritual.phase!=='sphere_selection'||state.ritualLocking)return;try{cancelAutoConfirm();state.ritual=transitionRitual(state.ritual,'TOGGLE_CARD',{cardId:card.id,orientation:drawOrientation()});state.picks=state.ritual.selected.map(c=>({card:BY_ID.get(c.cardId),orientation:c.orientation}));if(state.picks.length===3){state.autoConfirmAt=Date.now()+1850;autoConfirmTimer=setTimeout(()=>{autoConfirmTimer=null;if(state.step===3&&canConfirmThree(state.ritual)&&!state.ritualLocking)confirmThreeCards();},1850);}render();}catch(e){toast(e.message);}}
 function toggleCard(card){selectCard(card);}
-function paintPhysicalPeek(index,progress,axis){const value=clampPeek(progress);state.peekProgress[index]=value;state.peekAxes[index]={ax:axis.ax,ay:axis.ay};const el=root.querySelector('[data-peek-card="'+index+'"]');if(el){el.style.setProperty('--p',String(value));el.style.setProperty('--ax',String(axis.ax));el.style.setProperty('--ay',String(axis.ay));}}
+function paintPhysicalPeek(index,progress,axis){const value=clampPeek(progress);state.peekProgress[index]=value;state.peekAxes[index]={ax:axis.ax,ay:axis.ay};const el=root.querySelector('[data-peek-card="'+index+'"]');if(el){el.style.setProperty('--p',String(value));el.style.setProperty('--ax',String(axis.ax));el.style.setProperty('--ay',String(axis.ay));el.setAttribute('aria-valuenow',String(Math.round(value*100)));}const meter=root.querySelector('[data-peek-progress="'+index+'"]');if(meter)meter.value=Math.round(value*100);}
 function revealPhysicalCard(index){if(state.step!==4||state.revealedCards[index])return;state.revealedCards[index]=true;state.peekProgress[index]=1;if(state.ritual.phase==='three_reveal')state.ritual=transitionRitual(state.ritual,'REVEAL_CARD',{index});render();}
 function centerRect(rect){return rect&&Number.isFinite(rect.left)?{x:rect.left+rect.width/2,y:rect.top+rect.height/2,width:rect.width,height:rect.height}:null}
 /** Picking remains locked until the chosen card has visibly arrived in the next hand slot. */
@@ -321,6 +324,7 @@ root.addEventListener('click',e=>{
     case 'begin':startQuestionRitual();break;
      case 'configure':go(1);break;
      case 'finish-shuffle':finishShuffling();break;
+     case 'invite-reader':if(state.step===5&&state.ritual.phase==='reader_invitation'){state.ritual=transitionRitual(state.ritual,'INVITE_READER');render()}break;
      case 'confirm-cards':confirmThreeCards();break;
     case 'shuffle':break; // 8.1 automatic shuffle is gated, not manually accelerated
     case 'next':go(state.step+1);break;

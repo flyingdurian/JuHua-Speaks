@@ -339,3 +339,31 @@
 @keyframes sphere-lock-pulse{to{opacity:.68}}
 @media(max-width:700px){.site.ritual-focused .masthead{position:relative}.site.ritual-focused .ritual-shuffle{padding-top:32px}.site.ritual-focused .physical-reveal{padding-top:40px}.site.ritual-focused .sphere-page{padding-top:40px}.site.ritual-focused .sphere-scene{height:470px}.site.ritual-focused .ritual-landing{min-height:calc(100vh - 80px)}}
 @media(prefers-reduced-motion:reduce){.sphere-auto-lock{animation:none}}
+
+/* Phase 8.2 – physical card reveal meter and restrained Artemis tabletop */
+.physical-card-meter{width:100%;display:flex;gap:6px;align-items:center;margin-top:10px;color:#dcc69f;font-size:9px}
+.physical-card-meter progress{width:100%;height:4px;accent-color:#d9bb85}
+.artemis-stage{max-width:1100px;min-height:80vh;margin:auto;text-align:center;padding:25px 18px 50px}
+.artemis-stage h1{font:normal clamp(29px,4vw,46px) Georgia,serif;margin:15px 0}
+.artemis-scene{position:relative;overflow:hidden;min-height:480px;margin:25px auto;border:1px solid #bca37c4a;border-radius:18px;background:radial-gradient(ellipse at 50% 25%,#36314e,#151629 45%,#080b13 80%);perspective:900px}
+.artemis-moon{position:absolute;width:240px;height:240px;border:1px solid #e0c58f79;box-shadow:0 0 90px #9d92bd45,inset 0 0 65px #a79ab33a;border-radius:50%;top:4%;left:50%;transform:translateX(-50%)}
+.artemis-portrait-placeholder{position:absolute;top:7%;left:50%;transform:translateX(-50%);height:245px;width:220px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;color:#eee1c8;z-index:1;font-size:11px;letter-spacing:.17em}
+.artemis-sigil{display:grid;place-items:center;border:1px solid #e1c38b8a;border-radius:50%;height:115px;width:115px;font:75px Georgia,serif;text-shadow:0 0 23px #e3d4af}
+.artemis-tabletop{position:absolute;bottom:12%;left:50%;transform:translateX(-50%) rotateX(33deg);width:min(730px,95%);height:160px;border:1px solid #c9a97c99;border-radius:50%;background:radial-gradient(ellipse,#55465e,#1e2035 65%,#12131f 82%);box-shadow:0 18px 65px #000c;display:flex;justify-content:center;align-items:center;gap:7%;z-index:3}
+.artemis-table-smoke{position:absolute;inset:-90% 0 -30%;border-radius:50%;background:radial-gradient(ellipse,#d7c7de2b,transparent 65%);filter:blur(22px);pointer-events:none;animation:artemis-smoke 6s ease-in-out infinite alternate}
+@keyframes artemis-smoke{from{transform:translate(-4%,3%) scale(.8);opacity:.3}to{transform:translate(4%,-5%) scale(1.1);opacity:.7}}
+.artemis-table-card{transform:rotateX(-33deg) translateY(-25px);width:clamp(65px,12vw,110px);font-size:10px;color:#e4ceab;letter-spacing:.1em}
+.artemis-table-face{width:100%;aspect-ratio:1100/1920;border:2px solid #caaa74;border-radius:5px;box-shadow:0 9px 25px #000b;overflow:hidden}
+.artemis-table-face .card-face{width:100%;height:100%}
+.artemis-table-card span{display:block;margin-top:6px}
+.artemis-invitation{max-width:680px;margin:0 auto}
+.artemis-invitation p{font:clamp(17px,2vw,23px)/1.5 Georgia,serif;color:#efe5db}
+.artemis-source-note{font-size:11px;letter-spacing:.05em;color:#bdb0c2;margin:12px 0 18px}
+.artemis-reading-table{margin:0 0 23px;padding:15px;border:1px solid #c7a8755b;border-radius:15px;background:radial-gradient(ellipse at 50% 100%,#4e3d5a9c,#131526 75%);text-align:center}
+.artemis-reading-table header{font-size:11px;letter-spacing:.12em;color:#e5d2ae}
+.artemis-reading-table header small{font-size:10px;color:#bdb4c2;margin-left:12px;letter-spacing:0}
+.artemis-reading-cards{display:flex;justify-content:center;gap:clamp(15px,5vw,52px);margin-top:16px}
+.artemis-reading-card{width:clamp(85px,13vw,137px);color:#dfca9f;font-size:11px;display:flex;flex-direction:column;gap:8px}
+.artemis-reading-card .card-face{aspect-ratio:1100/1920;border:2px solid #caaa74;border-radius:5px;box-shadow:0 10px 25px #0009}
+@media(max-width:650px){.artemis-scene{min-height:400px}.artemis-tabletop{height:110px}.artemis-table-card{width:clamp(55px,19vw,90px)}.physical-card-meter{flex-direction:column}.artemis-reading-table header small{display:block}}
+@media(prefers-reduced-motion:reduce){.artemis-table-smoke{animation:none}}
