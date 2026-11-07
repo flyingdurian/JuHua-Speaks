@@ -186,7 +186,18 @@ function render(){
   if(label)label.textContent=t('INSIDE 3D · LOOK AROUND','内侧 3D · 环顾四周');
  }
 }
-function refreshGateSelection(){const hud=root.querySelector('#gate-selection-area');if(hud&&state.step===3)hud.innerHTML=gateSelectionMarkup({state,t,h,cardBack,roleNames,btn});webglSphere?.syncSelection?.(state.picks);}
+function refreshGateSelection(){
+ const hud=root.querySelector('#gate-selection-area');
+ if(hud&&state.step===3)hud.innerHTML=gateSelectionMarkup({state,t,h,cardBack,roleNames,btn});
+ const selected=new Set(state.picks.map(p=>p.card.id));
+ // Keep the accessible flat-table cards synchronized without resetting scroll.
+ for(const item of root.querySelectorAll('[data-pick]')){
+  const marked=selected.has(item.dataset.pick);
+  item.classList.toggle('chosen',marked);
+  item.setAttribute('aria-pressed',String(marked));
+ }
+ webglSphere?.syncSelection?.(state.picks);
+}
 function beginGateEntry(){if(!state.gateEntering||state.step!==3)return;if(motionReduced()){state.gateEntering=false;return;}const veil=document.createElement('div');veil.className='gate-entry-cinematic';veil.setAttribute('aria-hidden','true');veil.innerHTML='<div class="gate-entry-depth gate-entry-depth-a"></div><div class="gate-entry-depth gate-entry-depth-b"></div><div class="gate-entry-depth gate-entry-depth-c"></div><div class="gate-entry-portal"></div><div class="gate-entry-words">'+t('ENTERING THE CELESTIAL GATE','正在穿越星辰之门')+'</div>';document.body.append(veil);const token=state.ritualEpoch;setTimeout(()=>{veil.remove();if(token===state.ritualEpoch)state.gateEntering=false;},2350);}
 function toast(message){const el=root.querySelector('#toast');if(!el)return;el.textContent=message;el.hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>{if(el.isConnected)el.hidden=true},4000)}
 
