@@ -36,6 +36,8 @@ jobs:
             sleep 2
           done
           node scripts/capture-gate-b-v8.mjs
+      - name: End-to-end browser check — Finish Shuffle → Sphere → Reveal → Artemis
+        run: node scripts/smoke-gate-b-to-artemis.mjs
       - name: Enforce reference-aligned visual-envelope gate
         run: python3 scripts/score-gate-b-v8.py artifacts/gate-b-v8
       - uses: actions/upload-artifact@v4
