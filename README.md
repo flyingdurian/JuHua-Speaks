@@ -149,3 +149,23 @@ Following a 30-second reference comparison, the landing preview adds opaque card
 ## Gate A v7 — Reference-calibrated landing polish (DRAFT / UNMERGED)
 
 After a synchronized 40-second Chatarot vs Gate A v6 video, this candidate moves five cards from the primary core/halo into the middle-distance orbit (**46 core, 11 halo, 15 middle, 6 unchanged flybys**) and sets the main sphere slightly farther from camera. The previous outside-in Star Assembly's screen-plane slide has been replaced with staggered, curved 3D trajectories that assemble onto stable orbital slots over approximately 4.75 seconds. A mostly black starfield with two procedural smoky nebulae, twinkling stars, faint lower-edge light and slow parallax replaces the solid navy gradients; sky textures are generated once per resize, not every frame. The existing Core Expansion, true RWS assets, 78 fixed IDs, solid cards, Step 6 and Exodia are preserved. See [Gate A v7 video analysis and tests](docs/GATE_A_V7_VIDEO_AUDIT.md). Do not merge/deploy until the Product Owner approves the actual GPU browser result.
+
+## Gate B in development — isolated physical shuffle
+
+The production Gate A v7 remains approved and unchanged. A **separate unmerged branch** `feat/v083-gate-b-physical-shuffle` introduces a persistent 78-card tornado, true deck formation, and three mechanical shuffle variants (Cosmic, Riffle, Wash). Test locally using `npm run preview:gate-b` at `http://127.0.0.1:4184/preview/gate-b/`. No production deployment or Gate C integration yet; see [Gate B review contract](docs/GATE_B_PHYSICAL_SHUFFLE.md).
+
+## Gate B v2 — Reference-led choreography overhaul (unmerged)
+
+A 30.906-second synchronized comparison identified that the first Gate B version skipped the satisfying progressions of the reference. The revised dedicated preview stages the landing rush, helical tornado, 3D card globe, three 26-card stacks, and gradual final 78-card deck over ~9.45 seconds. The Cosmic, Riffle and Wash shuffles have separate physical motion families; WebGL/Canvas share deterministic choreography, with 3D basis and vertex/continuity tests. **Gate B remains a draft visual candidate, not a production release.** Run `npm run preview:gate-b` and see [the video audit and acceptance gate](docs/GATE_B_PHYSICAL_SHUFFLE.md).
+
+## Gate B v3 — Automatic ritual visual rebuild (DRAFT)
+
+The first two Gate B builds did not match the ChatARot reference's spatial choreography. The new **automatic-only** Gate B v3 uses a separate 10-beat reference-directed sampler (`ReferenceRitual.mjs`): full-screen rushing helix → tiny suspended pocket deck → second huge illustrated card globe → three separated 26-card piles → final 78-layer floating deck. Cosmic/Riffle/Wash are not offered in this preview. The public Gate A v7 is unchanged. [Detailed visual storyboard and acceptance criteria](docs/GATE_B_V3_REFERENCE_STORYBOARD.md). Run `npm run preview:gate-b` on the unmerged feature branch.
+
+## Gate B v4 — Cosmic vacuum / open globe rebuild (DRAFT)
+
+The Product Owner rejected Gate B v3's compact-cluster composition. The new automatic ritual creates a deep helical **cosmic vacuum** with near/far separation and a visible open center, rapidly funnels all 78 RWS cards into a small pocket deck, erupts into a low-density sphere with multiple orientations, splits into three 26-card decks with **individual transfer/interleaving**, and gently forms the final deck. The UI still excludes optional shuffles. True-card screen-raster overlap tests now guard visual density; see [Gate B v4 audit](docs/GATE_B_V4_COSMIC_VACUUM.md). Test using `npm run preview:gate-b` on the unmerged feature branch, not production.
+
+## Gate B v5 — Cosmic vacuum and tumbling globe (DRAFT)
+
+The reference-directed automatic Gate B v5 replaces the decorative first ring with four advecting helical card streams and a restrained procedural four-arm smoky vacuum. Giant near-lens passes lead to a real 78-layer deck, followed by a dense, chaotic 3D card globe (39 outer / 25 inner / 14 roaming), three 26-card decks, and a gentle final assembly. Optional shuffle options remain withheld. Actual **projected card-surface density** tests guard previous clumping regressions. See [Gate B v5 reference analysis](docs/GATE_B_V5_CINEMATIC_REBUILD.md). Production Gate A v7 remains unchanged.

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="theme-color" content="#010103"/>
+<title>JuHua Speaks · Gate B Shuffle Studio</title>
+<link rel="stylesheet" href="../gate-a/gate-a.css"/>
+<link rel="stylesheet" href="./gate-b.css"/>
+</head>
+<body>
+<main id="gate-b" class="gate-a gate-b" aria-label="Gate B physical Tarot shuffle demonstration">
+  <div id="space-background" class="space-background" aria-hidden="true"><canvas id="star-canvas"></canvas></div>
+  <div id="ritual-vortex-glow" class="ritual-vortex-glow" aria-hidden="true"></div>
+  <div id="world-root" class="world-root" aria-hidden="true"></div>
+  <div class="space-vignette" aria-hidden="true"></div>
+  <header class="gate-header">
+    <div class="wordmark"><span class="wordmark-sigil">☾</span><span>菊花说 <small>JUHUA SPEAKS</small></span></div>
+    <span class="gate-version">v0.8.3 / GATE B v11.3 · SEQUENCE 1 <span class="dot">●</span> CINEMATIC RITUAL REVIEW</span>
+  </header>
+  <section class="question-panel" id="question-panel" aria-label="Your question">
+    <div class="small-caps">✧ THE STARS ARE LISTENING ✧</div>
+    <h1>Ask your question.<br/><em>Begin the ritual.</em></h1>
+    <label for="question">Question for this reading</label>
+    <textarea id="question" maxlength="600" spellcheck="true">How can I find clarity in the decision ahead?</textarea>
+    <button id="start-shuffle" class="start-button">START DIVINATION <span>✧</span></button>
+    <div class="demo-notice">Automatic ritual · 78 authentic Tarot cards</div>
+  </section>
+  <section class="ritual-panel" id="ritual-panel" aria-live="polite" hidden>
+    <div class="ritual-copy">
+      <span class="small-caps" id="beat-label">THE SHUFFLE RITUAL</span>
+      <h1 id="ritual-title">Shuffling… Please meditate on your question</h1>
+      <p id="ritual-description">Please meditate on your question.</p>
+    </div>
+    <div class="ritual-actions" id="deck-controls" hidden>
+      <span class="small-caps">THE CARDS ARE READY</span>
+      <button id="finish-shuffle" class="start-button">FINISH SHUFFLING <span>✧</span></button>
+      <div id="gate-b-notice" class="gate-b-notice" role="status"></div>
+    </div>
+  </section>
+  <footer class="gate-footer">
+    <span id="orbit-status">GATE B · LANDING</span>
+    <div class="gate-b-footer-controls">
+      <span id="card-counter">78 INDIVIDUAL CARDS</span>
+      <button id="pause" aria-pressed="false">PAUSE Ⅱ</button>
+      <button id="reset">RESTART RITUAL ↺</button>
+    </div>
+  </footer>
+</main>
+<script type="module" src="./gate-b.mjs"></script>
+</body>
+</html>

@@ -1,0 +1,222 @@
+/* Gate B overlays keep the persistent 3D world fullscreen. */
+.gate-b{background:#010103}
+.gate-b .question-panel{transition:opacity .48s ease,transform .48s ease}
+.gate-b.in-ritual .question-panel{opacity:0;visibility:hidden;pointer-events:none;transform:translate(-50%,-50%) scale(.95)}
+.gate-b .ritual-panel{position:absolute;inset:0;z-index:4;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:clamp(80px,12vh,116px) 20px clamp(82px,11vh,115px);text-align:center}
+.gate-b .ritual-panel[hidden]{display:none}
+.gate-b .ritual-copy{max-width:600px;transition:opacity .35s ease}
+.gate-b .ritual-copy h1{font:normal clamp(24px,3vw,39px) Georgia,serif;letter-spacing:-.025em;margin:13px 0 12px;color:#f0eadf;text-shadow:0 1px 22px #000}
+.gate-b .ritual-copy p{font-size:13px;color:#c4bccc;text-shadow:0 2px 18px #000;margin:0}
+.gate-b .ritual-actions{pointer-events:auto;display:flex;flex-direction:column;align-items:center;max-width:min(94vw,620px);gap:9px;padding:15px 18px;border:1px solid rgba(182,156,107,.17);border-radius:10px;background:linear-gradient(180deg,rgba(4,7,15,.81),rgba(4,7,15,.57));backdrop-filter:blur(12px)}
+.gate-b .ritual-actions[hidden]{display:none}
+.gate-b .ritual-actions p{font-size:12px;margin:0;color:#bcb5c3}
+.gate-b .shuffle-buttons{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}
+.gate-b .shuffle-buttons button{font:10px 'Segoe UI',sans-serif;letter-spacing:.12em;color:#ebdcbb;background:rgba(18,21,37,.78);border:1px solid rgba(213,178,114,.54);border-radius:4px;padding:11px 13px;cursor:pointer;transition:background .18s,transform .18s}
+.gate-b .shuffle-buttons button:hover{background:#26304d;transform:translateY(-2px)}
+.gate-b .ritual-actions .start-button{margin:4px 0 0;padding:13px 19px}
+.gate-b .gate-b-notice{font-size:11px;color:#e3c48d;min-height:14px}
+.gate-b .gate-footer .gate-b-footer-controls{display:flex;align-items:center;gap:14px}
+.gate-b .gate-footer{justify-content:space-between}
+.gate-b .ritual-panel .small-caps{font-size:10px;letter-spacing:.25em}
+.gate-b .ritual-panel .ritual-actions>.small-caps{font-size:8px}
+.gate-b .gate-footer button{font-size:9px}
+@media(max-width:650px){
+ .gate-b .gate-footer{padding:14px 12px;gap:8px;flex-wrap:wrap}
+ .gate-b .gate-footer .gate-b-footer-controls{gap:6px}
+ .gate-b .ritual-panel{padding:80px 12px 70px}
+ .gate-b .ritual-actions{padding:12px}
+ .gate-b .shuffle-buttons button{padding:9px 10px;font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){.gate-b .question-panel,.gate-b .shuffle-buttons button{transition:none!important}}
+
+
+/* Gate B v2 — keep spectacle visible: understated reference-style meditation
+   copy, small options beneath the deck, no full-page obstructing card wall. */
+.gate-b .ritual-panel{display:block;z-index:4;pointer-events:none}
+.gate-b .ritual-copy{
+ position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);
+ width:min(460px,90vw);max-width:none;pointer-events:none;
+ text-shadow:0 2px 15px #000c;
+}
+.gate-b .ritual-copy h1{
+ font:normal clamp(19px,2.25vw,28px)/1.2 Georgia,'Times New Roman',serif;
+ letter-spacing:-.025em;margin:8px 0;color:rgba(249,241,231,.91);
+}
+.gate-b .ritual-copy p{font-size:12px;line-height:1.5;color:rgba(238,225,224,.79)}
+.gate-b .ritual-copy .small-caps{font-size:8px;letter-spacing:.19em;opacity:.78}
+.gate-b.deck-ready .ritual-copy{top:18%}
+.gate-b .ritual-actions{
+ position:absolute;left:50%;bottom:clamp(52px,11vh,100px);
+ transform:translateX(-50%);min-width:min(435px,90vw);
+ max-width:min(475px,92vw);
+ padding:12px 13px;background:rgba(4,7,15,.65);
+ border:1px solid rgba(182,156,107,.21);box-shadow:0 8px 32px rgba(0,0,0,.22);
+}
+.gate-b .ritual-actions .start-button{margin:3px 0 0;min-width:170px;padding:12px 16px}
+.gate-b .ritual-actions .shuffle-buttons button{padding:9px 11px}
+@media(max-width:650px){
+ .gate-b .ritual-copy{top:43%;width:91vw}
+ .gate-b.deck-ready .ritual-copy{top:19%}
+ .gate-b .ritual-actions{bottom:58px;min-width:90vw;padding:10px}
+ .gate-b .ritual-copy h1{font-size:20px}
+ .gate-b .ritual-copy p{font-size:11px}
+}
+
+
+/* Gate B v3: cinematic-only product test — protect the reference's negative
+   space and make the card storm/globe, not a giant panel, the centerpiece. */
+.gate-b.in-ritual .space-background .nebula-texture{opacity:.14!important}
+.gate-b.in-ritual .space-background:before{opacity:.20!important}
+.gate-b .ritual-copy{top:50%}
+.gate-b .ritual-copy h1{
+ font:normal clamp(18px,2.05vw,25px)/1.2 Georgia,serif;
+ font-weight:400;text-shadow:0 2px 12px #000,0 1px 24px #000;
+}
+.gate-b .ritual-copy p{
+ font-size:13px;color:rgba(241,237,235,.84);
+ text-shadow:0 2px 14px #000;
+}
+.gate-b .ritual-copy .small-caps{display:none}
+.gate-b.deck-ready .ritual-copy{top:22%}
+.gate-b .ritual-actions{
+ background:none;border:0;box-shadow:none;backdrop-filter:none;
+ min-width:0;width:min(340px,90vw);gap:7px;
+ bottom:clamp(92px,19vh,180px);padding:4px 8px;
+}
+.gate-b .ritual-actions>.small-caps{display:none}
+.gate-b .ritual-actions .start-button{padding:11px 21px;letter-spacing:.13em}
+.gate-b .gate-b-notice{max-width:300px;color:#dbd1bb;text-shadow:0 2px 12px #000}
+@media(max-width:650px){
+ .gate-b .ritual-actions{bottom:clamp(76px,17vh,130px);width:90vw}
+ .gate-b .ritual-copy{top:51%}
+ .gate-b.deck-ready .ritual-copy{top:20%}
+}
+
+
+/* Gate B v4 — temporary cosmic vacuum light, BEHIND the existing card world.
+   The real 78-card deep helix is the choreography; this low-cost composited
+   atmospheric spiral exists only during the first three seconds. */
+.ritual-vortex-glow{
+ position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+ opacity:0;transition:opacity .27s ease;mix-blend-mode:screen;
+}
+.gate-b.vacuum-active .ritual-vortex-glow{opacity:.94}
+.ritual-vortex-glow::before,.ritual-vortex-glow::after{
+ content:"";position:absolute;left:50%;top:50%;
+ width:min(114vw,118vh);height:min(114vw,118vh);
+ border-radius:50%;pointer-events:none;
+ transform-origin:center;
+ -webkit-mask-image:radial-gradient(circle,transparent 4%,#000 15%,#000 69%,transparent 92%);
+ mask-image:radial-gradient(circle,transparent 4%,#000 15%,#000 69%,transparent 92%);
+}
+.ritual-vortex-glow::before{
+ margin-left:calc(-.5 * min(114vw,118vh));margin-top:calc(-.5 * min(114vw,118vh));
+ background:
+  conic-gradient(from 32deg,transparent 0deg,rgba(189,168,222,.22) 27deg,transparent 78deg,
+   rgba(175,161,200,.16) 113deg,transparent 170deg,rgba(207,191,226,.24) 215deg,
+   transparent 268deg,rgba(172,154,205,.21) 300deg,transparent 352deg),
+  repeating-radial-gradient(circle,transparent 0 29px,rgba(199,179,218,.08) 37px,
+   rgba(198,166,217,.035) 49px,transparent 75px);
+ filter:blur(12px);
+ animation:juhuaVortexSpin 2.2s linear infinite;
+}
+.ritual-vortex-glow::after{
+ margin-left:calc(-.5 * min(114vw,118vh));margin-top:calc(-.5 * min(114vw,118vh));
+ width:min(114vw,118vh);height:min(114vw,118vh);
+ background:
+  conic-gradient(from 165deg,transparent 0deg,rgba(221,211,231,.14) 18deg,
+   transparent 39deg,rgba(179,168,214,.13) 89deg,transparent 136deg,
+   rgba(193,179,210,.18) 179deg,transparent 224deg,rgba(203,190,222,.13) 295deg,
+   transparent 345deg);
+ filter:blur(20px);opacity:.69;
+ animation:juhuaVortexSpinReverse 3.1s linear infinite;
+}
+@keyframes juhuaVortexSpin{from{transform:rotate(0) scale(.99)}to{transform:rotate(360deg) scale(1.09)}}
+@keyframes juhuaVortexSpinReverse{from{transform:rotate(360deg) scale(1.07)}to{transform:rotate(0) scale(.98)}}
+.gate-b.vacuum-active .space-background .nebula-texture{opacity:.48!important}
+.gate-b .ritual-copy{pointer-events:none}
+@media(max-width:650px){
+ .ritual-vortex-glow::before,.ritual-vortex-glow::after{filter:blur(7px);opacity:.62}
+ .gate-b.vacuum-active .ritual-vortex-glow{opacity:.72}
+}
+@media(prefers-reduced-motion:reduce){
+ .ritual-vortex-glow::before,.ritual-vortex-glow::after{animation:none!important}
+ .ritual-vortex-glow{transition:none!important;opacity:.18}
+}
+
+
+/* Gate B v5 — replace v4's purple concentric-gradient disk with a seeded,
+   textured silver/green four-stream vacuum. Generated exactly once per load.
+   CSS only animates one composited layer, no per-frame canvas repaint. */
+.ritual-vortex-glow::before,
+.ritual-vortex-glow::after{content:none!important;display:none!important}
+.gate-b .ritual-vortex-glow{z-index:0;mix-blend-mode:screen;opacity:0;transition:opacity .28s ease}
+.gate-b.vacuum-active .ritual-vortex-glow{opacity:1}
+.vortex-smoke-texture{
+ position:absolute;top:50%;left:50%;
+ width:min(142vw,145vh);height:auto;aspect-ratio:1;
+ max-width:none;opacity:.96;pointer-events:none;
+ transform-origin:center;
+ animation:gateBV5Spiral 2.85s linear infinite;
+ animation-play-state:paused;
+ filter:blur(3.5px);
+ will-change:transform;
+}
+.gate-b.vacuum-active .vortex-smoke-texture{animation-play-state:running}
+@keyframes gateBV5Spiral{
+ from{transform:translate(-50%,-50%) rotate(0) scale(.94)}
+ to{transform:translate(-50%,-50%) rotate(360deg) scale(1.08)}
+}
+/* Keep the benchmark's minimalist centered meditation line without
+   the tiny competing subtitle that hid the performance in v3/v4. */
+.gate-b.in-ritual .ritual-copy{top:50%;width:min(820px,96vw)}
+.gate-b.in-ritual .ritual-copy h1{
+ font:normal clamp(23px,2.9vw,33px)/1.25 'Segoe UI',Arial,sans-serif;
+ letter-spacing:-.025em;color:rgba(246,242,239,.93);
+ text-shadow:0 2px 18px #000,0 1px 25px #000;
+}
+.gate-b.in-ritual .ritual-copy p{display:none}
+.gate-b.deck-ready .ritual-copy{opacity:0}
+.gate-b.deck-ready .ritual-actions{
+ bottom:clamp(83px,16vh,135px);
+}
+.gate-b.vacuum-active .space-background .nebula-texture{opacity:.34!important}
+@media(max-width:650px){
+ .vortex-smoke-texture{width:min(175vw,145vh);filter:blur(2px);opacity:.8;will-change:auto}
+ .gate-b.in-ritual .ritual-copy h1{font-size:clamp(17px,5.2vw,24px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .vortex-smoke-texture{animation:none!important;transform:translate(-50%,-50%) scale(1)!important;will-change:auto}
+ .gate-b .ritual-vortex-glow{transition:none!important}
+}
+
+/* V6: no spinning background disk, animated smoke sprite or CSS tornado. */
+.gate-b .ritual-vortex-glow,.gate-b.vacuum-active .ritual-vortex-glow{display:none!important}
+.gate-b.vacuum-active .space-background .nebula-texture{opacity:.16!important}
+
+/* V6: subtle actual advected mist following the card-flow timeline. No static tornado. */
+.gate-b .ritual-vortex-glow{display:block!important;opacity:0;z-index:0;mix-blend-mode:screen;transition:opacity .18s}
+.gate-b.vacuum-active .ritual-vortex-glow{display:block!important;opacity:.59}
+.advected-mist{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;filter:blur(8px)}
+@media(max-width:650px){.gate-b.vacuum-active .ritual-vortex-glow{opacity:.44}.advected-mist{filter:blur(5px)}}
+
+/* V7 reference: the ritual happens against deep near-black space, not the
+   bright landing-sky star field. Gate A landing is unchanged. The independent
+   dynamically advected mist stays above this dark background. */
+.gate-b.in-ritual .space-background{opacity:.13!important;transition:opacity .35s ease}
+.gate-b.in-ritual .space-background .nebula-texture{opacity:.09!important}
+.gate-b.in-ritual .space-background::before{opacity:.12!important}
+.gate-b:not(.in-ritual) .space-background{opacity:1}
+
+/* V8: Sequence 1 ONLY — faint celestial gas behind the 3D material ribbons.
+   The approved globe and later steps retain their unchanged sky levels. */
+.gate-b.in-ritual.vacuum-active .space-background{opacity:.26!important}
+.gate-b.in-ritual.vacuum-active .space-background .nebula-texture{opacity:.28!important}
+.gate-b.vacuum-active .advected-mist{filter:blur(4px)}
+@media(max-width:650px){.gate-b.vacuum-active .advected-mist{filter:blur(3px)}}
+
+/* Final Sequence 1 review: thin velocity strokes must remain sharp. The
+   trail positions come from real 3D Tarot-sheet histories, not smoke art. */
+.gate-b.vacuum-active .advected-mist{filter:blur(.65px)!important;opacity:1}
+.gate-b.vacuum-active .ritual-vortex-glow{opacity:.86!important}
+@media(max-width:650px){.gate-b.vacuum-active .advected-mist{filter:blur(.4px)!important}}
