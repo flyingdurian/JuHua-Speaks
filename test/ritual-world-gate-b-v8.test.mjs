@@ -56,7 +56,7 @@ test('Camera preserves a wide tilted spiral until the final collapse, with smoot
 
 test('Atmospheric trails and cards share the same 3D physical helix',async()=>{
  const text=await readFile(new URL('../preview/gate-b/FlowMist.mjs',import.meta.url),'utf8');
- assert.match(text,/sampleVortexRibbon/);
+ assert.match(text,/sampleVortexCard/);
  assert.doesNotMatch(text,/sampleTunnelTrajectory/);
  const ribbon=sampleVortexRibbon(0,.35,3.2);
  assert.ok(ribbon.position.every(Number.isFinite));
