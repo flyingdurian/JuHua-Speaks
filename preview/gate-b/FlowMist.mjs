@@ -16,7 +16,7 @@ function project(p){
 // velocity tails. ChatARot's fastest beat briefly lights the vacuum wall;
 // the rest of the scene remains dark with a readable eye.
 export function environmentWakeStrength(t){
- const u=clamp((t-3.12)/2.08);
+ const u=clamp((t-3.45)/2.10);
  return Math.pow(Math.sin(Math.PI*u),4);
 }
 function drawEnvironmentWake(ctx,t){
@@ -30,13 +30,13 @@ function drawEnvironmentWake(ctx,t){
  };
  ctx.save();ctx.globalCompositeOperation='screen';
  path();ctx.filter='blur(20px)';
- ctx.strokeStyle='rgba(172,183,201,'+(power*.14)+')';
+ ctx.strokeStyle='rgba(172,183,201,'+(power*.23)+')';
  ctx.lineWidth=58;ctx.stroke();
  path();ctx.filter='blur(9px)';
- ctx.strokeStyle='rgba(210,213,219,'+(power*.12)+')';
+ ctx.strokeStyle='rgba(210,213,219,'+(power*.16)+')';
  ctx.lineWidth=25;ctx.stroke();
  path();ctx.filter='blur(2px)';
- ctx.strokeStyle='rgba(225,224,216,'+(power*.055)+')';
+ ctx.strokeStyle='rgba(225,224,216,'+(power*.065)+')';
  ctx.lineWidth=2.5;ctx.stroke();
  ctx.restore();
 }
