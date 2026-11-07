@@ -473,3 +473,61 @@
 .gate-instant-reveal{margin:8px 0 0;background:transparent;border:0;color:#e3cb9c;text-decoration:underline;font-size:10px}
 .gate-instant-reveal:disabled{opacity:.3}
 @media(prefers-reduced-motion:reduce){.gate-entry-cinematic{display:none}.gate-sphere .gate-cosmos{background:#10172b}.gate-collapse-transition .ritual-vortex-debris>div{animation:none;display:none}.gate-peel-cover,.gate-peel-fold,.gate-peel-glint{transition:none!important}}
+
+
+/* Artemis: three distinguishable Japanese-inspired *blocking studies*.
+   Not an approved portrait. One CSS rig demonstrates expression/action states. */
+.site:has(.artemis-stage-immersive) .stage{max-width:none;width:100%;padding:0}
+.artemis-stage.artemis-stage-immersive{max-width:none;min-height:100vh;min-height:100svh;padding:105px 18px 54px;background:radial-gradient(ellipse at 50% 30%,#34304a80,#070b1b 70%,#03050d)}
+.artemis-stage-immersive .artemis-design-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:min(1120px,100%);margin:20px auto}
+.artemis-stage-immersive .artemis-style-choice{background:#0c142bd6;color:#e4d3ba;border:1px solid #b6a48a65;border-radius:12px;text-align:left;padding:12px 13px;display:flex;flex-direction:column;gap:8px;min-height:95px}
+.artemis-style-choice strong{font:15px Georgia,serif}
+.artemis-style-choice small{font-size:10px;line-height:1.45;color:#b9b5c9}
+.artemis-style-choice.active{background:#2a233ecc;border-color:#f1d095;box-shadow:inset 0 0 16px #d7b77c24}
+.artemis-stage-immersive .artemis-scene-preview{max-width:1120px;min-height:475px;border-radius:0;border-inline:0;border-color:#e1c48b2b;background:radial-gradient(ellipse at 50% 40%,#4e44677b,#0b1121 60%,#03050d 92%);overflow:hidden}
+.artemis-stage-immersive .artemis-moon{top:2%;width:310px;height:310px}
+.artemis-stage-immersive .artemis-tabletop{z-index:6;bottom:0%;height:158px}
+.artemis-persona{position:absolute;z-index:4;width:280px;height:380px;left:50%;top:4%;transform:translateX(-50%);--hair:#17243d;--hairshine:#51647f;--cloth:#34334c;--trim:#e8c690;--skin:#f4d1bc;--iris:#3b3449;filter:drop-shadow(0 0 25px #bbb1ff29);animation:artemis-idle-float 5.5s ease-in-out infinite}
+.artemis-persona-halo{position:absolute;width:270px;height:270px;border-radius:50%;left:50%;top:0;transform:translateX(-50%);border:1px solid #e7d9bc59;box-shadow:0 0 54px #c6bce52f;opacity:.55}
+.artemis-persona-hair-back{position:absolute;left:75px;top:33px;width:135px;height:240px;border-radius:70px 70px 43px 43px;background:linear-gradient(100deg,#0b1021,var(--hair) 44%,var(--hairshine) 75%,var(--hair));box-shadow:14px 12px 20px #030615a9}
+.artemis-persona-body{position:absolute;left:28px;top:225px;width:226px;height:165px;border-radius:95px 95px 10px 10px;background:linear-gradient(100deg,#141828,var(--cloth) 45%,#1a1830);border-top:2px solid var(--trim);clip-path:polygon(23% 0,77% 0,100% 48%,100% 100%,0 100%,0 48%)}
+.artemis-persona-collar{position:absolute;left:38%;top:0;width:24%;height:100px;clip-path:polygon(0 0,100% 0,65% 100%,35% 100%);background:linear-gradient(90deg,var(--trim),#241c37 43%,var(--trim))}
+.artemis-persona-charm{position:absolute;top:75px;left:50%;transform:translateX(-50%);color:var(--trim);font-size:22px;text-shadow:0 0 12px #fff5ce}
+.artemis-persona-neck{position:absolute;top:202px;left:125px;width:35px;height:45px;border-radius:15px;background:linear-gradient(90deg,#d5aa9c,var(--skin))}
+.artemis-persona-face{position:absolute;top:80px;left:94px;width:100px;height:146px;background:linear-gradient(100deg,#d7a99b,var(--skin) 44%,#e9bdaa);border-radius:46% 46% 50% 50% / 34% 34% 60% 60%;box-shadow:0 10px 17px #100d1a9c;transform-origin:50% 77%;transition:transform .35s ease}
+.artemis-persona-eye{position:absolute;top:57px;width:18px;height:11px;border-radius:50% 50% 35% 35%;border-top:2px solid #211d31;background:radial-gradient(circle at center,var(--iris) 0 43%,#f7f1ef 46%);transition:height .25s}
+.artemis-persona-eye.eye-left{left:19px}.artemis-persona-eye.eye-right{right:19px}
+.artemis-persona-mouth{position:absolute;bottom:33px;left:42px;width:17px;height:5px;border-bottom:2px solid #a76f73;border-radius:0 0 50% 50%;transition:height .2s}
+.artemis-persona-blush{position:absolute;left:13px;bottom:44px;width:74px;height:14px;background:radial-gradient(ellipse at 0% 50%,#b86c7129,transparent 25%),radial-gradient(ellipse at 100% 50%,#b86c7129,transparent 25%)}
+.artemis-persona-hair-front{position:absolute;left:85px;top:35px;width:125px;height:88px;background:linear-gradient(125deg,var(--hair),var(--hairshine) 64%,var(--hair));border-radius:75px 75px 45px 10px;clip-path:polygon(0 18%,80% 0,100% 32%,93% 97%,68% 74%,50% 98%,22% 55%,0 100%)}
+.artemis-persona-arm{position:absolute;top:239px;width:77px;height:130px;background:linear-gradient(100deg,var(--cloth),#121525);border:1px solid #d3b58550;border-radius:43px 43px 17px 17px;transform-origin:50% 20%;transition:transform .35s}
+.artemis-persona-arm.arm-left{left:30px;transform:rotate(18deg)}.artemis-persona-arm.arm-right{right:30px;transform:rotate(-18deg)}
+.artemis-persona-spark{position:absolute;top:195px;right:3px;font:35px Georgia,serif;color:var(--trim);opacity:.4;animation:artemis-spark 3s ease-in-out infinite}
+.artemis-persona-modern{--hair:#1b152b;--hairshine:#71536e;--cloth:#27223c;--trim:#ddd4eb;--skin:#e9c8b9;--iris:#57436a}
+.artemis-persona-modern .artemis-persona-hair-back{height:155px;border-radius:58px 63px 40px 23px;transform:rotate(-10deg)}
+.artemis-persona-modern .artemis-persona-hair-front{height:65px;transform:rotate(-9deg)}
+.artemis-persona-modern .artemis-persona-body{border-radius:15px 15px 4px 4px;clip-path:polygon(17% 0,83% 0,100% 72%,100% 100%,0 100%,0 72%)}
+.artemis-persona-modern .artemis-persona-halo{border-style:dashed;opacity:.36}
+.artemis-persona-storybook{--hair:#8270a7;--hairshine:#d1b4d9;--cloth:#a59ac8;--trim:#fff1d8;--skin:#f2d6ca;--iris:#6b5b95}
+.artemis-persona-storybook .artemis-persona-hair-back{width:165px;left:60px;height:270px;border-radius:85px 90px 53px 55px}
+.artemis-persona-storybook .artemis-persona-body{background:linear-gradient(110deg,#5d567d,#b0a2d2 55%,#655780);border-radius:95px 95px 4px 4px}
+.artemis-persona-storybook .artemis-persona-halo{box-shadow:0 0 70px #c0b0eb6b}
+.artemis-action-observe .artemis-persona-face,.artemis-action-thoughtful .artemis-persona-face{transform:rotate(7deg)}
+.artemis-action-observe .artemis-persona-eye,.artemis-action-thoughtful .artemis-persona-eye{height:6px}
+.artemis-action-surprised .artemis-persona-eye{height:17px}.artemis-action-surprised .artemis-persona-mouth{height:12px;border:2px solid #a76f73;border-radius:50%}
+.artemis-action-reassure .artemis-persona-mouth,.artemis-action-welcome .artemis-persona-mouth{height:9px;border-bottom-width:3px}
+.artemis-action-present .artemis-persona-arm.arm-right{transform:rotate(-85deg) translateY(-7px)}
+.artemis-action-present .artemis-persona-arm.arm-left{transform:rotate(55deg)}
+.artemis-action-welcome .artemis-persona-arm.arm-right{transform:rotate(-52deg)}
+.artemis-stage-actions{width:min(820px,100%);margin:15px auto;display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.artemis-stage-actions button{border:1px solid #c4a76c66;border-radius:20px;background:#111728;color:#d8c4a3;padding:7px 12px;font-size:11px}
+.artemis-stage-actions button.active{background:#514464;color:#fff0cf;border-color:#f0d69c}
+@keyframes artemis-idle-float{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-9px)}}
+@keyframes artemis-spark{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:.8;transform:scale(1.2)}}
+@media(max-width:680px){.artemis-stage-immersive .artemis-design-options{grid-template-columns:1fr;gap:5px}.artemis-style-choice{min-height:0!important;padding:8px 11px!important}.artemis-style-choice strong{font-size:13px}.artemis-style-choice small{font-size:9px}.artemis-stage-immersive .artemis-scene-preview{min-height:430px}.artemis-persona{transform:translateX(-50%) scale(.88);transform-origin:top center}.artemis-stage-actions button{font-size:10px;padding:6px 9px}}
+@media(prefers-reduced-motion:reduce){.artemis-persona,.artemis-persona-spark{animation:none!important}}
+/* The reveal remains in the same immersive cosmic environment after collapse. */
+.site:has(.physical-reveal) .stage{max-width:none;width:100%;padding:0}
+.site:has(.physical-reveal) .physical-reveal{max-width:none;min-height:100vh;min-height:100svh;background:radial-gradient(ellipse at 50% 46%,#34315099,#090d22 65%,#03060e 100%);padding:clamp(105px,13vh,160px) 18px 45px}
+.site:has(.physical-reveal) .physical-card-row{gap:clamp(10px,4vw,75px)}
+.site:has(.physical-reveal) .physical-card-entry{flex-basis:clamp(115px,18vw,238px)}
