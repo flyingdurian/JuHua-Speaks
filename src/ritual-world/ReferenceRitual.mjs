@@ -13,6 +13,7 @@
  */
 import {sampleLandingPose,landingAttitude} from './OrbitalField.mjs';
 import {sampleVortexCard,vortexCamera,rotateVortexBasis} from './VortexRibbon.mjs';
+import {cardRole,heroAccent} from './ShotDirector.mjs';
 
 const N=78,TAU=2*Math.PI,GOLDEN=Math.PI*(3-Math.sqrt(5));
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -98,7 +99,7 @@ function suctionPose(card,t){
  const rnd=n=>hash(k+n,seed);
  const v=sampleVortexCard(k,seed,t);
  const theta=v.theta,stream=v.lane;
- const illustrated=(k%11===2||k%17===6||k%13===3);
+ const role=cardRole(k),illustrated=role==='hero'||(role==='support'&&k%3===1);
  // Coherent card roll aligns long edges to the curving ribbon. Selected
  // sheets reveal real historic fronts; most show their engraved dark backs.
  const yaw=(illustrated?Math.PI:0)+.23*Math.sin(theta*.75+k*.17)
@@ -134,8 +135,10 @@ function suctionPose(card,t){
  // passes retain their own independently authored near-lens scale.
  const backGain=1+.78*smoother((t-3.05)/.69)
    +.16*smoother((t-4.23)/.50);
- const scale=((illustrated?.78:(.29+.10*rnd(39))*backGain)
-   +.025*Math.sin(t*1.35+k*.24))*vortexCamera(t).cardGain;
+ const visualFocus=heroAccent(k,t);
+ const scale=((illustrated?.69:(.30+.10*rnd(39))*backGain)
+   +.025*Math.sin(t*1.35+k*.24))*vortexCamera(t).cardGain
+   *(1+.18*visualFocus);
  return pose(v.position,attitude,scale);
 }
 function pocketPose(card,t){
