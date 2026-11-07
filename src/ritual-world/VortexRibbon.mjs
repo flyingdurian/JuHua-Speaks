@@ -63,7 +63,7 @@ export function vortexProgress(t){
  const u=clamp((t-1.10)/4.35);
  return {u,angular:.11*u+3.35*u*u+.78*u*u*u,
   axial:3.1*(.15*u+.85*u*u),
-  collapse:softer((t-4.62)/.80)};
+  collapse:softer((t-4.30)/1.12)};
 }
 // Three genuinely nested, inclined orbital scales: not three decorative
 // concentric 2D circles. Each layer has independent 3D depth and precession.
@@ -114,12 +114,19 @@ function sample(lane,q,t,seed=0,motionBias=1){
  // offsets scale with depth and preserve all cards as world-space meshes.
  x=c.zoom*c.sx*x+c.px*(-z)/FOCAL;
  y=c.zoom*c.sy*y-c.py*(-z)/FOCAL;
+ // A lens-scale diagonal re-projection of the moving *field*, so the
+ // spherical orbit resolves into an inclined and elongated 3D current
+ // before the throat. This has its counterpart in rotateVortexBasis().
+ const shear=softer((t-3.20)/.90)*(1-.35*state.collapse);
+ const originalX=x,originalY=y;
+ x=(1-.20*shear)*originalX+.18*shear*originalY;
+ y=(1+.23*shear)*originalY-.28*shear*originalX;
  // Each orbit begins entering the neck at a slightly different material
  // phase. This creates a genuine transport funnel, not a simultaneous pile.
  // By the end of the beat every card has a narrow lateral footprint AND
  // nearly the same deck-depth plane, ready for the approved pocket assembly.
  const f=state.collapse;
- const neck=softer((t-4.61-.10*q)/.74);
+ const neck=softer((t-4.16-.08*q)/1.20);
  x*=1-.84*neck;y*=1-.84*neck;
  z=lerp(z,-16.2,.96*neck);
  return {position:[x,y,z],theta,depth:-z,lane,collapse:f,neck};
@@ -137,7 +144,9 @@ export function rotateVortexBasis(vector,t){
  const cp=Math.cos(c.pitch),sp=Math.sin(c.pitch);
  const pitchY=y*cp-yawZ*sp,pitchZ=y*sp+yawZ*cp;
  const cr=Math.cos(c.roll),sr=Math.sin(c.roll);
- return [yawX*cr-pitchY*sr,yawX*sr+pitchY*cr,pitchZ];
+ const bx=yawX*cr-pitchY*sr,by=yawX*sr+pitchY*cr;
+ const d=softer((t-3.20)/.90)*(1-.35*vortexProgress(t).collapse);
+ return [(1-.20*d)*bx+.18*d*by,(1+.23*d)*by-.28*d*bx,pitchZ];
 }
 /** Shared smooth 3D ribbon used for both real cards and atmosphere. */
 export function sampleVortexRibbon(lane,q,t,seed=0){return sample(lane,q,t,seed)}
