@@ -7,7 +7,7 @@ for(const [cx,cy,start,end] of [[.855,.855,Math.PI/2,0],[.855,-.855,0,-Math.PI/2
 }
 export const CARD_PERIMETER=Object.freeze(points.map(p=>Object.freeze(p)));
 export function appendPremiumCard(out,card,position,attitude,scale,brightness,slotUv,{backSlot=78,edgeSlot=79}={}){
- const {right,up,normal}=attitude,W=card.width*.5*scale,H=card.height*.5*scale,dep=EDGE_THICKNESS*card.width;
+ const {right,up,normal}=attitude,W=card.width*.5*scale,H=card.height*.5*scale,dep=card.thickness ?? (EDGE_THICKNESS*card.width);
  const point=(u,v,z,shrink=1)=>({pos:[0,1,2].map(i=>position[i]+right[i]*u*W*shrink+up[i]*v*H*shrink+normal[i]*z*dep),u:(u+1)/2,v:(1-v)/2});
  function tri(a,b,c,slot,light){for(const v of [a,b,c]){const tex=slotUv(slot,v.u,v.v);out.push(...v.pos,tex[0],tex[1],light)}}
  const cf=point(0,0,1),cb=point(0,0,-1),n=CARD_PERIMETER.length;

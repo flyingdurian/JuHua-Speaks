@@ -105,7 +105,7 @@ test('webGL and Canvas still render fully opaque and skip off-stage cards only d
  const gl=await readFile(new URL('../src/ritual-world/RitualWorld.mjs',import.meta.url),'utf8');
  const cv=await readFile(new URL('../src/ritual-world/CanvasOrbit.mjs',import.meta.url),'utf8');
  assert.match(gl,/if\(!landingVisible\(card,time,entranceMode\)\)return/);
- assert.match(cv,/filter\(c=>landingVisible\(c,this\.elapsed,this\.entranceMode\)\)/);
+ assert.match(cv,/this\.phase!=='landing'\|\|landingVisible\(c,this\.elapsed,this\.entranceMode\)/);
  assert.match(gl,/gl\.disable\(gl\.BLEND\)/);
  assert.match(cv,/ctx\.globalAlpha=1/);
 });
