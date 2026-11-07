@@ -42,15 +42,16 @@ test('Independent sheet velocities vary within a coherent spiral rather than rig
  assert.ok(spread<4,'No ballistic discontinuities or randomized spinning');
 });
 
-test('Camera preserves a wide tilted spiral until the final collapse, with smooth bank',()=>{
- assert.ok(vortexCamera(2.1).pitch>.10&&vortexCamera(2.1).pitch<.30);
- assert.ok(vortexCamera(3.8).pitch>.40&&vortexCamera(3.8).pitch<.62);
- assert.ok(vortexCamera(4.7).pitch>.55&&vortexCamera(4.7).pitch<.72);
- assert.ok(vortexCamera(5.45).pitch<.2);
+test('Orbital axis banks progressively toward roughly 45 degrees without a deep camera dive',()=>{
+ assert.ok(vortexCamera(2.1).roll<.15);
+ assert.ok(vortexCamera(3.8).roll>.46);
+ assert.ok(vortexCamera(4.7).roll>.70);
+ assert.ok(vortexCamera(4.7).pitch<.23);
+ assert.ok(vortexCamera(5.45).roll===0);
  for(let t=1.1;t<5.45;t+=.025){
   const a=vortexCamera(t),b=vortexCamera(t+.002);
-  assert.ok(Math.abs(a.pitch-b.pitch)<.05&&Math.abs(a.roll-b.roll)<.04,
-   'Camera pitched discontinuously at '+t+' by '+Math.abs(a.pitch-b.pitch));
+  assert.ok(Math.abs(a.pitch-b.pitch)<.05&&Math.abs(a.roll-b.roll)<.05,
+   'Orbital axis changed discontinuously at '+t);
  }
 });
 
