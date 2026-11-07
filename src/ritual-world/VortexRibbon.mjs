@@ -64,10 +64,12 @@ export function vortexProgress(t){
   axial:3.1*(.15*u+.85*u*u),
   collapse:softer((t-4.52)/.93)};
 }
+// Three genuinely nested, inclined orbital scales: not three decorative
+// concentric 2D circles. Each layer has independent 3D depth and precession.
 const LANES=Object.freeze([
- {offset:0,radius:0,turns:3.32,count:52},
- {offset:.20,radius:-1.36,turns:2.82,count:18},
- {offset:.57,radius:.50,turns:2.10,count:8}
+ {offset:0,radius:9.25,depth:18.8,turns:3.05,count:40,tilt:.27},
+ {offset:.24,radius:6.35,depth:22.2,turns:2.30,count:24,tilt:-.31},
+ {offset:.61,radius:4.05,depth:25.8,turns:1.85,count:14,tilt:.44}
 ]);
 const FOCAL=720/(2*Math.tan(58*Math.PI/360));
 function sample(lane,q,t,seed=0,motionBias=1){
@@ -78,15 +80,22 @@ function sample(lane,q,t,seed=0,motionBias=1){
  const u=clamp(q-advance*Math.sin(Math.PI*clamp(q)));
  const motion=state.angular*motionBias*(lane===0?1:lane===1?-.81:1.18);
  const theta=TAU*(g.turns*u+g.offset+motion)+.095*Math.sin(TAU*u*1.9+lane*1.7);
- // Depth increases monotonically along each ribbon, establishing actual
- // concentric near-to-far layers rather than a fixed camera-facing wreath.
- const depth=13.5+33*u-2.5*state.axial*motionBias+(lane===1?1.5:0);
- const radius=(5.45+.065*depth+g.radius)*funnelRadius(t)*(1-.58*state.collapse);
- const cx=.48*Math.sin(1.3*u*TAU+state.angular*1.5);
- const cy=.32*Math.cos(1.1*u*TAU+state.angular*.8);
- let x=cx+radius*Math.cos(theta);
- let y=cy+.92*radius*Math.sin(theta);
- let z=-Math.max(4.5,depth);
+ // Each card moves on a 3D spherical-orbital band. Moving longitude,
+ // latitude and radial shell prevent evenly spaced clock-face cards. Three
+ // different radii coexist simultaneously, with real near/far parallax.
+ const latitude=.36*Math.sin(TAU*(u*1.29+.19*motion)+lane*1.42);
+ const shell=g.radius*(1+.10*Math.sin(TAU*(u*.74+.18*motion)+lane))
+    *funnelRadius(t)*(1-.58*state.collapse);
+ const latCos=Math.cos(latitude),wave=Math.sin(theta+.38+lane*.49);
+ const cx=.40*Math.sin(u*TAU*.73+state.angular);
+ const cy=.27*Math.cos(u*TAU*.87+state.angular*.53);
+ let x=cx+shell*latCos*Math.cos(theta);
+ let y=cy+shell*(.91*latCos*Math.sin(theta)+.20*Math.sin(latitude));
+ const axialCenter=g.depth-1.6*state.axial*motionBias;
+ // Orbit phase also changes Z: sheets continuously pass from back to front
+ // rather than rotating in a flat billboard wreath.
+ let z=-Math.max(4.5,axialCenter-shell*(.70*latCos*wave+.11*Math.sin(latitude+theta*.63))
+       -2.3*(u-.5));
  // Camera tilt is around the focal plane (z=-24). This turns a face-on
  // multi-loop tunnel into the reference's tall off-axis corkscrew in motion.
  const pivot=z+24,cyaw=Math.cos(c.yaw),syaw=Math.sin(c.yaw);
@@ -126,8 +135,8 @@ export function rotateVortexBasis(vector,t){
 export function sampleVortexRibbon(lane,q,t,seed=0){return sample(lane,q,t,seed)}
 export function sampleVortexCard(index,seed,t){
  const k=index%78;
- const lane=k<52?0:k<70?1:2;
- const offset=lane===0?0:lane===1?52:70;
+ const lane=k<40?0:k<64?1:2;
+ const offset=lane===0?0:lane===1?40:64;
  const n=LANES[lane].count;
  const jitter=.0055*(hash(index+100,seed)-.5);
  const q=clamp((k-offset+.5)/n+jitter);
