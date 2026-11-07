@@ -8,6 +8,7 @@ import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,l
 export {makeLandingCardEntities,sampleLandingPose} from './OrbitalField.mjs';
 import {appendPremiumCard} from './CardSurface.mjs';
 import {PHYSICAL_CARD,samplePhysicalShuffle,deckPose,shuffleDuration,shuffleBeat,SHUFFLE_CHOICES,assertShuffleGeometry} from './ShuffleChoreography.mjs';
+import {CARD_ECHO_HISTORY,sequenceOneEchoEnvelope,projectedCardSpeed,cardEchoOpacity} from './TemporalEcho.mjs';
 const TAU = Math.PI * 2;
 const clamp = (v,a,b) => Math.max(a, Math.min(b,v));
 const hash = (x) => { x = Math.imul(x ^ x >>> 16, 0x7feb352d); x = Math.imul(x ^ x >>> 15,0x846ca68b); return ((x ^ x >>> 16) >>> 0) / 4294967296; };
@@ -28,8 +29,8 @@ const program=(gl)=>{
  void main(){gl_Position=projection*vec4(pos,1.0);vUv=uv;vLight=brightness;}`);
  const frag=shader(gl,gl.FRAGMENT_SHADER,`#version 300 es
  precision mediump float;
- in vec2 vUv;in float vLight;uniform sampler2D atlas;out vec4 color;
- void main(){vec4 base=texture(atlas,vUv);color=vec4(base.rgb*(.72+.28*clamp(vLight,0.0,1.0)),1.0);} // Solid obsidian, real cards, no translucent faces`);
+ in vec2 vUv;in float vLight;uniform sampler2D atlas;uniform float passAlpha;uniform float echoTone;out vec4 color;
+ void main(){vec4 base=texture(atlas,vUv);vec3 lit=base.rgb*(.72+.28*clamp(vLight,0.0,1.0));vec3 tinted=mix(lit,lit*.83+vec3(.055,.075,.14),echoTone);color=vec4(tinted,passAlpha);} // Main 78 sheets stay fully opaque; ghost pass is time-sampled only.`);
  const p=gl.createProgram();gl.attachShader(p,vert);gl.attachShader(p,frag);gl.linkProgram(p);
  gl.deleteShader(vert);gl.deleteShader(frag);
  if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));return p;
@@ -108,7 +109,7 @@ export class RitualWorld{
   const anisotropy=gl.getExtension('EXT_texture_filter_anisotropic')||gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
   if(anisotropy)gl.texParameterf(gl.TEXTURE_2D,anisotropy.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(8,gl.getParameter(anisotropy.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
   this.uploadAtlas();gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.depthMask(true);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);
-  this.locProj=gl.getUniformLocation(this.program,'projection');this.locAtlas=gl.getUniformLocation(this.program,'atlas');
+  this.locProj=gl.getUniformLocation(this.program,'projection');this.locAtlas=gl.getUniformLocation(this.program,'atlas');this.locPassAlpha=gl.getUniformLocation(this.program,'passAlpha');this.locEchoTone=gl.getUniformLocation(this.program,'echoTone');
   this.canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();this.contextLost=true;this.pause=true;onStatus({state:'context-lost'})},{once:true});
   this.setPhase('landing');this.loadCardFaces();this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(mount);
   this.tick=this.tick.bind(this);this.frame=requestAnimationFrame(this.tick);
@@ -158,6 +159,51 @@ export class RitualWorld{
   if(now-this.lastRendered<28)return;this.lastRendered=now;
   this.resize();const gl=this.gl;gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(this.program);gl.bindVertexArray(this.vao);
   gl.uniformMatrix4fv(this.locProj,false,perspective(this.canvas.width/this.canvas.height));gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.uniform1i(this.locAtlas,0);
+  const age=this.elapsed-this.shuffleStartedAt;
+  // Actual temporal copies of the SAME 78 textured meshes. Alpha blending
+  // is enabled only during Gate B Sequence 1; never during approved Gate A
+  // landing, globe, deck assembly or user selection.
+  const echoes=this.phase==='shuffle_ritual'&&this.shuffleStyle==='auto'
+     &&age>1.37&&age<5.42&&sequenceOneEchoEnvelope(age)>.002;
+  if(echoes){
+   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+   gl.depthMask(false);gl.uniform1f(this.locEchoTone,.62);
+   const pNow=this.cards.map(card=>samplePhysicalShuffle(card,{
+    style:'auto',age,landingAt:this.shuffleLandingAt,worldTime:this.elapsed,
+    entranceMode:this.entranceMode
+   }).position);
+   const pPast=this.cards.map(card=>samplePhysicalShuffle(card,{
+    style:'auto',age:age-.068,landingAt:this.shuffleLandingAt,
+    worldTime:this.elapsed-.068,entranceMode:this.entranceMode
+   }).position);
+   const speeds=pNow.map((p,i)=>projectedCardSpeed(p,pPast,.068,this.canvas.height));
+   for(const echo of CARD_ECHO_HISTORY){
+    const ghostVertices=[];
+    let peakAlpha=0;
+    for(let i=0;i<this.cards.length;i++){
+     const card=this.cards[i];
+     const alpha=cardEchoOpacity(age,echo.lag,speeds[i]);
+     if(alpha<.012)continue;
+     const sample=samplePhysicalShuffle(card,{
+      style:'auto',age:age-echo.lag,landingAt:this.shuffleLandingAt,
+      worldTime:this.elapsed-echo.lag,entranceMode:this.entranceMode
+     });
+     // Banded per-card alpha is achieved by clustering similar-speed sheets.
+     // Only material card geometry is replayed; no duplicate logical cards.
+     peakAlpha=Math.max(peakAlpha,alpha);
+     appendPremiumCard(ghostVertices,{...card,...PHYSICAL_CARD},sample.position,
+       sample.attitude,sample.scale,card.light,slotUv,{backSlot:BACK_SLOT,edgeSlot:EDGE_SLOT});
+    }
+    if(ghostVertices.length&&peakAlpha>.001){
+     gl.uniform1f(this.locPassAlpha,peakAlpha);
+     gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);
+     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(ghostVertices),gl.DYNAMIC_DRAW);
+     gl.drawArrays(gl.TRIANGLES,0,ghostVertices.length/6);
+    }
+   }
+   gl.disable(gl.BLEND);gl.depthMask(true);gl.uniform1f(this.locEchoTone,0);
+  }
+  gl.uniform1f(this.locPassAlpha,1);gl.uniform1f(this.locEchoTone,0);
   const vertices=[];
   for(const card of this.cards){
    if(this.phase==='landing'){
