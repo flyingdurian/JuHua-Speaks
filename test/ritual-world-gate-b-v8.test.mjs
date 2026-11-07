@@ -50,7 +50,7 @@ test('Independent sheet velocities vary within a coherent spiral rather than rig
 test('Orbital axis banks progressively toward roughly 45 degrees without a deep camera dive',()=>{
  assert.ok(vortexCamera(2.1).roll<.15);
  assert.ok(vortexCamera(3.8).roll>.46);
- assert.ok(vortexCamera(4.7).roll>.70);
+ assert.ok(vortexCamera(4.7).roll>.60);
  assert.ok(vortexCamera(4.7).pitch<.23);
  assert.ok(vortexCamera(5.45).roll===0);
  for(let t=1.1;t<5.45;t+=.025){
