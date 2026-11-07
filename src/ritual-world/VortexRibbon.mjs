@@ -9,6 +9,7 @@
  *
  * No card identity/draw logic or approved Stage 2 logic lives here.
  */
+import {stagedOrbitFraction,localCurrentBias,cardPacket} from './ShotDirector.mjs';
 const TAU=2*Math.PI;
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const smooth=x=>{x=clamp(x);return x*x*(3-2*x)};
@@ -145,13 +146,20 @@ export function sampleVortexCard(index,seed,t){
  const lane=k<40?0:k<64?1:2;
  const offset=lane===0?0:lane===1?40:64;
  const n=LANES[lane].count;
- const jitter=.0055*(hash(index+100,seed)-.5);
- const q=clamp((k-offset+.5)/n+jitter);
+ const jitter=.0025*(hash(index+100,seed)-.5);
+ const current=localCurrentBias(k,t);
+ const q=clamp(stagedOrbitFraction(k,seed,t)+jitter+current.phaseOffset*.12);
  // Individual sheets acquire slightly different axial and tangential
  // velocities. This prevents the whole field from revolving as one rigid
  // ring while retaining coherent circulation through the same vortex.
  const motionBias=.88+.24*hash(k+431,seed);
  const result=sample(lane,q,t,seed,motionBias);
+ // Independent current packets have their own small onset of inward pull.
+ // Their dark gaps and converging trajectories are a staging decision,
+ // rather than random positional scatter or a new smoke texture.
+ result.position[0]*=current.radius;
+ result.position[1]*=current.radius;
+ result.position[2]+=current.depth;
  // A handful of physical sheets whip past the lens during the terminal
  // vacuum surge. These are C1-smooth ballistic detours on the SAME cards,
  // reconnecting naturally to the 78-card compression before deck assembly.
@@ -172,5 +180,5 @@ export function sampleVortexCard(index,seed,t){
  const p1=sample(lane,clamp(q+.001),t,seed,motionBias).position;
  const tangent=p1.map((v,j)=>v-p0[j]);
  const l=Math.hypot(...tangent)||1;
- return {...result,q,tangent:tangent.map(v=>v/l),gust};
+ return {...result,q,packet:cardPacket(k).packet,tangent:tangent.map(v=>v/l),gust};
 }
