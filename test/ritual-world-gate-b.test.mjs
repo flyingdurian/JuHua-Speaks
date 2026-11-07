@@ -301,7 +301,7 @@ test('keyframe envelopes contrast the wide physical tunnel, empty deck pause and
  assert.ok(tunnel/pocket>5&&globe/pocket>5);
 });
 
-test('automatic story is wholly isolated from dormant optional shuffle UI',async()=>{
+test('automatic story remains isolated from optional shuffle methods until deck formation',async()=>{
  const preview=await readFile(new URL('../preview/gate-b/gate-b.mjs',import.meta.url),'utf8');
  const html=await readFile(new URL('../preview/gate-b/index.html',import.meta.url),'utf8');
  const choreography=await readFile(new URL('../src/ritual-world/ShuffleChoreography.mjs',import.meta.url),'utf8');
@@ -309,7 +309,7 @@ test('automatic story is wholly isolated from dormant optional shuffle UI',async
  assert.match(choreography,/sampleReferenceRitual/);
  assert.match(ritual,/RITUAL_DURATION=16\.55/);
  assert.doesNotMatch(preview,/document\.querySelectorAll\('\[data-shuffle\]'\)/);
- assert.doesNotMatch(html,/shuffle-buttons/);
+ assert.match(html,/shuffle-buttons/);
  assert.match(html,/FINISH SHUFFLING/);
 });
 test('V7 authored stages extend naturally with no arbitrary 10.8-second deadline',()=>{
