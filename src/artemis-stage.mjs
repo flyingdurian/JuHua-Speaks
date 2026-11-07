@@ -1,58 +1,54 @@
-/**
- * Artemis art-direction audition (three Japanese-inspired identities).
- * Procedural portrait is a *costume and expression blocking study*, not final
- * commissioned character illustration. No user data or generated AI calls.
+/** Artemis Phase 8.2: one consistent character with 8 expressions and 8 actions.
+ * Reading gestures react to deterministic chapter events, not model guesses.
  */
-export const ARTEMIS_STYLES=Object.freeze([
- Object.freeze({id:'shrine',label:'Celestial Shrine Reader',zh:'星月神社占卜师',detail:'Moonlit silk, indigo hair, lacquer red cords, restrained gold celestial embroidery.',zhDetail:'月夜丝绸、靛蓝长发、朱红结绳与克制的金色星纹。'}),
- Object.freeze({id:'modern',label:'Modern Occult Hostess',zh:'现代神秘学主持人',detail:'Japanese fashion-editorial silhouette, tailored black-violet jacket, short flowing hair and silver accents.',zhDetail:'日系时尚廓形、黑紫色剪裁外套、轻盈短发与银饰。'}),
- Object.freeze({id:'storybook',label:'Dreamlike Storybook Diviner',zh:'梦幻绘本星象师',detail:'Pastel moonlight, long wavy lavender hair, layered translucent sleeves and fine star charms.',zhDetail:'粉彩月光、淡紫色波浪长发、半透明叠层袖口与精细星饰。'})
-]);
-export const ARTEMIS_ACTIONS=Object.freeze([
- Object.freeze({id:'welcome',label:'Welcome',zh:'欢迎',line:'I am here with you. Let us discover what your cards invite you to consider.',zhLine:'我会陪伴你，一起探索这些卡牌带来的启示。'}),
- Object.freeze({id:'observe',label:'Observe',zh:'凝视',line:'I see a thread connecting your past, present, and future.',zhLine:'我看到了过去、现在与未来之间的一条线索。'}),
- Object.freeze({id:'thoughtful',label:'Thoughtful',zh:'思索',line:'There may be more than one meaningful interpretation here.',zhLine:'这些象征也许不只有一种值得思考的解读。'}),
- Object.freeze({id:'surprised',label:'Surprised',zh:'惊讶',line:'An unexpected contrast emerges between these cards.',zhLine:'这些卡牌之间出现了出乎意料的对照。'}),
- Object.freeze({id:'reassure',label:'Reassure',zh:'安慰',line:'We can approach difficult questions gently, without declaring a fixed fate.',zhLine:'面对困难的问题，我们可以温柔地探索，而不预言既定命运。'}),
- Object.freeze({id:'present',label:'Present cards',zh:'展示卡牌',line:'These are the three cards you chose. Let us begin with the first.',zhLine:'这是你亲自选择的三张牌。我们从第一张开始吧。'})
-]);
-function portrait(style,action){
- return '<div class="artemis-persona artemis-persona-'+style+' artemis-action-'+action+'" role="img" aria-label="Provisional Japanese-inspired Artemis expression and costume motion study">'+
-  '<div class="artemis-persona-halo"></div><div class="artemis-persona-hair-back"></div>'+
-  '<div class="artemis-persona-body"><div class="artemis-persona-collar"></div><div class="artemis-persona-charm">✦</div></div>'+
-  '<div class="artemis-persona-neck"></div><div class="artemis-persona-face">'+
-  '<span class="artemis-persona-eye eye-left"></span><span class="artemis-persona-eye eye-right"></span>'+
-  '<span class="artemis-persona-mouth"></span><span class="artemis-persona-blush"></span></div>'+
-  '<div class="artemis-persona-hair-front"></div>'+
-  '<div class="artemis-persona-arm arm-left"></div><div class="artemis-persona-arm arm-right"></div>'+
-  '<div class="artemis-persona-spark">✧</div></div>';
+import {ARTEMIS_IDENTITY,ARTEMIS_EXPRESSIONS,ARTEMIS_ACTIONS,resolveArtemisPose,readingArtemisPose,renderArtemisPortrait} from './artemis-character.mjs';
+export {ARTEMIS_IDENTITY,ARTEMIS_EXPRESSIONS,ARTEMIS_ACTIONS,readingArtemisPose};
+const DIALOGUE={
+ neutral:['I am listening. We can explore these cards together.','我在倾听。让我们一起探索这三张牌。'],
+ welcome:['Welcome. You have chosen three cards; their meanings belong to your story.','欢迎。这是你亲自选择的三张牌，解读属于你的故事。'],
+ focus:['Let us look closely at what these symbols show.','让我们仔细观察这些象征。'],
+ thoughtful:['A symbol can have more than one useful interpretation.','同一个象征可能有不止一种有用的解读。'],
+ intrigued:['That contrast is interesting. Let us examine it gently.','这个对照很有趣。我们温柔地细看。'],
+ reassuring:['The cards suggest reflection, not a fixed destiny.','卡牌提供思考的方向，而非注定的命运。'],
+ confident:['I will guide you through the past, present and future.','我将带你探索过去、现在与未来。'],
+ mystical:['Let the light draw attention to the cards you chose.','让微光照亮你亲自选择的卡牌。']
+};
+function choices(items,key,current,t,h){
+ return '<div class="artemis-state-picker" role="group" aria-label="'+(key==='artemis-expression'?t('Expressions','表情'):t('Gestures','动作'))+'">'+items.map(item=>
+  '<button type="button" data-'+key+'="'+item.id+'" aria-pressed="'+(current===item.id)+'" class="'+(current===item.id?'active':'')+'">'+h(t(item.label,item.zh))+'</button>'
+ ).join('')+'</div>';
 }
 export function renderArtemisInvitation({state,t,h,btn,eyebrow,cardFace,description,roleNames}){
  if(state.picks.length!==3||!state.revealedCards.every(Boolean))throw Error('Three revealed cards required');
+ const pose=resolveArtemisPose({expression:state.artemisExpression||'welcome',action:state.artemisAction||'welcome'});
  const labels=roleNames();
- const style=ARTEMIS_STYLES.find(x=>x.id===state.artemisStyle)||ARTEMIS_STYLES[0];
- const action=ARTEMIS_ACTIONS.find(x=>x.id===state.artemisMood)||ARTEMIS_ACTIONS[0];
- return '<section class="artemis-stage artemis-stage-immersive" aria-label="'+t('Meet your Tarot reader','认识你的塔罗解读者')+'">'+
- eyebrow('05 / '+t('THE READER ARRIVES','解读者登场'))+
- '<h1>'+t('Meet <em>Artemis.</em>','认识<em>阿尔忒弥斯。</em>')+'</h1>'+description()+
- '<div class="artemis-design-options" role="group" aria-label="'+t('Choose an Artemis visual direction','选择阿尔忒弥斯视觉风格')+'">'+
- ARTEMIS_STYLES.map((item,i)=>'<button type="button" class="artemis-style-choice '+(style.id===item.id?'active':'')+'" data-artemis-style="'+item.id+'" aria-pressed="'+(style.id===item.id)+'">'+
- '<strong>'+String.fromCharCode(65+i)+' · '+h(t(item.label,item.zh))+'</strong><small>'+h(t(item.detail,item.zhDetail))+'</small></button>').join('')+'</div>'+
- '<div class="artemis-scene artemis-scene-preview"><div class="artemis-moon" aria-hidden="true"></div>'+
- portrait(style.id,action.id)+
+ const line=DIALOGUE[pose.expression];
+ return '<section class="artemis-stage artemis-stage-immersive artemis-final-design" aria-label="'+t('Meet your Tarot reader','认识你的塔罗解读者')+'">'+
+ eyebrow('05 / '+t('ARTEMIS · YOUR TAROT READER','阿尔忒弥斯 · 你的塔罗解读者'))+
+ '<h1>'+t('The cards have found <em>their storyteller.</em>','卡牌找到了<em>讲述它们故事的人。</em>')+'</h1>'+description()+
+ '<div class="artemis-scene artemis-scene-final">'+
+ '<div class="artemis-moon" aria-hidden="true"></div>'+
+ '<div class="artemis-avatar-mount">'+renderArtemisPortrait(pose)+'</div>'+
  '<div class="artemis-tabletop"><div class="artemis-table-smoke" aria-hidden="true"></div>'+
  state.picks.map((p,i)=>'<div class="artemis-table-card"><div class="artemis-table-face">'+cardFace(p.card,p.orientation,true)+'</div><span>'+h(labels[i])+'</span></div>').join('')+
  '</div></div>'+
- '<div class="artemis-stage-actions" role="group" aria-label="'+t('Preview expressions and gestures','预览表情及动作')+'">'+
- ARTEMIS_ACTIONS.map(item=>'<button type="button" class="'+(action.id===item.id?'active':'')+'" data-artemis-mood="'+item.id+'" aria-pressed="'+(action.id===item.id)+'">'+h(t(item.label,item.zh))+'</button>').join('')+'</div>'+
- '<div class="artemis-invitation"><p aria-live="polite">'+h(t(action.line,action.zhLine))+'</p>'+
- '<div class="artemis-source-note">'+t('Interactive costume / expression blocking study · Final character illustration pending art approval · Scripted demo only','可交互服装与表情动态草案 · 正式角色插画待美术审核 · 仅为脚本演示')+'</div>'+
- btn('invite-reader',t('Begin with Artemis ✧','与阿尔忒弥斯开始解读 ✧'))+'</div></section>';
+ '<div class="artemis-invitation"><p aria-live="polite">'+h(t(line[0],line[1]))+'</p>'+
+ '<div class="artemis-source-note">'+h(ARTEMIS_IDENTITY.label)+' · '+t('Scripted demonstration · Character artwork in review','脚本演示 · 角色美术审核中')+'</div>'+
+ btn('invite-reader',t('Begin with Artemis ✧','与阿尔忒弥斯开始解读 ✧'))+'</div>'+
+ '<details class="artemis-expression-studio"><summary>'+t('Explore Artemis expressions and gestures (art review)','预览阿尔忒弥斯表情与动作（美术审核）')+'</summary>'+
+ '<div class="artemis-studio-heading">'+t('Eight expressions','八种表情')+'</div>'+
+ choices(ARTEMIS_EXPRESSIONS,'artemis-expression',pose.expression,t,h)+
+ '<div class="artemis-studio-heading">'+t('Eight actions','八种动作')+'</div>'+
+ choices(ARTEMIS_ACTIONS,'artemis-action',pose.action,t,h)+
+ '</details></section>';
 }
 export function renderArtemisTable({state,t,h,cardFace,roleNames}){
  if(state.picks.length!==3)return '';
  const labels=roleNames();
- return '<div class="artemis-reading-table" aria-label="'+t('Artemis reading table','阿尔忒弥斯解读桌')+'">'+
- '<header>☾ ARTEMIS · '+t('THE READING TABLE','塔罗解读桌')+' <small>'+t('Scripted demo','脚本演示')+'</small></header>'+
- '<div class="artemis-reading-cards">'+state.picks.map((p,i)=>'<div class="artemis-reading-card">'+cardFace(p.card,p.orientation,true)+'<strong>'+h(labels[i])+'</strong></div>').join('')+'</div></div>';
+ const pose=readingArtemisPose(state.readingBeat);
+ return '<div class="artemis-reading-table artemis-reading-character" aria-label="'+t('Artemis reading table','阿尔忒弥斯解读桌')+'">'+
+ '<div class="artemis-reading-figure">'+renderArtemisPortrait(pose,'artemis-reading-avatar')+'</div>'+
+ '<div class="artemis-reading-content"><header>☾ ARTEMIS · '+t('THE READING TABLE','塔罗解读桌')+' <small>'+t('Scripted demo · Expression responds to chapter','脚本演示 · 表情随章节变化')+'</small></header>'+
+ '<div class="artemis-reading-cards">'+state.picks.map((p,i)=>
+ '<div class="artemis-reading-card">'+cardFace(p.card,p.orientation,true)+'<strong>'+h(labels[i])+'</strong></div>').join('')+'</div></div></div>';
 }
