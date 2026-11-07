@@ -367,3 +367,109 @@
 .artemis-reading-card .card-face{aspect-ratio:1100/1920;border:2px solid #caaa74;border-radius:5px;box-shadow:0 10px 25px #0009}
 @media(max-width:650px){.artemis-scene{min-height:400px}.artemis-tabletop{height:110px}.artemis-table-card{width:clamp(55px,19vw,90px)}.physical-card-meter{flex-direction:column}.artemis-reading-table header small{display:block}}
 @media(prefers-reduced-motion:reduce){.artemis-table-smoke{animation:none}}
+
+
+/* Gate C / Gate D. Full viewport scene, independent of the old chamber box. */
+.site:has(.gate-sphere) .stage {max-width:none;width:100%;padding:0;margin:0}
+.site:has(.gate-sphere) .masthead {position:absolute;top:0;left:0;right:0;z-index:32;background:linear-gradient(#040710ec,#04071000);border:0}
+.site:has(.gate-sphere) .progress,.site:has(.gate-sphere) .site-footer{display:none}
+.gate-sphere{position:relative;isolation:isolate;width:100vw;min-height:100vh;min-height:100svh;margin-left:calc(50% - 50vw);color:#f8ebd4;background:#02040e;overflow:hidden}
+.gate-sphere .gate-cosmos,.gate-sphere .sphere-scene.inside-dome{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;min-height:100%!important;max-height:none!important;max-width:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:hidden!important}
+.gate-sphere .gate-cosmos{z-index:0;background:radial-gradient(ellipse at 48% 52%,#26314b80 0%,#0a0e20 55%,#010309 100%)}
+.gate-sphere .gate-starfield{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(1px 1px at 19% 32%,#faf1cabb 99%,transparent),radial-gradient(1px 1px at 76% 47%,#dac8ffb3 99%,transparent),radial-gradient(2px 2px at 36% 77%,#d6e8ff8c 99%,transparent);background-size:143px 117px,211px 167px,373px 247px;opacity:.9}
+.gate-sphere .gate-nebula{position:absolute;inset:-8%;background:radial-gradient(ellipse at 40% 40%,#aa8ac52b,transparent 52%),radial-gradient(ellipse at 67% 65%,#477ba12b,transparent 47%);pointer-events:none;filter:blur(48px)}
+.gate-sphere .gate-vortex-core{position:absolute;left:50%;top:50%;width:min(70vh,70vw);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;background:radial-gradient(circle,#101b3830,transparent 72%);box-shadow:0 0 140px #afadd50c}
+.gate-sphere .gate-reticle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;color:#e8d2a180;opacity:.65;font:34px Georgia,serif;text-shadow:0 0 24px #e3c99a}
+.gate-sphere .sphere-webgl{position:absolute;inset:0;width:100%;height:100%;z-index:8;touch-action:none}
+.gate-sphere-header{position:absolute;top:clamp(94px,14vh,148px);left:0;right:0;text-align:center;z-index:17;pointer-events:none;padding:0 18px;text-shadow:0 2px 24px #000}
+.gate-sphere-header .gate-eyebrow{font:10px ui-monospace,monospace;color:#dfc69c;letter-spacing:.25em}
+.gate-sphere-header h1{font:normal clamp(24px,3.3vw,48px) Georgia,serif;margin:12px 0 8px}
+.gate-sphere-header h1 em{color:#e5cb93}
+.gate-sphere-header p{color:#c2bfd0;font-size:clamp(11px,1.2vw,14px);margin:0}
+.gate-interaction-rail{position:absolute;z-index:19;left:50%;bottom:clamp(185px,24vh,242px);transform:translateX(-50%);display:flex;align-items:center;justify-content:center;gap:10px;max-width:calc(100% - 20px);border:1px solid #bcab8159;border-radius:50px;background:#080b19bb;padding:6px 13px;backdrop-filter:blur(15px);white-space:nowrap}
+.gate-interaction-rail span{font:9px ui-monospace,monospace;letter-spacing:.1em;color:#d9ccb7}
+.gate-interaction-rail button{border:0;color:#f0ddbd;background:#222438b3;padding:7px 10px;border-radius:20px;font-size:11px}
+.gate-interaction-rail button:focus-visible,.gate-commit-actions button:focus-visible{outline:2px solid #ffe1a5}
+.gate-selection-area{position:absolute;z-index:22;left:50%;transform:translateX(-50%);bottom:clamp(14px,2.8vh,28px);width:min(710px,calc(100% - 20px));text-align:center;padding:12px 15px 13px;border:1px solid #e1c49440;border-radius:18px;background:linear-gradient(125deg,#080c1dd9,#171024bb);box-shadow:0 10px 40px #0009;backdrop-filter:blur(16px)}
+.gate-selection-grid{display:flex;justify-content:center;gap:clamp(18px,5.2vw,78px)}
+.gate-slot{width:clamp(65px,11vw,103px);display:flex;flex-direction:column;align-items:center;gap:4px}
+.gate-slot-card{display:grid;place-items:center;border:1px solid #c0ac886e;width:clamp(38px,4.4vw,56px);height:clamp(61px,7vw,86px);border-radius:5px;color:#c4b6a1;background:#101b2bde;box-shadow:inset 0 0 30px #060a18}
+.gate-slot.is-chosen .gate-slot-card{box-shadow:0 0 18px #f1d58a6a,0 0 5px #fff4c7;border-color:#f0d491}
+.gate-slot-card .card-back{width:100%;height:100%}
+.gate-slot-label{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#e7d0ac}
+.gate-slot-undo{font-size:9px;color:#d8c59b;background:none;border:0;text-decoration:underline}
+.gate-selection-count{font:10px ui-monospace,monospace;color:#e1d4c5;margin:9px auto}
+.gate-commit-actions{display:flex;justify-content:center;gap:9px}
+.gate-commit-actions .btn{font-size:11px;padding:8px 15px}
+.gate-flat-cosmos{overflow-y:auto!important;padding:145px 15px 240px}
+.gate-flat-cosmos .flat-table{max-height:none;min-height:60vh;background:#0c1326d9}
+@media(max-width:740px){
+ .gate-sphere-header{top:92px}.gate-sphere-header h1{font-size:26px}
+ .gate-sphere-header p{font-size:11px;max-width:310px;margin:auto}
+ .gate-interaction-rail{bottom:205px;gap:4px;padding:5px}
+ .gate-interaction-rail span{font-size:7px;letter-spacing:0}
+ .gate-interaction-rail button{font-size:10px;padding:6px}
+ .gate-selection-area{bottom:9px;padding:7px 9px}
+ .gate-selection-grid{gap:14px}
+ .gate-slot-card{width:34px;height:54px}
+ .gate-slot{gap:2px}
+ .gate-commit-actions .btn{padding:8px 9px}
+}
+@media(max-height:680px){
+ .gate-sphere-header{top:75px}.gate-sphere-header p{display:none}
+ .gate-interaction-rail{bottom:156px}
+ .gate-selection-area{padding:6px}.gate-slot-card{width:29px;height:47px}
+}
+/* Scripted flight through the same spatial, square/card language as Gate A. */
+.gate-entry-cinematic{position:fixed;inset:0;z-index:1500;overflow:hidden;pointer-events:all;background:radial-gradient(circle at center,#1a2948 0%,#040718 65%,#010206 100%);perspective:850px;animation:gate-entry-curtain 2.35s ease-out both}
+.gate-entry-depth{position:absolute;top:50%;left:50%;width:min(65vw,70vh);aspect-ratio:1;border:1px solid #d2ba8f8a;box-shadow:0 0 55px #b5a7d55b,inset 0 0 38px #a0b7de38;transform-style:preserve-3d;animation:gate-flight 2.2s cubic-bezier(.55,.05,.15,1) both}
+.gate-entry-depth-a{--turn:0deg;animation-delay:0ms}
+.gate-entry-depth-b{--turn:36deg;animation-delay:80ms;border-color:#b9b6dd8a}
+.gate-entry-depth-c{--turn:72deg;animation-delay:150ms;border-color:#d6ba8696}
+.gate-entry-portal{position:absolute;left:50%;top:50%;width:min(38vw,42vh);aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#05020b,#090e2c 48%,#8c84bd53 63%,transparent 71%);filter:blur(7px);animation:gate-portal-enter 2.3s both}
+.gate-entry-words{position:absolute;bottom:17%;left:0;right:0;text-align:center;color:#e1d1ac;font:11px ui-monospace,monospace;letter-spacing:.3em;animation:gate-words 2.3s both}
+@keyframes gate-flight{0%{opacity:0;transform:translate(-50%,-50%) translateZ(-490px) rotateZ(var(--turn)) rotateX(34deg)}20%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) translateZ(470px) rotateZ(calc(var(--turn) + 34deg)) rotateX(64deg)}}
+@keyframes gate-portal-enter{0%{opacity:.3;transform:translate(-50%,-50%) scale(.15)}68%{opacity:1;transform:translate(-50%,-50%) scale(1.7)}100%{opacity:0;transform:translate(-50%,-50%) scale(4)}}
+@keyframes gate-entry-curtain{0%,72%{opacity:1}100%{opacity:0}}
+@keyframes gate-words{0%,65%{opacity:.9}100%{opacity:0}}
+/* All 75 cards spiral through a compact gravitational throat. */
+.gate-collapse-transition .ritual-vortex-debris>div{animation:gate-spiral-collapse 1.35s cubic-bezier(.55,.05,.76,.24) both;animation-delay:var(--delay)}
+.gate-collapse-transition .ritual-vortex-debris>div .card-back{box-shadow:0 0 13px #cfb6e755}
+.gate-collapse-transition .ritual-black-hole{box-shadow:0 0 0 15px #b8a1e129,0 0 0 55px #735aa920,0 0 105px 44px #b2a8f16c}
+@keyframes gate-spiral-collapse{
+ 0%{opacity:1;transform:translate(-50%,-50%) rotate(var(--angle)) translateX(var(--radius)) rotate(-20deg) scale(1)}
+ 50%{opacity:1;transform:translate(-50%,-50%) rotate(calc(var(--angle) + 350deg)) translateX(17vw) rotate(-110deg) scale(.55)}
+ 100%{opacity:0;transform:translate(-50%,-50%) rotate(calc(var(--angle) + 720deg)) translateX(0) rotate(-170deg) scale(.015)}
+}
+/* Gate D: artwork stays motionless UNDER the deforming back material. */
+.physical-card-row{perspective:1200px}
+.gate-peel-card{position:relative;display:block;overflow:visible;border-radius:9px;isolation:isolate;transform-style:preserve-3d;filter:drop-shadow(0 16px 25px #0009)}
+.gate-peel-art,.gate-peel-cover{position:absolute;inset:0;overflow:hidden;border-radius:9px}
+.gate-peel-art{z-index:1;background:#111b2b;box-shadow:0 0 0 2px #d4b781}
+.gate-peel-art .card-face{width:100%;height:100%;display:block}
+.gate-peel-art .card-image{display:block;width:100%;height:100%;object-fit:cover}
+.gate-peel-cover{z-index:2;filter:drop-shadow(1px 0 4px #05050cc0)}
+.gate-peel-cover .card-back{height:100%;width:100%;border-radius:9px}
+.gate-peel-fold{position:absolute;z-index:4;left:calc(var(--p)*100% - 11%);top:0;width:13%;height:100%;transform:perspective(360px) rotateY(-55deg);transform-origin:left center;pointer-events:none;background:linear-gradient(90deg,#f0d4a0 0%,#a47f5f 9%,#08132a 42%,#182944 80%,#d6b078 100%);box-shadow:5px 0 13px #000a;opacity:clamp(0,calc(var(--p)*7),1)}
+.gate-peel-glint{position:absolute;z-index:3;left:calc(var(--p)*100%);top:0;width:2px;height:100%;pointer-events:none;background:#fff3cf;box-shadow:0 0 11px 3px #eac98e9c;opacity:clamp(0,calc(var(--p)*5),.7)}
+.gate-peel-card[data-peek-direction="left"] .gate-peel-cover{clip-path:inset(0 0 0 calc(var(--p)*100%))}
+.gate-peel-card[data-peek-direction="right"] .gate-peel-cover{clip-path:inset(0 calc(var(--p)*100%) 0 0)}
+.gate-peel-card[data-peek-direction="right"] .gate-peel-fold{left:auto;right:calc(var(--p)*100% - 11%);transform:perspective(360px) rotateY(55deg)}
+.gate-peel-card[data-peek-direction="right"] .gate-peel-glint{left:auto;right:calc(var(--p)*100%)}
+.gate-peel-card[data-peek-direction="top"] .gate-peel-cover{clip-path:inset(calc(var(--p)*100%) 0 0 0)}
+.gate-peel-card[data-peek-direction="bottom"] .gate-peel-cover{clip-path:inset(0 0 calc(var(--p)*100%) 0)}
+.gate-peel-card:is([data-peek-direction="top"],[data-peek-direction="bottom"]) .gate-peel-fold{width:100%;height:13%;left:0;top:calc(var(--p)*100% - 11%);transform:perspective(360px) rotateX(55deg);background:linear-gradient(#eccd93,#132442 48%,#cca56b)}
+.gate-peel-card[data-peek-direction="bottom"] .gate-peel-fold{top:auto;bottom:calc(var(--p)*100% - 11%);transform:perspective(360px) rotateX(-55deg)}
+.gate-peel-card:is([data-peek-direction="top"],[data-peek-direction="bottom"]) .gate-peel-glint{left:0;top:calc(var(--p)*100%);width:100%;height:2px}
+.gate-peel-card[data-peek-direction="bottom"] .gate-peel-glint{top:auto;bottom:calc(var(--p)*100%)}
+.gate-peel-card[data-peek-direction="top-left"] .gate-peel-cover{clip-path:polygon(calc(var(--p)*100%) 0,100% 0,100% 100%,0 100%,0 calc(var(--p)*100%))}
+.gate-peel-card[data-peek-direction="top-right"] .gate-peel-cover{clip-path:polygon(0 0,calc(100% - var(--p)*100%) 0,100% calc(var(--p)*100%),100% 100%,0 100%)}
+.gate-peel-card[data-peek-direction="bottom-left"] .gate-peel-cover{clip-path:polygon(0 0,100% 0,100% 100%,calc(var(--p)*100%) 100%,0 calc(100% - var(--p)*100%))}
+.gate-peel-card[data-peek-direction="bottom-right"] .gate-peel-cover{clip-path:polygon(0 0,100% 0,100% calc(100% - var(--p)*100%),calc(100% - var(--p)*100%) 100%,0 100%)}
+.gate-peel-card[data-peek-direction*="-"] .gate-peel-fold{height:35%;top:0;transform-origin:top left;transform:rotate(-40deg) rotateY(-48deg)}
+.gate-peel-card[data-peek-direction*="-"] .gate-peel-glint{height:35%;top:0;transform:rotate(45deg)}
+.gate-peel-card[data-peek-direction^="bottom-"] .gate-peel-fold,.gate-peel-card[data-peek-direction^="bottom-"] .gate-peel-glint{top:auto;bottom:0}
+.physical-card-entry.has-revealed .gate-peel-cover,.physical-card-entry.has-revealed .gate-peel-fold,.physical-card-entry.has-revealed .gate-peel-glint{opacity:0;pointer-events:none}
+.gate-instant-reveal{margin:8px 0 0;background:transparent;border:0;color:#e3cb9c;text-decoration:underline;font-size:10px}
+.gate-instant-reveal:disabled{opacity:.3}
+@media(prefers-reduced-motion:reduce){.gate-entry-cinematic{display:none}.gate-sphere .gate-cosmos{background:#10172b}.gate-collapse-transition .ritual-vortex-debris>div{animation:none;display:none}.gate-peel-cover,.gate-peel-fold,.gate-peel-glint{transition:none!important}}
