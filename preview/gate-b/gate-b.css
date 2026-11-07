@@ -214,3 +214,9 @@
 .gate-b.in-ritual.vacuum-active .space-background .nebula-texture{opacity:.28!important}
 .gate-b.vacuum-active .advected-mist{filter:blur(4px)}
 @media(max-width:650px){.gate-b.vacuum-active .advected-mist{filter:blur(3px)}}
+
+/* Final Sequence 1 review: thin velocity strokes must remain sharp. The
+   trail positions come from real 3D Tarot-sheet histories, not smoke art. */
+.gate-b.vacuum-active .advected-mist{filter:blur(.65px)!important;opacity:1}
+.gate-b.vacuum-active .ritual-vortex-glow{opacity:.86!important}
+@media(max-width:650px){.gate-b.vacuum-active .advected-mist{filter:blur(.4px)!important}}
