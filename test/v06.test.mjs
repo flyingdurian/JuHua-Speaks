@@ -40,7 +40,11 @@ test('UI keeps pick state until the card lands, offers pause and reduced-motion 
  const gl=await readFile(new URL('../src/webgl-sphere.mjs',import.meta.url),'utf8');
  assert.match(src,/toggleCard\(BY_ID\.get\(id\)\)/);
  assert.match(src,/confirmThreeCards\(\)/);
- assert.match(src,/animation\.onfinish=.*selectCard\(card\);render\(\)/);
+ // Gate C updates the selection HUD and GPU marks in place; re-rendering
+ // the entire sphere after a flight would break continuous camera motion.
+ assert.match(src,/animation\\.onfinish=.*selectCard\\(card\\);/);
+ assert.match(src,/function refreshGateSelection\\(/);
+ assert.match(src,/webglSphere\\?\\.syncSelection\\?\\./);
  assert.match(src,/data-action=\\?"toggle-orbit/);
  assert.match(src,/motionReduced\(\)/);
  assert.match(gl,/hideCard\(id\)\{hidden\.add\(id\)\}/);
