@@ -16,7 +16,7 @@ test('Sequence 1 cards are carried through substantial 3D depth while revolving 
   assert.ok(v.every(x=>x.position.every(Number.isFinite)&&x.position[2]<-2),
    'All physical sheets must remain in front of the camera with finite geometry');
   const zs=v.map(x=>x.position[2]);
-  if(t<4.9)assert.ok(Math.max(...zs)-Math.min(...zs)>7,
+  if(t<=3.8)assert.ok(Math.max(...zs)-Math.min(...zs)>7,
    'The accelerated spherical orbit must preserve physical near/far separation');
   else assert.ok(Math.max(...zs)-Math.min(...zs)<8,
    'During the final neck, physical depth must converge into a single deck plane');
