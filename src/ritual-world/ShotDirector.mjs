@@ -49,12 +49,16 @@ export function heroAccent(k,t){
 }
 export function heroEchoStrength(k,t){
  if(cardRole(k)!=='hero')return 0;
- return heroAccent(k,t);
+ const strength=heroAccent(k,t);
+ if(strength<.18)return 0;
+ // Never more than five simultaneous hero afterimage events.
+ const stronger=HERO_SLOTS.filter(i=>heroAccent(i,t)>strength+1e-9).length;
+ return stronger<STAGE_ONE_LIMITS.maxConcurrentHeroEchoes?strength:0;
 }
 export function trailStrength(k,t){
  if(!HERO_TRAIL_SLOTS.includes(k))return 0;
  // A tail is a single exceptional *event*, not an always-on ornament.
- return heroAccent(k,t)*(.70+.25*Math.sin(k*.711)**2);
+ return heroEchoStrength(k,t)*(.70+.25*Math.sin(k*.711)**2);
 }
 export function localCurrentBias(k,t){
  const p=cardPacket(k);
