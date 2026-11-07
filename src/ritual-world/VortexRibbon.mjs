@@ -22,13 +22,13 @@ const hash=(i,s=0)=>{
 // These are visual shot beats, not a fixed-duration benchmark contract.
 // All camera movement is continuous and evaluated on the same world object.
 const CAMERA=[
- {t:1.10,yaw:.10,roll:.00,pitch:.06,zoom:1.00,px:0,py:0,sx:1,sy:1,cardGain:1},
- {t:2.10,yaw:.16,roll:-.18,pitch:.18,zoom:1.24,px:22,py:5,sx:1.10,sy:1.08,cardGain:1.06},
- {t:3.00,yaw:.17,roll:-.32,pitch:.24,zoom:1.24,px:25,py:7,sx:1.10,sy:1.12,cardGain:1.08},
- {t:3.75,yaw:.22,roll:.10,pitch:.48,zoom:1.17,px:40,py:14,sx:1.10,sy:1.12,cardGain:1.02},
- {t:4.40,yaw:.28,roll:.15,pitch:.59,zoom:1.10,px:12,py:12,sx:1.08,sy:1.05,cardGain:1.00},
- {t:4.75,yaw:.26,roll:.20,pitch:.67,zoom:1.04,px:6,py:12,sx:1.05,sy:1.02,cardGain:.97},
- {t:5.45,yaw:.10,roll:0,pitch:0,zoom:1.00,px:0,py:0,sx:1,sy:1,cardGain:1},
+ {t:1.10,yaw:.06,roll:-.07,pitch:.04,zoom:1.00,px:0,py:0,sx:1,sy:1,cardGain:1},
+ {t:2.10,yaw:.09,roll:.08,pitch:.06,zoom:1.13,px:8,py:0,sx:1.06,sy:1.05,cardGain:1.04},
+ {t:3.00,yaw:.12,roll:.25,pitch:.10,zoom:1.12,px:8,py:0,sx:.91,sy:1.16,cardGain:1.04},
+ {t:3.75,yaw:.14,roll:.49,pitch:.14,zoom:1.09,px:5,py:0,sx:.90,sy:1.38,cardGain:1.00},
+ {t:4.40,yaw:.18,roll:.70,pitch:.18,zoom:1.02,px:0,py:0,sx:.85,sy:1.28,cardGain:.97},
+ {t:4.75,yaw:.18,roll:.78,pitch:.18,zoom:.99,px:0,py:0,sx:.82,sy:1.20,cardGain:.94},
+ {t:5.45,yaw:.10,roll:0,pitch:0,zoom:1,px:0,py:0,sx:1,sy:1,cardGain:1},
 ];
 function cameraValue(t,key){
  if(t<=CAMERA[0].t)return CAMERA[0][key];
@@ -47,8 +47,8 @@ export function vortexCamera(t){
 // The reference physically squeezes the wide spiral into a tall, narrow
 // stream as the viewer dives into the helix; this is not a pixel-mask trick.
 const FUNNEL=[
- {t:1.10,r:1.06},{t:2.10,r:1.20},{t:3.00,r:1.12},
- {t:3.75,r:.93},{t:4.40,r:.78},{t:4.75,r:.69},{t:5.45,r:.21}
+ {t:1.10,r:1.06},{t:2.10,r:1.12},{t:3.00,r:.93},
+ {t:3.75,r:.75},{t:4.40,r:.62},{t:4.75,r:.51},{t:5.45,r:.20}
 ];
 function funnelRadius(t){
  if(t<=FUNNEL[0].t)return FUNNEL[0].r;
@@ -60,7 +60,7 @@ function funnelRadius(t){
 }
 export function vortexProgress(t){
  const u=clamp((t-1.10)/4.35);
- return {u,angular:.14*u+2.35*u*u+.40*u*u*u,
+ return {u,angular:.11*u+3.35*u*u+.78*u*u*u,
   axial:3.1*(.15*u+.85*u*u),
   collapse:softer((t-4.52)/.93)};
 }
