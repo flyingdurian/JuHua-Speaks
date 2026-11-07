@@ -1,3 +1,4 @@
+import {heroEchoStrength} from './ShotDirector.mjs';
 /**
  * Gate B Sequence 1 | material-accurate temporal card echoes.
  *
@@ -31,8 +32,9 @@ export function velocityEchoWeight(speed){
  // reaches full opacity when sheets clearly accelerate on screen.
  return smooth((speed-18)/130);
 }
-export function cardEchoOpacity(age,lag,speed){
+export function cardEchoOpacity(age,lag,speed,index){
  const step=CARD_ECHO_HISTORY.find(x=>Math.abs(x.lag-lag)<.00001);
- if(!step||age-lag<1.10)return 0;
- return step.opacity*sequenceOneEchoEnvelope(age)*velocityEchoWeight(speed);
+ if(!step||age-lag<1.10||index===undefined)return 0;
+ return step.opacity*sequenceOneEchoEnvelope(age)*velocityEchoWeight(speed)
+    *heroEchoStrength(index,age);
 }
