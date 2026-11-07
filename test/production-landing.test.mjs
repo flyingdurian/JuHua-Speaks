@@ -20,7 +20,7 @@ test('landing question is handed to the old ritual privately, no querystring lea
  assert.match(landing,/new URL\('\.\.\/\.\.\/ritual\.html',import\.meta\.url\)/);
  assert.doesNotMatch(landing,/location\.assign\([^)]*encodeURIComponent/);
  assert.match(app,/sessionStorage\.removeItem\('juhua:gate-a-question'\)/);
- assert.match(app,/step:incomingGateQuestion\?1:0/);
+ assert.match(app,/step:incomingGateB\?3:incomingGateQuestion\?1:0/);
  assert.match(app,/question:incomingGateQuestion/);
  assert.match(old,/src="\.\/src\/app\.mjs"/);
 });

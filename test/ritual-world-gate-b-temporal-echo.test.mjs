@@ -19,10 +19,10 @@ test('only five cards may emit two short echo accents during the orbital cyclone
  assert.equal(sequenceOneEchoEnvelope(5.5),0);
  assert.ok(velocityEchoWeight(8)===0);
  assert.ok(velocityEchoWeight(160)>.9);
- const slow=cardEchoOpacity(3,.054,10),fast=cardEchoOpacity(3,.054,170);
+ const slow=cardEchoOpacity(3,.052,10),fast=cardEchoOpacity(3,.052,170);
  assert.equal(slow,0);
  assert.ok(fast>.10&&fast<=.19);
- assert.equal(cardEchoOpacity(10,.054,200),0);
+ assert.equal(cardEchoOpacity(10,.052,200),0);
 });
 
 test('projected speed uses actual camera-space near/far perspective',()=>{
