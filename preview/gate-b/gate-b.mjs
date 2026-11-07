@@ -123,6 +123,6 @@ window.__ritualGateB={
  world,diagnostics:()=>world?{...world.getDiagnostics(),sky:sky.diagnostics(),vortex:flowMist.diagnostics()}:null,
  get phase(){return world?.phase||'unavailable'},
  get shuffle(){return world?.getShuffleState()||null},
- version:'Gate B v10.6 · Sequence 1 physical flow / draft',
+ version:'Gate B v10.7 · 45-degree cyclone / selective accents',
 };
 window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();flowMist.dispose();world?.dispose()},{once:true});

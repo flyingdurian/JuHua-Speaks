@@ -7,11 +7,18 @@
  */
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 const smooth=x=>{x=clamp(x);return x*x*(3-2*x)};
+// Not all cards get trails. Only five recognizable high-speed accents MAY
+// exhibit a short ghost, never the entire cyclone. Does not create new cards.
+export const ACTIVE_ECHO_CARD_SLOTS=Object.freeze([3,16,31,54,71]);
 export const CARD_ECHO_HISTORY=Object.freeze([
- Object.freeze({lag:.19,opacity:.13}),
- Object.freeze({lag:.115,opacity:.23}),
- Object.freeze({lag:.054,opacity:.34})
+ Object.freeze({lag:.125,opacity:.11}),
+ Object.freeze({lag:.052,opacity:.19})
 ]);
+export function shouldEchoCard(card,age){
+ const slot=card?.orbitSlot;
+ return ACTIVE_ECHO_CARD_SLOTS.includes(slot) &&
+  age>1.65+ACTIVE_ECHO_CARD_SLOTS.indexOf(slot)*.11 && age<4.94;
+}
 export function sequenceOneEchoEnvelope(age){
  return smooth((age-1.37)/.38)*(1-smooth((age-5.08)/.32));
 }
@@ -34,5 +41,5 @@ export function velocityEchoWeight(speed){
 export function cardEchoOpacity(age,lag,speed){
  const step=CARD_ECHO_HISTORY.find(x=>Math.abs(x.lag-lag)<.00001);
  if(!step||age-lag<1.10)return 0;
- return step.opacity*sequenceOneEchoEnvelope(age)*velocityEchoWeight(speed);
+ return Math.min(.19,step.opacity*sequenceOneEchoEnvelope(age)*velocityEchoWeight(speed));
 }

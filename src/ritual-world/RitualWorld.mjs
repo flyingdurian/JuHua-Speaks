@@ -8,7 +8,7 @@ import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,l
 export {makeLandingCardEntities,sampleLandingPose} from './OrbitalField.mjs';
 import {appendPremiumCard} from './CardSurface.mjs';
 import {PHYSICAL_CARD,samplePhysicalShuffle,deckPose,shuffleDuration,shuffleBeat,SHUFFLE_CHOICES,assertShuffleGeometry} from './ShuffleChoreography.mjs';
-import {CARD_ECHO_HISTORY,sequenceOneEchoEnvelope,projectedCardSpeed,cardEchoOpacity} from './TemporalEcho.mjs';
+import {CARD_ECHO_HISTORY,sequenceOneEchoEnvelope,projectedCardSpeed,cardEchoOpacity,shouldEchoCard} from './TemporalEcho.mjs';
 const TAU = Math.PI * 2;
 const clamp = (v,a,b) => Math.max(a, Math.min(b,v));
 const hash = (x) => { x = Math.imul(x ^ x >>> 16, 0x7feb352d); x = Math.imul(x ^ x >>> 15,0x846ca68b); return ((x ^ x >>> 16) >>> 0) / 4294967296; };
@@ -182,6 +182,7 @@ export class RitualWorld{
     let peakAlpha=0;
     for(let i=0;i<this.cards.length;i++){
      const card=this.cards[i];
+     if(!shouldEchoCard(card,age))continue;
      const alpha=cardEchoOpacity(age,echo.lag,speeds[i]);
      if(alpha<.012)continue;
      const sample=samplePhysicalShuffle(card,{
