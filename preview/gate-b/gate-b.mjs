@@ -80,7 +80,7 @@ function renderUI(){
  if(title.textContent!==newTitle)title.textContent=newTitle;
  if(description.textContent!==newDescription)description.textContent=newDescription;
  if(phase==='deck_formed'){
-  // Optional shuffle choices remain withheld to focus solely on the automatic ritual.
+  // Return the same physical 78-card deck; user can replay any distinct method.
   document.getElementById('finish-shuffle').disabled=false;
  }
 }
@@ -101,9 +101,15 @@ buttonStart.addEventListener('click',()=>{
  root.classList.add('in-ritual');overlay.hidden=false;deckControls.hidden=true;notice.textContent='';
  renderUI();
 });
+document.getElementById('shuffle-buttons').addEventListener('click',event=>{
+ const style=event.target.closest?.('[data-shuffle-style]')?.dataset.shuffleStyle;
+ if(!style||!world||world.phase!=='deck_formed')return;
+ try{world.playShuffle(style);notice.textContent='';renderUI();}
+ catch(error){renderError=error.message;status.textContent='SHUFFLE RENDER ERROR · '+renderError;console.error(error)}
+});
 document.getElementById('finish-shuffle').addEventListener('click',()=>{
  if(!world||world.phase!=='deck_formed')return;
- notice.textContent='Gate B complete. The cosmic launch and sphere-selection transition are Gate C.';
+ notice.textContent='78 cards formed. Phase 8.2 Reveal + Artemis is developed separately; this studio remains a shuffle-only visual gate.';
 });
 buttonPause.addEventListener('click',()=>{
  if(!world)return;

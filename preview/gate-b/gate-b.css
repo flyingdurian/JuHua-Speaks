@@ -220,3 +220,8 @@
 .gate-b.vacuum-active .advected-mist{filter:blur(.65px)!important;opacity:1}
 .gate-b.vacuum-active .ritual-vortex-glow{opacity:.86!important}
 @media(max-width:650px){.gate-b.vacuum-active .advected-mist{filter:blur(.4px)!important}}
+
+/* v10.7 recovered three-style physically distinct shuffle audition. */
+.gate-b .shuffle-buttons{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.gate-b .shuffle-buttons button{border:1px solid #bca7835e;background:#07111bbd;color:#e9dec9;font-size:10px;letter-spacing:.09em;padding:8px 10px;border-radius:4px}
+.gate-b .shuffle-buttons button:hover,.gate-b .shuffle-buttons button:focus-visible{border-color:#eacb89;background:#152137}

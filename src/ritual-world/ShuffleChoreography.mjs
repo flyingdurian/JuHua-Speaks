@@ -109,88 +109,93 @@ export function deckThickness(cards){
  const values=cards.map(c=>dot(deckPose(c,0).position,axis));
  return Math.max(...values)-Math.min(...values);
 }
-function cosmicHalvesPose(card,t){
- const rank=card.orbitSlot,half=rank%2,index=Math.floor(rank/2),side=half?-1:1;
- // Two coherent 39-card helixes, not a pair of rigid rows.
- const cycle=Math.max(0,t-1.05),r=1.73;
- const angle=cycle*1.62;
- const center=[side*r*Math.cos(angle),side*.48*Math.sin(angle),-16.7+side*r*.48*Math.sin(angle)];
- const fan=smoother(cycle/.9);
- const strand=(index-19)/19;
- const az=angle+side*strand*.72;
- const position=[
-  center[0]+fan*.55*Math.sin(az)*strand,
-  center[1]+fan*strand*.95,
-  center[2]+(index-19)*.015+fan*.22*Math.cos(az)*strand
- ];
- return pose(position,backAttitude(.45+side*.26*Math.sin(angle),-.10,fan*strand*.28),1.18);
-}
-function cosmicInitialSplit(card,t){
+// COSMIC / 78 individual sheets: two opposing 39-card helical currents.
+// They emerge as real stacks, overtake at the centre and physically return
+// to the original deck; no cards blink out or become a decorative particle.
+function cosmicInitialSplit(card){
  const half=card.orbitSlot%2,side=half?-1:1,index=Math.floor(card.orbitSlot/2);
- return stackPose(card,{center:[side*1.73,-.15,-16.7],yaw:.48,pitch:-.10,scale:1.18,rank:index,count:39,step:.0145});
+ return stackPose(card,{center:[side*1.58,-.14,-16.7],yaw:.55+side*.10,pitch:-.13,
+  scale:1.08,rank:index,count:39,step:.0145});
+}
+function cosmicHalvesPose(card,t){
+ const rank=card.orbitSlot,half=rank%2,slot=Math.floor(rank/2),side=half?-1:1;
+ const u=(slot+.5)/39,phase=side*(t-1.0)*2.35+u*TAU*1.26;
+ const strand=(slot-19)/19;
+ const radius=1.47+.45*Math.cos(u*TAU*1.8+t*.4);
+ const approach=.5+.5*Math.sin(phase);
+ const x=side*.35+side*radius*Math.cos(phase)+.16*Math.sin(t*3+slot*.22);
+ const y=radius*.75*Math.sin(phase)+strand*.75;
+ const z=-16.8+side*.44*Math.sin(phase)+strand*.74+approach*.32;
+ const yaw=.78+side*.20*Math.sin(phase),pitch=-.12+.16*Math.sin(phase+u*TAU);
+ const roll=side*.28*Math.sin(phase)+strand*.20;
+ return pose([x,y,z],backAttitude(yaw,pitch,roll),.91+.11*Math.cos(u*TAU));
 }
 function cosmicPose(card,t,worldTime){
- if(t<1.05)return blend(deckPose(card,worldTime),cosmicInitialSplit(card,t),t/1.05);
- if(t<1.8)return blend(cosmicInitialSplit(card,t),cosmicHalvesPose(card,t),(t-1.05)/.75);
- if(t<3.9)return cosmicHalvesPose(card,t);
- if(t<SHUFFLE_DURATIONS.cosmic)return blend(cosmicHalvesPose(card,t),deckPose(card,worldTime),(t-3.9)/(SHUFFLE_DURATIONS.cosmic-3.9));
+ const split=cosmicInitialSplit(card);
+ if(t<.95)return blend(deckPose(card,worldTime),split,t/.95);
+ const flowing=cosmicHalvesPose(card,t);
+ if(t<1.65)return blend(split,flowing,(t-.95)/.70);
+ if(t<4.12)return flowing;
+ if(t<SHUFFLE_DURATIONS.cosmic)return blend(flowing,deckPose(card,worldTime),(t-4.12)/(SHUFFLE_DURATIONS.cosmic-4.12));
  return deckPose(card,worldTime);
 }
-function riffleHalfPose(card,t){
+// RIFFLE / two genuine 39-layer piles; alternating releases bend up into
+// an arched 78-card bridge and land at alternating positions in one deck.
+function riffleHalfPose(card){
  const rank=card.orbitSlot,half=rank%2,slot=Math.floor(rank/2),side=half?1:-1;
- const bow=Math.sin(Math.PI*(slot+.5)/39);
- return stackPose(card,{center:[side*1.53,-.12+bow*.07,-16.8],yaw:side*.22,pitch:-.17,roll:side*.035,scale:1.18,rank:slot,count:39,step:.0145});
+ return stackPose(card,{center:[side*1.48,-.18,-16.7],yaw:.70+side*.16,
+  pitch:-.17,roll:side*.032,scale:1.10,rank:slot,count:39});
 }
 function riffleBridgePose(card,t){
- const rank=card.orbitSlot,side=rank%2?1:-1;
- const p=deckPose(card,t);
- const arc=.71*Math.sin(Math.PI*(rank+.5)/N);
- p.position[0]+=side*.22;
- p.position[1]+=arc;
- p.position[2]+=.14*arc;
- p.attitude=backAttitude(.24+side*.12,-.21,side*.075);
+ const rank=card.orbitSlot,half=rank%2,slot=Math.floor(rank/2),side=half?1:-1;
+ const p=deckPose(card,t),bow=Math.sin(Math.PI*(slot+.5)/39);
+ p.position[0]+=side*.31*(1-bow);
+ p.position[1]+=.92*bow;
+ p.position[2]+=.23*bow;
+ p.attitude=backAttitude(1.07+side*.14,-.22,side*.09);
  return p;
 }
 function rifflePose(card,t,worldTime){
- if(t<1.0)return blend(deckPose(card,worldTime),riffleHalfPose(card,t),t);
- if(t<1.4)return riffleHalfPose(card,t);
- if(t<4.0){
-  const slot=Math.floor(card.orbitSlot/2);
-  const delay=1.42+slot/38*1.93+(card.orbitSlot%2)*.09;
-  const progress=(t-delay)/.55;
-  const p=blend(riffleHalfPose(card,t),riffleBridgePose(card,t),progress);
-  p.position[1]+=.22*Math.sin(Math.PI*clamp(progress));
-  return p;
+ const split=riffleHalfPose(card),bridge=riffleBridgePose(card,worldTime);
+ if(t<.90)return blend(deckPose(card,worldTime),split,t/.90);
+ if(t<1.28)return split;
+ if(t<4.12){
+  const slot=Math.floor(card.orbitSlot/2),half=card.orbitSlot%2;
+  const release=1.28+(slot/38)*2.30+half*.045;
+  const p=clamp((t-release)/.40);
+  const moved=blend(split,bridge,p);
+  moved.position[1]+=.31*Math.sin(Math.PI*smoother(p));
+  moved.position[2]-=.16*Math.sin(Math.PI*smoother(p));
+  return moved;
  }
- if(t<SHUFFLE_DURATIONS.riffle)return blend(riffleBridgePose(card,t),deckPose(card,worldTime),(t-4.0)/(SHUFFLE_DURATIONS.riffle-4));
+ if(t<SHUFFLE_DURATIONS.riffle)return blend(bridge,deckPose(card,worldTime),(t-4.12)/(SHUFFLE_DURATIONS.riffle-4.12));
  return deckPose(card,worldTime);
 }
+// TABLE WASH / bounded, populated centre with 78 individual overlapping
+// backs sliding on a shallow tabletop plane, not a hollow wheel or tornado.
 function washFieldPose(card,t){
- const rank=card.orbitSlot,seed=card.visualSeed||0;
- const u=(rank+.5)/N,r=3.45*Math.sqrt(u),angle=rank*GOLDEN+hash(rank,seed)*.18;
- const drift=Math.max(0,t-1.0);
- const twist=.16*Math.sin(drift*.92+rank*.19)+.24*Math.sin(drift*.50+rank*.037);
- const a=angle+twist;
- let x=r*Math.cos(a),y=r*.65*Math.sin(a);
- // Continuous overlapping streams on a slightly tilted tabletop.
- x+=.22*Math.sin(drift*1.2+rank*.47);
- y+=.13*Math.sin(drift*.83+rank*.21);
- const z=-17.1+.40*y+.018*Math.sin(rank);
- const yaw=(hash(rank+111,seed)-.5)*.33;
- const roll=(hash(rank+211,seed)-.5)*.40;
- return pose([x,y-.26,z],backAttitude(yaw,-.73,roll),.83);
+ const k=card.orbitSlot,seed=card.visualSeed>>>0;
+ const u=(k+.5)/N,base=k*GOLDEN+.10*(hash(k+18,seed)-.5);
+ const radius=3.18*Math.sqrt(u),drift=Math.max(0,t-1.0);
+ const phase=base+.38*Math.sin(drift*1.20+k*.057);
+ const swirl=.44*Math.sin(drift*.83+k*.31);
+ const x=radius*Math.cos(phase)+swirl+.23*Math.sin(drift*1.67+k*.17);
+ const y=.68*radius*Math.sin(phase)+.21*Math.cos(drift*1.28+k*.23);
+ const z=-17.1+.27*y+.045*Math.sin(k*2.1+drift*.7);
+ const yaw=(hash(k+113,seed)-.5)*.37+.09*Math.sin(drift+k*.21);
+ const roll=(hash(k+211,seed)-.5)*.52+.11*Math.sin(drift*.7+k*.47);
+ return pose([x,y-.21,z],backAttitude(yaw,-.66,roll),.84);
 }
 function washPose(card,t,worldTime){
+ const field=washFieldPose(card,t);
  if(t<1.30){
-  const delay=(card.orbitSlot/77)*.28;
-  const w=(t-delay)/(1.30-delay);
-  return blend(deckPose(card,worldTime),washFieldPose(card,t),w);
+  const delay=card.orbitSlot/77*.24;
+  return blend(deckPose(card,worldTime),field,(t-delay)/(1.30-delay));
  }
- if(t<3.95)return washFieldPose(card,t);
+ if(t<4.08)return field;
  if(t<SHUFFLE_DURATIONS.wash){
-  const delay=(card.orbitSlot/77)*.40;
-  const w=(t-3.95-delay)/(SHUFFLE_DURATIONS.wash-3.95-delay);
-  return blend(washFieldPose(card,t),deckPose(card,worldTime),w);
+  const delay=card.orbitSlot/77*.35;
+  return blend(field,deckPose(card,worldTime),(t-4.08-delay)/(SHUFFLE_DURATIONS.wash-4.08-delay));
  }
  return deckPose(card,worldTime);
 }
@@ -207,9 +212,9 @@ export function shuffleBeat(style,age){
  if(style==='auto')return referenceBeat(t);
  if(!SHUFFLE_CHOICES.includes(style))throw Error('Unknown shuffle variant');
  if(t>=shuffleDuration(style))return 'deck_ready';
- if(style==='cosmic')return t<1.05?'splitting':t<1.8?'unfurling':t<3.9?'orbital_shuffle':'gathering';
- if(style==='riffle')return t<1?'splitting':t<4?'interleaving':'bridging';
- return t<1.3?'spreading':t<3.95?'table_wash':'gathering';
+ if(style==='cosmic')return t<.95?'splitting':t<1.65?'unfurling':t<4.12?'orbital_shuffle':'gathering';
+ if(style==='riffle')return t<1.28?'splitting':t<4.12?'interleaving':'bridging';
+ return t<1.3?'spreading':t<4.08?'table_wash':'gathering';
 }
 export function assertShuffleGeometry(cards,{style='auto',landingAt=0,worldTime=0,entranceMode='inside-out'}={}){
  const duration=shuffleDuration(style);
