@@ -12,6 +12,34 @@ function project(p){
  const z=-p.position[2];
  return z>2&&Number.isFinite(z)?{x:256+focal*p.position[0]/z,y:214-focal*p.position[1]/z,z}:null;
 }
+// One lens-scale environmental light-sweep, wholly distinct from card
+// velocity tails. ChatARot's fastest beat briefly lights the vacuum wall;
+// the rest of the scene remains dark with a readable eye.
+export function environmentWakeStrength(t){
+ const u=clamp((t-3.12)/2.08);
+ return Math.pow(Math.sin(Math.PI*u),4);
+}
+function drawEnvironmentWake(ctx,t){
+ const power=environmentWakeStrength(t);
+ if(power<.004)return;
+ const drift=21*Math.sin(t*1.19);
+ const path=()=>{
+  ctx.beginPath();
+  ctx.moveTo(90+drift,-40);
+  ctx.bezierCurveTo(-60+drift,68,-82+drift,300,126+drift,477);
+ };
+ ctx.save();ctx.globalCompositeOperation='screen';
+ path();ctx.filter='blur(20px)';
+ ctx.strokeStyle='rgba(172,183,201,'+(power*.14)+')';
+ ctx.lineWidth=58;ctx.stroke();
+ path();ctx.filter='blur(9px)';
+ ctx.strokeStyle='rgba(210,213,219,'+(power*.12)+')';
+ ctx.lineWidth=25;ctx.stroke();
+ path();ctx.filter='blur(2px)';
+ ctx.strokeStyle='rgba(225,224,216,'+(power*.055)+')';
+ ctx.lineWidth=2.5;ctx.stroke();
+ ctx.restore();
+}
 export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
  if(!mount)throw Error('FlowMist requires a mount');
  const canvas=document.createElement('canvas');
@@ -32,6 +60,7 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
   last=t;ctx.clearRect(0,0,512,428);
   const envelope=sequenceOneEchoEnvelope(t);
   if(envelope<.005)return;
+  drawEnvironmentWake(ctx,t);
   ctx.save();ctx.globalCompositeOperation='screen';
   for(const k of HERO_TRAIL_SLOTS){
    const focus=trailStrength(k,t);
