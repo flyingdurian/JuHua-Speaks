@@ -117,6 +117,17 @@ function suctionPose(card,t){
  if(v.gust>0&&illustrated){
   attitude=orientedFrom(slerp(attitude.normal,[0,0,1],v.gust*.66),attitude.right);
  }
+ // While cards thread through the real 3D throat, their orientation settles
+ // progressively toward the one-deck stacking basis. Nothing teleports or
+ // mutates a logical card; approved pocket/deck poses remain unchanged.
+ const align=smoother((v.neck-.38)/.62)*.90;
+ if(align>.001){
+  const target=facing(1.11,-.09,0);
+  attitude=orientedFrom(
+   slerp(attitude.normal,target.normal,align),
+   vmix(attitude.right,target.right,align)
+  );
+ }
  // The actual reference grows dense as sheets rush toward the viewer:
  // distant backs remain small, then their projected area accelerates sharply
  // during the steeply banked terminal corkscrew. The illustrated close
