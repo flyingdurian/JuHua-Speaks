@@ -33,10 +33,14 @@ export function stagedOrbitFraction(k,seed,t){
  // The packet density relaxes slightly as the vortex accelerates, but never
  // returns to equally spaced concentric circles.
  const widen=smooth((t-2.7)/1.15);
- const width=(.14+.035*widen);
- const center=(p.packet+.5)/p.packets;
+ const centers=[[.10,.33,.65,.91],[.13,.48,.87],[.23,.76]][p.lane];
+ const widths=[[.17,.12,.20,.13],[.16,.20,.15],[.23,.20]][p.lane];
+ // Deliberately unequal sector lengths, with sparse dark wedges. The
+ // entire current shifts as a coherent packet, never independent noise.
+ const center=centers[p.packet]+.017*Math.sin(t*1.28+p.packet*1.83+p.lane*.67);
+ const width=widths[p.packet]*(.90+.13*widen);
  const q=center+(p.inside-.5)*width+
-  .005*Math.sin(k*1.613+seed*.000011+t*.48);
+  .004*Math.sin(k*1.613+seed*.000011+t*.48);
  return clamp(q,.005,.995);
 }
 export function heroAccent(k,t){
@@ -64,6 +68,6 @@ export function localCurrentBias(k,t){
  const p=cardPacket(k);
  const trigger=3.36+.13*p.lane+.16*(p.packet%3);
  const pull=smooth((t-trigger)/.95);
- return {radius:1-.10*pull,depth:-1.35*pull,
+ return {radius:1-.21*pull,depth:-2.0*pull,
   phaseOffset:.045*Math.sin(t*1.7+p.packet*1.9+p.lane*.73)};
 }
