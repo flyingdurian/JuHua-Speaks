@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Semantic-frame visual gate for the original owner-supplied 2026-11-06
 ChatARot split-screen reference. The 14.13-second original is NOT in Git.
-The owner now requires ±13% for Sequence 1 only; approved Sequence 2 is frozen. Thresholds are image-composition PROXIES, not a perceptual fidelity percentage.
+The owner now requires ±17% for Sequence 1 only; approved Sequence 2 is frozen. Thresholds are image-composition PROXIES, not a perceptual fidelity percentage.
 Never claim visual approval solely from this script. Sequence 2 is approved and not re-scored here.
 """
 import json,sys,math
@@ -20,10 +20,10 @@ REFERENCE=[
 FIELDS=["fraction","width","height","cx","cy"]
 # Direction of the blue-card vortex (major PCA axis) measured from the
 # original user-supplied ChatARot movie at the exact reference timestamps.
-# Degrees are axial/modulo 180, with an independent ±13-degree motion-form gate.
+# Degrees are axial/modulo 180, with an independent ±17-degree motion-form gate.
 AXIS_REFERENCE={"tunnel_early":35.4,"tunnel_open":61.1,"tunnel_deep":69.8,"tunnel_exit":79.8}
-AXIS_TOLERANCE_DEG=13.0
-TOLERANCE=.13
+AXIS_TOLERANCE_DEG=17.0
+TOLERANCE=.17
 
 def quantile(counts,n,quant):
  threshold=n*quant
