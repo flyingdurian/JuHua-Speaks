@@ -182,7 +182,7 @@ export class RitualWorld{
     let peakAlpha=0;
     for(let i=0;i<this.cards.length;i++){
      const card=this.cards[i];
-     const alpha=cardEchoOpacity(age,echo.lag,speeds[i]);
+     const alpha=cardEchoOpacity(age,echo.lag,speeds[i],card.orbitSlot);
      if(alpha<.012)continue;
      const sample=samplePhysicalShuffle(card,{
       style:'auto',age:age-echo.lag,landingAt:this.shuffleLandingAt,
