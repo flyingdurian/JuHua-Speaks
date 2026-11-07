@@ -131,7 +131,10 @@ test('Gate B preview starts independently of production and uses port 4184',asyn
  assert.doesNotMatch(html,/data-shuffle="riffle"/);
  assert.doesNotMatch(html,/data-shuffle="wash"/);
  assert.match(js,/world\.beginAutoShuffle\(\)/);
- assert.doesNotMatch(js,/world\.playShuffle\(style\)/);
+ assert.match(js,/world\.playShuffle\(style\)/);
+ assert.match(html,/data-shuffle-style="cosmic"/);
+ assert.match(html,/data-shuffle-style="riffle"/);
+ assert.match(html,/data-shuffle-style="wash"/);
  assert.match(js,/Gate B complete/);
  assert.match(css,/gate-b \.ritual-panel/);
  assert.match(server,/GATE_B_PORT\|\|4184/);

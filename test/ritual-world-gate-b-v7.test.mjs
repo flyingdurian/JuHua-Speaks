@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {vortexCamera,sampleVortexCard} from '../src/ritual-world/VortexRibbon.mjs';
 
-test('reference camera banks dynamically from face-on into a vertical corkscrew',()=>{
- const samples=[[1.10,.04],[2.10,.06],[3.00,.10],[3.75,.14],[4.40,.18],[5.45,0]];
+test('reference camera sustains a roughly 45-degree diagonal orbital cyclone',()=>{
+ const samples=[[1.10,.19],[2.10,.24],[3.00,.26],[3.75,.28],[4.40,.24],[5.45,0]];
  for(const [t,pitch] of samples)assert.ok(Math.abs(vortexCamera(t).pitch-pitch)<1e-9);
+ for(const t of [1.10,2.10,3.00,3.75,4.40])assert.ok(Math.abs(vortexCamera(t).roll-Math.PI/4)<.095);
  for(let t=1.1;t<=5.44;t+=.025){
   const a=vortexCamera(t),b=vortexCamera(t+.002);
   assert.ok(Math.abs(a.pitch-b.pitch)<.05,'Unphysical camera pitch jump');

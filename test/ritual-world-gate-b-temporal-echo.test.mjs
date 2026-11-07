@@ -4,12 +4,16 @@ import {readFile} from 'node:fs/promises';
 import {sampleVortexCard} from '../src/ritual-world/VortexRibbon.mjs';
 import {
  CARD_ECHO_HISTORY,sequenceOneEchoEnvelope,projectedCardSpeed,
- velocityEchoWeight,cardEchoOpacity
+ velocityEchoWeight,cardEchoOpacity,shouldEchoCard,ACTIVE_ECHO_CARD_SLOTS
 } from '../src/ritual-world/TemporalEcho.mjs';
 
-test('three genuine temporal card echoes fade with age and increase with projected velocity',()=>{
- assert.equal(CARD_ECHO_HISTORY.length,3);
- assert.deepEqual(CARD_ECHO_HISTORY.map(x=>x.lag),[.19,.115,.054]);
+test('only five cards may emit two short echo accents during the orbital cyclone',()=>{
+ assert.equal(ACTIVE_ECHO_CARD_SLOTS.length,5);
+ assert.equal(CARD_ECHO_HISTORY.length,2);
+ assert.deepEqual(CARD_ECHO_HISTORY.map(x=>x.lag),[.125,.052]);
+ const active=Array.from({length:78},(_,orbitSlot)=>shouldEchoCard({orbitSlot},3));
+ assert.equal(active.filter(Boolean).length,5);
+ assert.equal(shouldEchoCard({orbitSlot:4},3),false);
  assert.equal(sequenceOneEchoEnvelope(.9),0);
  assert.ok(sequenceOneEchoEnvelope(2.3)>.99);
  assert.equal(sequenceOneEchoEnvelope(5.5),0);
@@ -17,7 +21,7 @@ test('three genuine temporal card echoes fade with age and increase with project
  assert.ok(velocityEchoWeight(160)>.9);
  const slow=cardEchoOpacity(3,.054,10),fast=cardEchoOpacity(3,.054,170);
  assert.equal(slow,0);
- assert.ok(fast>.15);
+ assert.ok(fast>.15&&fast<=.19);
  assert.equal(cardEchoOpacity(10,.054,200),0);
 });
 
