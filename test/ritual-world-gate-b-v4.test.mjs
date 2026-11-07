@@ -131,7 +131,7 @@ test('V7 uses material-synchronized atmosphere, no decorative tornado decal',asy
  assert.doesNotMatch(markup,/data-shuffle=/);
  assert.match(markup,/FINISH SHUFFLING/);
  assert.doesNotMatch(script,/initVortexAtmosphere/);
- assert.match(mist,/sampleVortexRibbon/);
+ assert.match(mist,/sampleVortexCard/);
 });
 
 test('seeded gas vortex is rendered once in bounded texture memory',()=>{
