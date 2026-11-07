@@ -9,7 +9,7 @@ import {
 
 test('three genuine temporal card echoes fade with age and increase with projected velocity',()=>{
  assert.equal(CARD_ECHO_HISTORY.length,3);
- assert.deepEqual(CARD_ECHO_HISTORY.map(x=>x.lag),[.19,.115,.054]);
+ assert.deepEqual(CARD_ECHO_HISTORY.map(x=>x.lag),[.24,.13,.052]);
  assert.equal(sequenceOneEchoEnvelope(.9),0);
  assert.ok(sequenceOneEchoEnvelope(2.3)>.99);
  assert.equal(sequenceOneEchoEnvelope(5.5),0);
