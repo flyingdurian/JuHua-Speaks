@@ -39,7 +39,7 @@ try{
 const ritualHues=[0,45,95,168,240];
 const ritualHueIndex=globalThis.crypto?.getRandomValues?globalThis.crypto.getRandomValues(new Uint32Array(1))[0]%ritualHues.length:Math.floor(Math.random()*ritualHues.length);
 root.style.setProperty('--ritual-hue',ritualHues[ritualHueIndex]+'deg');
-const state={step:incomingGateB?3:incomingGateQuestion?1:0,locale:'en',spread:'insight',lens:'western',question:incomingGateB?.question||incomingGateQuestion,optionA:'Accept the new offer',optionB:'Stay in my current role',shuffled:incomingGateB?incomingGateB.cardIds.map(id=>BY_ID.get(id)):[],picks:[],shuffles:0,rx:-12,ry:-17,modal:null,filter:'all',inspected:null,effects:true,sphereMode:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'2d':'gpu',aiReading:null,aiStatus:'idle',aiError:'',aiRequestId:0,deckId:'rws',privateImages:new Map(),revealIndex:0,revealProgress:0,revealedCards:[false,false,false],orbitPaused:false,orbitHoldUntil:0,readingBeat:-1,demoConversation:[],localExodiaAvailable:false,localMode:'scripted',localReading:'',localTurns:[],localBusy:false,localError:'',localRequestId:0,ritual:incomingGateB?resumeGateBAtSphere(incomingGateB):createRitualSession(),ritualEpoch:0,ritualLocking:false,ritualOverlay:null,ritualAnimationStartAt:0,landingPhaseOffset:0,peekProgress:[0,0,0],peekAxes:[{ax:0,ay:1},{ax:0,ay:1},{ax:0,ay:1}],autoConfirmAt:null,shuffleStyle:'cosmic',gateEntering:Boolean(incomingGateB)};
+const state={step:incomingGateB?3:incomingGateQuestion?1:0,locale:'en',spread:'insight',lens:'western',question:incomingGateB?.question||incomingGateQuestion,optionA:'Accept the new offer',optionB:'Stay in my current role',shuffled:incomingGateB?incomingGateB.cardIds.map(id=>BY_ID.get(id)):[],picks:[],shuffles:0,rx:-12,ry:-17,modal:null,filter:'all',inspected:null,effects:true,sphereMode:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'2d':'gpu',aiReading:null,aiStatus:'idle',aiError:'',aiRequestId:0,deckId:'rws',privateImages:new Map(),revealIndex:0,revealProgress:0,revealedCards:[false,false,false],orbitPaused:false,orbitHoldUntil:0,readingBeat:-1,demoConversation:[],localExodiaAvailable:false,localMode:'scripted',localReading:'',localTurns:[],localBusy:false,localError:'',localRequestId:0,ritual:incomingGateB?resumeGateBAtSphere(incomingGateB):createRitualSession(),ritualEpoch:0,ritualLocking:false,ritualOverlay:null,ritualAnimationStartAt:0,landingPhaseOffset:0,peekProgress:[0,0,0],peekAxes:[{ax:0,ay:1},{ax:0,ay:1},{ax:0,ay:1}],autoConfirmAt:null,shuffleStyle:'cosmic',gateEntering:Boolean(incomingGateB),artemisStyle:'shrine',artemisMood:'welcome'};
 const t=(en,zh)=>state.locale==='zh'?zh:en;
 const h=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const roleNames=()=>state.spread==='crossroads'?[t('Path A','方向 A'),t('Path B','方向 B'),t('Guidance','综合建议')]:[t('Past','过去'),t('Present','现在'),t('Future','未来')];
@@ -253,17 +253,17 @@ function go(step){if(step!==3)cancelAutoConfirm();if(step===3&&state.ritual.phas
 function reshuffle(){cancelAutoConfirm();resetDemo();state.shuffled=shuffleDeck();state.picks=[];state.shuffles++;state.revealIndex=0;state.revealProgress=0;state.revealedCards=[false,false,false]}
 function selectCard(card){if(!card||state.ritual.phase!=='sphere_selection'||state.ritualLocking||state.gateEntering)return;try{cancelAutoConfirm();state.ritual=transitionRitual(state.ritual,'TOGGLE_CARD',{cardId:card.id,orientation:drawOrientation()});state.picks=state.ritual.selected.map(c=>({card:BY_ID.get(c.cardId),orientation:c.orientation}));refreshGateSelection();if(state.picks.length===3){state.autoConfirmAt=Date.now()+1850;autoConfirmTimer=setTimeout(()=>{autoConfirmTimer=null;if(state.step===3&&canConfirmThree(state.ritual)&&!state.ritualLocking)confirmThreeCards();},1850);}}catch(e){toast(e.message)}}
 function toggleCard(card){selectCard(card);}
-function paintPhysicalPeek(index,progress,axis){const value=clampPeek(progress);state.peekProgress[index]=value;state.peekAxes[index]={ax:axis.ax,ay:axis.ay};const el=root.querySelector('[data-peek-card="'+index+'"]');if(el){el.style.setProperty('--p',String(value));el.dataset.peekDirection=peekDirection(axis);el.setAttribute('aria-valuenow',String(Math.round(value*100)));}const meter=root.querySelector('[data-peek-progress="'+index+'"]');if(meter)meter.value=Math.round(value*100);}
+function paintPhysicalPeek(index,progress,axis){const value=clampPeek(progress);state.peekProgress[index]=value;state.peekAxes[index]={ax:axis.ax,ay:axis.ay,signX:axis.signX,signY:axis.signY,corner:axis.corner,mode:axis.mode};const el=root.querySelector('[data-peek-card="'+index+'"]');if(el){el.style.setProperty('--p',String(value));el.dataset.peekDirection=peekDirection(axis);el.setAttribute('aria-valuenow',String(Math.round(value*100)));}const meter=root.querySelector('[data-peek-progress="'+index+'"]');if(meter)meter.value=Math.round(value*100);}
 function revealPhysicalCard(index){if(state.step!==4||state.revealedCards[index])return;state.revealedCards[index]=true;state.peekProgress[index]=1;if(state.ritual.phase==='three_reveal')state.ritual=transitionRitual(state.ritual,'REVEAL_CARD',{index});render();}
 function centerRect(rect){return rect&&Number.isFinite(rect.left)?{x:rect.left+rect.width/2,y:rect.top+rect.height/2,width:rect.width,height:rect.height}:null}
 /** Picking remains locked until the chosen card has visibly arrived in the next hand slot. */
 function catchCard(card,source){
- if(!card||pendingFlight||state.step!==3||state.picks.length>=3||state.picks.some(p=>p.card.id===card.id))return;
- const destination=root.querySelectorAll('.slots .slot-image')[state.picks.length];
+ if(!card||pendingFlight||state.gateEntering||state.step!==3||state.picks.length>=3||state.picks.some(p=>p.card.id===card.id))return;
+ const destination=root.querySelectorAll('.gate-slot-card')[state.picks.length]||root.querySelectorAll('.slots .slot-image')[state.picks.length];
  const from=source||centerRect(root.querySelector('#sphere-scene')?.getBoundingClientRect())||{x:innerWidth/2,y:innerHeight/2,width:60,height:96};
  const to=centerRect(destination?.getBoundingClientRect());
  if(!to||motionReduced()||!document.body||typeof document.body.animate==='undefined'){
-  selectCard(card);render();return;
+  selectCard(card);return;
  }
  webglSphere?.hideCard(card.id);
  const overlay=document.createElement('div');overlay.className='card-flight';
@@ -278,7 +278,7 @@ function catchCard(card,source){
  const cleanup=()=>{overlay.remove();burst.remove();destination.classList.remove('receiving');};
  const cancel=()=>{if(!active)return;active=false;animation.cancel();burstAnimation.cancel();cleanup();};
  pendingFlight={cancel};
- animation.onfinish=()=>{if(!active||state.step!==3)return;active=false;cleanup();pendingFlight=null;selectCard(card);render();};
+ animation.onfinish=()=>{if(!active||state.step!==3)return;active=false;cleanup();pendingFlight=null;selectCard(card);};
 }
 
 function orbOrientation(){const el=root.querySelector('#orb');if(el){el.style.setProperty('--rx',state.rx+'deg');el.style.setProperty('--ry',state.ry+'deg')}}
@@ -317,10 +317,21 @@ root.addEventListener('pointerup',e=>{if(peekDrag&&peekDrag.pointerId===e.pointe
 root.addEventListener('pointercancel',()=>{peekDrag=null;peelDrag=null;peelPinch=null;peelPoints.clear();root.querySelector('#peel-card')?.classList.remove('gripping');finishDrag()});
 root.addEventListener('pointerleave',()=>{if(!peelDrag)finishDrag()});
 root.addEventListener('click',e=>{
-  const peekButton=e.target.closest?.('[data-peek-card]');if(peekButton){if(Date.now()<ignoreClickUntil)return;revealPhysicalCard(Number(peekButton.dataset.peekCard));return;}
+  const peekButton=e.target.closest?.('[data-peek-card]');if(peekButton){
+    if(Date.now()<ignoreClickUntil)return;
+    const index=Number(peekButton.dataset.peekCard);
+    if(!state.revealedCards[index]){
+     const origin=state.peekAxes[index]||peekOrigin(0,90,200,330);
+     const next=Math.min(1,(state.peekProgress[index]||0)+.23);
+     paintPhysicalPeek(index,next,origin);
+     if(next>=.985)revealPhysicalCard(index);
+    }return;
+   }
   if(e.target.id==='sphere-webgl'){if(Date.now()<ignoreClickUntil||pendingFlight||state.gateEntering)return;const id=webglSphere?.pick(e.clientX,e.clientY);if(id)toggleCard(BY_ID.get(id));return}
   const button=e.target.closest('button');if(!button||!root.contains(button))return;
    if(button.hasAttribute('data-reveal-instant')){revealPhysicalCard(Number(button.dataset.revealInstant));return;}
+   if(button.dataset.artemisStyle){state.artemisStyle=button.dataset.artemisStyle;render();return;}
+   if(button.dataset.artemisMood){state.artemisMood=button.dataset.artemisMood;render();return;}
   if(pendingFlight&&button.dataset.action==='next')return;
   if(button.hasAttribute('data-reading-beat')){changeReadingBeat(Number(button.dataset.readingBeat));return;}
   if(button.hasAttribute('data-demo-suggest')){submitDemoFollowUp(button.dataset.demoLabel);return;}
