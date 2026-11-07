@@ -1,12 +1,12 @@
 /**
  * Gate B Sequence 1: velocity-aligned ink/light tails.
  *
- * Every trail samples actual previous positions of the 78 real 3D Tarot
+ * Only five selective trails sample actual previous positions of the 78 real 3D Tarot
  * meshes; no image of a tornado, no static moving ring, no cloned identities.
  * Real afterimage CARD artwork is rendered separately by WebGL2.
  */
 import {sampleVortexCard} from '../../src/ritual-world/VortexRibbon.mjs';
-import {sequenceOneEchoEnvelope} from '../../src/ritual-world/TemporalEcho.mjs';
+import {sequenceOneEchoEnvelope,ACTIVE_ECHO_CARD_SLOTS,shouldEchoCard} from '../../src/ritual-world/TemporalEcho.mjs';
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const FOCAL=428/(2*Math.tan(58*Math.PI/360));
 const HISTORY=[0,.032,.074,.126,.195,.281,.348];
@@ -39,7 +39,8 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
   ctx.save();ctx.globalCompositeOperation='screen';
   // Each visible stroke follows one independently moving card through 3D
   // perspective, including curved paths and accelerated foreground passes.
-  for(let k=0;k<78;k++){
+  for(const k of ACTIVE_ECHO_CARD_SLOTS){
+   if(!shouldEchoCard({orbitSlot:k},t))continue;
    const trace=HISTORY.map(lag=>project(sampleVortexCard(k,seed,Math.max(1.10,t-lag))));
    if(trace.some(v=>!v))continue;
    const [now,prior]=trace,delta=Math.hypot(now.x-prior.x,now.y-prior.y);
@@ -64,7 +65,7 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
  };
  frame=requestAnimationFrame(draw);
  return {diagnostics:()=>({
-  type:'individual-card-temporal-streaks',cardCount:78,
+  type:'individual-card-temporal-streaks',logicalCardCount:78,activeTrailCardCount:ACTIVE_ECHO_CARD_SLOTS.length,
   tailSamples:HISTORY.length,velocityDriven:true,staticTornado:false,
   approvedSphereUnaffected:true
  }),dispose(){disposed=true;cancelAnimationFrame(frame);canvas.remove()}};
