@@ -9,7 +9,7 @@ import {sampleVortexCard} from '../../src/ritual-world/VortexRibbon.mjs';
 import {sequenceOneEchoEnvelope} from '../../src/ritual-world/TemporalEcho.mjs';
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
 const FOCAL=428/(2*Math.tan(58*Math.PI/360));
-const HISTORY=[0,.032,.070,.115,.170,.237];
+const HISTORY=[0,.032,.074,.126,.195,.281,.348];
 function project(point){
  const z=-point.position[2];
  if(z<=2||!Number.isFinite(z))return null;
@@ -44,7 +44,7 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
    if(trace.some(v=>!v))continue;
    const [now,prior]=trace,delta=Math.hypot(now.x-prior.x,now.y-prior.y);
    const apparentSpeed=delta/HISTORY[1];
-   const strength=clamp((apparentSpeed-17)/135)*envelope;
+   const strength=clamp((apparentSpeed-14)/115)*envelope;
    if(strength<.07)continue;
    const close=clamp(26/now.z,.42,2.2);
    const isBright=k%11===2||k%13===3;
@@ -52,11 +52,11 @@ export function initFlowMist({mount,seed=0,getAge=()=>-1,reduceMotion=false}){
    for(let j=HISTORY.length-1;j>0;j--){
     const a=trace[j],b=trace[j-1];
     const length=Math.hypot(a.x-b.x,a.y-b.y);
-    if(length>110||length<.25)continue;
-    const weight=Math.pow(1-j/HISTORY.length,1.45);
+    if(length>140||length<.25)continue;
+    const weight=Math.pow(1-j/HISTORY.length,1.22);
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
-    ctx.lineWidth=close*(.47+1.2*weight);
-    ctx.strokeStyle='rgba('+color.join(',')+','+(strength*(.09+.36*weight))+')';
+    ctx.lineWidth=close*(.51+1.40*weight);
+    ctx.strokeStyle='rgba('+color.join(',')+','+(strength*(.12+.49*weight))+')';
     ctx.stroke();
    }
   }
