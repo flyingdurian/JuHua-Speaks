@@ -83,12 +83,15 @@ function sample(lane,q,t,seed=0,motionBias=1){
  // Each card moves on a 3D spherical-orbital band. Moving longitude,
  // latitude and radial shell prevent evenly spaced clock-face cards. Three
  // different radii coexist simultaneously, with real near/far parallax.
- const latitude=.36*Math.sin(TAU*(u*1.29+.19*motion)+lane*1.42);
- const shell=g.radius*(1+.10*Math.sin(TAU*(u*.74+.18*motion)+lane))
+ // Oscillating latitude makes each shell a rotating, three-dimensional
+ // corkscrew band, breaking the old mathematically uniform wreath.
+ const latitude=.36*Math.sin(TAU*(u*1.29+.19*motion)+lane*1.42)
+   +g.tilt*.40*Math.sin(theta*.53+t*.64);
+ const shell=g.radius*(1+.14*Math.sin(TAU*(u*.74+.18*motion)+lane))
     *funnelRadius(t)*(1-.58*state.collapse);
  const latCos=Math.cos(latitude),wave=Math.sin(theta+.38+lane*.49);
  const cx=.40*Math.sin(u*TAU*.73+state.angular);
- const cy=.27*Math.cos(u*TAU*.87+state.angular*.53);
+ const cy=.27*Math.cos(u*TAU*.87+state.angular*.53)+.43*Math.sin(theta*.46+lane*.72);
  let x=cx+shell*latCos*Math.cos(theta);
  let y=cy+shell*(.91*latCos*Math.sin(theta)+.20*Math.sin(latitude));
  const axialCenter=g.depth-1.6*state.axial*motionBias;
