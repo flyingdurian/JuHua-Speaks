@@ -146,7 +146,11 @@ export function rotateVortexBasis(vector,t){
  const cr=Math.cos(c.roll),sr=Math.sin(c.roll);
  const bx=yawX*cr-pitchY*sr,by=yawX*sr+pitchY*cr;
  const d=softer((t-3.20)/.90)*(1-.35*vortexProgress(t).collapse);
- return [(1-.20*d)*bx+.18*d*by,(1+.23*d)*by-.28*d*bx,pitchZ];
+ // Use the rotation component of the anamorphic lens transform. Physical
+ // Tarot meshes must remain orthonormal, never sheared or stretched.
+ const lensBank=Math.atan2(-.46*d,2+.03*d);
+ const cb=Math.cos(lensBank),sb=Math.sin(lensBank);
+ return [bx*cb-by*sb,bx*sb+by*cb,pitchZ];
 }
 /** Shared smooth 3D ribbon used for both real cards and atmosphere. */
 export function sampleVortexRibbon(lane,q,t,seed=0){return sample(lane,q,t,seed)}
