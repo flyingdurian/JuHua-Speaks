@@ -1,0 +1,35 @@
+name: Gate C 01–04 concept fidelity visual evidence
+on:
+  push:
+    branches: [feat/gate-c-1-4-concept-fidelity]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fidelity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+      - run: npm install --no-save playwright
+      - run: npx playwright install chromium --only-shell
+      - name: Capture four scenes and confirm three actual clicks
+        run: |
+          npm run preview:gate-c14 > /tmp/gate-c14.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4186/preview/gate-c14/ >/dev/null; then break; fi
+            sleep 2
+          done
+          node scripts/smoke-gate-c14.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gate-c14-four-scene-evidence
+          path: |
+            artifacts/gate-c14/
+            /tmp/gate-c14.log
+          retention-days: 14
