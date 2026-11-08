@@ -100,3 +100,114 @@ linear-gradient(0deg,#080417a9,transparent 37%,transparent 82%,#08051779)}
 @keyframes enter-background{0%{transform:scale(1.07);filter:brightness(.67)}100%{transform:scale(1.55);filter:brightness(1.35)}}
 @keyframes enter-flash{0%,41%{opacity:0}79%{opacity:.24}100%{opacity:1}}
 @media(prefers-reduced-motion:reduce){.scene-cube.entering .cube-stage,.scene-cube.entering .cube-halo,.scene-cube.entering .backdrop,.scene-cube.entering:before{animation:none!important}}
+
+
+/* ------------------------------------------------------------------------
+   Gate C / reference video 00:06–00:25: the 3D sphere is in BLACK SPACE.
+   The celestial gate remains richly painted. Architectural framing is a
+   transition layer; it must disappear once the viewer enters the cards.
+   ------------------------------------------------------------------------ */
+.scene-gate .backdrop{background-image:linear-gradient(0deg,#060311a2,transparent 43%),url('../../assets/gate-c14/gate-sanctuary.webp');filter:brightness(.78) saturate(.96);animation:slow-drift 28s ease-in-out infinite alternate}
+.scene-gate .architecture{opacity:.17;mix-blend-mode:screen}
+.scene-gate .hero{max-width:570px;bottom:clamp(33px,7vh,90px)}
+.scene-gate .hero h1{font-size:clamp(35px,4.1vw,60px);line-height:1.03}
+.scene-cube .backdrop{background-image:linear-gradient(0deg,#050410b7,#09091d86),url('../../assets/gate-c14/sphere-sanctuary.webp');filter:brightness(.45) saturate(.85)}
+.scene-cube .cube-object{filter:none!important}
+.scene-cube .cube-stage{will-change:transform,opacity}
+.scene-cube.entering .cube-stage{animation:enter-through-cube 1.38s cubic-bezier(.63,.11,.27,1) both}
+.scene-cube.entering .veil{animation:portal-dissolve 1.38s ease-in both}
+@keyframes portal-dissolve{from{opacity:1}to{opacity:0}}
+/* Reuse Gate A's approved deep-black stellar sky; two cached noise wisps,
+   separate distant/near stars, with no continuously-generated background. */
+.scene-sphere{background:#010103!important}
+.scene-sphere .backdrop,.scene-sphere .veil,.scene-sphere .dome-rings,.scene-sphere .dome-rings:before,
+.scene-sphere .dome-ring{opacity:0!important;visibility:hidden!important;animation:none!important}
+.deep-sky{position:absolute;inset:0;z-index:3;background:#010103;overflow:hidden;pointer-events:none;isolation:isolate;animation:interior-emerge 1.8s ease-out both}
+.deep-sky canvas{pointer-events:none}
+.deep-sky .deep-star-canvas,.deep-sky .twinkle-canvas{display:block;position:absolute;inset:0;width:100%;height:100%}
+.deep-sky .deep-star-canvas{z-index:0}
+.deep-sky .twinkle-canvas{z-index:3;opacity:.78;animation:quiet-twinkle 12s ease-in-out infinite alternate}
+.deep-sky .nebula-texture{display:block;position:absolute;left:-13%;top:-10%;width:126%;height:126%;mix-blend-mode:screen;opacity:.64;transform-origin:center}
+.deep-sky .nebula-back{z-index:1;animation:cloud-current-a 47s ease-in-out infinite alternate}
+.deep-sky .nebula-front{z-index:2;opacity:.53;animation:cloud-current-b 61s ease-in-out infinite alternate}
+@keyframes interior-emerge{from{opacity:.02}to{opacity:1}}
+@keyframes cloud-current-a{from{transform:translate(-3%,3%) rotate(-5deg) scale(.96)}to{transform:translate(6%,-7%) rotate(4deg) scale(1.1)}}
+@keyframes cloud-current-b{from{transform:translate(4%,-5%) rotate(5deg) scale(1.06)}to{transform:translate(-6%,5%) rotate(-4deg) scale(.98)}}
+@keyframes quiet-twinkle{from{opacity:.54}to{opacity:.89}}
+/* Small informational overlay, NO purple window, no giant title over cards. */
+.scene-sphere .mast{padding:12px clamp(13px,2vw,30px);z-index:35}
+.scene-sphere .mast .brand{font:500 clamp(13px,1.25vw,18px) Georgia,serif;color:#e5e2e4;opacity:.86;letter-spacing:.1em}
+.scene-sphere .mast .brand span{font-size:17px;margin-right:6px}
+.scene-sphere .mast small{font:600 9px Arial,sans-serif;letter-spacing:.09em;color:#b9b2ba}
+.scene-sphere .sphere-label{top:13px;width:min(650px,76vw);z-index:36;padding:0!important;background:none!important;text-shadow:0 1px 12px #000}
+.scene-sphere .sphere-label .title{display:none}
+.scene-sphere .sphere-label p{font:400 clamp(16px,1.6vw,23px)/1.2 Arial,sans-serif;color:#eeebef;background:none;padding:0;margin:0}
+.scene-sphere .sphere-space{z-index:8}
+.scene-sphere .orbit-field{isolation:isolate}
+/* Cards are physical objects in a wide depth range, not flat wallpaper
+   rectangles. Navy backs and cool reflective edge match the video better. */
+.scene-sphere .orbit-card{
+ border-radius:3px;background:#101421;
+ opacity:var(--alpha,.8);overflow:visible;
+ transform:translate(-50%,-50%) perspective(1100px) rotateY(var(--tilt)) rotateZ(var(--spin));
+ box-shadow:0 0 0 1px #aeb6c597,0 0 11px #6d75a02b,0 12px 19px #000b;
+ filter:saturate(.80) brightness(.85);
+ transition:filter .18s,box-shadow .22s;
+ touch-action:none;will-change:transform;
+}
+.scene-sphere .orbit-card img{filter:hue-rotate(15deg) saturate(.62) brightness(.67);border-radius:2px;pointer-events:none}
+.scene-sphere .orbit-card:hover,
+.scene-sphere .orbit-card:focus-visible{filter:brightness(1.14);box-shadow:0 0 0 1.5px #fff4e4,0 0 20px #fbebd08c,0 12px 19px #000b}
+.scene-sphere .orbit-card.is-chosen{
+ filter:brightness(1.22) saturate(.92)!important;
+ box-shadow:0 0 0 2px #ffe7b5,0 0 17px 3px #ffe2ac9c,0 0 33px 7px #ddbbff3f,0 12px 20px #000c!important;
+}
+.scene-sphere .orbit-card.is-chosen img{filter:saturate(.89) brightness(.92)}
+.scene-sphere .orbit-card.is-chosen:after{
+ content:'';position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:2px;
+ background:linear-gradient(112deg,transparent 18%,#f7f9ff00 35%,#ffffffa8 48%,#ffffff35 52%,transparent 71%);
+ background-size:230% 100%;animation:selected-shimmer 1.15s ease-out 1 forwards;
+}
+@keyframes selected-shimmer{from{background-position:200% 0}to{background-position:-110% 0}}
+/* A selected card remains at its original world coordinate. The ephemeral
+   fly-to-camera is feedback only, not a replacement card or a fourth draw. */
+.scene-sphere .focus,.scene-sphere .focus.active{display:none!important}
+.card-flight{border:1px solid #fff2dc!important;box-shadow:0 0 9px #fff8db,0 0 28px #d7cbef!important}
+.scene-sphere .sphere-controls{left:12px;top:auto;bottom:12px;flex-direction:row;gap:7px;opacity:.5}
+.scene-sphere .sphere-controls button{width:29px;height:29px;border:1px solid #999aab65;background:#03040a7a;color:#dad1dc;font-size:11px}
+.scene-sphere .sphere-controls:hover,.scene-sphere .sphere-controls:focus-within{opacity:1}
+/* The counter is not a massive fake tabletop. Keep the card selection
+   undo controls accessible but visually secondary. */
+.scene-sphere .dock{
+ left:50%;bottom:8px;width:min(360px,70vw);height:62px;gap:11px;padding:8px 9px 5px;
+ border:1px solid #d4d1d342!important;border-radius:11px;
+ background:#06060ba8!important;box-shadow:0 3px 14px #0008!important;
+ backdrop-filter:blur(3px);
+}
+.scene-sphere .dock>strong{display:none}
+.scene-sphere .dock-slots{gap:15px;align-items:center}
+.scene-sphere .dock-slot{min-width:40px;gap:2px}
+.scene-sphere .dock-slot label{font:400 10px Georgia,serif;color:#e5d4c3}
+.scene-sphere .dock-back{display:none}
+.scene-sphere .dock-slot button{font:700 9px Arial,sans-serif;padding:4px;color:#f0dbbd}
+.scene-sphere .dock-slot small{font:400 8px Arial,sans-serif;color:#827987}
+.scene-sphere .dock-count{font:normal 16px Arial,sans-serif;padding-left:11px;color:#eae1da}
+.scene-sphere .dock-count small{font-size:12px}
+.scene-sphere .finish-label{bottom:85px;z-index:44;border-color:#b9b2a955;background:#090811d8;font:500 9px Arial,sans-serif}
+.ritual[data-stage="sphere"] .dock{opacity:0;pointer-events:none}
+.ritual[data-stage="select"] .dock{opacity:.78}
+/* Gate 03→04 MUST be one continuous world. This stage marker does not
+   remount the scene, change the deck or reset camera. */
+@media(max-width:750px){
+ .scene-sphere .mast{padding:9px}
+ .scene-sphere .mast .brand{font-size:11px}
+ .scene-sphere .mast small{font-size:8px}
+ .scene-sphere .sphere-label{top:42px;width:90vw}
+ .scene-sphere .sphere-label p{font-size:16px}
+ .scene-sphere .sphere-controls{bottom:80px}
+ .scene-sphere .dock{width:min(350px,94vw);bottom:7px}
+ .scene-sphere .finish-label{width:min(430px,94vw);bottom:83px;white-space:normal}
+}
+@media(prefers-reduced-motion:reduce){
+ .deep-sky,.deep-sky canvas,.scene-sphere .orbit-card.is-chosen:after,.scene-cube .cube-stage{animation:none!important}
+}
