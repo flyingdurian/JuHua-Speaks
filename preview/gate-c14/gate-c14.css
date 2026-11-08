@@ -85,3 +85,18 @@ border:2px solid #ffd8b880;box-shadow:0 0 78px #c488ff7d,inset 0 0 120px #d2a2ff
 linear-gradient(0deg,#080417a9,transparent 37%,transparent 82%,#08051779)}
 @media(max-width:750px){.focus{width:130px}.dock{width:94vw;height:142px}.finish-label{bottom:165px}.scene-sphere .dome-rings:before{width:144vw;height:105vh}}
 @media(prefers-reduced-motion:reduce){.cube-object,.cube-stage:before{animation:none!important}}
+
+
+/* The cube is a portal, not a slideshow: choreographed perspective push into the sphere.
+   The orbital field only mounts AFTER this entry shot finishes. */
+.scene-cube.entering .cube-stage{animation:enter-through-cube 1.38s cubic-bezier(.63,.11,.27,1) both}
+.scene-cube.entering .cube-halo{animation:enter-halo 1.38s ease-in both}
+.scene-cube.entering .cube-ring{opacity:.8;filter:brightness(2.4) drop-shadow(0 0 17px #ffebc5)}
+.scene-cube.entering .backdrop{animation:enter-background 1.38s ease-in both}
+.scene-cube.entering:before{content:'';position:absolute;inset:0;z-index:12;pointer-events:none;background:radial-gradient(circle at 50% 48%,#fff8ea 0%,#e3c6ff 14%,#ab8bef74 32%,transparent 64%);opacity:0;animation:enter-flash 1.38s ease-in-out forwards}
+.scene-cube.entering .cube-caption{opacity:0;transition:opacity .34s ease}
+@keyframes enter-through-cube{0%{transform:scale(1);opacity:1;filter:blur(0)}55%{transform:scale(1.65) translateZ(0);opacity:1;filter:blur(0)}100%{transform:scale(4.8);opacity:0;filter:blur(17px)}}
+@keyframes enter-halo{0%{opacity:.7;transform:scale(1)}70%{opacity:1;transform:scale(2.6)}100%{opacity:0;transform:scale(7)}}
+@keyframes enter-background{0%{transform:scale(1.07);filter:brightness(.67)}100%{transform:scale(1.55);filter:brightness(1.35)}}
+@keyframes enter-flash{0%,41%{opacity:0}79%{opacity:.24}100%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.scene-cube.entering .cube-stage,.scene-cube.entering .cube-halo,.scene-cube.entering .backdrop,.scene-cube.entering:before{animation:none!important}}
