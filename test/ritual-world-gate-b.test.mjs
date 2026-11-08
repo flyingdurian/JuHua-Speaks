@@ -135,7 +135,9 @@ test('Gate B preview starts independently of production and uses port 4184',asyn
  assert.match(html,/data-shuffle-style="cosmic"/);
  assert.match(html,/data-shuffle-style="riffle"/);
  assert.match(html,/data-shuffle-style="wash"/);
- assert.match(js,/window\.location\.assign\(new URL\('\.\.\/\.\.\/ritual\.html',import\.meta\.url\)\.href\)/);
+ assert.match(js,/mountPostShuffle/);
+  assert.match(js,/deckIds:selectionOrder/);
+  assert.doesNotMatch(js,/window\\.location\\.assign\\(new URL/);
  assert.match(css,/gate-b \.ritual-panel/);
  assert.match(server,/GATE_B_PORT\|\|4184/);
  assert.match(pkg.scripts['preview:gate-b'],/serve-gate-b\.mjs/);
