@@ -58,3 +58,13 @@ button{font:inherit;cursor:pointer}button:focus-visible,canvas:focus-visible{out
 .finish-demo-shortcut{display:block;margin:11px auto 0;padding:9px 13px;border:1px solid #d2c6b060;border-radius:4px;background:#080812bd;color:#d7c9b9;font:10px Arial,sans-serif;letter-spacing:.12em}
 @media(max-width:680px){.ps-review-toolbar{top:74px;right:7px}.ps-review-toolbar button{padding:5px;font-size:8px}}
 @media(prefers-reduced-motion:reduce){.ps-launch-streak i{animation:none!important;opacity:0!important}}
+
+/* v2 visual QA: a selected card is still a physical quad. No black outlined
+   rectangular panel / CSS drop shadow behind it. A very faint oval of warm
+   light is the only DOM adornment; bright edges are in the card shader. */
+.ps-selected-halo{
+ border:0!important;border-radius:50%!important;
+ background:radial-gradient(ellipse at center,transparent 20%,rgba(250,234,204,.10) 50%,transparent 76%)!important;
+ box-shadow:none!important;mix-blend-mode:normal!important;
+ animation:none!important;opacity:.9!important;
+}

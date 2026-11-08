@@ -70,5 +70,8 @@ export function pointInQuad(point,corners){
  * Camera returns to normal perspective upon entering the sphere. */
 export function cameraFov(time){
  const wide=smooth((time-2.8)/1.1)*(1-smooth((time-5.3)/1.45));
- return 124+9*wide;
+ // Match the reference's near-full-screen exterior globe at +4 seconds.
+ // Wide inside the sphere so ~30 smaller cards surround the viewer.
+ const inside=smooth((time-5.20)/1.65);
+ return 124+10*inside-28*wide;
 }

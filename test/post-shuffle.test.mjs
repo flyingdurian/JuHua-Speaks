@@ -21,8 +21,8 @@ test('One continuous launch→unfold→fast spin→inward camera shot with no Ga
  assert.ok(cameraDistance(4.2)<9,'exterior globe must approach camera before entry');
  assert.ok(cameraDistance(4.5)>5.8&&cameraDistance(4.5)<7.4);
  assert.ok(cameraDistance(4.8)<5.8&&cameraDistance(4.8)>5.0);
- assert.ok(cameraFov(4)>130,'temporary wide lens should prevent huge foreground card');
- assert.equal(cameraFov(7),124);
+ assert.ok(cameraFov(4)>90&&cameraFov(4)<100,'exterior globe should occupy more of the viewport');
+ assert.ok(cameraFov(7)>132&&cameraFov(7)<135,'interior sphere must show more, smaller cards');
  assert.equal(cameraDistance(7),0);
  assert.ok(deckLaunchZ(.05)>deckLaunchZ(.55)&&deckLaunchZ(.55)>deckLaunchZ(1.20),'deck actually travels rapidly away');
  assert.ok(deckLaunchZ(0)-deckLaunchZ(1.25)>10,'launch distance is substantial and camera-facing');
