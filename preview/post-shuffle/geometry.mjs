@@ -2,7 +2,7 @@
  * Times measured from clicking FINISH SHUFFLING, in seconds.
  */
 export const CARD_COUNT=78;
-export const BEATS=Object.freeze({launch:[0,1.2],scatter:[1.2,2.8],orbit:[2.8,4.3],camera:[4.3,6.9],interactive:6.9});
+export const BEATS=Object.freeze({launch:[0,1.2],scatter:[1.2,2.8],orbit:[2.8,4.3],camera:[2.55,6.75],interactive:6.9});
 export const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 export const smooth=n=>{const x=clamp(n);return x*x*(3-2*x)};
 const mix=(a,b,t)=>a+(b-a)*t;
@@ -18,7 +18,13 @@ export function sphereLayout(count=78){
   return {i,row,col,radius,roll:(hash(i+404)-.5)*.28,direction:[Math.cos(lat)*Math.sin(lon),Math.sin(lat),Math.cos(lat)*Math.cos(lon)]};
  });
 }
-export function cameraDistance(time){return 12.6*(1-smooth((time-4.1)/2.7));}
+export function cameraDistance(time){
+ // Independent measured beats: the globe swells into the frame BEFORE
+ // the camera crosses the shell, rather than remaining a distant dot.
+ if(time<=2.55)return 12.6;
+ if(time<4.65)return 12.6-(12.6-5.8)*smooth((time-2.55)/2.10);
+ return 5.8*(1-smooth((time-4.65)/2.05));
+}
 export function orbitAngle(time){
  const t=Math.max(0,time);if(t<1.2)return t*.4;
  if(t<=4.1)return .48+4.7*(t-1.2);

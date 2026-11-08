@@ -17,7 +17,10 @@ test('One continuous launch→unfold→fast spin→inward camera shot with no Ga
  assert.equal(BEATS.interactive,6.9);
  assert.equal(getStage(0,0),'launch');assert.equal(getStage(2,0),'distribute');assert.equal(getStage(5,0),'enter');
  assert.equal(getStage(7.1,0),'inside');assert.equal(getStage(7.1,1),'select');
- assert.ok(cameraDistance(0)>12);assert.ok(cameraDistance(4.2)>10);assert.equal(cameraDistance(7),0);
+ assert.ok(cameraDistance(0)>12);assert.ok(cameraDistance(3)>11);
+ assert.ok(cameraDistance(4.2)<9,'exterior globe must approach camera before entry');
+ assert.ok(cameraDistance(4.65)>5.7&&cameraDistance(4.65)<5.9);
+ assert.equal(cameraDistance(7),0);
  assert.ok(orbitAngle(4.1)-orbitAngle(2.1)>8,'sphere must rotate rapidly before entry');
  assert.ok(orbitAngle(11)-orbitAngle(9)<.2,'settled interior should rotate gently');
 });
