@@ -14,7 +14,11 @@ try{
  assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.stage()),'cube');
  await page.waitForTimeout(610);
  await page.screenshot({path:'artifacts/gate-c14/02-rotating-cube.png'});
- await page.locator('[data-action="skip"]').click();await page.waitForTimeout(320);
+ await page.waitForTimeout(2800);
+ assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.stage()),'cube');
+ await page.screenshot({path:'artifacts/gate-c14/02-fly-through-transition.png'});
+ await page.waitForTimeout(1110);
+ assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.stage()),'sphere');
  assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.stage()),'sphere');
  assert.equal(await page.locator('button.orbit-card').count(),78);
  assert.equal(await page.evaluate(()=>new Set(window.__JUHUA_C14__.deck()).size),78);
