@@ -32,7 +32,7 @@ export function peekGeometry(progress,mode='corner'){
   left:'polygon('+pct(p)+' 0,100% 0,100% 100%,'+pct(p)+' 100%)',
   right:'polygon(0 0,'+pct(100-p)+' 0,'+pct(100-p)+' 100%,0 100%)',
   bottom:'polygon(0 0,100% 0,100% '+pct(100-p)+',0 '+pct(100-p)+')',
-  corner:'polygon('+pct(p)+' 0,100% 0,100% 100%,0 100%,0 '+pct(p)+')'
+  corner:'polygon('+pct(p)+' 0,100% 0,100% '+pct(100-p)+',0 '+pct(100-p)+')'
  };
  if(!clips[mode])throw new Error('Unknown peel direction');
  return {progress:clamp(progress),clipPath:clips[mode],bend:Math.min(62,p*.65),complete:progress>=.985};
