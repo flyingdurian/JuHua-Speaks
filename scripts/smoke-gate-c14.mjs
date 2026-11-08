@@ -7,7 +7,7 @@ const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFa
 const errors=[];page.on('pageerror',e=>errors.push(String(e)));
 try{
  await page.goto('http://127.0.0.1:4186/preview/gate-c14/',{waitUntil:'domcontentloaded'});
- await page.waitForTimeout(420);
+ await page.waitForTimeout(420);if(errors.length)throw Error('Scene initialization: '+errors.join(' | '));
  assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.stage()),'gate');
  await page.screenshot({path:'artifacts/gate-c14/01-fullscreen-gate.png'});
  await page.locator('[data-action="enter"]').click();

@@ -10,7 +10,7 @@ createServer(async(req,res)=>{try{
  if(!['GET','HEAD'].includes(req.method)){res.writeHead(405);res.end();return}
  const url=new URL(req.url||'/', 'http://127.0.0.1:'+port);
  const path=url.pathname==='/preview/gate-c14/'?'/preview/gate-c14/index.html':url.pathname;
- const allowed=path.startsWith('/preview/gate-c14/')||path.startsWith('/assets/gate-c14/')||path==='/src/deck.mjs'||path==='/src/gate-b-handoff.mjs';
+ const allowed=path.startsWith('/preview/gate-c14/')||path.startsWith('/assets/gate-c14/')||path.startsWith('/src/');
  const file=resolve(root,'.'+decodeURIComponent(path)),type=types[extname(file)];
  if(!allowed||!type||!file.startsWith(root+sep)){res.writeHead(404);res.end('Not found');return}
  const s=await stat(file);if(!s.isFile())throw Error('Not a file');
