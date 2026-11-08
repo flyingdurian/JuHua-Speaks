@@ -18,6 +18,7 @@ layout(location=1) in vec2 a_uv;
 layout(location=2) in float a_slot;
 layout(location=3) in float a_side;
 layout(location=4) in float a_selected;
+layout(location=5) in vec3 a_center;
 uniform float u_focal;
 uniform float u_aspect;
 uniform float u_near;
@@ -35,11 +36,17 @@ void main(){
  (u_far+u_near)/(u_near-u_far)*z+(2.0*u_far*u_near)/(u_near-u_far),-z);
  // A wide-angle view of the SAME real 3D shell. Perspective outside,
  // near-uniform angular scale inside: no tunnel/slabs at the edges.
- vec3 direction=vec3(a_position.x,a_position.y,-z);
- float az=atan(direction.x,direction.z);
- float el=atan(direction.y,length(direction.xz));
- vec2 angular=vec2(az/(u_angleH*.5),el/(u_angleV*.5));
- float radialDepth=clamp((length(direction)-.1)/25.0,0.0,1.0)*2.0-1.0;
+ // Panoramic camera correction: each card stays anchored to its REAL 3D
+ // center, with a readable angular rectangle near the polar latitudes.
+ vec3 centerDirection=vec3(a_center.x,a_center.y,-a_center.z);
+ float az=atan(centerDirection.x,centerDirection.z);
+ float el=atan(centerDirection.y,length(centerDirection.xz));
+ float roll=sin(a_slot*17.131)*.105;
+ vec2 sheet=vec2((a_uv.x-.5)*.178,(a_uv.y-.5)*.272);
+ vec2 rotated=vec2(cos(roll)*sheet.x-sin(roll)*sheet.y,
+                   sin(roll)*sheet.x+cos(roll)*sheet.y);
+ vec2 angular=vec2((az+rotated.x)/(u_angleH*.5),(el+rotated.y)/(u_angleV*.5));
+ float radialDepth=clamp((length(centerDirection)-.1)/25.0,0.0,1.0)*2.0-1.0;
  gl_Position=vec4(mix(perspective.xy/perspective.w,angular,u_inside),
                   mix(perspective.z/perspective.w,radialDepth,u_inside),1.0);
  v_uv=a_uv;v_slot=a_slot;v_side=a_side;v_selected=a_selected;
@@ -176,7 +183,7 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  let program,vertexBuffer,vao,atlas;
  try{
   program=makeProgram(gl);vao=gl.createVertexArray();gl.bindVertexArray(vao);vertexBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);
-  const stride=8*4;for(const [location,count,offset] of [[0,3,0],[1,2,12],[2,1,20],[3,1,24],[4,1,28]]){gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,count,gl.FLOAT,false,stride,offset)}
+  const stride=11*4;for(const [location,count,offset] of [[0,3,0],[1,2,12],[2,1,20],[3,1,24],[4,1,28],[5,3,32]]){gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,count,gl.FLOAT,false,stride,offset)}
   atlas=atlasTexture(gl,cards,()=>!dead);
   gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);
  }catch(e){sky.dispose();gl.deleteVertexArray(vao);gl.deleteBuffer(vertexBuffer);gl.deleteProgram(program);throw e}
@@ -206,13 +213,25 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
    // giant rectangular slabs. The reference keeps cards readable near edges.
    const physicalScale=1; // Angular camera preserves proper physical card size inside.
    const corners=[projectCorner(p.position,p.right,p.up,-1,-1,physicalScale),projectCorner(p.position,p.right,p.up,1,-1,physicalScale),projectCorner(p.position,p.right,p.up,1,1,physicalScale),projectCorner(p.position,p.right,p.up,-1,1,physicalScale)];
-   const projected=corners.map(pt=>project(pt,cam,viewport,fov,angularBlend));const center=project(p.position,cam,viewport,fov,angularBlend);
+   const perspectiveCorners=corners.map(pt=>project(pt,cam,viewport,fov,0));
+   const center=project(p.position,cam,viewport,fov,angularBlend);
+   const angleV=145*Math.PI/180,angleH=Math.min(175,145*viewport.w/viewport.h)*Math.PI/180;
+   const angularCenter=project(p.position,cam,viewport,fov,1);
+   const roll=Math.sin(i*17.131)*.105,cos=Math.cos(roll),sin=Math.sin(roll);
+   const uv=[[0,0],[1,0],[1,1],[0,1]];
+   const projected=perspectiveCorners.map((c,k)=>{
+    if(!c||!angularCenter)return null;
+    const dx=(uv[k][0]-.5)*.178,dy=(uv[k][1]-.5)*.272;
+    const angX=angularCenter.x+(cos*dx-sin*dy)*viewport.w/angleH;
+    const angY=angularCenter.y-(sin*dx+cos*dy)*viewport.h/angleV;
+    return {x:mix(c.x,angX,angularBlend),y:mix(c.y,angY,angularBlend),z:c.z};
+   });
    if(projected.some(p=>!p)||!center)continue;
    // Exterior faces are genuine licensed/public-domain scans. Once the camera
    // enters the shell, the interior is the blue back of the same physical card.
    const side=dot(p.normal,[0,0,cam].map((c,j)=>c-p.position[j]))>=0?1:0;
-   const order=[0,1,2,0,2,3],uv=[[0,0],[1,0],[1,1],[0,1]];
-   for(const k of order){const c=corners[k];vertex.push(c[0],c[1],c[2]-cam,uv[k][0],uv[k][1],i,side,selected?1:0)}
+   const order=[0,1,2,0,2,3];
+   for(const k of order){const c=corners[k];vertex.push(c[0],c[1],c[2]-cam,uv[k][0],uv[k][1],i,side,selected?1:0,p.position[0],p.position[1],p.position[2]-cam)}
    if(center.x>-170&&center.x<viewport.w+170&&center.y>-220&&center.y<viewport.h+220)visible.push({id,index:i,corners:projected,center,side,selected,depth:center.z});
   }
   return {vertices:new Float32Array(vertex),visible};
@@ -246,7 +265,7 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   gl.uniform1f(uniform.inside,smooth((t-6.22)/.78));
   gl.uniform1f(uniform.angleV,145*Math.PI/180);
   gl.uniform1f(uniform.angleH,Math.min(175,145*rect.width/rect.height)*Math.PI/180);
-  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/8);
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/11);
   updateAuras();
  }
  let t=0;
