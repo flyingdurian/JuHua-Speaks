@@ -12,12 +12,19 @@ try{
  const deck=await page.evaluate(()=>window.__POST_SHUFFLE__.deck());assert.equal(deck.length,78);assert.equal(new Set(deck).size,78);
  // Deterministic reference-aligned frames; software GPU and JPEG loads must
  // never silently move the screenshots into the wrong animation beat.
- for(const [seconds,name] of [[.55,'01-deck-launched'],[2.45,'02-sphere-distribution'],[4.0,'03-fast-orbit'],[7.5,'04-inside-sphere']]){
+ for(const [seconds,name] of [[.08,'00-near-deck'],[.78,'01-deck-launching'],[1.37,'01-deck-distant'],[2.65,'02-sphere-distribution'],[4.0,'03-fast-orbit'],[7.5,'04-inside-sphere']]){
   await page.evaluate(t=>window.__POST_SHUFFLE__.seek(t),seconds);
   await page.waitForTimeout(440);
   assert.ok(Math.abs(await page.evaluate(()=>window.__POST_SHUFFLE__.time())-seconds)<.02);
   await page.screenshot({path:dir+'/'+name+'.png'});
  }
+ // The launch must be actual depth travel, not a static deck in space.
+ await page.evaluate(()=>window.__POST_SHUFFLE__.seek(.08));await page.waitForTimeout(90);
+ const near=await page.evaluate(()=>window.__POST_SHUFFLE__.visible().map(x=>x.width).sort((a,b)=>b-a)[0]);
+ await page.evaluate(()=>window.__POST_SHUFFLE__.seek(.90));await page.waitForTimeout(90);
+ const far=await page.evaluate(()=>window.__POST_SHUFFLE__.visible().map(x=>x.width).sort((a,b)=>b-a)[0]);
+ assert.ok(near>far*2.0,'Deck must shrink visibly through real camera-space launch: '+near+' vs '+far);
+ await page.evaluate(()=>window.__POST_SHUFFLE__.seek(7.5));await page.waitForTimeout(120);
  assert.equal(await page.evaluate(()=>window.__POST_SHUFFLE__.ready()),true);
  assert.equal(await page.evaluate(()=>window.__POST_SHUFFLE__.stage()),'inside');
  const selected=[];
@@ -46,5 +53,11 @@ try{
  assert.deepEqual(await page.evaluate(()=>window.__POST_SHUFFLE__.selected().map(c=>c.id)),selected);
  assert.equal(await page.locator('#ps-end').isVisible(),true);
  assert.deepEqual(errors,[]);
- console.log('Post-shuffle browser PASS: 78 unique identities, continuity, camera interior, 3 actual pointer selects, 7 screenshots');
+ await page.goto(host+'/preview/gate-b/?demo=finish',{waitUntil:'domcontentloaded'});
+ await page.waitForURL('**/preview/post-shuffle/**',{timeout:9000});
+ assert.equal(await page.locator('#finish-shuffle').isVisible(),true,'Shortcut must open FINISH stage immediately');
+ await page.click('#finish-shuffle');await page.waitForFunction(()=>window.__POST_SHUFFLE__?.deck().length===78);
+ await page.click('#ps-replay');
+ assert.equal(await page.evaluate(()=>window.__POST_SHUFFLE__.selected().length),0,'Replay resets visual state, not the deck');
+ console.log('Post-shuffle v2 browser PASS: genuine deck propulsion, exterior sphere, inward camera, 3 real pointer selections, and no-wait Finish shortcut');
 }finally{await browser.close()}

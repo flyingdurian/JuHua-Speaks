@@ -243,7 +243,8 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  raf=requestAnimationFrame(draw);
  return {
   stage:()=>step,selected:()=>choices.map(c=>({...c})),deck:()=>[...deckIds],assetStatus:()=>atlas.stats(),ready:()=>ready,
-  visible:()=>rendered.map(p=>({id:p.id,side:p.side,selected:p.selected,x:p.center.x,y:p.center.y,depth:p.depth})),
+  visible:()=>rendered.map(p=>({id:p.id,side:p.side,selected:p.selected,x:p.center.x,y:p.center.y,depth:p.depth,
+   width:Math.hypot(p.corners[1].x-p.corners[0].x,p.corners[1].y-p.corners[0].y)})),
   time:()=>t,tap,hitTest:hitCandidates,togglePause:changePause,seek(seconds){if(!demo)throw Error('Timeline seek is review-only');debugTime=clamp(seconds,0,60)},clearSeek(){debugTime=null},
   dispose(){dead=true;cancelAnimationFrame(raf);sky.dispose();atlas.dispose();gl.deleteBuffer(vertexBuffer);gl.deleteVertexArray(vao);gl.deleteProgram(program);world.remove()}
  };
