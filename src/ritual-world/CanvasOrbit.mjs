@@ -4,6 +4,7 @@
  * It is a real perspective projection, not a scattered CSS animation.
  */
 import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,landingAttitude,landingVisible,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
+import {PHYSICAL_CARD,samplePhysicalShuffle,deckPose,shuffleDuration,shuffleBeat,SHUFFLE_CHOICES,assertShuffleGeometry} from './ShuffleChoreography.mjs';
 const TAU=Math.PI*2;
 const norm=a=>{const l=Math.hypot(...a)||1;return a.map(v=>v/l)};
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
@@ -21,7 +22,7 @@ function makeBack(){
 export class CanvasOrbit{
  constructor({mount,cards,faceAssetForId,visualSeed=createVisualSeed(),entranceMode='inside-out',onStatus=()=>{}}){
   this.mount=mount;this.visualSeed=visualSeed;this.cards=makeLandingCardEntities(cards,visualSeed);this.faceAssetForId=faceAssetForId;this.phase='landing';this.onStatus=onStatus;
-  this.loadedCount=0;this.failedAssets=[];this.entranceMode=entranceMode;this.elapsed=0;this.last=0;this.lastPaint=0;this.frame=0;this.paused=false;this.disposed=false;this.images=[];this.fronts=new Map();
+  this.loadedCount=0;this.failedAssets=[];this.entranceMode=entranceMode;this.elapsed=0;this.last=0;this.lastPaint=0;this.shuffleStyle='auto';this.shuffleStartedAt=0;this.shuffleLandingAt=0;this.shuffleRound=0;this.frame=0;this.paused=false;this.disposed=false;this.images=[];this.fronts=new Map();
   this.canvas=document.createElement('canvas');this.canvas.className='ritual-world-canvas';this.canvas.setAttribute('aria-hidden','true');mount.append(this.canvas);
   this.ctx=this.canvas.getContext('2d');if(!this.ctx)throw Error('2D unavailable');this.back=makeBack();
   this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(mount);
@@ -33,6 +34,22 @@ export class CanvasOrbit{
   }
   this.tick=this.tick.bind(this);this.frame=requestAnimationFrame(this.tick);
  }
+ beginAutoShuffle(){
+  if(this.phase!=='landing')throw Error('Auto shuffle requires landing');
+  assertShuffleGeometry(this.cards,{style:'auto',landingAt:this.elapsed,worldTime:this.elapsed,entranceMode:this.entranceMode});
+  this.shuffleStyle='auto';this.shuffleLandingAt=this.elapsed;this.shuffleStartedAt=this.elapsed;this.shuffleRound++;this.setPhase('shuffle_ritual');
+ }
+ playShuffle(style){
+  if(this.phase!=='deck_formed')throw Error('Shuffle choice requires formed deck');
+  if(!SHUFFLE_CHOICES.includes(style))throw Error('Unknown shuffle style');
+  assertShuffleGeometry(this.cards,{style,landingAt:this.shuffleLandingAt,worldTime:this.elapsed});
+  this.shuffleStyle=style;this.shuffleStartedAt=this.elapsed;this.shuffleRound++;this.setPhase('shuffle_ritual');
+ }
+ resetGateB(){this.setPhase('landing');this.restartEntrance(this.entranceMode);this.shuffleStyle='auto';this.shuffleStartedAt=0}
+ getShuffleState(){
+  const age=Math.max(0,this.elapsed-this.shuffleStartedAt);
+  return {phase:this.phase,style:this.shuffleStyle,age,beat:this.phase==='shuffle_ritual'?shuffleBeat(this.shuffleStyle,age):this.phase,duration:shuffleDuration(this.shuffleStyle),round:this.shuffleRound};
+ }
  setPaused(state){this.paused=!!state}
  restartEntrance(mode){if(!['inside-out','outside-in'].includes(mode))throw Error('Unsupported landing entrance');this.entranceMode=mode;this.elapsed=0;this.last=0;this.lastPaint=0;this.onStatus({state:'entrance',entrance:mode})}
  setPhase(phase){this.phase=phase}
@@ -40,16 +57,25 @@ export class CanvasOrbit{
   const w=Math.max(2,Math.round(r.width*dpr)),h=Math.max(2,Math.round(r.height*dpr));if(w!==this.canvas.width||h!==this.canvas.height){this.canvas.width=w;this.canvas.height=h}}
  tick(now){if(this.disposed)return;this.frame=requestAnimationFrame(this.tick);if(document.hidden||this.paused)return;
   const delta=Math.min(65,now-this.last||0);this.last=now;this.elapsed+=delta/1000;
+  if(this.phase==='shuffle_ritual'&&this.elapsed-this.shuffleStartedAt>=shuffleDuration(this.shuffleStyle))this.setPhase('deck_formed');
   if(now-this.lastPaint<29)return;this.lastPaint=now;
   this.resize();const ctx=this.ctx,w=this.canvas.width,h=this.canvas.height,f=h/(2*Math.tan(Math.PI*58/360));
   ctx.clearRect(0,0,w,h);
-  const items=this.cards.filter(c=>landingVisible(c,this.elapsed,this.entranceMode)).map(c=>({card:c,pos:sampleLandingPose(c,this.elapsed,this.entranceMode)})).filter(o=>o.pos[2]<-1.4);
+  const items=this.cards.filter(c=>this.phase!=='landing'||landingVisible(c,this.elapsed,this.entranceMode))
+   .map(card=>{const landing=this.phase==='landing';
+    const sample=landing
+     ?{position:sampleLandingPose(card,this.elapsed,this.entranceMode),attitude:null,scale:entranceScale(card,this.elapsed,this.entranceMode)}
+     :this.phase==='shuffle_ritual'
+      ?samplePhysicalShuffle(card,{style:this.shuffleStyle,age:this.elapsed-this.shuffleStartedAt,landingAt:this.shuffleLandingAt,worldTime:this.elapsed,entranceMode:this.entranceMode})
+      :deckPose(card,this.elapsed);
+    return {card,pos:sample.position,sample,landing};
+   }).filter(o=>o.pos[2]<-1.4);
   items.sort((a,b)=>a.pos[2]-b.pos[2]);
   const project=p=>[w*.5+p[0]*f/(-p[2]),h*.5-p[1]*f/(-p[2])];
-  for(const {card,pos} of items){
+  for(const {card,pos,sample,landing} of items){
    // The 2D perspective fallback uses the same physical front/back basis as WebGL.
-   const pose=landingAttitude(card,pos,this.elapsed),right=pose.right,up=pose.up;
-   const scale=entranceScale(card,this.elapsed,this.entranceMode),W=card.width*.5*scale,H=card.height*.5*scale;
+   const pose=landing?landingAttitude(card,pos,this.elapsed):sample.attitude,right=pose.right,up=pose.up;
+   const scale=landing?entranceScale(card,this.elapsed,this.entranceMode):sample.scale,dimensions=landing?card:PHYSICAL_CARD,W=dimensions.width*.5*scale,H=dimensions.height*.5*scale;
    const v=(sx,sy)=>project([pos[0]+right[0]*sx*W+up[0]*sy*H,pos[1]+right[1]*sx*W+up[1]*sy*H,pos[2]+right[2]*sx*W+up[2]*sy*H]);
    const A=v(-1,1),B=v(1,1),C=v(1,-1),D=v(-1,-1);
    const bound=Math.max(Math.hypot(B[0]-A[0],B[1]-A[1]),Math.hypot(D[0]-A[0],D[1]-A[1]));
@@ -63,6 +89,6 @@ export class CanvasOrbit{
   }
   this.onStatus({state:this.phase,rendered:78,elapsed:this.elapsed,loaded:this.loadedCount,failed:this.failedAssets.length});
  }
- getDiagnostics(){return {phase:this.phase,cards:this.cards.length,loaded:this.loadedCount,failed:this.failedAssets.length,elapsed:this.elapsed,visualSeed:this.visualSeed,entranceMode:this.entranceMode,opaqueCards:true,...orbitDiagnostics(this.cards,this.elapsed),renderer:'Canvas2D perspective fallback',width:this.canvas.width,height:this.canvas.height}}
+ getDiagnostics(){return {phase:this.phase,cards:this.cards.length,loaded:this.loadedCount,failed:this.failedAssets.length,elapsed:this.elapsed,visualSeed:this.visualSeed,entranceMode:this.entranceMode,opaqueCards:true,shuffle:this.getShuffleState(),stackedCards:this.phase==='deck_formed'?78:0,...orbitDiagnostics(this.cards,this.elapsed),renderer:'Canvas2D perspective fallback',width:this.canvas.width,height:this.canvas.height}}
  dispose(){if(this.disposed)return;this.disposed=true;cancelAnimationFrame(this.frame);this.resizeObserver?.disconnect();for(const i of this.images){i.onload=null;i.onerror=null}this.canvas.remove()}
 }

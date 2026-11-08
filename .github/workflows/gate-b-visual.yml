@@ -1,0 +1,50 @@
+name: Gate B v8 GPU video evidence
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/ritual-world/**'
+      - 'preview/gate-b/**'
+      - 'scripts/capture-gate-b-v8.mjs'
+      - '.github/workflows/gate-b-visual.yml'
+  workflow_dispatch:
+# Visual renders are expensive. Superseded revisions must not keep
+# consuming GPU CI time while a newer candidate is already available.
+concurrency:
+  group: gate-b-visual-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright
+      - run: npx playwright install chromium --only-shell
+      - run: python3 -m pip install --break-system-packages --quiet pillow
+      - run: npm run assets:sync
+      - name: Run dedicated preview and record WebGL2 frames
+        run: |
+          npm run preview:gate-b > /tmp/gate-b-preview.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4184/preview/gate-b/ >/dev/null; then break; fi
+            sleep 2
+          done
+          node scripts/capture-gate-b-v8.mjs
+      - name: End-to-end browser check — Finish Shuffle → Sphere → Reveal → Artemis
+        run: node scripts/smoke-gate-b-to-artemis.mjs
+      - name: Enforce reference-aligned visual-envelope gate
+        run: python3 scripts/score-gate-b-v8.py artifacts/gate-b-v8
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gate-b-v8-gpu-recording
+          path: |
+            artifacts/gate-b-v8
+            /tmp/gate-b-preview.log
+          retention-days: 14

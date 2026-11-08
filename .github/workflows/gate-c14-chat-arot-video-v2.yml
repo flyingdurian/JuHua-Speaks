@@ -1,0 +1,35 @@
+name: Gate C 01–04 ChatARot video-fidelity v2
+on:
+  push:
+    branches: [feat/gate-c14-chat-arot-video-fidelity-v2]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fidelity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 19
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+      - run: npm install --no-save playwright
+      - run: npx playwright install chromium --only-shell
+      - name: Capture first four stages and test real pointer selection
+        run: |
+          npm run preview:gate-c14 > /tmp/gate-c14-v2.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4186/preview/gate-c14/ >/dev/null; then break; fi
+            sleep 2
+          done
+          node scripts/smoke-gate-c14.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gate-c14-video-v2-frames
+          path: |
+            artifacts/gate-c14/
+            /tmp/gate-c14-v2.log
+          retention-days: 14

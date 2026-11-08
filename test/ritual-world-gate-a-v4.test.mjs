@@ -64,7 +64,11 @@ test('WebGL and Canvas are opaque after entrance, with proper depth testing',asy
  const gl=await readFile(new URL('../src/ritual-world/RitualWorld.mjs',import.meta.url),'utf8');
  const canvas=await readFile(new URL('../src/ritual-world/CanvasOrbit.mjs',import.meta.url),'utf8');
  const css=await readFile(new URL('../preview/gate-a/gate-a.css',import.meta.url),'utf8');
- assert.match(gl,/vec4\(base\.rgb\*\(\.72\+\.28\*clamp\(vLight,0\.0,1\.0\)\),1\.0\)/);
+ // Gate A remains fully opaque. Gate B alone may draw history ghosts; normal
+ // atlas faces must still use an exact full-alpha, zero-tint main pass.
+ assert.match(gl,/gl\.uniform1f\(this\.locPassAlpha,1\)/);
+ assert.match(gl,/gl\.uniform1f\(this\.locEchoTone,0\)/);
+ assert.match(gl,/this\.phase==='shuffle_ritual'&&this\.shuffleStyle==='auto'/);
  assert.match(gl,/gl\.disable\(gl\.BLEND\)/);
  assert.match(gl,/gl\.depthMask\(true\)/);
  assert.match(canvas,/ctx\.globalAlpha=1/);
