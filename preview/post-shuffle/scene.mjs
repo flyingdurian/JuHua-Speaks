@@ -22,14 +22,26 @@ uniform float u_focal;
 uniform float u_aspect;
 uniform float u_near;
 uniform float u_far;
+uniform float u_inside;
+uniform float u_angleH;
+uniform float u_angleV;
 out vec2 v_uv;
 flat out float v_slot;
 flat out float v_side;
 flat out float v_selected;
 void main(){
  float z=a_position.z;
- gl_Position=vec4(u_focal*a_position.x/u_aspect,u_focal*a_position.y,
+ vec4 perspective=vec4(u_focal*a_position.x/u_aspect,u_focal*a_position.y,
  (u_far+u_near)/(u_near-u_far)*z+(2.0*u_far*u_near)/(u_near-u_far),-z);
+ // A wide-angle view of the SAME real 3D shell. Perspective outside,
+ // near-uniform angular scale inside: no tunnel/slabs at the edges.
+ vec3 direction=vec3(a_position.x,a_position.y,-z);
+ float az=atan(direction.x,direction.z);
+ float el=atan(direction.y,length(direction.xz));
+ vec2 angular=vec2(az/(u_angleH*.5),el/(u_angleV*.5));
+ float radialDepth=clamp((length(direction)-.1)/25.0,0.0,1.0)*2.0-1.0;
+ gl_Position=vec4(mix(perspective.xy/perspective.w,angular,u_inside),
+                  mix(perspective.z/perspective.w,radialDepth,u_inside),1.0);
  v_uv=a_uv;v_slot=a_slot;v_side=a_side;v_selected=a_selected;
 }`;
 const fs=`#version 300 es
@@ -126,7 +138,15 @@ function cardPose(point,t,turn,yaw,pitch,selectedPct){
  const uu=up.map((v,i)=>Math.cos(a)*v-Math.sin(a)*right[i]);
  return {position:p,normal:n,right:rr,up:uu};
 }
-function project(p,camZ,viewport,fov){const z=camZ-p[2],f=viewport.h/(2*Math.tan(fov*Math.PI/360));if(z<=.22)return null;return {x:viewport.w*.5+p[0]*f/z,y:viewport.h*.5-p[1]*f/z,z};}
+function project(p,camZ,viewport,fov,angularBlend=0){
+ const z=camZ-p[2];if(z<=.22)return null;
+ const f=viewport.h/(2*Math.tan(fov*Math.PI/360));
+ const aspect=viewport.w/viewport.h,angleV=145*Math.PI/180,angleH=Math.min(175,145*aspect)*Math.PI/180;
+ const perspectiveX=viewport.w*.5+p[0]*f/z,perspectiveY=viewport.h*.5-p[1]*f/z;
+ const sphericalX=viewport.w*.5+Math.atan2(p[0],z)*viewport.w/angleH;
+ const sphericalY=viewport.h*.5-Math.atan2(p[1],Math.hypot(p[0],z))*viewport.h/angleV;
+ return {x:mix(perspectiveX,sphericalX,angularBlend),y:mix(perspectiveY,sphericalY,angularBlend),z};
+}
 function hitsQuad(x,y,c){return pointInQuad([x,y],c)}
 
 export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}){
@@ -155,7 +175,7 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   atlas=atlasTexture(gl,cards,()=>!dead);
   gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);
  }catch(e){sky.dispose();gl.deleteVertexArray(vao);gl.deleteBuffer(vertexBuffer);gl.deleteProgram(program);throw e}
- const uniform={focal:gl.getUniformLocation(program,'u_focal'),aspect:gl.getUniformLocation(program,'u_aspect'),near:gl.getUniformLocation(program,'u_near'),far:gl.getUniformLocation(program,'u_far'),atlas:gl.getUniformLocation(program,'u_atlas')};
+ const uniform={focal:gl.getUniformLocation(program,'u_focal'),aspect:gl.getUniformLocation(program,'u_aspect'),near:gl.getUniformLocation(program,'u_near'),far:gl.getUniformLocation(program,'u_far'),inside:gl.getUniformLocation(program,'u_inside'),angleH:gl.getUniformLocation(program,'u_angleH'),angleV:gl.getUniformLocation(program,'u_angleV'),atlas:gl.getUniformLocation(program,'u_atlas')};
  const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
  const start=performance.now(),roles=['Past','Present','Future'];
  let clock=0,clockFreeze=0,paused=false,camZ=12.6,rendered=[],viewport={w:1,h:1},debugTime=null;
@@ -172,18 +192,16 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  mount.addEventListener('click',e=>{const id=e.target.closest('[data-undo]')?.dataset.undo;if(!id)return;choices=choices.filter(c=>c.id!==id);selectedAt.delete(id);syncSlots()});
  const projectCorner=(pos,right,up,sx,sy,size=1)=>[pos[0]+sx*.56*size*right[0]+sy*.86*size*up[0],pos[1]+sx*.56*size*right[1]+sy*.86*size*up[1],pos[2]+sx*.56*size*right[2]+sy*.86*size*up[2]];
  function computeGeometry(t){
-  const angle=orbitAngle(t)+yaw,cam=cameraDistance(t),fov=cameraFov(t),vertex=[],visible=[];
+  const angle=orbitAngle(t)+yaw,cam=cameraDistance(t),fov=cameraFov(t),angularBlend=smooth((t-6.22)/.78),vertex=[],visible=[];
   camZ=cam;
   for(let i=0;i<78;i++){
    const id=deckIds[i],selected=selectedAt.has(id),pct=selected?selectedPct(id):0;
    const p=cardPose(points[i],t,angle,0,pitch,pct);
    // Interior projection intentionally prevents tangent cards exploding into
    // giant rectangular slabs. The reference keeps cards readable near edges.
-   const depth=cam-p.position[2];
-   const envelope=smooth((t-6.25)/.75);
-   const physicalScale=mix(1,1.70*clamp(Math.pow(clamp(depth/points[i].radius,.02,1),.76),.32,1),envelope);
+   const physicalScale=1; // Angular camera preserves proper physical card size inside.
    const corners=[projectCorner(p.position,p.right,p.up,-1,-1,physicalScale),projectCorner(p.position,p.right,p.up,1,-1,physicalScale),projectCorner(p.position,p.right,p.up,1,1,physicalScale),projectCorner(p.position,p.right,p.up,-1,1,physicalScale)];
-   const projected=corners.map(pt=>project(pt,cam,viewport,fov));const center=project(p.position,cam,viewport,fov);
+   const projected=corners.map(pt=>project(pt,cam,viewport,fov,angularBlend));const center=project(p.position,cam,viewport,fov,angularBlend);
    if(projected.some(p=>!p)||!center)continue;
    // Exterior faces are genuine licensed/public-domain scans. Once the camera
    // enters the shell, the interior is the blue back of the same physical card.
@@ -219,7 +237,11 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   mount.querySelector('#ps-hint').textContent=ready?'Drag to look around · Tap a card to choose':state==='launch'?'The deck is travelling into space…':'The cards are taking their places…';
   guidance.style.opacity=t<1.30?'0':'1';
   const data=computeGeometry(t);rendered=data.visible;
-  atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,1/Math.tan(cameraFov(t)*Math.PI/360));gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,.07);gl.uniform1f(uniform.far,100);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/8);
+  atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,1/Math.tan(cameraFov(t)*Math.PI/360));gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,.07);gl.uniform1f(uniform.far,100);
+  gl.uniform1f(uniform.inside,smooth((t-6.22)/.78));
+  gl.uniform1f(uniform.angleV,145*Math.PI/180);
+  gl.uniform1f(uniform.angleH,Math.min(175,145*rect.width/rect.height)*Math.PI/180);
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/8);
   updateAuras();
  }
  let t=0;
