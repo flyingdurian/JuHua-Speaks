@@ -37,3 +37,12 @@ test('reference-aligned black stars and selected world cards survive same scene 
  assert.match(css,/\.scene-sphere \.orbit-card\.is-chosen/);
  assert.match(css,/\.scene-sphere \.focus,.scene-sphere \.focus\.active\{display:none/);
 });
+
+test('luminous full-screen Gate artwork is a real committed WebP, never a blank CSS URL',async()=>{
+ const path=new URL('../assets/gate-c14/gate-sanctuary.webp',import.meta.url);
+ const image=await readFile(path),css=await readFile(new URL('../preview/gate-c14/gate-c14.css',import.meta.url),'utf8');
+ assert.ok(image.length>85000,'Full painterly gate scene must be committed');
+ assert.equal(image.toString('ascii',0,4),'RIFF');
+ assert.equal(image.toString('ascii',8,12),'WEBP');
+ assert.match(css,/gate-sanctuary\.webp/);
+});

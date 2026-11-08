@@ -10,6 +10,7 @@ try{
  await page.waitForTimeout(420);if(errors.length)throw Error('Scene initialization: '+errors.join(' | '));
  assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.stage()),'gate');
  await page.screenshot({path:'artifacts/gate-c14/01-fullscreen-gate.png'});
+ assert.equal(await page.evaluate(async()=>{const r=await fetch('/assets/gate-c14/gate-sanctuary.webp');return r.ok&&r.headers.get('content-type')?.includes('image/webp')}),true,'The painterly Gate backdrop must be served in the browser');
  await page.locator('[data-action="enter"]').click();
  assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.stage()),'cube');
  await page.waitForTimeout(610);
