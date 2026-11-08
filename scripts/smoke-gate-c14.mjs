@@ -1,0 +1,49 @@
+import assert from 'node:assert/strict';
+import {mkdir} from 'node:fs/promises';
+import {chromium} from 'playwright';
+await mkdir('artifacts/gate-c14',{recursive:true});
+const browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usage']});
+const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1});
+const errors=[];page.on('pageerror',e=>errors.push(String(e)));
+try{
+ await page.goto('http://127.0.0.1:4186/preview/gate-c14/',{waitUntil:'domcontentloaded'});
+ await page.waitForTimeout(420);if(errors.length)throw Error('Scene initialization: '+errors.join(' | '));
+ assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.stage()),'gate');
+ await page.screenshot({path:'artifacts/gate-c14/01-fullscreen-gate.png'});
+ await page.locator('[data-action="enter"]').click();
+ assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.stage()),'cube');
+ await page.waitForTimeout(610);
+ await page.screenshot({path:'artifacts/gate-c14/02-rotating-cube.png'});
+ await page.waitForTimeout(2800);
+ assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.stage()),'cube');
+ await page.screenshot({path:'artifacts/gate-c14/02-fly-through-transition.png'});
+ await page.waitForTimeout(1110);
+ assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.stage()),'sphere');
+ assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.stage()),'sphere');
+ assert.equal(await page.locator('button.orbit-card').count(),78);
+ assert.equal(await page.evaluate(()=>new Set(window.__JUHUA_C14__.deck()).size),78);
+ await page.screenshot({path:'artifacts/gate-c14/03-inside-sphere.png'});
+ const selected=[];
+ for(let i=0;i<3;i++){
+  const id=await page.evaluate(()=>{
+   const all=[...document.querySelectorAll('button.orbit-card')];
+   for(const node of all){if(node.hidden)continue;const b=node.getBoundingClientRect(),x=b.x+b.width/2,y=b.y+b.height/2;
+    if(b.width>54&&x>innerWidth*.2&&x<innerWidth*.8&&y>innerHeight*.25&&y<innerHeight*.66&&document.elementFromPoint(x,y)===node)return node.dataset.cardId;
+   }return null;
+  });
+  assert.ok(id,'Need a truly tappable visible card, not an offscreen identity');
+  await page.locator('button.orbit-card[data-card-id="'+id+'"]').click({force:true});
+  selected.push(id);
+  assert.deepEqual(await page.evaluate(()=>window.__JUHUA_C14__.selected().map(p=>p.id)),selected);
+  if(i===0){await page.waitForTimeout(1190);await page.screenshot({path:'artifacts/gate-c14/04-gold-halo-selection.png'})}
+ }
+ assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.stage()),'select');
+ await page.screenshot({path:'artifacts/gate-c14/04-three-selected-stop.png'});
+ await page.locator('[data-undo="'+selected[1]+'"]').click();
+ assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.selected().length),2);
+ await page.locator('button.orbit-card[data-card-id="'+selected[1]+'"]').click({force:true});
+ assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.selected().length),3);
+ assert.equal(await page.locator('[data-action="collapse"]').count(),0);
+ assert.deepEqual(errors,[]);
+ console.log('Gate C stages 1–4 browser PASS: four scenes, 78 identities, 3 real taps, undo, stage boundary');
+}finally{await browser.close()}
