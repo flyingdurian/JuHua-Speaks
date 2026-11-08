@@ -56,16 +56,35 @@ void main(){
 function compile(gl,type,source){const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw Error('Shader error '+gl.getShaderInfoLog(shader));return shader;}
 function makeProgram(gl){const p=gl.createProgram(),v=compile(gl,gl.VERTEX_SHADER,vs),f=compile(gl,gl.FRAGMENT_SHADER,fs);gl.attachShader(p,v);gl.attachShader(p,f);gl.linkProgram(p);gl.deleteShader(v);gl.deleteShader(f);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error('Program error '+gl.getProgramInfoLog(p));return p;}
 function backArt(ctx,x,y){
+ // Night-blue celestial engraving; multiple small moons/stars instead of
+ // a single brightly outlined cartoon compass on a flat rectangle.
  ctx.save();ctx.translate(x,y);
- const grad=ctx.createLinearGradient(0,0,W,H);grad.addColorStop(0,'#0c2447');grad.addColorStop(.45,'#071328');grad.addColorStop(1,'#142543');ctx.fillStyle='#c4c3c1';ctx.fillRect(0,0,W,H);ctx.fillStyle=grad;ctx.fillRect(3,3,W-6,H-6);
- ctx.strokeStyle='#8293ab';ctx.lineWidth=1;ctx.strokeRect(7,7,W-14,H-14);ctx.strokeStyle='#b9b9bf';ctx.strokeRect(12,12,W-24,H-24);
- for(let i=0;i<38;i++){const a=i*2.4,r=18+(i*17%80);ctx.fillStyle=i%5?'#627b9a':'#d3c5ba';ctx.fillRect(W/2+Math.cos(a)*r, H/2+Math.sin(a)*r*1.39,1.1,1.1)}
- ctx.translate(W/2,H/2);ctx.strokeStyle='#c0babc';ctx.lineWidth=1;
- for(const r of [25,37,45]){ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke()}
- for(let j=0;j<12;j++){const a=j*Math.PI/6;ctx.beginPath();ctx.moveTo(Math.cos(a)*37,Math.sin(a)*37);ctx.lineTo(Math.cos(a)*52,Math.sin(a)*52);ctx.stroke()}
- ctx.beginPath();ctx.moveTo(0,-39);ctx.lineTo(8,-8);ctx.lineTo(39,0);ctx.lineTo(8,8);ctx.lineTo(0,39);ctx.lineTo(-8,8);ctx.lineTo(-39,0);ctx.lineTo(-8,-8);ctx.closePath();ctx.strokeStyle='#dfd6cf';ctx.stroke();
- ctx.fillStyle='#d8d0c8';ctx.font='25px Georgia,serif';ctx.textAlign='center';ctx.fillText('☾',0,10);
- ctx.restore();
+ const grad=ctx.createLinearGradient(0,0,W,H);
+ grad.addColorStop(0,'#101f3a');grad.addColorStop(.44,'#081329');grad.addColorStop(1,'#13213e');
+ ctx.fillStyle='#65718a';ctx.fillRect(0,0,W,H);
+ ctx.fillStyle=grad;ctx.fillRect(2.3,2.3,W-4.6,H-4.6);
+ ctx.strokeStyle='#b3bed3';ctx.lineWidth=.55;ctx.strokeRect(6,6,W-12,H-12);
+ ctx.strokeStyle='#697b9b';ctx.lineWidth=.55;ctx.strokeRect(10,10,W-20,H-20);
+ ctx.strokeStyle='#c3bfae';ctx.lineWidth=.40;ctx.strokeRect(13,13,W-26,H-26);
+ for(let i=0;i<157;i++){
+  const q=Math.sin((i+1)*96.973)*43758.547,n=q-Math.floor(q),
+        r=Math.sin((i+1)*143.789)*17385.47,v=r-Math.floor(r);
+  ctx.fillStyle=i%11===0?'rgba(231,220,193,.55)':'rgba(192,205,224,.31)';
+  ctx.fillRect(13+n*(W-26),14+v*(H-28),i%17===0?1.35:.6,i%17===0?1.35:.6);
+ }
+ ctx.translate(W/2,H/2);
+ ctx.strokeStyle='#94a7c2';ctx.globalAlpha=.64;ctx.lineWidth=.65;
+ for(const rad of [18,25,35]){ctx.beginPath();ctx.arc(0,0,rad,0,Math.PI*2);ctx.stroke()}
+ for(let i=0;i<24;i++){const a=i*Math.PI/12;ctx.beginPath();ctx.moveTo(Math.cos(a)*28,Math.sin(a)*28);ctx.lineTo(Math.cos(a)*(i%3===0?42:37),Math.sin(a)*(i%3===0?42:37));ctx.stroke()}
+ ctx.beginPath();ctx.moveTo(0,-17);ctx.lineTo(6,-5);ctx.lineTo(18,0);ctx.lineTo(6,5);ctx.lineTo(0,17);ctx.lineTo(-6,5);ctx.lineTo(-18,0);ctx.lineTo(-6,-5);ctx.closePath();ctx.stroke();
+ ctx.fillStyle='#eee0bd';ctx.globalAlpha=.82;ctx.beginPath();ctx.arc(0,0,3,0,Math.PI*2);ctx.fill();
+ ctx.globalAlpha=.65;ctx.strokeStyle='#cdd5e4';
+ for(const y of [-92,92]){
+  ctx.beginPath();ctx.arc(0,y,10,-1.55,1.55);ctx.stroke();
+  ctx.beginPath();ctx.arc(3,y-1,10,-1.55,1.55);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,y-16);ctx.lineTo(3,y-7);ctx.lineTo(13,y-4);ctx.lineTo(3,y-1);ctx.lineTo(0,y+8);ctx.lineTo(-3,y-1);ctx.lineTo(-13,y-4);ctx.lineTo(-3,y-7);ctx.closePath();ctx.stroke();
+ }
+ ctx.globalAlpha=1;ctx.restore();
 }
 function fallbackFace(ctx,x,y,card){
  ctx.save();ctx.translate(x,y);ctx.fillStyle='#e7dfca';ctx.fillRect(0,0,W,H);ctx.strokeStyle='#4a4546';ctx.lineWidth=3;ctx.strokeRect(6,7,W-12,H-14);
@@ -116,7 +135,8 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  const cards=deckIds.map(id=>cardMap.get(id)),points=sphereLayout();
  let choices=[],selectedAt=new Map(),lastPointer=null,dragging=false,yaw=0,pitch=0,raf=0,dead=false,ready=false,lastDraw=0,step='launch';
  mount.innerHTML='<div class="ps-world" role="region" aria-label="Continuous post-shuffle Tarot sphere" id="ps-world">'+
-  '<div class="ps-sky" id="ps-sky"><canvas class="ps-stars" id="ps-stars"></canvas></div>'+
+  '<div class="ps-sky" id="ps-sky"><canvas class="ps-stars" id="ps-stars"></canvas></div>'+ 
+  '<div class="ps-launch-streak" id="ps-launch-streak" aria-hidden="true"><i></i><i></i><i></i></div>'+
   '<canvas id="ps-cards" class="ps-cards" aria-label="78 Tarot cards in a three-dimensional sphere. Drag to look around, tap a card to select it." tabindex="0"></canvas>'+
   '<header class="ps-header"><span class="ps-brand">✧ &nbsp; JuHua Speaks</span><span class="ps-guidance" id="ps-guidance" aria-live="polite">Please select 3 cards (0 cards selected)</span><span class="ps-stage" id="ps-stage">DECK IN FLIGHT</span></header>'+
   '<div class="ps-aura-layer" id="ps-auras" aria-hidden="true"></div>'+
@@ -150,14 +170,19 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  function changePause(){paused=!paused;const button=mount.querySelector('#ps-pause');button.textContent=paused?'▶':'Ⅱ';button.setAttribute('aria-pressed',String(paused))}
  mount.querySelector('#ps-pause').addEventListener('click',changePause);
  mount.addEventListener('click',e=>{const id=e.target.closest('[data-undo]')?.dataset.undo;if(!id)return;choices=choices.filter(c=>c.id!==id);selectedAt.delete(id);syncSlots()});
- const projectCorner=(pos,right,up,sx,sy)=>[pos[0]+sx*.56*right[0]+sy*.86*up[0],pos[1]+sx*.56*right[1]+sy*.86*up[1],pos[2]+sx*.56*right[2]+sy*.86*up[2]];
+ const projectCorner=(pos,right,up,sx,sy,size=1)=>[pos[0]+sx*.56*size*right[0]+sy*.86*size*up[0],pos[1]+sx*.56*size*right[1]+sy*.86*size*up[1],pos[2]+sx*.56*size*right[2]+sy*.86*size*up[2]];
  function computeGeometry(t){
   const angle=orbitAngle(t)+yaw,cam=cameraDistance(t),fov=cameraFov(t),vertex=[],visible=[];
   camZ=cam;
   for(let i=0;i<78;i++){
    const id=deckIds[i],selected=selectedAt.has(id),pct=selected?selectedPct(id):0;
    const p=cardPose(points[i],t,angle,0,pitch,pct);
-   const corners=[projectCorner(p.position,p.right,p.up,-1,-1),projectCorner(p.position,p.right,p.up,1,-1),projectCorner(p.position,p.right,p.up,1,1),projectCorner(p.position,p.right,p.up,-1,1)];
+   // Interior projection intentionally prevents tangent cards exploding into
+   // giant rectangular slabs. The reference keeps cards readable near edges.
+   const depth=cam-p.position[2];
+   const envelope=smooth((t-6.25)/.75);
+   const physicalScale=mix(1,clamp(Math.pow(clamp(depth/points[i].radius,.02,1),.76),.32,1),envelope);
+   const corners=[projectCorner(p.position,p.right,p.up,-1,-1,physicalScale),projectCorner(p.position,p.right,p.up,1,-1,physicalScale),projectCorner(p.position,p.right,p.up,1,1,physicalScale),projectCorner(p.position,p.right,p.up,-1,1,physicalScale)];
    const projected=corners.map(pt=>project(pt,cam,viewport,fov));const center=project(p.position,cam,viewport,fov);
    if(projected.some(p=>!p)||!center)continue;
    // Exterior faces are genuine licensed/public-domain scans. Once the camera
@@ -189,8 +214,10 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   viewport={w:rect.width,h:rect.height};if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h)}
   const state=getStage(t,choices.length);step=state;world.dataset.beat=state;
   ready=t>=BEATS.interactive;
+  const streak=mount.querySelector('#ps-launch-streak');if(streak)streak.style.opacity=t<1.25?Math.min(.9,1-smooth((t-.14)/1.10)).toFixed(3):'0';
   mount.querySelector('#ps-stage').textContent=state==='launch'?'DECK IN FLIGHT':state==='distribute'?'CARDS UNFOLDING':state==='enter'?'ENTERING THE SPHERE':state==='inside'?'INSIDE THE UNIVERSE':'YOUR SELECTION';
-  mount.querySelector('#ps-hint').textContent=ready?'Drag to look around · Tap a card to choose':'The cards are taking their places…';
+  mount.querySelector('#ps-hint').textContent=ready?'Drag to look around · Tap a card to choose':state==='launch'?'The deck is travelling into space…':'The cards are taking their places…';
+  guidance.style.opacity=t<1.30?'0':'1';
   const data=computeGeometry(t);rendered=data.visible;
   atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,1/Math.tan(cameraFov(t)*Math.PI/360));gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,.07);gl.uniform1f(uniform.far,100);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/8);
   updateAuras();
