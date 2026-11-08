@@ -1,0 +1,43 @@
+name: Post-Shuffle cinematic sphere fidelity
+on:
+  push:
+    branches: [feat/post-shuffle-launch-to-sphere-v1]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: post-shuffle-fidelity-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  visuals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+      - run: npm install --no-save playwright
+      - run: npx playwright install chromium --only-shell
+      - name: Sync public-domain RWS scans for actual face textures
+        run: npm run assets:sync
+      - name: Check reference-sized 3D launch and three genuine pointer selections
+        run: |
+          npm run preview:post-shuffle > /tmp/post-shuffle.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4184/preview/post-shuffle/ >/dev/null; then break; fi
+            sleep 2
+          done
+          node scripts/smoke-post-shuffle.mjs
+          node scripts/smoke-gate-b-to-artemis.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: post-shuffle-reference-timing-frames
+          path: |
+            artifacts/post-shuffle/
+            artifacts/gate-b-v8/handoff-sphere.png
+            artifacts/gate-b-v8/handoff-report.json
+            /tmp/post-shuffle.log
+          retention-days: 14
