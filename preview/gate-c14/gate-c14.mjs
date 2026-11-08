@@ -10,7 +10,7 @@ let handoff=null;
 try{const raw=sessionStorage.getItem(GATE_B_HANDOFF_KEY);if(raw){sessionStorage.removeItem(GATE_B_HANDOFF_KEY);handoff=parseGateBHandoff(raw)}}catch(e){console.warn('Expired Gate B handoff discarded:',e.message)}
 const deck=validateDeck(handoff?.cardIds?.every(x=>validIds.has(x))?handoff.cardIds:shuffleDeck().map(x=>x.id));
 const layout=sphereLayout(),coordinates=new Map(deck.map((id,i)=>[id,layout[i]])),buttons=new Map();
-let stage='gate',choices=[],yaw=-14,pitch=-9,paused=false,lastSelected=null,press=null,suppressClickUntil=0,enterTimer=null,frame=0,previous=0;
+let activeGhost=null;let stage='gate',choices=[],yaw=-14,pitch=-9,paused=false,lastSelected=null,press=null,suppressClickUntil=0,enterTimer=null,frame=0,previous=0;
 const back=()=>'<img src="'+asset+'" alt="" draggable="false">';
 function mast(index,name){return '<header class="mast"><div class="brand"><span>✦</span>JuHua Speaks</div><small>'+index+' / 04 &nbsp; '+name+'</small></header>'}
 function common(cls){return '<div class="backdrop" aria-hidden="true"></div>'+(cls==='gate'?'<div class="architecture" aria-hidden="true"></div>':'')+'<div class="veil" aria-hidden="true"></div>'}
@@ -35,9 +35,9 @@ function choose(id){if(!['sphere','select'].includes(stage)||choices.length>=3||
  if(next===choices)return;choices=next;lastSelected=id;
  if(stage==='sphere'){stage='select';root.dataset.stage='select';root.querySelector('.mast small').innerHTML='04 / 04 &nbsp; SELECT THE CARDS';root.querySelector('#sphere-title').innerHTML='✧ &nbsp; THE CARDS ANSWER &nbsp; ✧';root.querySelector('#sphere-message').textContent='Every chosen card blooms with a golden halo and approaches you.'}
  const focus=root.querySelector('#focus');focus.classList.remove('active');void focus.offsetWidth;focus.classList.add('active');
- if(from.width>5&&!reduced()){const ghost=document.createElement('div');ghost.className='card-flight';ghost.innerHTML=back();ghost.style.cssText='left:'+from.left+'px;top:'+from.top+'px;width:'+from.width+'px;height:'+from.height+'px';document.body.append(ghost);
+ if(activeGhost){activeGhost.remove();activeGhost=null}if(from.width>5&&!reduced()){const ghost=document.createElement('div');activeGhost=ghost;ghost.className='card-flight';ghost.innerHTML=back();ghost.style.cssText='left:'+from.left+'px;top:'+from.top+'px;width:'+from.width+'px;height:'+from.height+'px';document.body.append(ghost);
  const dx=innerWidth*.5-(from.left+from.width*.5),dy=innerHeight*.44-(from.top+from.height*.5);
- const animation=ghost.animate([{transform:'translate(0,0) scale(1)',filter:'drop-shadow(0 0 2px #fff4ca)'},{offset:.54,transform:'translate('+dx*.92+'px,'+dy*.92+'px) scale(2.15)',filter:'drop-shadow(0 0 40px #ffe6ae)'},{transform:'translate('+dx+'px,'+dy+'px) scale(1.55)',opacity:0}],{duration:1050,fill:'forwards',easing:'cubic-bezier(.15,.68,.16,1)'});animation.finished.catch(()=>{}).finally(()=>ghost.remove());setTimeout(()=>ghost.remove(),1320)}
+ const animation=ghost.animate([{transform:'translate(0,0) scale(1)',filter:'drop-shadow(0 0 2px #fff4ca)'},{offset:.54,transform:'translate('+dx*.92+'px,'+dy*.92+'px) scale(2.15)',filter:'drop-shadow(0 0 40px #ffe6ae)'},{transform:'translate('+dx+'px,'+dy+'px) scale(1.55)',opacity:0}],{duration:1050,fill:'forwards',easing:'cubic-bezier(.15,.68,.16,1)'});animation.finished.catch(()=>{}).finally(()=>{ghost.remove();if(activeGhost===ghost)activeGhost=null});setTimeout(()=>{ghost.remove();if(activeGhost===ghost)activeGhost=null},1320)}
  updateDock();paint();
 }
 function undo(id){if(stage!=='select'||!choices.some(c=>c.id===id))return;choices=removeChoice(choices,id);lastSelected=choices.at(-1)?.id||null;

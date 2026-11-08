@@ -48,3 +48,40 @@ button{font:inherit;cursor:pointer;color:inherit}button:focus-visible{outline:2p
 @keyframes focus-bob{50%{transform:translateY(-8px)}}@keyframes halo-bob{50%{transform:rotateX(65deg) rotateZ(28deg) scale(1.3)}}
 @media(max-width:750px){.mast{padding:14px 16px}.mast .brand{font-size:18px}.mast small{font-size:8px;letter-spacing:.1em}.hero h1{font-size:42px}.hero{bottom:6vh}.sphere-label{top:74px}.sphere-controls{left:7px;top:38%}.sphere-controls button{width:33px;height:33px}.dock{width:94vw;gap:19px;height:149px;bottom:14px}.dock-back{width:35px;height:58px}.dock-count{font-size:29px;padding-left:9px}.dock-slots{gap:14px}.focus{width:120px}.finish-label{white-space:normal;width:90vw;bottom:174px;text-align:center}.cube-ring{width:83vw;height:33vw}}
 @media(prefers-reduced-motion:reduce){.backdrop,.cube-object,.cube-ring,.focus-front,.focus-halo{animation:none!important}.ritual *{transition:none!important}}
+
+
+/* Owner visual QA: tighter sphere field, monumental 3D entry, clearer physical selection. */
+/* Filtering the cube element flattened the six preserved 3D faces in Chromium. */
+.cube-object{--size:clamp(215px,29.5vh,315px);filter:none!important;animation:cube-fidelity-turn 8.2s cubic-bezier(.52,.04,.5,.98) infinite alternate}
+.cube-face{backface-visibility:hidden!important;background:radial-gradient(circle at 46% 45%,#4c327b,#161139 74%);box-shadow:inset 0 0 27px #fff1be87,inset 0 0 60px #ac78ffa8,0 0 32px #ffd8a68b}
+.cube-face.front{outline:2px solid #fff5d1;outline-offset:-12px}
+@keyframes cube-fidelity-turn{0%{transform:rotateX(-29deg) rotateY(51deg) rotateZ(6deg)}50%{transform:rotateX(14deg) rotateY(145deg) rotateZ(-5deg)}100%{transform:rotateX(23deg) rotateY(226deg) rotateZ(-8deg)}}
+.cube-stage:before{content:'';position:absolute;inset:17% 20%;pointer-events:none;background:radial-gradient(ellipse,#fff3b94b,#ac74ef38 29%,#7b3abd14 55%,transparent 75%);filter:blur(39px);animation:slow-drift 11s ease-in-out infinite alternate}
+.cube-ring{border-width:3px;box-shadow:0 0 40px #efc9ffcc,inset 0 0 20px #ffdead79}
+
+/* Viewer is submerged in a deep celestial globe: a continuous volumetric shell, not a card wall. */
+.scene-sphere .backdrop{filter:brightness(.67) saturate(1.22);transform:scale(1.17)}
+.scene-sphere .dome-rings{opacity:1}
+.scene-sphere .dome-rings:before{content:'';position:absolute;left:50%;top:47%;width:min(111vw,1550px);height:min(120vh,1100px);border-radius:50%;transform:translate(-50%,-50%);
+background:radial-gradient(ellipse at 50% 46%,#110b3769 0%,#3b1c6559 41%,#8460b034 62%,#d4a9f835 77%,transparent 79%);
+border:2px solid #ffd8b880;box-shadow:0 0 78px #c488ff7d,inset 0 0 120px #d2a2ff8a,0 0 35px #ffdfba39}
+.scene-sphere .dome-ring{border-color:#d9b5ffb0;box-shadow:0 0 22px #d8a0ffa2,inset 0 0 38px #a975f46a}
+.scene-sphere .dome-ring:nth-child(2){border-color:#ffd8a18c}
+.scene-sphere .sphere-label{top:clamp(83px,10vh,111px);background:radial-gradient(ellipse,#09051c88,transparent 83%);padding:12px}
+.sphere-label p{font-size:clamp(13px,1.25vw,17px);color:#f3e5ef;max-width:530px;margin:7px auto}
+.orbit-card{box-shadow:0 0 0 1.5px #ffdeac,0 0 12px #d0a2ffbd,0 14px 28px #03010dc9;filter:drop-shadow(0 0 4px #d9c2f5a8)}
+.orbit-card:hover{z-index:1900!important;filter:brightness(1.24) drop-shadow(0 0 12px #ffe4b5)}
+.orbit-card img{box-shadow:inset 0 0 6px #fff0c5}
+.focus{width:clamp(140px,14.5vw,228px)}
+.focus.active .focus-front{border-radius:6px;border:2px solid #fff8d2;box-shadow:0 0 0 5px #ffd991d7,0 0 15px 8px #fff1b9,0 0 75px 18px #b986ffce,0 0 135px 34px #8b56f1b1}
+.focus.active .focus-halo{inset:-62%;border:4px solid #ffdfaaee;background:radial-gradient(ellipse,#ffef9f46 0%,#dbadff30 31%,transparent 61%);box-shadow:0 0 60px #ffe3af,0 0 103px #a671ed9c,inset 0 0 39px #ffe4b5e3}
+.dock{height:clamp(132px,16vh,163px);padding:19px 14px 10px;width:min(570px,74vw);background:linear-gradient(90deg,#08051edc,#150b2ce3,#0a071fe8)}
+.dock-back{height:68px;width:42px}
+.finish-label{bottom:calc(clamp(19px,3.5vh,42px) + clamp(132px,16vh,163px) + 13px)}
+/* Temple relief: stone grain, intricate inlays, and gilded depth instead of plain clip-art. */
+.scene-gate .architecture{filter:drop-shadow(0 0 34px #f4d3a17d) drop-shadow(0 0 9px #fbf0d88a)}
+.scene-gate .backdrop{filter:brightness(.68) saturate(1.23);transform:scale(1.12)}
+.scene-gate .veil{background:radial-gradient(ellipse 29% 41% at 50% 51%,#b28aee36,#21114319 63%,transparent 88%),
+linear-gradient(0deg,#080417a9,transparent 37%,transparent 82%,#08051779)}
+@media(max-width:750px){.focus{width:130px}.dock{width:94vw;height:142px}.finish-label{bottom:165px}.scene-sphere .dome-rings:before{width:144vw;height:105vh}}
+@media(prefers-reduced-motion:reduce){.cube-object,.cube-stage:before{animation:none!important}}

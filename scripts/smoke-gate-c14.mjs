@@ -31,7 +31,7 @@ try{
   await page.locator('button.orbit-card[data-card-id="'+id+'"]').click({force:true});
   selected.push(id);
   assert.deepEqual(await page.evaluate(()=>window.__JUHUA_C14__.selected().map(p=>p.id)),selected);
-  if(i===0){await page.waitForTimeout(160);await page.screenshot({path:'artifacts/gate-c14/04-gold-halo-selection.png'})}
+  if(i===0){await page.waitForTimeout(1190);await page.screenshot({path:'artifacts/gate-c14/04-gold-halo-selection.png'})}
  }
  assert.equal(await page.evaluate(()=>window.__JUHUA_C14__.stage()),'select');
  await page.screenshot({path:'artifacts/gate-c14/04-three-selected-stop.png'});
