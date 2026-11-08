@@ -58,6 +58,7 @@ void main(){
  vec2 uv=vec2((col+mix(.012,.988,v_uv.x))/10.0,1.0-(row+mix(.012,.988,1.0-v_uv.y))/8.0);
  vec4 tex=texture(u_atlas,uv);
  float border=min(min(v_uv.x,1.0-v_uv.x),min(v_uv.y,1.0-v_uv.y));
+ if(v_side>.5)tex.rgb*=.84; // dim celestial backs in the interior
  if(v_selected>.5){
   float gild=1.0-smoothstep(.012,.057,border);
   tex.rgb=mix(tex.rgb,vec3(1.0,.86,.62),.53*gild);
@@ -131,6 +132,10 @@ function cardPose(point,t,turn,yaw,pitch,selectedPct){
  const p=rotX(rotY(center3,turn+yaw),pitch);
  const normal=norm(mix3([0,0,1],point.direction.map(v=>-v),s));
  let n=rotX(rotY(normal,turn+yaw),pitch);
+ // Preserve real spherical positions but keep polar cards legible from inside.
+ // They face the viewer slightly, rather than flattening sideways at the pole.
+ const viewerFacing=.52*smooth((t-6.26)/.86);
+ n=norm(mix3(n,[0,0,1],viewerFacing));
  let right=norm(cross([0,1,0],n));if(Math.hypot(...right)<.3)right=[1,0,0];
  let up=norm(cross(n,right));
  const a=point.roll*s+(1-s)*.055*Math.sin(point.i*.71)+Math.sin(s*Math.PI)*(.25*Math.sin(point.i*.23+t*5)+.19*Math.cos(point.i*.58-t*7));
