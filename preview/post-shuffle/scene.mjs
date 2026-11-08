@@ -8,7 +8,7 @@
  */
 import {DECK,commonsThumbnailUrl,drawOrientation} from '../../src/deck.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
-import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,selectCard,getStage} from './geometry.mjs';
+import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,pointInQuad} from './geometry.mjs';
 
 const W=174,H=288,COLS=10,ROWS=8,ATLAS_W=W*COLS,ATLAS_H=H*ROWS;
 const vs=`#version 300 es
@@ -102,14 +102,13 @@ function cardPose(point,t,turn,yaw,pitch,selectedPct){
  let n=rotX(rotY(normal,turn+yaw),pitch);
  let right=norm(cross([0,1,0],n));if(Math.hypot(...right)<.3)right=[1,0,0];
  let up=norm(cross(n,right));
- const a=point.roll+(1-s)*(point.i*.27+t*4.9);
+ const a=point.roll*s+(1-s)*.055*Math.sin(point.i*.71)+Math.sin(s*Math.PI)*(.25*Math.sin(point.i*.23+t*5)+.19*Math.cos(point.i*.58-t*7));
  const rr=right.map((v,i)=>Math.cos(a)*v+Math.sin(a)*up[i]);
  const uu=up.map((v,i)=>Math.cos(a)*v-Math.sin(a)*right[i]);
  return {position:p,normal:n,right:rr,up:uu};
 }
-function project(p,camZ,viewport){const z=camZ-p[2],f=viewport.h/(2*Math.tan(115*Math.PI/360/2));if(z<=.22)return null;return {x:viewport.w*.5+p[0]*f/z,y:viewport.h*.5-p[1]*f/z,z};}
-function insideTriangle(x,y,a,b,c){const v0=[c.x-a.x,c.y-a.y],v1=[b.x-a.x,b.y-a.y],v2=[x-a.x,y-a.y];const d00=dot(v0,v0),d01=dot(v0,v1),d02=dot(v0,v2),d11=dot(v1,v1),d12=dot(v1,v2),den=d00*d11-d01*d01;if(Math.abs(den)<.001)return false;const v=(d11*d02-d01*d12)/den,w=(d00*d12-d01*d02)/den;return v>=0&&w>=0&&v+w<=1;}
-function hitsQuad(x,y,c){return insideTriangle(x,y,c[0],c[1],c[2])||insideTriangle(x,y,c[0],c[2],c[3]);}
+function project(p,camZ,viewport){const z=camZ-p[2],f=viewport.h/(2*Math.tan(115*Math.PI/360));if(z<=.22)return null;return {x:viewport.w*.5+p[0]*f/z,y:viewport.h*.5-p[1]*f/z,z};}
+function hitsQuad(x,y,c){return pointInQuad([x,y],c)}
 
 export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}){
  if(!mount||!Array.isArray(deckIds)||deckIds.length!==78||new Set(deckIds).size!==78)throw new Error('A unique 78-card ordered handoff is required');
@@ -193,7 +192,7 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   mount.querySelector('#ps-stage').textContent=state==='launch'?'DECK IN FLIGHT':state==='distribute'?'CARDS UNFOLDING':state==='enter'?'ENTERING THE SPHERE':state==='inside'?'INSIDE THE UNIVERSE':'YOUR SELECTION';
   mount.querySelector('#ps-hint').textContent=ready?'Drag to look around · Tap a card to choose':'The cards are taking their places…';
   const data=computeGeometry(t);rendered=data.visible;
-  atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,1/Math.tan(115*Math.PI/360/2));gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,.07);gl.uniform1f(uniform.far,100);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/8);
+  atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,1/Math.tan(115*Math.PI/360));gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,.07);gl.uniform1f(uniform.far,100);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/8);
   updateAuras();
  }
  let t=0;

@@ -44,3 +44,16 @@ export function selectCard(choices,deck,id,orientation='upright'){
  return [...choices,{id,orientation}];
 }
 export function getStage(time,selectedCount){return time<1.05?'launch':time<3.1?'distribute':time<6.9?'enter':selectedCount>0?'select':'inside'};
+
+/** Screen-space hit test against projected 3D card corners (not a box approximation). */
+export function pointInQuad(point,corners){
+ const [x,y]=point;
+ const inside=(a,b,c)=>{
+  const cross=(p,q)=>p[0]*q[1]-p[1]*q[0];
+  const v0=[c.x-a.x,c.y-a.y],v1=[b.x-a.x,b.y-a.y],v2=[x-a.x,y-a.y];
+  const den=cross(v0,v1);if(Math.abs(den)<1e-9)return false;
+  const u=cross(v2,v1)/den,v=cross(v0,v2)/den;
+  return u>=-1e-6&&v>=-1e-6&&u+v<=1+1e-6;
+ };
+ return inside(corners[0],corners[1],corners[2])||inside(corners[0],corners[2],corners[3]);
+}

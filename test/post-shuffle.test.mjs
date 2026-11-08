@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {DECK} from '../src/deck.mjs';
-import {CARD_COUNT,BEATS,sphereLayout,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,assemblyProgress} from '../preview/post-shuffle/geometry.mjs';
+import {CARD_COUNT,BEATS,sphereLayout,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,assemblyProgress,pointInQuad} from '../preview/post-shuffle/geometry.mjs';
 
 test('One real, non-redealt 78-card spherical identity map',()=>{
  const points=sphereLayout();assert.equal(points.length,78);
@@ -42,4 +42,11 @@ test('Gate B Finish Shuffling mounts continuity inline instead of redirecting or
  assert.match(post,/pointerup/);
  assert.doesNotMatch(post,/Gate \(Fullscreen\)|Celestial Gate|cube-stage/);
  assert.match(server,/preview\/post-shuffle/);
+});
+
+test('Real tap-hit projection accepts center of skewed card and rejects outside points',()=>{
+ const corners=[{x:20,y:20},{x:97,y:30},{x:90,y:149},{x:10,y:130}];
+ assert.equal(pointInQuad([50,75],corners),true);
+ assert.equal(pointInQuad([900,750],corners),false);
+ assert.equal(pointInQuad([24,24],corners),true);
 });
