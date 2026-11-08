@@ -2,7 +2,7 @@
  * Times measured from clicking FINISH SHUFFLING, in seconds.
  */
 export const CARD_COUNT=78;
-export const BEATS=Object.freeze({launch:[0,1.2],scatter:[1.2,2.8],orbit:[2.8,4.3],camera:[2.55,6.75],interactive:6.9});
+export const BEATS=Object.freeze({launch:[0,1.25],scatter:[1.25,3.05],orbit:[3.05,4.3],camera:[2.65,6.85],interactive:7.05});
 export const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 export const smooth=n=>{const x=clamp(n);return x*x*(3-2*x)};
 const mix=(a,b,t)=>a+(b-a)*t;
@@ -21,22 +21,24 @@ export function sphereLayout(count=78){
 export function cameraDistance(time){
  // Independent measured beats: the globe swells into the frame BEFORE
  // the camera crosses the shell, rather than remaining a distant dot.
- if(time<=2.55)return 12.6;
- if(time<4.50)return 12.6-(12.6-5.8)*smooth((time-2.55)/1.95);
- return 5.8*(1-smooth((time-4.50)/2.25));
+ if(time<=2.65)return 12.6;
+ if(time<4.70)return 12.6-(12.6-5.8)*smooth((time-2.65)/2.05);
+ return 5.8*(1-smooth((time-4.70)/2.15));
 }
 export function orbitAngle(time){
- const t=Math.max(0,time);if(t<1.2)return t*.4;
- if(t<=4.1)return .48+4.7*(t-1.2);
- const fade=Math.min(t-4.1,2.8);
- const angle=.48+4.7*2.9+4.7*fade+(0.065-4.7)*(fade*fade)/(2*2.8);
- return angle+Math.max(0,t-6.9)*.065;
+ const t=Math.max(0,time);if(t<1.25)return t*.35;
+ if(t<=4.25)return .4375+4.7*(t-1.25);
+ const fade=Math.min(t-4.25,2.8);
+ const angle=.4375+4.7*3.0+4.7*fade+(0.052-4.7)*(fade*fade)/(2*2.8);
+ return angle+Math.max(0,t-7.05)*.052;
 }
-export function assemblyProgress(time){return smooth((time-1.05)/2.05);}
+export function assemblyProgress(time){return smooth((time-1.25)/1.80);}
+/** Physical near-to-far launch of the original packed deck (not a CSS fade). */
+export function deckLaunchZ(time){const t=clamp(time/1.25);return 10.25-10.45*(t*t*(3-2*t));}
 export function cardWorld(point,time,selected=false){
  const t=Math.max(0,time),s=assemblyProgress(t),d=point.direction;
- const centerZ=t<.75?mix(1.0,0,smooth(t/.75)):0;
- const stack=[(point.i%3-1)*.008,(point.i%5-2)*.008,centerZ+(point.i-39)*.0017];
+ const centerZ=deckLaunchZ(t);
+ const stack=[(point.i%3-1)*.010,(point.i%5-2)*.009,centerZ+(point.i-39)*.0019];
  const wobble=Math.sin(s*Math.PI)*.36;
  const extent=point.radius*(selected?.83:1);
  return [mix(stack[0],d[0]*extent,s)+wobble*Math.sin(point.i*.73),mix(stack[1],d[1]*extent,s)+wobble*Math.cos(point.i*.91),mix(stack[2],d[2]*extent,s)];
@@ -49,7 +51,7 @@ export function selectCard(choices,deck,id,orientation='upright'){
  if(choices.length===3)return choices;
  return [...choices,{id,orientation}];
 }
-export function getStage(time,selectedCount){return time<1.05?'launch':time<3.1?'distribute':time<6.9?'enter':selectedCount>0?'select':'inside'};
+export function getStage(time,selectedCount){return time<1.25?'launch':time<3.05?'distribute':time<BEATS.interactive?'enter':selectedCount>0?'select':'inside'};
 
 /** Screen-space hit test against projected 3D card corners (not a box approximation). */
 export function pointInQuad(point,corners){
@@ -68,5 +70,5 @@ export function pointInQuad(point,corners){
  * Camera returns to normal perspective upon entering the sphere. */
 export function cameraFov(time){
  const wide=smooth((time-2.8)/1.1)*(1-smooth((time-5.3)/1.45));
- return 115+18*wide;
+ return 124+9*wide;
 }
