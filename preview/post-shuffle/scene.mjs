@@ -41,7 +41,7 @@ flat in float v_selected;
 uniform sampler2D u_atlas;
 out vec4 frag;
 void main(){
- float slot=mix(78.0,v_slot,v_side);
+ float slot=mix(v_slot,78.0,v_side);
  float col=mod(slot,10.0);float row=floor(slot/10.0);
  vec2 uv=vec2((col+mix(.012,.988,v_uv.x))/10.0,1.0-(row+mix(.012,.988,1.0-v_uv.y))/8.0);
  vec4 tex=texture(u_atlas,uv);
@@ -81,7 +81,7 @@ function atlasTexture(gl,cards,shouldRun){
  const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
  function upload(){if(!dirty||!shouldRun())return;gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,canvas);dirty=false}
  const imgs=[];
- function load(i,uri,fallback=false){if(!shouldRun())return;const img=new Image();img.decoding='async';imgs.push(img);img.onload=()=>{if(!shouldRun())return;ctx.drawImage(img,(i%COLS)*W,Math.floor(i/COLS)*H,W,H);dirty=true;loaded++};img.onerror=()=>{if(!fallback)load(i,commonsThumbnailUrl(cards[i]),true);else failed++};img.src=uri}
+ function load(i,uri,fallback=false){if(!shouldRun())return;const img=new Image();img.decoding='async';img.crossOrigin='anonymous';imgs.push(img);img.onload=()=>{if(!shouldRun())return;ctx.drawImage(img,(i%COLS)*W,Math.floor(i/COLS)*H,W,H);dirty=true;loaded++};img.onerror=()=>{if(!fallback)load(i,commonsThumbnailUrl(cards[i]),true);else failed++};img.src=uri}
  cards.forEach((card,i)=>load(i,new URL('../../assets/rws/'+card.id+'.jpg',import.meta.url).href));
  upload();return {tex,upload,stats:()=>({loaded,failed}),dispose(){imgs.forEach(i=>{i.onload=null;i.onerror=null;i.src=''});gl.deleteTexture(tex)}};
 }
@@ -107,7 +107,7 @@ function cardPose(point,t,turn,yaw,pitch,selectedPct){
  const uu=up.map((v,i)=>Math.cos(a)*v-Math.sin(a)*right[i]);
  return {position:p,normal:n,right:rr,up:uu};
 }
-function project(p,camZ,viewport){const z=camZ-p[2],f=viewport.h/(2*Math.tan(85*Math.PI/360/2));if(z<=.22)return null;return {x:viewport.w*.5+p[0]*f/z,y:viewport.h*.5-p[1]*f/z,z};}
+function project(p,camZ,viewport){const z=camZ-p[2],f=viewport.h/(2*Math.tan(115*Math.PI/360/2));if(z<=.22)return null;return {x:viewport.w*.5+p[0]*f/z,y:viewport.h*.5-p[1]*f/z,z};}
 function insideTriangle(x,y,a,b,c){const v0=[c.x-a.x,c.y-a.y],v1=[b.x-a.x,b.y-a.y],v2=[x-a.x,y-a.y];const d00=dot(v0,v0),d01=dot(v0,v1),d02=dot(v0,v2),d11=dot(v1,v1),d12=dot(v1,v2),den=d00*d11-d01*d01;if(Math.abs(den)<.001)return false;const v=(d11*d02-d01*d12)/den,w=(d00*d12-d01*d02)/den;return v>=0&&w>=0&&v+w<=1;}
 function hitsQuad(x,y,c){return insideTriangle(x,y,c[0],c[1],c[2])||insideTriangle(x,y,c[0],c[2],c[3]);}
 
@@ -139,7 +139,7 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  const uniform={focal:gl.getUniformLocation(program,'u_focal'),aspect:gl.getUniformLocation(program,'u_aspect'),near:gl.getUniformLocation(program,'u_near'),far:gl.getUniformLocation(program,'u_far'),atlas:gl.getUniformLocation(program,'u_atlas')};
  const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
  const start=performance.now(),roles=['Past','Present','Future'];
- let clock=0,clockFreeze=0,paused=false,camZ=12.6,rendered=[],viewport={w:1,h:1};
+ let clock=0,clockFreeze=0,paused=false,camZ=12.6,rendered=[],viewport={w:1,h:1},debugTime=null;
  const selectedPct=id=>{const at=selectedAt.get(id);return at===undefined?0:smooth((performance.now()-at)/780)};
  function syncSlots(){const parent=mount.querySelector('#ps-selections');parent.innerHTML=roles.map((r,i)=>{
   const p=choices[i];return '<div class="ps-slot"><label>'+r+'</label><div class="ps-mark">'+(p?'✦':'·')+'</div>'+(p?'<button type="button" data-undo="'+p.id+'" aria-label="Undo '+r+' selection">UNDO</button>':'')+'</div>';}).join('');
@@ -151,7 +151,7 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  function changePause(){paused=!paused;const button=mount.querySelector('#ps-pause');button.textContent=paused?'▶':'Ⅱ';button.setAttribute('aria-pressed',String(paused))}
  mount.querySelector('#ps-pause').addEventListener('click',changePause);
  mount.addEventListener('click',e=>{const id=e.target.closest('[data-undo]')?.dataset.undo;if(!id)return;choices=choices.filter(c=>c.id!==id);selectedAt.delete(id);syncSlots()});
- const projectCorner=(pos,right,up,sx,sy)=>[pos[0]+sx*.43*right[0]+sy*.70*up[0],pos[1]+sx*.43*right[1]+sy*.70*up[1],pos[2]+sx*.43*right[2]+sy*.70*up[2]];
+ const projectCorner=(pos,right,up,sx,sy)=>[pos[0]+sx*.56*right[0]+sy*.86*up[0],pos[1]+sx*.56*right[1]+sy*.86*up[1],pos[2]+sx*.56*right[2]+sy*.86*up[2]];
  function computeGeometry(t){
   const angle=orbitAngle(t)+yaw,cam=cameraDistance(t),vertex=[],visible=[];
   camZ=cam;
@@ -182,7 +182,8 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  }
  function draw(now){if(dead)return;raf=requestAnimationFrame(draw);const dt=Math.min(64,Math.max(0,now-lastDraw||0));lastDraw=now;
   if(paused){clockFreeze+=dt;return}
-  const elapsed=(now-start-clockFreeze)/1000;t=reduced?Math.max(elapsed,7.05):elapsed;
+  const elapsed=debugTime===null?(now-start-clockFreeze)/1000:debugTime;
+  t=debugTime!==null?elapsed:(reduced?Math.max(elapsed,7.05):elapsed);
   if(!reduced&&now-(draw.lastFrame||0)<23)return;draw.lastFrame=now;
   const rect=world.getBoundingClientRect();if(rect.width<10||rect.height<10)return;
   const dpr=Math.min(devicePixelRatio||1,1.5),w=Math.round(rect.width*dpr),h=Math.round(rect.height*dpr);
@@ -192,12 +193,15 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   mount.querySelector('#ps-stage').textContent=state==='launch'?'DECK IN FLIGHT':state==='distribute'?'CARDS UNFOLDING':state==='enter'?'ENTERING THE SPHERE':state==='inside'?'INSIDE THE UNIVERSE':'YOUR SELECTION';
   mount.querySelector('#ps-hint').textContent=ready?'Drag to look around · Tap a card to choose':'The cards are taking their places…';
   const data=computeGeometry(t);rendered=data.visible;
-  atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,1/Math.tan(85*Math.PI/360/2));gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,.07);gl.uniform1f(uniform.far,100);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/8);
+  atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,1/Math.tan(115*Math.PI/360/2));gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,.07);gl.uniform1f(uniform.far,100);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/8);
   updateAuras();
  }
  let t=0;
- function tap(x,y){if(!ready||dead)return null;const rect=canvas.getBoundingClientRect(),localX=x-rect.left,localY=y-rect.top;
-  const candidates=rendered.filter(p=>p.side===1&&hitsQuad(localX,localY,p.corners)).sort((a,b)=>a.depth-b.depth);
+ function hitCandidates(x,y){const rect=canvas.getBoundingClientRect(),localX=x-rect.left,localY=y-rect.top;
+  return rendered.filter(p=>p.side===1&&hitsQuad(localX,localY,p.corners)).sort((a,b)=>a.depth-b.depth);
+ }
+ function tap(x,y){if(!ready||dead)return null;
+  const candidates=hitCandidates(x,y);
   const candidate=candidates[0];if(!candidate)return null;
   const previous=choices;
   choices=selectCard(choices,deckIds,candidate.id,drawOrientation());
@@ -207,14 +211,14 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  }
  canvas.addEventListener('pointerdown',e=>{if(!ready)return;lastPointer={id:e.pointerId,x:e.clientX,y:e.clientY,yaw,pitch,moved:false};});
  canvas.addEventListener('pointermove',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;const dx=e.clientX-lastPointer.x,dy=e.clientY-lastPointer.y;if(Math.hypot(dx,dy)>7)lastPointer.moved=true;if(lastPointer.moved){yaw=lastPointer.yaw+dx*.0043;pitch=clamp(lastPointer.pitch+dy*.004,-1.05,1.05);}});
- canvas.addEventListener('pointerup',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;const {moved}=lastPointer;lastPointer=null;if(!moved)tap(e.clientX,e.clientY)});
- canvas.addEventListener('pointercancel',()=>{lastPointer=null});
+ window.addEventListener('pointerup',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;const {moved}=lastPointer;lastPointer=null;if(!moved)tap(e.clientX,e.clientY)});
+ window.addEventListener('pointercancel',()=>{lastPointer=null});
  canvas.addEventListener('keydown',e=>{if(!ready)return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){yaw+=(e.key==='ArrowLeft'?-1:1)*.21;e.preventDefault()}if(e.key==='ArrowUp'||e.key==='ArrowDown'){pitch=clamp(pitch+(e.key==='ArrowUp'?-1:1)*.12,-1.05,1.05);e.preventDefault()}});
  raf=requestAnimationFrame(draw);
  return {
   stage:()=>step,selected:()=>choices.map(c=>({...c})),deck:()=>[...deckIds],assetStatus:()=>atlas.stats(),ready:()=>ready,
   visible:()=>rendered.map(p=>({id:p.id,side:p.side,selected:p.selected,x:p.center.x,y:p.center.y,depth:p.depth})),
-  time:()=>t,tap,togglePause:changePause,
+  time:()=>t,tap,hitTest:hitCandidates,togglePause:changePause,seek(seconds){if(!demo)throw Error('Timeline seek is review-only');debugTime=clamp(seconds,0,60)},clearSeek(){debugTime=null},
   dispose(){dead=true;cancelAnimationFrame(raf);sky.dispose();atlas.dispose();gl.deleteBuffer(vertexBuffer);gl.deleteVertexArray(vao);gl.deleteProgram(program);world.remove()}
  };
 }
