@@ -27,6 +27,13 @@ try{
  await page.evaluate(()=>window.__POST_SHUFFLE__.seek(7.5));await page.waitForTimeout(120);
  assert.equal(await page.evaluate(()=>window.__POST_SHUFFLE__.ready()),true);
  assert.equal(await page.evaluate(()=>window.__POST_SHUFFLE__.stage()),'inside');
+ const coverage=await page.evaluate(()=>{
+  const v=window.__POST_SHUFFLE__.visible().filter(c=>c.side===1&&c.x>=0&&c.x<innerWidth&&c.y>=0&&c.y<innerHeight);
+  return {count:v.length,maxWidth:Math.max(...v.map(c=>c.width)),minWidth:Math.min(...v.map(c=>c.width))};
+ });
+ assert.ok(coverage.count>=24,'Inside sphere must surround viewer, not a sparse card tunnel: '+JSON.stringify(coverage));
+ assert.ok(coverage.maxWidth<210,'No oversized rectangular card slabs inside: '+JSON.stringify(coverage));
+
  const selected=[];
  for(let i=0;i<3;i++){
   let newlySelected=false;

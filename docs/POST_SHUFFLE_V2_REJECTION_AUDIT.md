@@ -26,7 +26,7 @@ Times are approximate readings of an externally captured movie. They are not an 
 - `deckLaunchZ(t)` now starts the actual 78-card stack near the camera at z=10.25 and sends it **10.45 world units** into space in 1.25 s, with ease-in/ease-out translation, not a shader/opacity trick.
 - Assembly is delayed until the deck has receded. Genuine exterior RWS artwork and navy backs are rendered on the **same 78 WebGL2 card surfaces**. Fast orbital motion remains attached to world geometry.
 - Camera begins moving at 2.65 s and enters the sphere at ~6.85 s (interactive after 7.05 s). These major timing marks are consistent with approximate ±20% target bands, but **visual fidelity is not automatically certified**.
-- Near-tangent interior cards receive physical-size attenuation rather than becoming giant slabs. No new fake copies or hidden re-shuffle.
+- After the true 3D camera crosses the shell, projection transitions from pinhole perspective to an angular wide-lens view of those **same 78 real geometry quads**. This corrects the pinhole tunnel/giant polar card defects and makes ~30–35 inward-facing cards readable without a 2D card wall. The polar cards receive a small viewer-facing adjustment; no new fake copies or hidden re-shuffle.
 - UI hides the selection prompt until the cards begin to distribute. Three restrained propulsion streaks belong to the departing deck only; *not all 78 cards* get trails.
 - The card-back atlas gains dense, low-contrast stars, lunar geometry and restrained silver-blue engraving.
 - Fast review route: from Gate B's `SKIP TO FINISH SHUFFLING` control, or direct `/preview/gate-b/?demo=finish`, or `/preview/post-shuffle/?start=finish`; click Finish, then press **R** to replay the **same deck** / **I** to jump inside. The normal Gate B Finish control still mounts this sequence inline, without navigation.
@@ -38,3 +38,9 @@ Times are approximate readings of an externally captured movie. They are not an 
 
 ## Decision gate and context budget
 Only **Finish → launch → globe assembly → camera entry → inner selection** may change in this PR. Old Gate/Cube stay retired. Do not implement black-hole lock-in, physical peek, or Artemis until owner approves. Do not merge or deploy based only on green CI. Subsequent chat updates are **delta only:** changed behavior, exact test route/steps, blockers, warnings. Store evidence, timestamps and logs in repo docs/artifacts; amend this one branch/PR for corrections rather than multiplying chat transcripts or branches.
+
+## v2 final-frame QA delta
+- Verified in GitHub Chromium: initial deck starts near camera and visibly reduces in projected width after its near-to-far propulsion; scene forms into authentic-RWS exterior globe and then the wide-angle spherical interior.
+- Selected cards use their real WebGL quad rim shader; earlier opaque black CSS glow panels have been eliminated.
+- The interior's original perspective-only camera was rejected in internal screenshot review, so the merged shot now blends the camera model, not the card objects. Polar normal stabilization prevents extreme sideways strips.
+- Browser regression explicitly checks launch depth, the same 78 IDs, three actual clicks, and review shortcut. No green check is a claim of reference visual acceptance.

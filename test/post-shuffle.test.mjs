@@ -48,6 +48,9 @@ test('Gate B Finish Shuffling mounts continuity inline instead of redirecting or
  assert.match(post,/getContext\('webgl2'/);
  assert.match(post,/initCelestialSky/);
  assert.match(post,/pointerup/);
+ assert.match(post,/u_inside/,'same 3D geometry must support continuous camera projection');
+ assert.match(post,/u_angleH/,'immersive sphere uses a wide-angle camera');
+ assert.match(post,/viewerFacing/,'polar cards remain readable');
  assert.doesNotMatch(post,/Gate \(Fullscreen\)|Celestial Gate|cube-stage/);
  assert.match(server,/preview\/post-shuffle/);
 });
