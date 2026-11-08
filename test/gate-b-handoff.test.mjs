@@ -40,12 +40,14 @@ test('Gate B preview is wired to the same-tab private selection and Artemis stag
   at('preview/gate-b/gate-b.mjs'),at('src/app.mjs'),
   at('scripts/serve-gate-a.mjs'),at('ritual.html')]);
  assert.match(preview,/sessionStorage\.setItem\(GATE_B_HANDOFF_KEY/);
- assert.match(preview,/window\.location\.assign\(new URL\('\.\.\/\.\.\/ritual\.html',import\.meta\.url\)\.href\)/);
+ assert.match(preview,/mountPostShuffle/);
+ assert.match(preview,/deckIds:selectionOrder/);
+ assert.doesNotMatch(preview,/window\.location\.assign\(new URL\('\.\.\/\.\.\/ritual\.html'/);
  assert.match(app,/sessionStorage\.removeItem\(GATE_B_HANDOFF_KEY\)/);
  assert.match(app,/resumeGateBAtSphere\(incomingGateB\)/);
  assert.match(app,/incomingGateB\?3:incomingGateQuestion\?1:0/);
  assert.match(app,/renderArtemisInvitation/);
- assert.match(server,/pathname==='\/ritual\.html'/);
+ assert.match(server,/pathname==='\/ritual\.html'/);assert.match(server,/preview\/post-shuffle/);
  assert.match(markup,/src="\.\/src\/app\.mjs"/);
  assert.doesNotMatch(preview,/Gate B complete\./);
  assert.doesNotMatch(preview,/shuffle-only visual gate/);

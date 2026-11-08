@@ -1,0 +1,43 @@
+/* Post-Shuffle Continuity v1 — black-field, original 78-card 3D geometry. */
+:root{color-scheme:dark;background:#010103;color:#ebe9ee;font-family:Arial,Helvetica,sans-serif}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden}
+button{font:inherit;cursor:pointer}button:focus-visible,canvas:focus-visible{outline:2px solid #ead9b7;outline-offset:3px}
+.ps-mount,.ps-world{position:fixed;inset:0;isolation:isolate;width:100%;height:100dvh;overflow:hidden;background:#010103}
+.ps-sky,.ps-cards,.ps-aura-layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.ps-sky{z-index:0;overflow:hidden;background:#010103;isolation:isolate}
+.ps-sky canvas{display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.ps-sky .ps-stars{z-index:0}
+.ps-sky .nebula-texture{position:absolute;left:-12%;top:-9%;width:124%;height:124%;mix-blend-mode:screen;pointer-events:none;opacity:.48;transform-origin:center}
+.ps-sky .nebula-back{z-index:1;animation:ps-wander-a 56s ease-in-out infinite alternate}
+.ps-sky .nebula-front{z-index:2;opacity:.44;animation:ps-wander-b 62s ease-in-out infinite alternate}
+.ps-sky .twinkle-canvas{z-index:3;opacity:.59;animation:ps-twinkle 10s ease-in-out infinite alternate}
+.ps-cards{z-index:4;display:block;pointer-events:auto;touch-action:none;cursor:grab;background:transparent}
+.ps-cards:active{cursor:grabbing}
+.ps-aura-layer{z-index:5;overflow:hidden}
+.ps-header{position:absolute;inset:0 0 auto;display:flex;justify-content:center;align-items:center;height:51px;z-index:10;pointer-events:none;text-shadow:0 2px 13px #000;letter-spacing:0}
+.ps-brand{position:absolute;left:clamp(11px,2.2vw,31px);font:10px Georgia,serif;color:#e4e0da;letter-spacing:.12em;opacity:.83}
+.ps-guidance{font:400 clamp(16px,2.4vw,27px)/1.2 Arial,sans-serif;color:#f5f0f1;white-space:nowrap;text-align:center}
+.ps-stage{position:absolute;right:clamp(10px,2vw,28px);font:9px Arial,sans-serif;color:#9e9aab;letter-spacing:.17em}
+.ps-selected-halo{position:absolute;width:126px;height:192px;transform:translate(-50%,-50%);border:1px solid #fff1c8aa;box-shadow:0 0 19px 2px #ffe8cb73,0 0 45px 5px #c6a3ed42,inset 0 0 24px #ffffff17;border-radius:8px;mix-blend-mode:screen;pointer-events:none;animation:ps-selected-pulse 2.2s ease-in-out infinite alternate}
+.ps-readout{position:absolute;bottom:clamp(13px,2vh,24px);left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:17px;z-index:10;pointer-events:auto;color:#d2ccd0;font:11px Arial,sans-serif;text-shadow:0 2px 8px #000;opacity:.79;white-space:nowrap}
+.ps-readout button{padding:4px 8px;font-size:13px;color:#e2d8d4;background:#060810a8;border:1px solid #77727a55;border-radius:5px}
+.ps-selections{position:absolute;z-index:9;bottom:47px;left:50%;transform:translateX(-50%);display:flex;gap:24px;align-items:center;justify-content:center;pointer-events:none;opacity:0;transition:opacity .45s ease;min-width:230px}
+.ps-selections.ps-visible{opacity:1}
+.ps-slot{min-width:54px;text-align:center;display:grid;gap:4px;place-items:center}
+.ps-slot label{font:12px Georgia,serif;color:#dfd2c3;text-shadow:0 1px 7px #000}
+.ps-mark{font:21px Georgia,serif;color:#dfcfb4;text-shadow:0 0 11px #d7c0b1}
+.ps-slot button{pointer-events:auto;border:1px solid #8b7c7466;border-radius:3px;background:#10101ad9;color:#eee2d2;font-size:8px;letter-spacing:.1em;padding:4px 6px}
+.ps-end{position:absolute;z-index:9;bottom:132px;left:50%;width:min(620px,85vw);transform:translateX(-50%);margin:0;text-align:center;font:9px Arial,sans-serif;color:#dbc6a5;letter-spacing:.19em;text-shadow:0 1px 9px #000}
+.ps-end[hidden]{display:none}
+.ps-demo{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 45%,#241e2f3f,#010103 64%);pointer-events:auto}
+.ps-demo[hidden]{display:none!important}
+.ps-demo-deck{position:absolute;width:42px;height:71px;transform:translateY(-60px);border:2px solid #7b869d;border-radius:4px;background:repeating-linear-gradient(92deg,#112240 0 3px,#060d1a 3px 7px);box-shadow:0 0 20px #505c8c40;animation:ps-deck-breathe 2.6s ease-in-out infinite alternate}
+.ps-demo button{transform:translateY(47px);padding:10px 16px;border:1px solid #f8f5ea;color:#141317;background:#f5f2eb;font-size:10px;font-weight:bold;letter-spacing:.14em}
+.ps-demo-caption{position:absolute;bottom:19px;color:#8f8c9a;letter-spacing:.11em;font-size:10px}
+@keyframes ps-wander-a{from{transform:translate(-3%,3%) rotate(-5deg) scale(.96)}to{transform:translate(6%,-7%) rotate(4deg) scale(1.1)}}
+@keyframes ps-wander-b{from{transform:translate(4%,-5%) rotate(5deg) scale(1.06)}to{transform:translate(-5%,5%) rotate(-4deg) scale(.98)}}
+@keyframes ps-twinkle{from{opacity:.35}to{opacity:.77}}
+@keyframes ps-selected-pulse{from{opacity:.63;box-shadow:0 0 17px 2px #ffe8cb73,0 0 42px 3px #c6a3ed38}to{opacity:1;box-shadow:0 0 21px 4px #ffe8cba8,0 0 53px 8px #c6a3ed62}}
+@keyframes ps-deck-breathe{from{filter:brightness(.72)}to{filter:brightness(1.28)}}
+@media(max-width:680px){.ps-header{top:5px;height:70px}.ps-guidance{font-size:clamp(12px,3vw,17px);white-space:normal;max-width:68vw}.ps-brand{font-size:8px;left:8px;top:4px}.ps-stage{right:7px;top:5px;font-size:7px}.ps-readout{font-size:10px}.ps-selections{bottom:56px}.ps-selected-halo{width:75px;height:126px}.ps-end{bottom:143px}}
+@media(prefers-reduced-motion:reduce){.ps-sky .nebula-texture,.ps-sky .twinkle-canvas,.ps-demo-deck,.ps-selected-halo{animation:none!important}}

@@ -111,7 +111,7 @@ document.getElementById('shuffle-buttons').addEventListener('click',event=>{
  try{world.playShuffle(style);notice.textContent='';renderUI();}
  catch(error){renderError=error.message;status.textContent='SHUFFLE RENDER ERROR · '+renderError;console.error(error)}
 });
-document.getElementById('finish-shuffle').addEventListener('click',()=>{
+document.getElementById('finish-shuffle').addEventListener('click',async()=>{
  if(!world||world.phase!=='deck_formed'||handingOff||!selectionOrder)return;
  const question=document.getElementById('question').value.trim();
  try{
@@ -125,9 +125,23 @@ document.getElementById('finish-shuffle').addEventListener('click',()=>{
  }
  handingOff=true;
  const button=document.getElementById('finish-shuffle');button.disabled=true;
- root.classList.add('gate-b-entering-selection');
- notice.textContent='Entering the 78-card celestial sphere…';
- window.setTimeout(()=>window.location.assign(new URL('../../ritual.html',import.meta.url).href),650);
+ notice.textContent='The finished deck is entering the universe…';
+ // Direct in-document transition: no routing to Gate/Cube, no second shuffle.
+ let mount=null;
+ try{
+  const css=document.createElement('link');css.rel='stylesheet';css.href=new URL('../post-shuffle/post-shuffle.css',import.meta.url).href;
+  await new Promise((resolve,reject)=>{css.onload=resolve;css.onerror=()=>reject(new Error('Post-shuffle style unavailable'));document.head.append(css)});
+  const {mountPostShuffle}=await import('../post-shuffle/scene.mjs');
+  mount=document.createElement('main');mount.id='post-shuffle-root';mount.className='ps-mount';mount.setAttribute('aria-label','Post-shuffle Tarot sphere');document.body.append(mount);
+  const continued=mountPostShuffle({mount,deckIds:selectionOrder});
+  window.__POST_SHUFFLE__=continued;
+  // Only release Gate B after the next physical world has mounted.
+  clearInterval(statusTimer);world?.dispose();flowMist.dispose();sky.dispose();
+ }catch(error){
+  mount?.remove();handingOff=false;button.disabled=false;
+  notice.textContent='Cannot enter the sphere: '+error.message;
+  console.error('Post-shuffle continuous handoff failed',error);
+ }
 });
 buttonPause.addEventListener('click',()=>{
  if(!world)return;

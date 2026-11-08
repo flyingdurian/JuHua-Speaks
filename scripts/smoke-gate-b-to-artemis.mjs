@@ -32,43 +32,25 @@ try{
  await page.waitForFunction(()=>!document.getElementById('deck-controls').hidden,{timeout:5000});
  steps.push('Gate B automatic shuffle formed the original deck');
  await page.locator('#finish-shuffle').click();
- await page.waitForURL('**/ritual.html',{timeout:15000});
- await page.locator('.sphere-page').waitFor({timeout:15000});
- steps.push('Finish Shuffling navigated to full 78-card selection sphere');
- const question=await page.locator('.sphere-page').textContent();
- if(!question.includes('celestial')&&!question.includes('stars'))throw Error('Sphere view did not render');
- if(await page.evaluate(()=>sessionStorage.getItem('juhua:gate-b-reveal:v1'))!==null)throw Error('Handoff was not consumed');
- // Explicitly use accessible fallback here; GPU path is recorded separately.
- if(await page.locator('[data-action="sphere-mode"]').isVisible()){
-  await page.locator('[data-action="sphere-mode"]').click();
- }
- await page.locator('.flat-card-grid').waitFor({timeout:15000});
- if(await page.locator('.flat-card').count()!==78)throw Error('Not all 78 cards are selectable');
+ await page.locator('#ps-cards').waitFor({timeout:15000});
+ steps.push('Finish Shuffling seamlessly mounted the new 78-card world in the same page');
+ const frozen=await page.evaluate(()=>{
+  const packed=JSON.parse(sessionStorage.getItem('juhua:gate-b-reveal:v1'));
+  const actual=window.__POST_SHUFFLE__.deck();
+  return {packed:packed.cardIds,actual,href:location.pathname};
+ });
+ if(frozen.href!=='/preview/gate-b/')throw Error('Post-shuffle sequence navigated away');
+ if(frozen.actual.length!==78||new Set(frozen.actual).size!==78)throw Error('Post-shuffle card identities invalid');
+ if(JSON.stringify(frozen.packed)!==JSON.stringify(frozen.actual))throw Error('Scene shuffled a second time');
+ await page.waitForFunction(()=>window.__POST_SHUFFLE__?.ready(),{timeout:15000});
+ const cards=await page.evaluate(()=>window.__POST_SHUFFLE__.visible().filter(x=>x.side===1&&!x.selected));
+ if(cards.length<8)throw Error('Interior sphere has too few visible card backs');
+ steps.push('One camera flight completed and original 78 card identities preserved');
  await page.screenshot({path:dir+'/handoff-sphere.png'});
- for(let i=0;i<3;i++){
-  await page.locator('.flat-card:not(.chosen)').first().click();
- }
- if(await page.locator('[data-action="confirm-cards"]').isVisible())await page.locator('[data-action="confirm-cards"]').click();
- await page.locator('.physical-reveal').waitFor({timeout:12000});
- steps.push('Exactly three cards locked and independent hand reveal is visible');
- await page.screenshot({path:dir+'/handoff-reveal.png'});
- for(let i=0;i<3;i++){
-  await page.locator('[data-peek-card="'+i+'"]').click();
- }
- await page.locator('[data-action="next-reveal"]').click();
- await page.locator('.artemis-stage').waitFor({timeout:8000});
- const invited=await page.locator('.artemis-table-card').count();
- if(invited!==3)throw Error('Artemis invitation dropped a card: '+invited);
- steps.push('All three cards revealed; explicit Artemis invitation appears');
- await page.screenshot({path:dir+'/handoff-artemis-invitation.png'});
- await page.locator('[data-action="invite-reader"]').click();
- await page.locator('.artemis-reading-table').waitFor({timeout:8000});
- if(await page.locator('.artemis-reading-card').count()!==3)throw Error('Artemis reading table must preserve the original three cards');
- steps.push('Artemis reading table and staged scripted reading reached');
- await page.screenshot({path:dir+'/handoff-artemis-reading.png'});
+
  if(errors.length)throw Error('Page errors: '+errors.join(' | '));
  await writeFile(dir+'/handoff-report.json',JSON.stringify({passed:true,steps,errors},null,2));
- console.log('Gate B → Sphere → Reveal → Artemis browser smoke PASS',steps);
+ console.log('Gate B → Continuous Deck Launch → Interactive Sphere browser smoke PASS',steps);
 }catch(error){
  await page?.screenshot({path:dir+'/handoff-failure.png'}).catch(()=>{});
  await writeFile(dir+'/handoff-report.json',JSON.stringify({passed:false,steps,errors,error:String(error)},null,2));
