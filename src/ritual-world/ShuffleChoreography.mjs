@@ -33,7 +33,7 @@ const hash=(i,seed=1)=>{
  return (x>>>0)/4294967296;
 };
 const PITCH=-.12;
-export const PHYSICAL_CARD=Object.freeze({width:1.28,height:2.12,thickness:.0145});
+export const PHYSICAL_CARD=Object.freeze({width:1.28,height:2.12,thickness:.0081});
 export const AUTO_SHUFFLE_SECONDS=RITUAL_DURATION;
 export const SHUFFLE_CHOICES=Object.freeze(['cosmic','riffle','wash']);
 export const SHUFFLE_DURATIONS=Object.freeze({cosmic:5.65,riffle:5.75,wash:5.85});
@@ -88,20 +88,22 @@ function blend(a,b,t){
  const right=vMix(a.attitude.right,b.attitude.right,w);
  return pose(vMix(a.position,b.position,w),attitudeFrom(fixedNormal,right),mix(a.scale,b.scale,w));
 }
-function stackPose(card,{center=[0,-.16,-17.0],yaw=1.14,pitch=PITCH,roll=0,scale=1.14,rank=card.orbitSlot,count=N,step=.0145}={}){
+function stackPose(card,{center=[0,-.16,-17.0],yaw=.70,pitch=PITCH,roll=0,scale=1.14,rank=card.orbitSlot,count=N,step=.0181}={}){
  const basis=backAttitude(yaw,pitch,roll);
  const layer=(rank-(count-1)/2)*step;
  // Thin paper-like edge sheets, no overlap: each card thickness is .0096.
  return pose([
-  center[0]+basis.normal[0]*layer+.0028*Math.sin(rank*.79),
-  center[1]+basis.normal[1]*layer+.0023*Math.cos(rank*.72),
+  center[0]+basis.normal[0]*layer+.0072*Math.sin(rank*.79),
+  center[1]+basis.normal[1]*layer+.0056*Math.cos(rank*.72),
   center[2]+basis.normal[2]*layer
  ],basis,scale);
 }
 export function deckPose(card,worldTime=0){
- const yaw=1.14+.055*Math.sin(worldTime*.20);
- const pitch=PITCH+.035*Math.sin(worldTime*.11);
- const roll=.018*Math.sin(worldTime*.22);
+ // Slow whole-stack idle turn. Individually modelled sheets have subtle,
+ // fixed natural stagger; the top sheet displays the actual Tarot artwork.
+ const yaw=.69+.11*Math.sin(worldTime*.17);
+ const pitch=PITCH+.043*Math.sin(worldTime*.12);
+ const roll=.037*Math.sin(worldTime*.16);
  return stackPose(card,{yaw,pitch,roll});
 }
 export function deckThickness(cards){

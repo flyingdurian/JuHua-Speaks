@@ -214,7 +214,7 @@ export class RitualWorld{
     const sample=this.phase==='shuffle_ritual'
      ?samplePhysicalShuffle(card,{style:this.shuffleStyle,age,landingAt:this.shuffleLandingAt,worldTime:this.elapsed,entranceMode:this.entranceMode})
      :deckPose(card,this.elapsed);
-    appendPremiumCard(vertices,{...card,...PHYSICAL_CARD},sample.position,sample.attitude,sample.scale,card.light,slotUv,{backSlot:BACK_SLOT,edgeSlot:EDGE_SLOT});
+    appendPremiumCard(vertices,{...card,...PHYSICAL_CARD},sample.position,sample.attitude,sample.scale,card.light,slotUv,{backSlot:this.phase==='deck_formed'&&card.orbitSlot===0?card.index:BACK_SLOT,edgeSlot:EDGE_SLOT});
    }
   }
   gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.DYNAMIC_DRAW);
