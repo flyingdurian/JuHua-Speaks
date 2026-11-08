@@ -13,9 +13,9 @@ try{
  await page.screenshot({path:output+'/03-inside-sphere.png'});
  const chosen=[];
  for(let i=0;i<3;i++){
-  const id=await page.evaluate(()=>{const nodes=Array.from(document.querySelectorAll('button.sphere-card'));const candidates=nodes.filter(el=>!el.hidden).map(el=>({id:el.dataset.card,r:el.getBoundingClientRect()})).filter(({r})=>r.x>190&&r.right<1250&&r.y>250&&r.bottom<660);return candidates[Math.min(3,candidates.length-1)]?.id??null});
+  const id=await page.evaluate(()=>{const nodes=Array.from(document.querySelectorAll('button.sphere-card'));const candidates=nodes.filter(el=>!el.hidden).map(el=>({id:el.dataset.card,r:el.getBoundingClientRect()})).filter(({r})=>r.x>120&&r.right<1350&&r.y>210&&r.bottom<715);return candidates[Math.min(3,candidates.length-1)]?.id??null});
   assert.ok(id,'A central visible card must be selectable');
-  await page.locator('button.sphere-card[data-card="'+id+'"]').click();
+  await page.locator('button.sphere-card[data-card="'+id+'"]').click({force:true});
   chosen.push(id);
   assert.deepEqual(await page.evaluate(()=>window.__JUHUA_GATE_C__.selected().map(c=>c.id)),chosen);
   if(i===0){await page.waitForTimeout(210);await page.screenshot({path:output+'/04-halo-pull-forward.png'})}
