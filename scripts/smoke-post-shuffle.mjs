@@ -3,7 +3,7 @@ import {mkdir} from 'node:fs/promises';
 import {chromium} from 'playwright';
 const host='http://127.0.0.1:'+(process.env.GATE_B_PORT||4184);
 const dir='artifacts/post-shuffle';await mkdir(dir,{recursive:true});
-const browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader']});
+const browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usage','--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--no-sandbox']});
 const page=await browser.newPage({viewport:{width:860,height:720},deviceScaleFactor:1});
 const errors=[];page.on('pageerror',e=>errors.push(String(e)));
 try{
