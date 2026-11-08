@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {DECK} from '../src/deck.mjs';
-import {CARD_COUNT,BEATS,sphereLayout,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,assemblyProgress,pointInQuad} from '../preview/post-shuffle/geometry.mjs';
+import {CARD_COUNT,BEATS,sphereLayout,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,assemblyProgress,pointInQuad,cameraFov} from '../preview/post-shuffle/geometry.mjs';
 
 test('One real, non-redealt 78-card spherical identity map',()=>{
  const points=sphereLayout();assert.equal(points.length,78);
@@ -19,8 +19,10 @@ test('One continuous launch→unfold→fast spin→inward camera shot with no Ga
  assert.equal(getStage(7.1,0),'inside');assert.equal(getStage(7.1,1),'select');
  assert.ok(cameraDistance(0)>12);assert.ok(cameraDistance(3)>11);
  assert.ok(cameraDistance(4.2)<9,'exterior globe must approach camera before entry');
- assert.ok(cameraDistance(4.3)>5.7&&cameraDistance(4.3)<5.9);
- assert.ok(cameraDistance(4.65)<5.8&&cameraDistance(4.65)>4.8);
+ assert.ok(cameraDistance(4.5)>5.7&&cameraDistance(4.5)<5.9);
+ assert.ok(cameraDistance(4.8)<5.8&&cameraDistance(4.8)>4.8);
+ assert.ok(cameraFov(4)>130,'temporary wide lens should prevent huge foreground card');
+ assert.equal(cameraFov(7),115);
  assert.equal(cameraDistance(7),0);
  assert.ok(orbitAngle(4.1)-orbitAngle(2.1)>8,'sphere must rotate rapidly before entry');
  assert.ok(orbitAngle(11)-orbitAngle(9)<.2,'settled interior should rotate gently');

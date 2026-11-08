@@ -22,8 +22,8 @@ export function cameraDistance(time){
  // Independent measured beats: the globe swells into the frame BEFORE
  // the camera crosses the shell, rather than remaining a distant dot.
  if(time<=2.55)return 12.6;
- if(time<4.30)return 12.6-(12.6-5.8)*smooth((time-2.55)/1.75);
- return 5.8*(1-smooth((time-4.30)/2.45));
+ if(time<4.50)return 12.6-(12.6-5.8)*smooth((time-2.55)/1.95);
+ return 5.8*(1-smooth((time-4.50)/2.25));
 }
 export function orbitAngle(time){
  const t=Math.max(0,time);if(t<1.2)return t*.4;
@@ -62,4 +62,11 @@ export function pointInQuad(point,corners){
   return u>=-1e-6&&v>=-1e-6&&u+v<=1+1e-6;
  };
  return inside(corners[0],corners[1],corners[2])||inside(corners[0],corners[2],corners[3]);
+}
+
+/** Exterior dolly uses a wider cinema lens to keep near cards in frame.
+ * Camera returns to normal perspective upon entering the sphere. */
+export function cameraFov(time){
+ const wide=smooth((time-2.8)/1.1)*(1-smooth((time-5.3)/1.45));
+ return 115+18*wide;
 }

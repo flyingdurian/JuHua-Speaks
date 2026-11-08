@@ -8,7 +8,7 @@
  */
 import {DECK,commonsThumbnailUrl,drawOrientation} from '../../src/deck.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
-import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,pointInQuad} from './geometry.mjs';
+import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,pointInQuad,cameraFov} from './geometry.mjs';
 
 const W=174,H=288,COLS=10,ROWS=8,ATLAS_W=W*COLS,ATLAS_H=H*ROWS;
 const vs=`#version 300 es
@@ -107,7 +107,7 @@ function cardPose(point,t,turn,yaw,pitch,selectedPct){
  const uu=up.map((v,i)=>Math.cos(a)*v-Math.sin(a)*right[i]);
  return {position:p,normal:n,right:rr,up:uu};
 }
-function project(p,camZ,viewport){const z=camZ-p[2],f=viewport.h/(2*Math.tan(115*Math.PI/360));if(z<=.22)return null;return {x:viewport.w*.5+p[0]*f/z,y:viewport.h*.5-p[1]*f/z,z};}
+function project(p,camZ,viewport,fov){const z=camZ-p[2],f=viewport.h/(2*Math.tan(fov*Math.PI/360));if(z<=.22)return null;return {x:viewport.w*.5+p[0]*f/z,y:viewport.h*.5-p[1]*f/z,z};}
 function hitsQuad(x,y,c){return pointInQuad([x,y],c)}
 
 export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}){
@@ -152,13 +152,13 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  mount.addEventListener('click',e=>{const id=e.target.closest('[data-undo]')?.dataset.undo;if(!id)return;choices=choices.filter(c=>c.id!==id);selectedAt.delete(id);syncSlots()});
  const projectCorner=(pos,right,up,sx,sy)=>[pos[0]+sx*.56*right[0]+sy*.86*up[0],pos[1]+sx*.56*right[1]+sy*.86*up[1],pos[2]+sx*.56*right[2]+sy*.86*up[2]];
  function computeGeometry(t){
-  const angle=orbitAngle(t)+yaw,cam=cameraDistance(t),vertex=[],visible=[];
+  const angle=orbitAngle(t)+yaw,cam=cameraDistance(t),fov=cameraFov(t),vertex=[],visible=[];
   camZ=cam;
   for(let i=0;i<78;i++){
    const id=deckIds[i],selected=selectedAt.has(id),pct=selected?selectedPct(id):0;
    const p=cardPose(points[i],t,angle,0,pitch,pct);
    const corners=[projectCorner(p.position,p.right,p.up,-1,-1),projectCorner(p.position,p.right,p.up,1,-1),projectCorner(p.position,p.right,p.up,1,1),projectCorner(p.position,p.right,p.up,-1,1)];
-   const projected=corners.map(pt=>project(pt,cam,viewport));const center=project(p.position,cam,viewport);
+   const projected=corners.map(pt=>project(pt,cam,viewport,fov));const center=project(p.position,cam,viewport,fov);
    if(projected.some(p=>!p)||!center)continue;
    // Exterior faces are genuine licensed/public-domain scans. Once the camera
    // enters the shell, the interior is the blue back of the same physical card.
@@ -192,7 +192,7 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   mount.querySelector('#ps-stage').textContent=state==='launch'?'DECK IN FLIGHT':state==='distribute'?'CARDS UNFOLDING':state==='enter'?'ENTERING THE SPHERE':state==='inside'?'INSIDE THE UNIVERSE':'YOUR SELECTION';
   mount.querySelector('#ps-hint').textContent=ready?'Drag to look around · Tap a card to choose':'The cards are taking their places…';
   const data=computeGeometry(t);rendered=data.visible;
-  atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,1/Math.tan(115*Math.PI/360));gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,.07);gl.uniform1f(uniform.far,100);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/8);
+  atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,1/Math.tan(cameraFov(t)*Math.PI/360));gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,.07);gl.uniform1f(uniform.far,100);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/8);
   updateAuras();
  }
  let t=0;
