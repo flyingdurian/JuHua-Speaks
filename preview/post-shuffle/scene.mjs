@@ -18,18 +18,37 @@ layout(location=1) in vec2 a_uv;
 layout(location=2) in float a_slot;
 layout(location=3) in float a_side;
 layout(location=4) in float a_selected;
+layout(location=5) in vec3 a_center;
 uniform float u_focal;
 uniform float u_aspect;
 uniform float u_near;
 uniform float u_far;
+uniform float u_inside;
+uniform float u_angleH;
+uniform float u_angleV;
 out vec2 v_uv;
 flat out float v_slot;
 flat out float v_side;
 flat out float v_selected;
 void main(){
  float z=a_position.z;
- gl_Position=vec4(u_focal*a_position.x/u_aspect,u_focal*a_position.y,
+ vec4 perspective=vec4(u_focal*a_position.x/u_aspect,u_focal*a_position.y,
  (u_far+u_near)/(u_near-u_far)*z+(2.0*u_far*u_near)/(u_near-u_far),-z);
+ // A wide-angle view of the SAME real 3D shell. Perspective outside,
+ // near-uniform angular scale inside: no tunnel/slabs at the edges.
+ // Panoramic camera correction: each card stays anchored to its REAL 3D
+ // center, with a readable angular rectangle near the polar latitudes.
+ vec3 centerDirection=vec3(a_center.x,a_center.y,-a_center.z);
+ float az=atan(centerDirection.x,centerDirection.z);
+ float el=atan(centerDirection.y,length(centerDirection.xz));
+ float roll=sin(a_slot*17.131)*.105;
+ vec2 sheet=vec2((a_uv.x-.5)*.178,(a_uv.y-.5)*.272);
+ vec2 rotated=vec2(cos(roll)*sheet.x-sin(roll)*sheet.y,
+                   sin(roll)*sheet.x+cos(roll)*sheet.y);
+ vec2 angular=vec2((az+rotated.x)/(u_angleH*.5),(el+rotated.y)/(u_angleV*.5));
+ float radialDepth=clamp((length(centerDirection)-.1)/25.0,0.0,1.0)*2.0-1.0;
+ gl_Position=vec4(mix(perspective.xy/perspective.w,angular,u_inside),
+                  mix(perspective.z/perspective.w,radialDepth,u_inside),1.0);
  v_uv=a_uv;v_slot=a_slot;v_side=a_side;v_selected=a_selected;
 }`;
 const fs=`#version 300 es
@@ -46,6 +65,7 @@ void main(){
  vec2 uv=vec2((col+mix(.012,.988,v_uv.x))/10.0,1.0-(row+mix(.012,.988,1.0-v_uv.y))/8.0);
  vec4 tex=texture(u_atlas,uv);
  float border=min(min(v_uv.x,1.0-v_uv.x),min(v_uv.y,1.0-v_uv.y));
+ if(v_side>.5)tex.rgb*=.84; // dim celestial backs in the interior
  if(v_selected>.5){
   float gild=1.0-smoothstep(.012,.057,border);
   tex.rgb=mix(tex.rgb,vec3(1.0,.86,.62),.53*gild);
@@ -56,16 +76,35 @@ void main(){
 function compile(gl,type,source){const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw Error('Shader error '+gl.getShaderInfoLog(shader));return shader;}
 function makeProgram(gl){const p=gl.createProgram(),v=compile(gl,gl.VERTEX_SHADER,vs),f=compile(gl,gl.FRAGMENT_SHADER,fs);gl.attachShader(p,v);gl.attachShader(p,f);gl.linkProgram(p);gl.deleteShader(v);gl.deleteShader(f);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error('Program error '+gl.getProgramInfoLog(p));return p;}
 function backArt(ctx,x,y){
+ // Night-blue celestial engraving; multiple small moons/stars instead of
+ // a single brightly outlined cartoon compass on a flat rectangle.
  ctx.save();ctx.translate(x,y);
- const grad=ctx.createLinearGradient(0,0,W,H);grad.addColorStop(0,'#0c2447');grad.addColorStop(.45,'#071328');grad.addColorStop(1,'#142543');ctx.fillStyle='#c4c3c1';ctx.fillRect(0,0,W,H);ctx.fillStyle=grad;ctx.fillRect(3,3,W-6,H-6);
- ctx.strokeStyle='#8293ab';ctx.lineWidth=1;ctx.strokeRect(7,7,W-14,H-14);ctx.strokeStyle='#b9b9bf';ctx.strokeRect(12,12,W-24,H-24);
- for(let i=0;i<38;i++){const a=i*2.4,r=18+(i*17%80);ctx.fillStyle=i%5?'#627b9a':'#d3c5ba';ctx.fillRect(W/2+Math.cos(a)*r, H/2+Math.sin(a)*r*1.39,1.1,1.1)}
- ctx.translate(W/2,H/2);ctx.strokeStyle='#c0babc';ctx.lineWidth=1;
- for(const r of [25,37,45]){ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke()}
- for(let j=0;j<12;j++){const a=j*Math.PI/6;ctx.beginPath();ctx.moveTo(Math.cos(a)*37,Math.sin(a)*37);ctx.lineTo(Math.cos(a)*52,Math.sin(a)*52);ctx.stroke()}
- ctx.beginPath();ctx.moveTo(0,-39);ctx.lineTo(8,-8);ctx.lineTo(39,0);ctx.lineTo(8,8);ctx.lineTo(0,39);ctx.lineTo(-8,8);ctx.lineTo(-39,0);ctx.lineTo(-8,-8);ctx.closePath();ctx.strokeStyle='#dfd6cf';ctx.stroke();
- ctx.fillStyle='#d8d0c8';ctx.font='25px Georgia,serif';ctx.textAlign='center';ctx.fillText('☾',0,10);
- ctx.restore();
+ const grad=ctx.createLinearGradient(0,0,W,H);
+ grad.addColorStop(0,'#101f3a');grad.addColorStop(.44,'#081329');grad.addColorStop(1,'#13213e');
+ ctx.fillStyle='#65718a';ctx.fillRect(0,0,W,H);
+ ctx.fillStyle=grad;ctx.fillRect(2.3,2.3,W-4.6,H-4.6);
+ ctx.strokeStyle='#b3bed3';ctx.lineWidth=.55;ctx.strokeRect(6,6,W-12,H-12);
+ ctx.strokeStyle='#697b9b';ctx.lineWidth=.55;ctx.strokeRect(10,10,W-20,H-20);
+ ctx.strokeStyle='#c3bfae';ctx.lineWidth=.40;ctx.strokeRect(13,13,W-26,H-26);
+ for(let i=0;i<157;i++){
+  const q=Math.sin((i+1)*96.973)*43758.547,n=q-Math.floor(q),
+        r=Math.sin((i+1)*143.789)*17385.47,v=r-Math.floor(r);
+  ctx.fillStyle=i%11===0?'rgba(231,220,193,.55)':'rgba(192,205,224,.31)';
+  ctx.fillRect(13+n*(W-26),14+v*(H-28),i%17===0?1.35:.6,i%17===0?1.35:.6);
+ }
+ ctx.translate(W/2,H/2);
+ ctx.strokeStyle='#94a7c2';ctx.globalAlpha=.64;ctx.lineWidth=.65;
+ for(const rad of [18,25,35]){ctx.beginPath();ctx.arc(0,0,rad,0,Math.PI*2);ctx.stroke()}
+ for(let i=0;i<24;i++){const a=i*Math.PI/12;ctx.beginPath();ctx.moveTo(Math.cos(a)*28,Math.sin(a)*28);ctx.lineTo(Math.cos(a)*(i%3===0?42:37),Math.sin(a)*(i%3===0?42:37));ctx.stroke()}
+ ctx.beginPath();ctx.moveTo(0,-17);ctx.lineTo(6,-5);ctx.lineTo(18,0);ctx.lineTo(6,5);ctx.lineTo(0,17);ctx.lineTo(-6,5);ctx.lineTo(-18,0);ctx.lineTo(-6,-5);ctx.closePath();ctx.stroke();
+ ctx.fillStyle='#eee0bd';ctx.globalAlpha=.82;ctx.beginPath();ctx.arc(0,0,3,0,Math.PI*2);ctx.fill();
+ ctx.globalAlpha=.65;ctx.strokeStyle='#cdd5e4';
+ for(const y of [-92,92]){
+  ctx.beginPath();ctx.arc(0,y,10,-1.55,1.55);ctx.stroke();
+  ctx.beginPath();ctx.arc(3,y-1,10,-1.55,1.55);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,y-16);ctx.lineTo(3,y-7);ctx.lineTo(13,y-4);ctx.lineTo(3,y-1);ctx.lineTo(0,y+8);ctx.lineTo(-3,y-1);ctx.lineTo(-13,y-4);ctx.lineTo(-3,y-7);ctx.closePath();ctx.stroke();
+ }
+ ctx.globalAlpha=1;ctx.restore();
 }
 function fallbackFace(ctx,x,y,card){
  ctx.save();ctx.translate(x,y);ctx.fillStyle='#e7dfca';ctx.fillRect(0,0,W,H);ctx.strokeStyle='#4a4546';ctx.lineWidth=3;ctx.strokeRect(6,7,W-12,H-14);
@@ -100,6 +139,10 @@ function cardPose(point,t,turn,yaw,pitch,selectedPct){
  const p=rotX(rotY(center3,turn+yaw),pitch);
  const normal=norm(mix3([0,0,1],point.direction.map(v=>-v),s));
  let n=rotX(rotY(normal,turn+yaw),pitch);
+ // Preserve real spherical positions but keep polar cards legible from inside.
+ // They face the viewer slightly, rather than flattening sideways at the pole.
+ const viewerFacing=.52*smooth((t-6.26)/.86);
+ n=norm(mix3(n,[0,0,1],viewerFacing));
  let right=norm(cross([0,1,0],n));if(Math.hypot(...right)<.3)right=[1,0,0];
  let up=norm(cross(n,right));
  const a=point.roll*s+(1-s)*.055*Math.sin(point.i*.71)+Math.sin(s*Math.PI)*(.25*Math.sin(point.i*.23+t*5)+.19*Math.cos(point.i*.58-t*7));
@@ -107,7 +150,15 @@ function cardPose(point,t,turn,yaw,pitch,selectedPct){
  const uu=up.map((v,i)=>Math.cos(a)*v-Math.sin(a)*right[i]);
  return {position:p,normal:n,right:rr,up:uu};
 }
-function project(p,camZ,viewport,fov){const z=camZ-p[2],f=viewport.h/(2*Math.tan(fov*Math.PI/360));if(z<=.22)return null;return {x:viewport.w*.5+p[0]*f/z,y:viewport.h*.5-p[1]*f/z,z};}
+function project(p,camZ,viewport,fov,angularBlend=0){
+ const z=camZ-p[2];if(z<=.22)return null;
+ const f=viewport.h/(2*Math.tan(fov*Math.PI/360));
+ const aspect=viewport.w/viewport.h,angleV=145*Math.PI/180,angleH=Math.min(175,145*aspect)*Math.PI/180;
+ const perspectiveX=viewport.w*.5+p[0]*f/z,perspectiveY=viewport.h*.5-p[1]*f/z;
+ const sphericalX=viewport.w*.5+Math.atan2(p[0],z)*viewport.w/angleH;
+ const sphericalY=viewport.h*.5-Math.atan2(p[1],Math.hypot(p[0],z))*viewport.h/angleV;
+ return {x:mix(perspectiveX,sphericalX,angularBlend),y:mix(perspectiveY,sphericalY,angularBlend),z};
+}
 function hitsQuad(x,y,c){return pointInQuad([x,y],c)}
 
 export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}){
@@ -116,7 +167,8 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  const cards=deckIds.map(id=>cardMap.get(id)),points=sphereLayout();
  let choices=[],selectedAt=new Map(),lastPointer=null,dragging=false,yaw=0,pitch=0,raf=0,dead=false,ready=false,lastDraw=0,step='launch';
  mount.innerHTML='<div class="ps-world" role="region" aria-label="Continuous post-shuffle Tarot sphere" id="ps-world">'+
-  '<div class="ps-sky" id="ps-sky"><canvas class="ps-stars" id="ps-stars"></canvas></div>'+
+  '<div class="ps-sky" id="ps-sky"><canvas class="ps-stars" id="ps-stars"></canvas></div>'+ 
+  '<div class="ps-launch-streak" id="ps-launch-streak" aria-hidden="true"><i></i><i></i><i></i></div>'+
   '<canvas id="ps-cards" class="ps-cards" aria-label="78 Tarot cards in a three-dimensional sphere. Drag to look around, tap a card to select it." tabindex="0"></canvas>'+
   '<header class="ps-header"><span class="ps-brand">✧ &nbsp; JuHua Speaks</span><span class="ps-guidance" id="ps-guidance" aria-live="polite">Please select 3 cards (0 cards selected)</span><span class="ps-stage" id="ps-stage">DECK IN FLIGHT</span></header>'+
   '<div class="ps-aura-layer" id="ps-auras" aria-hidden="true"></div>'+
@@ -131,11 +183,11 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  let program,vertexBuffer,vao,atlas;
  try{
   program=makeProgram(gl);vao=gl.createVertexArray();gl.bindVertexArray(vao);vertexBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);
-  const stride=8*4;for(const [location,count,offset] of [[0,3,0],[1,2,12],[2,1,20],[3,1,24],[4,1,28]]){gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,count,gl.FLOAT,false,stride,offset)}
+  const stride=11*4;for(const [location,count,offset] of [[0,3,0],[1,2,12],[2,1,20],[3,1,24],[4,1,28],[5,3,32]]){gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,count,gl.FLOAT,false,stride,offset)}
   atlas=atlasTexture(gl,cards,()=>!dead);
   gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);
  }catch(e){sky.dispose();gl.deleteVertexArray(vao);gl.deleteBuffer(vertexBuffer);gl.deleteProgram(program);throw e}
- const uniform={focal:gl.getUniformLocation(program,'u_focal'),aspect:gl.getUniformLocation(program,'u_aspect'),near:gl.getUniformLocation(program,'u_near'),far:gl.getUniformLocation(program,'u_far'),atlas:gl.getUniformLocation(program,'u_atlas')};
+ const uniform={focal:gl.getUniformLocation(program,'u_focal'),aspect:gl.getUniformLocation(program,'u_aspect'),near:gl.getUniformLocation(program,'u_near'),far:gl.getUniformLocation(program,'u_far'),inside:gl.getUniformLocation(program,'u_inside'),angleH:gl.getUniformLocation(program,'u_angleH'),angleV:gl.getUniformLocation(program,'u_angleV'),atlas:gl.getUniformLocation(program,'u_atlas')};
  const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
  const start=performance.now(),roles=['Past','Present','Future'];
  let clock=0,clockFreeze=0,paused=false,camZ=12.6,rendered=[],viewport={w:1,h:1},debugTime=null;
@@ -150,21 +202,36 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  function changePause(){paused=!paused;const button=mount.querySelector('#ps-pause');button.textContent=paused?'▶':'Ⅱ';button.setAttribute('aria-pressed',String(paused))}
  mount.querySelector('#ps-pause').addEventListener('click',changePause);
  mount.addEventListener('click',e=>{const id=e.target.closest('[data-undo]')?.dataset.undo;if(!id)return;choices=choices.filter(c=>c.id!==id);selectedAt.delete(id);syncSlots()});
- const projectCorner=(pos,right,up,sx,sy)=>[pos[0]+sx*.56*right[0]+sy*.86*up[0],pos[1]+sx*.56*right[1]+sy*.86*up[1],pos[2]+sx*.56*right[2]+sy*.86*up[2]];
+ const projectCorner=(pos,right,up,sx,sy,size=1)=>[pos[0]+sx*.56*size*right[0]+sy*.86*size*up[0],pos[1]+sx*.56*size*right[1]+sy*.86*size*up[1],pos[2]+sx*.56*size*right[2]+sy*.86*size*up[2]];
  function computeGeometry(t){
-  const angle=orbitAngle(t)+yaw,cam=cameraDistance(t),fov=cameraFov(t),vertex=[],visible=[];
+  const angle=orbitAngle(t)+yaw,cam=cameraDistance(t),fov=cameraFov(t),angularBlend=smooth((t-6.22)/.78),vertex=[],visible=[];
   camZ=cam;
   for(let i=0;i<78;i++){
    const id=deckIds[i],selected=selectedAt.has(id),pct=selected?selectedPct(id):0;
    const p=cardPose(points[i],t,angle,0,pitch,pct);
-   const corners=[projectCorner(p.position,p.right,p.up,-1,-1),projectCorner(p.position,p.right,p.up,1,-1),projectCorner(p.position,p.right,p.up,1,1),projectCorner(p.position,p.right,p.up,-1,1)];
-   const projected=corners.map(pt=>project(pt,cam,viewport,fov));const center=project(p.position,cam,viewport,fov);
+   // Interior projection intentionally prevents tangent cards exploding into
+   // giant rectangular slabs. The reference keeps cards readable near edges.
+   const physicalScale=1; // Angular camera preserves proper physical card size inside.
+   const corners=[projectCorner(p.position,p.right,p.up,-1,-1,physicalScale),projectCorner(p.position,p.right,p.up,1,-1,physicalScale),projectCorner(p.position,p.right,p.up,1,1,physicalScale),projectCorner(p.position,p.right,p.up,-1,1,physicalScale)];
+   const perspectiveCorners=corners.map(pt=>project(pt,cam,viewport,fov,0));
+   const center=project(p.position,cam,viewport,fov,angularBlend);
+   const angleV=145*Math.PI/180,angleH=Math.min(175,145*viewport.w/viewport.h)*Math.PI/180;
+   const angularCenter=project(p.position,cam,viewport,fov,1);
+   const roll=Math.sin(i*17.131)*.105,cos=Math.cos(roll),sin=Math.sin(roll);
+   const uv=[[0,0],[1,0],[1,1],[0,1]];
+   const projected=perspectiveCorners.map((c,k)=>{
+    if(!c||!angularCenter)return null;
+    const dx=(uv[k][0]-.5)*.178,dy=(uv[k][1]-.5)*.272;
+    const angX=angularCenter.x+(cos*dx-sin*dy)*viewport.w/angleH;
+    const angY=angularCenter.y-(sin*dx+cos*dy)*viewport.h/angleV;
+    return {x:mix(c.x,angX,angularBlend),y:mix(c.y,angY,angularBlend),z:c.z};
+   });
    if(projected.some(p=>!p)||!center)continue;
    // Exterior faces are genuine licensed/public-domain scans. Once the camera
    // enters the shell, the interior is the blue back of the same physical card.
    const side=dot(p.normal,[0,0,cam].map((c,j)=>c-p.position[j]))>=0?1:0;
-   const order=[0,1,2,0,2,3],uv=[[0,0],[1,0],[1,1],[0,1]];
-   for(const k of order){const c=corners[k];vertex.push(c[0],c[1],c[2]-cam,uv[k][0],uv[k][1],i,side,selected?1:0)}
+   const order=[0,1,2,0,2,3];
+   for(const k of order){const c=corners[k];vertex.push(c[0],c[1],c[2]-cam,uv[k][0],uv[k][1],i,side,selected?1:0,p.position[0],p.position[1],p.position[2]-cam)}
    if(center.x>-170&&center.x<viewport.w+170&&center.y>-220&&center.y<viewport.h+220)visible.push({id,index:i,corners:projected,center,side,selected,depth:center.z});
   }
   return {vertices:new Float32Array(vertex),visible};
@@ -189,10 +256,16 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   viewport={w:rect.width,h:rect.height};if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h)}
   const state=getStage(t,choices.length);step=state;world.dataset.beat=state;
   ready=t>=BEATS.interactive;
+  const streak=mount.querySelector('#ps-launch-streak');if(streak)streak.style.opacity=t<1.25?Math.min(.9,1-smooth((t-.14)/1.10)).toFixed(3):'0';
   mount.querySelector('#ps-stage').textContent=state==='launch'?'DECK IN FLIGHT':state==='distribute'?'CARDS UNFOLDING':state==='enter'?'ENTERING THE SPHERE':state==='inside'?'INSIDE THE UNIVERSE':'YOUR SELECTION';
-  mount.querySelector('#ps-hint').textContent=ready?'Drag to look around · Tap a card to choose':'The cards are taking their places…';
+  mount.querySelector('#ps-hint').textContent=ready?'Drag to look around · Tap a card to choose':state==='launch'?'The deck is travelling into space…':'The cards are taking their places…';
+  guidance.style.opacity=t<1.30?'0':'1';
   const data=computeGeometry(t);rendered=data.visible;
-  atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,1/Math.tan(cameraFov(t)*Math.PI/360));gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,.07);gl.uniform1f(uniform.far,100);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/8);
+  atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,1/Math.tan(cameraFov(t)*Math.PI/360));gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,.07);gl.uniform1f(uniform.far,100);
+  gl.uniform1f(uniform.inside,smooth((t-6.22)/.78));
+  gl.uniform1f(uniform.angleV,145*Math.PI/180);
+  gl.uniform1f(uniform.angleH,Math.min(175,145*rect.width/rect.height)*Math.PI/180);
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/11);
   updateAuras();
  }
  let t=0;
@@ -216,7 +289,8 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  raf=requestAnimationFrame(draw);
  return {
   stage:()=>step,selected:()=>choices.map(c=>({...c})),deck:()=>[...deckIds],assetStatus:()=>atlas.stats(),ready:()=>ready,
-  visible:()=>rendered.map(p=>({id:p.id,side:p.side,selected:p.selected,x:p.center.x,y:p.center.y,depth:p.depth})),
+  visible:()=>rendered.map(p=>({id:p.id,side:p.side,selected:p.selected,x:p.center.x,y:p.center.y,depth:p.depth,
+   width:Math.hypot(p.corners[1].x-p.corners[0].x,p.corners[1].y-p.corners[0].y)})),
   time:()=>t,tap,hitTest:hitCandidates,togglePause:changePause,seek(seconds){if(!demo)throw Error('Timeline seek is review-only');debugTime=clamp(seconds,0,60)},clearSeek(){debugTime=null},
   dispose(){dead=true;cancelAnimationFrame(raf);sky.dispose();atlas.dispose();gl.deleteBuffer(vertexBuffer);gl.deleteVertexArray(vao);gl.deleteProgram(program);world.remove()}
  };

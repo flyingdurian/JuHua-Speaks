@@ -1,7 +1,7 @@
-name: Post-Shuffle cinematic sphere fidelity
+name: Post-Shuffle cinematic sphere fidelity v2 review
 on:
   push:
-    branches: [feat/post-shuffle-launch-to-sphere-v1]
+    branches: [feat/post-shuffle-launch-to-sphere-v1, feat/post-shuffle-launch-sphere-v2-visual-audit]
   workflow_dispatch:
 permissions:
   contents: read

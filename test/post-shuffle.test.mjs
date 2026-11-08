@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {DECK} from '../src/deck.mjs';
-import {CARD_COUNT,BEATS,sphereLayout,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,assemblyProgress,pointInQuad,cameraFov} from '../preview/post-shuffle/geometry.mjs';
+import {CARD_COUNT,BEATS,sphereLayout,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,assemblyProgress,pointInQuad,cameraFov,deckLaunchZ} from '../preview/post-shuffle/geometry.mjs';
 
 test('One real, non-redealt 78-card spherical identity map',()=>{
  const points=sphereLayout();assert.equal(points.length,78);
@@ -10,20 +10,22 @@ test('One real, non-redealt 78-card spherical identity map',()=>{
  for(const p of points){assert.ok(Math.abs(Math.hypot(...p.direction)-1)<1e-8);assert.ok(p.radius>5&&p.radius<6.1)}
  assert.throws(()=>sphereLayout(77),/78/);
  const first=cardWorld(points[0],0),final=cardWorld(points[0],4);
- assert.ok(Math.hypot(...first)<1.2);assert.ok(Math.hypot(...final)>4.5);
+ assert.ok(first[2]>10,'deck must begin close to the camera');assert.ok(Math.hypot(...final)>4.5);
  assert.equal(assemblyProgress(0),0);assert.equal(assemblyProgress(4),1);
 });
 test('One continuous launch→unfold→fast spin→inward camera shot with no Gate or Cube',()=>{
- assert.equal(BEATS.interactive,6.9);
+ assert.equal(BEATS.interactive,7.05);
  assert.equal(getStage(0,0),'launch');assert.equal(getStage(2,0),'distribute');assert.equal(getStage(5,0),'enter');
  assert.equal(getStage(7.1,0),'inside');assert.equal(getStage(7.1,1),'select');
  assert.ok(cameraDistance(0)>12);assert.ok(cameraDistance(3)>11);
  assert.ok(cameraDistance(4.2)<9,'exterior globe must approach camera before entry');
- assert.ok(cameraDistance(4.5)>5.7&&cameraDistance(4.5)<5.9);
- assert.ok(cameraDistance(4.8)<5.8&&cameraDistance(4.8)>4.8);
- assert.ok(cameraFov(4)>130,'temporary wide lens should prevent huge foreground card');
- assert.equal(cameraFov(7),115);
+ assert.ok(cameraDistance(4.5)>5.8&&cameraDistance(4.5)<7.4);
+ assert.ok(cameraDistance(4.8)<5.8&&cameraDistance(4.8)>5.0);
+ assert.ok(cameraFov(4)>90&&cameraFov(4)<100,'exterior globe should occupy more of the viewport');
+ assert.ok(cameraFov(7)>143&&cameraFov(7)<146,'immersive interior must show a wider field of medium-sized cards');
  assert.equal(cameraDistance(7),0);
+ assert.ok(deckLaunchZ(.05)>deckLaunchZ(.55)&&deckLaunchZ(.55)>deckLaunchZ(1.20),'deck actually travels rapidly away');
+ assert.ok(deckLaunchZ(0)-deckLaunchZ(1.25)>10,'launch distance is substantial and camera-facing');
  assert.ok(orbitAngle(4.1)-orbitAngle(2.1)>8,'sphere must rotate rapidly before entry');
  assert.ok(orbitAngle(11)-orbitAngle(9)<.2,'settled interior should rotate gently');
 });
@@ -46,6 +48,9 @@ test('Gate B Finish Shuffling mounts continuity inline instead of redirecting or
  assert.match(post,/getContext\('webgl2'/);
  assert.match(post,/initCelestialSky/);
  assert.match(post,/pointerup/);
+ assert.match(post,/u_inside/,'same 3D geometry must support continuous camera projection');
+ assert.match(post,/u_angleH/,'immersive sphere uses a wide-angle camera');
+ assert.match(post,/viewerFacing/,'polar cards remain readable');
  assert.doesNotMatch(post,/Gate \(Fullscreen\)|Celestial Gate|cube-stage/);
  assert.match(server,/preview\/post-shuffle/);
 });

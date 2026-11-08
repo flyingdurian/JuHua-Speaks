@@ -111,6 +111,11 @@ document.getElementById('shuffle-buttons').addEventListener('click',event=>{
  try{world.playShuffle(style);notice.textContent='';renderUI();}
  catch(error){renderError=error.message;status.textContent='SHUFFLE RENDER ERROR · '+renderError;console.error(error)}
 });
+// Review-only fast path: jump to the same finishing shot without replaying
+// the preceding shuffle. It never changes the production landing or card data.
+const finishDemoUrl=new URL('../post-shuffle/?start=finish',import.meta.url).href;
+document.getElementById('jump-finish')?.addEventListener('click',()=>window.location.assign(finishDemoUrl));
+if(new URLSearchParams(location.search).get('demo')==='finish')window.location.replace(finishDemoUrl);
 document.getElementById('finish-shuffle').addEventListener('click',async()=>{
  if(!world||world.phase!=='deck_formed'||handingOff||!selectionOrder)return;
  const question=document.getElementById('question').value.trim();

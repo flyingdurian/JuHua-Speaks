@@ -41,3 +41,41 @@ button{font:inherit;cursor:pointer}button:focus-visible,canvas:focus-visible{out
 @keyframes ps-deck-breathe{from{filter:brightness(.72)}to{filter:brightness(1.28)}}
 @media(max-width:680px){.ps-header{top:5px;height:70px}.ps-guidance{font-size:clamp(12px,3vw,17px);white-space:normal;max-width:68vw}.ps-brand{font-size:8px;left:8px;top:4px}.ps-stage{right:7px;top:5px;font-size:7px}.ps-readout{font-size:10px}.ps-selections{bottom:56px}.ps-selected-halo{width:75px;height:126px}.ps-end{bottom:143px}}
 @media(prefers-reduced-motion:reduce){.ps-sky .nebula-texture,.ps-sky .twinkle-canvas,.ps-demo-deck,.ps-selected-halo{animation:none!important}}
+
+/* Post-Finish v2: one compact deck accelerates outward. These THREE short
+   propulsion streaks belong to the deck, not blanket trails on 78 cards. */
+.ps-launch-streak{position:absolute;inset:0;z-index:2;pointer-events:none;transition:opacity .06s;mix-blend-mode:screen}
+.ps-launch-streak i{position:absolute;left:50%;top:50%;width:1px;height:26vh;transform-origin:50% 0;background:linear-gradient(#fff4da8f,#9881b777 24%,transparent 100%);filter:blur(2px);opacity:.52;animation:launch-impulse 1.25s cubic-bezier(.2,.8,.35,1) both}
+.ps-launch-streak i:nth-child(1){transform:rotate(27deg);animation-delay:.02s}
+.ps-launch-streak i:nth-child(2){transform:rotate(157deg);animation-delay:.06s}
+.ps-launch-streak i:nth-child(3){transform:rotate(277deg);animation-delay:.09s}
+@keyframes launch-impulse{0%{height:0;opacity:0}18%{height:25vh;opacity:.7}100%{height:3vh;opacity:0}}
+.ps-review-toolbar{position:fixed;z-index:30;top:52px;right:14px;display:flex;gap:6px;align-items:center}
+.ps-review-toolbar[hidden]{display:none}
+.ps-review-toolbar button{border:1px solid #9c989b70;background:#0a0b13cf;color:#ddd9de;font:10px Arial,sans-serif;padding:7px 9px;border-radius:5px}
+.ps-review-toolbar kbd{font-size:9px;color:#ada5b9;border:1px solid #84808a75;border-radius:3px;padding:0 3px;margin-left:4px}
+.ps-guidance{transition:opacity .25s}
+.finish-demo-shortcut{display:block;margin:11px auto 0;padding:9px 13px;border:1px solid #d2c6b060;border-radius:4px;background:#080812bd;color:#d7c9b9;font:10px Arial,sans-serif;letter-spacing:.12em}
+@media(max-width:680px){.ps-review-toolbar{top:74px;right:7px}.ps-review-toolbar button{padding:5px;font-size:8px}}
+@media(prefers-reduced-motion:reduce){.ps-launch-streak i{animation:none!important;opacity:0!important}}
+
+/* v2 visual QA: a selected card is still a physical quad. No black outlined
+   rectangular panel / CSS drop shadow behind it. A very faint oval of warm
+   light is the only DOM adornment; bright edges are in the card shader. */
+.ps-selected-halo{
+ border:0!important;border-radius:50%!important;
+ background:radial-gradient(ellipse at center,transparent 20%,rgba(250,234,204,.10) 50%,transparent 76%)!important;
+ box-shadow:none!important;mix-blend-mode:normal!important;
+ animation:none!important;opacity:.9!important;
+}
+
+/* Reference video +12s: sparse highlights and lavender-grey smoke in deep
+   black; fewer high-contrast white stars, more readable navy cards. */
+.ps-sky .ps-stars{opacity:.43}
+.ps-sky .twinkle-canvas{opacity:.46!important}
+.ps-sky:after{content:'';position:absolute;inset:0;pointer-events:none;z-index:4;
+ background:radial-gradient(ellipse 33% 46% at 15% 64%,rgba(137,117,151,.075),transparent 82%),
+ radial-gradient(ellipse 27% 38% at 71% 40%,rgba(114,107,135,.038),transparent 88%)}
+.ps-review-toolbar{top:auto!important;bottom:15px;right:10px;opacity:.29;transition:opacity .22s}
+.ps-review-toolbar:hover,.ps-review-toolbar:focus-within{opacity:1}
+.ps-stage{opacity:.55}

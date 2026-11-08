@@ -231,3 +231,9 @@
 .gate-b-entering-selection .ritual-copy{opacity:0;transition:opacity .35s ease}
 .gate-b-entering-selection #gate-b-notice{color:#f7db9e;text-shadow:0 0 14px #dcb96e9c}
 @media(prefers-reduced-motion:reduce){.gate-b-entering-selection .world-root,.gate-b-entering-selection .ritual-copy{transition:none}}
+
+/* Review-only short route: skip 5–10 seconds of Gate B animation without touching it. */
+.gate-b .finish-demo-shortcut{display:block;margin:12px auto 0;padding:8px 11px;
+ border:1px solid #baab9a70;border-radius:4px;background:#060911ad;color:#eee0c9;
+ font:700 9px 'Segoe UI',Arial,sans-serif;letter-spacing:.11em}
+.gate-b .finish-demo-shortcut:hover{border-color:#ebd09d;color:#fff4d4}
