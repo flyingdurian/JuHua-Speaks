@@ -181,7 +181,7 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
    // giant rectangular slabs. The reference keeps cards readable near edges.
    const depth=cam-p.position[2];
    const envelope=smooth((t-6.25)/.75);
-   const physicalScale=mix(1,1.29*clamp(Math.pow(clamp(depth/points[i].radius,.02,1),.76),.32,1),envelope);
+   const physicalScale=mix(1,1.70*clamp(Math.pow(clamp(depth/points[i].radius,.02,1),.76),.32,1),envelope);
    const corners=[projectCorner(p.position,p.right,p.up,-1,-1,physicalScale),projectCorner(p.position,p.right,p.up,1,-1,physicalScale),projectCorner(p.position,p.right,p.up,1,1,physicalScale),projectCorner(p.position,p.right,p.up,-1,1,physicalScale)];
    const projected=corners.map(pt=>project(pt,cam,viewport,fov));const center=project(p.position,cam,viewport,fov);
    if(projected.some(p=>!p)||!center)continue;

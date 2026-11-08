@@ -73,5 +73,5 @@ export function cameraFov(time){
  // Match the reference's near-full-screen exterior globe at +4 seconds.
  // Wide inside the sphere so ~30 smaller cards surround the viewer.
  const inside=smooth((time-5.20)/1.65);
- return 124+10*inside-28*wide;
+ return 124+21*inside-28*wide;
 }

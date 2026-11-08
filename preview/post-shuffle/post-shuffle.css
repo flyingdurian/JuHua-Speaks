@@ -68,3 +68,14 @@ button{font:inherit;cursor:pointer}button:focus-visible,canvas:focus-visible{out
  box-shadow:none!important;mix-blend-mode:normal!important;
  animation:none!important;opacity:.9!important;
 }
+
+/* Reference video +12s: sparse highlights and lavender-grey smoke in deep
+   black; fewer high-contrast white stars, more readable navy cards. */
+.ps-sky .ps-stars{opacity:.43}
+.ps-sky .twinkle-canvas{opacity:.46!important}
+.ps-sky:after{content:'';position:absolute;inset:0;pointer-events:none;z-index:4;
+ background:radial-gradient(ellipse 33% 46% at 15% 64%,rgba(137,117,151,.075),transparent 82%),
+ radial-gradient(ellipse 27% 38% at 71% 40%,rgba(114,107,135,.038),transparent 88%)}
+.ps-review-toolbar{top:auto!important;bottom:15px;right:10px;opacity:.29;transition:opacity .22s}
+.ps-review-toolbar:hover,.ps-review-toolbar:focus-within{opacity:1}
+.ps-stage{opacity:.55}

@@ -22,7 +22,7 @@ test('One continuous launch→unfold→fast spin→inward camera shot with no Ga
  assert.ok(cameraDistance(4.5)>5.8&&cameraDistance(4.5)<7.4);
  assert.ok(cameraDistance(4.8)<5.8&&cameraDistance(4.8)>5.0);
  assert.ok(cameraFov(4)>90&&cameraFov(4)<100,'exterior globe should occupy more of the viewport');
- assert.ok(cameraFov(7)>132&&cameraFov(7)<135,'interior sphere must show more, smaller cards');
+ assert.ok(cameraFov(7)>143&&cameraFov(7)<146,'immersive interior must show a wider field of medium-sized cards');
  assert.equal(cameraDistance(7),0);
  assert.ok(deckLaunchZ(.05)>deckLaunchZ(.55)&&deckLaunchZ(.55)>deckLaunchZ(1.20),'deck actually travels rapidly away');
  assert.ok(deckLaunchZ(0)-deckLaunchZ(1.25)>10,'launch distance is substantial and camera-facing');
