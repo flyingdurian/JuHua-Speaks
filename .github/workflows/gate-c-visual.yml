@@ -1,0 +1,36 @@
+name: Gate C 03-05 visual acceptance evidence
+on:
+  push:
+    branches:
+      - feat/gate-c-3-5-concept-fidelity
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gate-c:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+      - run: npm install --no-save playwright
+      - run: npx playwright install chromium --only-shell
+      - name: Browser verify 78-card click selection and 75-card collapse
+        run: |
+          npm run preview:gate-c > /tmp/gate-c.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4185/preview/gate-c/ >/dev/null; then break; fi
+            sleep 2
+          done
+          node scripts/smoke-gate-c.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gate-c-stage-3-to-5-screenshots
+          path: |
+            artifacts/gate-c/
+            /tmp/gate-c.log
+          retention-days: 14

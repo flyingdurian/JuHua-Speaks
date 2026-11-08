@@ -11,7 +11,8 @@
     "assets:audit": "node scripts/audit-assets.mjs",
     "api:test": "node scripts/test-exodia-api.mjs",
     "preview:gate-a": "node scripts/ensure-gate-a-assets.mjs && node scripts/serve-gate-a.mjs",
-    "preview:gate-b": "node scripts/ensure-gate-a-assets.mjs && node scripts/serve-gate-b.mjs"
+    "preview:gate-b": "node scripts/ensure-gate-a-assets.mjs && node scripts/serve-gate-b.mjs",
+    "preview:gate-c": "node scripts/serve-gate-c.mjs"
   },
   "engines": {
     "node": ">=20"
