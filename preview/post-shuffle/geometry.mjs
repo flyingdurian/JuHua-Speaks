@@ -22,8 +22,8 @@ export function cameraDistance(time){
  // Independent measured beats: the globe swells into the frame BEFORE
  // the camera crosses the shell, rather than remaining a distant dot.
  if(time<=2.55)return 12.6;
- if(time<4.65)return 12.6-(12.6-5.8)*smooth((time-2.55)/2.10);
- return 5.8*(1-smooth((time-4.65)/2.05));
+ if(time<4.30)return 12.6-(12.6-5.8)*smooth((time-2.55)/1.75);
+ return 5.8*(1-smooth((time-4.30)/2.45));
 }
 export function orbitAngle(time){
  const t=Math.max(0,time);if(t<1.2)return t*.4;
