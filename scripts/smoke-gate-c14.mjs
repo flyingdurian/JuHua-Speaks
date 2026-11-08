@@ -30,7 +30,7 @@ try{
  for(let i=0;i<3;i++){
   const id=await page.evaluate(()=>{
    const all=[...document.querySelectorAll('button.orbit-card')];
-   for(const node of all){if(node.hidden)continue;const b=node.getBoundingClientRect(),x=b.x+b.width/2,y=b.y+b.height/2;
+   for(const node of all){if(node.hidden||node.classList.contains('is-chosen'))continue;const b=node.getBoundingClientRect(),x=b.x+b.width/2,y=b.y+b.height/2;
     if(b.width>54&&x>innerWidth*.2&&x<innerWidth*.8&&y>innerHeight*.25&&y<innerHeight*.66&&document.elementFromPoint(x,y)===node)return {id:node.dataset.cardId,x,y};
    }return null;
   });
