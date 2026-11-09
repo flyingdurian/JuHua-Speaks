@@ -5,6 +5,7 @@ import {RitualWorld} from '../../src/ritual-world/RitualWorld.mjs';
 import {CanvasOrbit} from '../../src/ritual-world/CanvasOrbit.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
 import {initFlowMist} from './FlowMist.mjs';
+import {SPHERE_ENTRANCE_SECONDS} from '../../src/ritual-world/SphereEntrance.mjs';
 
 const root=document.getElementById('gate-b');
 const scene=document.getElementById('world-root');
@@ -31,7 +32,7 @@ const sky=initCelestialSky({
 });
 const faceAssetForId=id=>new URL('../../assets/rws/'+id+'.jpg',import.meta.url).href;
 let world=null,loadCount=0,failedAssets=0,lastStatus='',renderError='';
-let selectionOrder=null,handingOff=false;
+let selectionOrder=null,handingOff=false,entryTimer=null;
 const onStatus=evt=>{
  if(evt.state==='context-lost'){status.textContent='GRAPHICS CONTEXT LOST';return}
  if(Number.isInteger(evt.loaded))loadCount=evt.loaded;
@@ -69,7 +70,7 @@ function renderUI(){
  if(renderError){status.textContent='SHUFFLE RENDER ERROR · '+renderError;return;}
  const phase=world.phase,info=world.getShuffleState();
  const state=phase==='shuffle_ritual'?info.beat:phase;
- const nextStatus=(phase==='landing'?'LANDING UNIVERSE':phase==='shuffle_ritual'?'SHUFFLING · '+info.style.toUpperCase():'DECK FORMED')+' · '+statusText();
+ const nextStatus=(phase==='landing'?'LANDING UNIVERSE':phase==='shuffle_ritual'?'SHUFFLING · '+info.style.toUpperCase():phase==='sphere_transition'?'ENTERING THE SPHERE':'DECK FORMED')+' · '+statusText();
  if(lastStatus!==nextStatus){status.textContent=nextStatus;lastStatus=nextStatus}
  if(!root.classList.contains('in-ritual'))return;
  deckControls.hidden=phase!=='deck_formed';
@@ -149,7 +150,11 @@ document.getElementById('finish-shuffle').addEventListener('click',()=>{
  const button=document.getElementById('finish-shuffle');button.disabled=true;
  root.classList.add('gate-b-entering-selection');
  notice.textContent='Entering the fullscreen 78-card sphere…';
- window.setTimeout(()=>window.location.assign(new URL('../gate-c14/?from=gate-b',import.meta.url).href),650);
+ try{world.setPaused(false);world.startSphereEntrance()}catch(error){handingOff=false;notice.textContent=error.message;button.disabled=false;return}
+ entryTimer=window.setTimeout(()=>{
+  root.classList.add('gate-b-transfer-complete');
+  window.location.assign(new URL('../gate-c14/?from=gate-b',import.meta.url).href);
+ },window.matchMedia('(prefers-reduced-motion: reduce)').matches?250:SPHERE_ENTRANCE_SECONDS*1000);
 });
 buttonPause.addEventListener('click',()=>{
  if(!world)return;
@@ -160,7 +165,7 @@ buttonPause.addEventListener('click',()=>{
 document.getElementById('reset').addEventListener('click',()=>{
  if(!world)return;
  world.setPaused(false);buttonPause.setAttribute('aria-pressed','false');buttonPause.textContent='PAUSE Ⅱ';
- renderError='';handingOff=false;selectionOrder=null;world.resetGateB();root.classList.remove('in-ritual','deck-ready','vacuum-active','gate-b-entering-selection');overlay.hidden=true;
+ if(entryTimer){clearTimeout(entryTimer);entryTimer=null}renderError='';handingOff=false;selectionOrder=null;world.resetGateB();root.classList.remove('in-ritual','deck-ready','vacuum-active','gate-b-entering-selection','gate-b-transfer-complete');overlay.hidden=true;
  notice.textContent='';lastStatus='';renderUI();
 });
 const statusTimer=setInterval(renderUI,180);
@@ -171,4 +176,4 @@ window.__ritualGateB={
  get shuffle(){return world?.getShuffleState()||null},
  version:'Gate B v10.7 · 45-degree cyclone / selective accents',
 };
-window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();flowMist.dispose();world?.dispose()},{once:true});
+window.addEventListener('pagehide',()=>{clearInterval(statusTimer);if(entryTimer)clearTimeout(entryTimer);sky.dispose();flowMist.dispose();world?.dispose()},{once:true});

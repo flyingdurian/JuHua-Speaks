@@ -5,6 +5,7 @@
  */
 import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,landingAttitude,landingVisible,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
 import {PHYSICAL_CARD,samplePhysicalShuffle,deckPose,shuffleDuration,shuffleBeat,SHUFFLE_CHOICES,assertShuffleGeometry} from './ShuffleChoreography.mjs';
+import {sampleSphereEntrance,SPHERE_ENTRANCE_SECONDS} from './SphereEntrance.mjs';
 const TAU=Math.PI*2;
 const norm=a=>{const l=Math.hypot(...a)||1;return a.map(v=>v/l)};
 const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
@@ -22,7 +23,7 @@ function makeBack(){
 export class CanvasOrbit{
  constructor({mount,cards,faceAssetForId,visualSeed=createVisualSeed(),entranceMode='inside-out',onStatus=()=>{}}){
   this.mount=mount;this.visualSeed=visualSeed;this.cards=makeLandingCardEntities(cards,visualSeed);this.faceAssetForId=faceAssetForId;this.phase='landing';this.onStatus=onStatus;
-  this.loadedCount=0;this.failedAssets=[];this.entranceMode=entranceMode;this.elapsed=0;this.last=0;this.lastPaint=0;this.shuffleStyle='auto';this.shuffleStartedAt=0;this.shuffleLandingAt=0;this.shuffleRound=0;this.frame=0;this.paused=false;this.disposed=false;this.images=[];this.fronts=new Map();
+  this.loadedCount=0;this.failedAssets=[];this.entranceMode=entranceMode;this.elapsed=0;this.last=0;this.lastPaint=0;this.shuffleStyle='auto';this.shuffleStartedAt=0;this.shuffleLandingAt=0;this.shuffleRound=0;this.sphereEntranceStartedAt=0;this.frame=0;this.paused=false;this.disposed=false;this.images=[];this.fronts=new Map();
   this.canvas=document.createElement('canvas');this.canvas.className='ritual-world-canvas';this.canvas.setAttribute('aria-hidden','true');mount.append(this.canvas);
   this.ctx=this.canvas.getContext('2d');if(!this.ctx)throw Error('2D unavailable');this.back=makeBack();
   this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(mount);
@@ -45,10 +46,11 @@ export class CanvasOrbit{
   assertShuffleGeometry(this.cards,{style,landingAt:this.shuffleLandingAt,worldTime:this.elapsed});
   this.shuffleStyle=style;this.shuffleStartedAt=this.elapsed;this.shuffleRound++;this.setPhase('shuffle_ritual');
  }
- resetGateB(){this.setPhase('landing');this.restartEntrance(this.entranceMode);this.shuffleStyle='auto';this.shuffleStartedAt=0}
+ startSphereEntrance(){if(this.phase!=='deck_formed')throw Error('Sphere entry requires full deck');this.sphereEntranceStartedAt=this.elapsed;this.setPhase('sphere_transition')}
+  resetGateB(){this.setPhase('landing');this.restartEntrance(this.entranceMode);this.shuffleStyle='auto';this.shuffleStartedAt=0}
  getShuffleState(){
   const age=Math.max(0,this.elapsed-this.shuffleStartedAt);
-  return {phase:this.phase,style:this.shuffleStyle,age,beat:this.phase==='shuffle_ritual'?shuffleBeat(this.shuffleStyle,age):this.phase,duration:shuffleDuration(this.shuffleStyle),round:this.shuffleRound};
+  return {phase:this.phase,style:this.shuffleStyle,age,beat:this.phase==='shuffle_ritual'?shuffleBeat(this.shuffleStyle,age):this.phase,duration:shuffleDuration(this.shuffleStyle),entryAge:this.phase==='sphere_transition'?this.elapsed-this.sphereEntranceStartedAt:0,entryDuration:SPHERE_ENTRANCE_SECONDS,round:this.shuffleRound};
  }
  setPaused(state){this.paused=!!state}
  restartEntrance(mode){if(!['inside-out','outside-in'].includes(mode))throw Error('Unsupported landing entrance');this.entranceMode=mode;this.elapsed=0;this.last=0;this.lastPaint=0;this.onStatus({state:'entrance',entrance:mode})}
@@ -67,8 +69,10 @@ export class CanvasOrbit{
      ?{position:sampleLandingPose(card,this.elapsed,this.entranceMode),attitude:null,scale:entranceScale(card,this.elapsed,this.entranceMode)}
      :this.phase==='shuffle_ritual'
       ?samplePhysicalShuffle(card,{style:this.shuffleStyle,age:this.elapsed-this.shuffleStartedAt,landingAt:this.shuffleLandingAt,worldTime:this.elapsed,entranceMode:this.entranceMode})
-      :deckPose(card,this.elapsed);
-    return {card,pos:sample.position,sample,landing};
+      :this.phase==='sphere_transition'
+        ?sampleSphereEntrance(card,{age:this.elapsed-this.sphereEntranceStartedAt,worldTime:this.sphereEntranceStartedAt})
+        :deckPose(card,this.elapsed);
+     return {card,pos:sample.position,sample,landing};
    }).filter(o=>o.pos[2]<-1.4);
   items.sort((a,b)=>a.pos[2]-b.pos[2]);
   const project=p=>[w*.5+p[0]*f/(-p[2]),h*.5-p[1]*f/(-p[2])];

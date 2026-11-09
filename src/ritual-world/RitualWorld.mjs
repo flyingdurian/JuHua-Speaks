@@ -8,6 +8,7 @@ import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,l
 export {makeLandingCardEntities,sampleLandingPose} from './OrbitalField.mjs';
 import {appendPremiumCard} from './CardSurface.mjs';
 import {PHYSICAL_CARD,samplePhysicalShuffle,deckPose,shuffleDuration,shuffleBeat,SHUFFLE_CHOICES,assertShuffleGeometry} from './ShuffleChoreography.mjs';
+import {sampleSphereEntrance,SPHERE_ENTRANCE_SECONDS} from './SphereEntrance.mjs';
 import {CARD_ECHO_HISTORY,sequenceOneEchoEnvelope,projectedCardSpeed,cardEchoOpacity,shouldEchoCard} from './TemporalEcho.mjs';
 const TAU = Math.PI * 2;
 const clamp = (v,a,b) => Math.max(a, Math.min(b,v));
@@ -94,7 +95,7 @@ export class RitualWorld{
   if(!mount)throw Error('RitualWorld requires persistent mount');
   this.mount=mount;this.visualSeed=visualSeed;this.cards=makeLandingCardEntities(cards,visualSeed);this.faceAssetForId=faceAssetForId;
   this.onStatus=onStatus;this.disposed=false;this.phase='landing';this.start=performance.now();this.last=0;this.elapsed=0;this.entranceMode=entranceMode;
-  this.shuffleStyle='auto';this.shuffleStartedAt=0;this.shuffleLandingAt=0;this.shuffleRound=0;
+  this.shuffleStyle='auto';this.shuffleStartedAt=0;this.shuffleLandingAt=0;this.shuffleRound=0;this.sphereEntranceStartedAt=0;
   this.pause=false;this.frame=0;this.failedAssets=[];this.loadedCount=0;this.atlas=makeAtlas();this.images=[];this.lastRendered=0;
   this.canvas=document.createElement('canvas');this.canvas.className='ritual-world-canvas';this.canvas.setAttribute('aria-hidden','true');mount.append(this.canvas);
   const gl=this.canvas.getContext('webgl2',{alpha:true,antialias:true,depth:true,powerPreference:'high-performance'});
@@ -114,7 +115,7 @@ export class RitualWorld{
   this.setPhase('landing');this.loadCardFaces();this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(mount);
   this.tick=this.tick.bind(this);this.frame=requestAnimationFrame(this.tick);
  }
- setPhase(phase){if(!['landing','question_submitted','shuffle_ritual','deck_formed','sphere_selection','three_reveal'].includes(phase))throw Error('Unsupported world phase');this.phase=phase;this.onStatus({state:phase,cards:this.cards.length})}
+ setPhase(phase){if(!['landing','question_submitted','shuffle_ritual','deck_formed','sphere_selection','sphere_transition','three_reveal'].includes(phase))throw Error('Unsupported world phase');this.phase=phase;this.onStatus({state:phase,cards:this.cards.length})}
  beginAutoShuffle(){
   if(this.phase!=='landing')throw Error('Auto shuffle requires landing');
   assertShuffleGeometry(this.cards,{style:'auto',landingAt:this.elapsed,worldTime:this.elapsed,entranceMode:this.entranceMode});
@@ -128,10 +129,11 @@ export class RitualWorld{
   this.shuffleStyle=style;this.shuffleStartedAt=this.elapsed;this.shuffleRound++;
   this.setPhase('shuffle_ritual');
  }
- resetGateB(){this.setPhase('landing');this.restartEntrance(this.entranceMode);this.shuffleStyle='auto';this.shuffleStartedAt=0}
+ startSphereEntrance(){if(this.phase!=='deck_formed')throw Error('Sphere entry requires full deck');this.sphereEntranceStartedAt=this.elapsed;this.setPhase('sphere_transition')}
+  resetGateB(){this.setPhase('landing');this.restartEntrance(this.entranceMode);this.shuffleStyle='auto';this.shuffleStartedAt=0}
  getShuffleState(){
   const age=Math.max(0,this.elapsed-this.shuffleStartedAt);
-  return {phase:this.phase,style:this.shuffleStyle,age,beat:this.phase==='shuffle_ritual'?shuffleBeat(this.shuffleStyle,age):this.phase,duration:shuffleDuration(this.shuffleStyle),round:this.shuffleRound};
+  return {phase:this.phase,style:this.shuffleStyle,age,beat:this.phase==='shuffle_ritual'?shuffleBeat(this.shuffleStyle,age):this.phase,duration:shuffleDuration(this.shuffleStyle),entryAge:this.phase==='sphere_transition'?this.elapsed-this.sphereEntranceStartedAt:0,entryDuration:SPHERE_ENTRANCE_SECONDS,round:this.shuffleRound};
  }
  setPaused(value){this.pause=!!value}
  restartEntrance(mode){if(!['inside-out','outside-in'].includes(mode))throw Error('Unsupported landing entrance');this.entranceMode=mode;this.elapsed=0;this.last=0;this.lastRendered=0;this.onStatus({state:'entrance',entrance:mode})}
@@ -213,8 +215,10 @@ export class RitualWorld{
     const age=this.elapsed-this.shuffleStartedAt;
     const sample=this.phase==='shuffle_ritual'
      ?samplePhysicalShuffle(card,{style:this.shuffleStyle,age,landingAt:this.shuffleLandingAt,worldTime:this.elapsed,entranceMode:this.entranceMode})
-     :deckPose(card,this.elapsed);
-    appendPremiumCard(vertices,{...card,...PHYSICAL_CARD},sample.position,sample.attitude,sample.scale,card.light,slotUv,{backSlot:this.phase==='deck_formed'&&card.orbitSlot===0?card.index:BACK_SLOT,edgeSlot:EDGE_SLOT});
+     :this.phase==='sphere_transition'
+       ?sampleSphereEntrance(card,{age:this.elapsed-this.sphereEntranceStartedAt,worldTime:this.sphereEntranceStartedAt})
+       :deckPose(card,this.elapsed);
+     appendPremiumCard(vertices,{...card,...PHYSICAL_CARD},sample.position,sample.attitude,sample.scale,card.light,slotUv,{backSlot:this.phase==='deck_formed'&&card.orbitSlot===0?card.index:BACK_SLOT,edgeSlot:EDGE_SLOT});
    }
   }
   gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.DYNAMIC_DRAW);
