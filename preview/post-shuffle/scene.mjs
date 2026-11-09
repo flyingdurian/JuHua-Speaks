@@ -197,7 +197,14 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  }
  let t=0;
  function tap(x,y){if(!ready||dead)return null;const rect=canvas.getBoundingClientRect(),localX=x-rect.left,localY=y-rect.top;
-  const candidates=rendered.filter(p=>p.side===0&&hitsQuad(localX,localY,p.corners)).sort((a,b)=>a.depth-b.depth);
+  // True projected quad first; center fallback is bounded to card dimensions.
+  const onCard=p=>{
+   if(hitsQuad(localX,localY,p.corners))return true;
+   const a=p.corners,d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),
+    h=Math.hypot(a[0].x-a[3].x,a[0].y-a[3].y);
+   return Math.hypot(localX-p.center.x,localY-p.center.y)<Math.max(5,Math.min(d,h)*.22);
+  };
+  const candidates=rendered.filter(p=>p.side===0&&onCard(p)).sort((a,b)=>a.depth-b.depth);
   const candidate=candidates[0];if(!candidate)return null;
   const previous=choices;
   choices=selectCard(choices,deckIds,candidate.id,drawOrientation());
@@ -207,7 +214,9 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  }
  canvas.addEventListener('pointerdown',e=>{if(!ready)return;lastPointer={id:e.pointerId,x:e.clientX,y:e.clientY,yaw,pitch,moved:false};});
  canvas.addEventListener('pointermove',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;const dx=e.clientX-lastPointer.x,dy=e.clientY-lastPointer.y;if(Math.hypot(dx,dy)>7)lastPointer.moved=true;if(lastPointer.moved){yaw=lastPointer.yaw+dx*.0043;pitch=clamp(lastPointer.pitch+dy*.004,-1.05,1.05);}});
- canvas.addEventListener('pointerup',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;const {moved}=lastPointer;lastPointer=null;if(!moved)tap(e.clientX,e.clientY)});
+ let skipTap=false;
+ canvas.addEventListener('pointerup',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;skipTap=lastPointer.moved;lastPointer=null});
+ canvas.addEventListener('click',e=>{if(!ready)return;if(!skipTap)tap(e.clientX,e.clientY);skipTap=false});
  canvas.addEventListener('pointercancel',()=>{lastPointer=null});
  canvas.addEventListener('keydown',e=>{if(!ready)return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){yaw+=(e.key==='ArrowLeft'?-1:1)*.21;e.preventDefault()}if(e.key==='ArrowUp'||e.key==='ArrowDown'){pitch=clamp(pitch+(e.key==='ArrowUp'?-1:1)*.12,-1.05,1.05);e.preventDefault()}});
  raf=requestAnimationFrame(draw);
