@@ -35,22 +35,26 @@ test('handoff enforces one full distinct deck, valid question, and maximum age',
  assert.throws(()=>parseGateBHandoff('not json',atTime),/JSON/);
  assert.match(GATE_B_HANDOFF_KEY,/juhua:gate-b-reveal/);
 });
-test('Gate B preview is wired to the same-tab private selection and Artemis stage',async()=>{
- const [preview,app,server,markup]=await Promise.all([
-  at('preview/gate-b/gate-b.mjs'),at('src/app.mjs'),
-  at('scripts/serve-gate-a.mjs'),at('ritual.html')]);
+test('Gate B skip and Finish Shuffling target the restored fullscreen sphere, never rejected ritual.html',async()=>{
+ const [preview,markup,server,sphere]=await Promise.all([
+  at('preview/gate-b/gate-b.mjs'),at('preview/gate-b/index.html'),
+  at('scripts/serve-gate-a.mjs'),at('preview/gate-c14/gate-c14.mjs')
+ ]);
+ assert.match(markup,/id="skip-to-deck"/);
+ assert.match(preview,/getElementById\('skip-to-deck'\)/);
+ assert.match(preview,/world\.setPhase\('deck_formed'\)/);
  assert.match(preview,/sessionStorage\.setItem\(GATE_B_HANDOFF_KEY/);
- assert.match(preview,/window\.location\.assign\(new URL\('\.\.\/\.\.\/ritual\.html',import\.meta\.url\)\.href\)/);
- assert.match(app,/sessionStorage\.removeItem\(GATE_B_HANDOFF_KEY\)/);
- assert.match(app,/resumeGateBAtSphere\(incomingGateB\)/);
- assert.match(app,/incomingGateB\?3:incomingGateQuestion\?1:0/);
- assert.match(app,/renderArtemisInvitation/);
- assert.match(server,/pathname==='\/ritual\.html'/);
- assert.match(markup,/src="\.\/src\/app\.mjs"/);
- assert.doesNotMatch(preview,/Gate B complete\./);
- assert.doesNotMatch(preview,/shuffle-only visual gate/);
+ assert.match(preview,/new URL\('\.\.\/gate-c14\/\?from=gate-b',import\.meta\.url\)/);
+ assert.doesNotMatch(preview,/new URL\('\.\.\/\.\.\/ritual\.html'/);
+ assert.match(sphere,/sessionStorage\.removeItem\(GATE_B_HANDOFF_KEY\)/);
+ assert.match(sphere,/show\('sphere'\)/);
+ assert.doesNotMatch(sphere,/function cube\(/);
+ assert.doesNotMatch(sphere,/function gate\(/);
+ assert.match(sphere,/if\(chosen\)\{b\.hidden=true;continue\}/);
+ assert.match(server,/pathname\.startsWith\('\/preview\/gate-c14\/'\)/);
+ assert.doesNotMatch(server,/pathname==='\/ritual\.html'/);
 });
-test('actual Gate B preview HTTP server serves ritual app and necessary ESM dependencies',async t=>{
+test('Gate B preview serves restored sphere with card artwork and rejects legacy ritual endpoint',async t=>{
  const port=24000+process.pid%5000,endpoint='http://127.0.0.1:'+port;
  const child=spawn(process.execPath,['scripts/serve-gate-b.mjs'],{
   cwd:new URL('../',import.meta.url),env:{...process.env,GATE_B_PORT:String(port)},stdio:'ignore'});
@@ -62,13 +66,17 @@ test('actual Gate B preview HTTP server serves ritual app and necessary ESM depe
   await wait(75);
  }
  assert.ok(ready,'Gate B preview server must start');
- for(const url of ['/ritual.html','/src/app.mjs','/src/gate-b-handoff.mjs','/src/artemis-stage.mjs','/src/styles.css']){
+ for(const url of [
+  '/preview/gate-b/','/preview/gate-b/gate-b.mjs',
+  '/preview/gate-c14/','/preview/gate-c14/gate-c14.mjs',
+  '/preview/gate-c14/geometry.mjs','/preview/gate-c14/gate-c14.css',
+  '/assets/gate-c14/card-back.svg','/assets/gate-c14/sphere-sanctuary.webp',
+  '/src/gate-b-handoff.mjs','/src/deck.mjs']){
   const response=await fetch(endpoint+url);
-  assert.equal(response.status,200,'Required continuation route: '+url);
-  assert.ok((await response.text()).length>100);
+  assert.equal(response.status,200,'Required live route or asset: '+url);
+  assert.ok((await response.arrayBuffer()).byteLength>100,url+' was empty');
  }
- for(const url of ['/scripts/serve.mjs','/src/../scripts/serve.mjs']){
-  const response=await fetch(endpoint+url);
-  assert.equal(response.status,404,'Private script must stay blocked: '+url);
+ for(const url of ['/ritual.html','/scripts/serve.mjs','/src/../scripts/serve.mjs']){
+  assert.equal((await fetch(endpoint+url)).status,404,'Reject legacy/private route '+url);
  }
 });
