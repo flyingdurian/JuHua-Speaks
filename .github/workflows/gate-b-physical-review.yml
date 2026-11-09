@@ -22,3 +22,32 @@ jobs:
           node --check preview/post-shuffle/geometry.mjs
           node --check preview/gate-b/gate-b.mjs
       - run: npm test
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright
+      - run: npx playwright install chromium --only-shell
+      - run: npm run assets:sync
+      - name: Start preview-only server
+        run: |
+          npm run preview:gate-b > /tmp/physical-deck-preview.log 2>&1 &
+          for i in $(seq 1 35); do
+            if curl -fsS http://127.0.0.1:4184/preview/gate-b/ >/dev/null; then break; fi
+            sleep 2
+          done
+      - run: node scripts/smoke-physical-deck.mjs
+      - run: node scripts/smoke-post-shuffle.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: physical-deck-to-sphere-movie-and-frames
+          path: |
+            artifacts/physical-deck
+            artifacts/post-shuffle
+            /tmp/physical-deck-preview.log
+          retention-days: 14
