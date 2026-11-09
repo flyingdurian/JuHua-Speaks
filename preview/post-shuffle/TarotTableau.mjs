@@ -88,9 +88,19 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
    used=true;button.disabled=true;button.classList.add('ps-revealed');
    button.setAttribute('aria-label',SPREAD_ROLES[i]+' card revealed: '+card.name);
    // The front image is authentic RWS art; the selected foil is only an overlay.
-   const settle=()=>{if(disposed)return;detail.hidden=false;item.classList.add('ps-landed');revealed++;onRevealed({index:i,id:pick.id,allRevealed:revealed===3,foil});};
-   button.addEventListener('animationend',settle,{once:true});
-   // Respect browsers which suppress CSS animations in reduced-motion mode.
+   let settled=false;
+   const settle=()=>{
+    if(disposed||settled)return;
+    settled=true;detail.hidden=false;item.classList.add('ps-landed');revealed++;
+    onRevealed({index:i,id:pick.id,allRevealed:revealed===3,foil});
+   };
+   // Disabled buttons do not reliably bubble animationend in Chromium.
+   // Observe the animated inner element itself; retain a deterministic
+   // one-shot completion fallback for reduced motion and throttled tabs.
+   flip.addEventListener('animationend',e=>{
+    if(e.target===flip&&e.animationName==='ps-flip-land')settle();
+   });
+   window.setTimeout(settle,1200);
    if(window.matchMedia?.('(prefers-reduced-motion:reduce)').matches)settle();
   },{once:true});
   faceImages.push(image);
