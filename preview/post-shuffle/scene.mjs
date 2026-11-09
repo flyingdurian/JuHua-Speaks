@@ -12,7 +12,7 @@ import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
 import {SPHERE_VERTEX_STRIDE,extrudedCardVertices} from './PhysicalSphereMesh.mjs';
 import {chooseFoilFinish,createTarotTableau} from './TarotTableau.mjs';
 import {createSelectionHandoff,HANDOFF_SETTLE_MS} from './SelectionHandoff.mjs';
-import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,gyroAttitude,selectCard,getStage,perspectiveFocal,pickProjectedCard,orbitYaw,selectionRise,CAMERA_CLIP_NEAR,CAMERA_NEAR,clipCardNearPlane} from './geometry.mjs';
+import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,gyroAttitude,selectCard,getStage,perspectiveFocal,pickProjectedCard,orbitYaw,selectionRise,CAMERA_CLIP_NEAR,CAMERA_NEAR,clipCardNearPlane,gateBToGateCInstance} from './geometry.mjs';
 
 const W=174,H=288,COLS=10,ROWS=8,ATLAS_W=W*COLS,ATLAS_H=H*ROWS;
 const vs=`#version 300 es
@@ -106,7 +106,7 @@ const mix=(a,b,t)=>a+(b-a)*t;
 const mix3=(a,b,t)=>a.map((v,i)=>mix(v,b[i],t));
 const rotY=(p,a)=>[p[0]*Math.cos(a)+p[2]*Math.sin(a),p[1],-p[0]*Math.sin(a)+p[2]*Math.cos(a)];
 const rotX=(p,a)=>[p[0],p[1]*Math.cos(a)-p[2]*Math.sin(a),p[1]*Math.sin(a)+p[2]*Math.cos(a)];
-function cardPose(point,t,turn,yaw,pitch,selectedPct){
+function cardPose(point,t,turn,yaw,pitch,selectedPct,initialDeck=null){
  const s=smooth((t-.85)/2.3);
  const center=cardWorld(point,t,false);
  const inside=smooth((t-4.5)/2.15);
@@ -123,16 +123,42 @@ function cardPose(point,t,turn,yaw,pitch,selectedPct){
  const a=point.roll*s-.045*(1-s)+gyro.roll+Math.sin(Math.PI*s)*.35*Math.sin(point.i*.47+t*5.4); // all stacked sheets remain aligned until unfolding
  const rr=right.map((v,i)=>Math.cos(a)*v+Math.sin(a)*up[i]);
  const uu=up.map((v,i)=>Math.cos(a)*v-Math.sin(a)*right[i]);
+ if(initialDeck){
+  // Start with the exact 78 Gate B positions and basis vectors, including
+  // their uninterrupted idle yaw, then peel the SAME cards into the globe.
+  // The transition's first pixel is no longer a newly invented deck.
+  const emerge=smooth((t-.18)/1.35);
+  const blendedNormal=norm(mix3(initialDeck.normal,n,emerge));
+  const blendedRight=norm(mix3(initialDeck.right,rr,emerge));
+  const blendedUp=norm(mix3(initialDeck.up,uu,emerge));
+  const interiorScale=1-.26*smooth((t-4.4)/2.35);
+  return {
+   position:mix3(initialDeck.position,p,emerge),
+   normal:blendedNormal,right:blendedRight,up:blendedUp,
+   halfWidth:mix(initialDeck.halfWidth,.43*interiorScale,emerge),
+   halfHeight:mix(initialDeck.halfHeight,.70*interiorScale,emerge)
+  };
+ }
  return {position:p,normal:n,right:rr,up:uu};
 }
 function project(p,camZ,viewport){const z=camZ-p[2],f=viewport.h*.5*perspectiveFocal();if(z<CAMERA_CLIP_NEAR)return null;return {x:viewport.w*.5+p[0]*f/z,y:viewport.h*.5-p[1]*f/z,z};}
 function insideTriangle(x,y,a,b,c){const v0=[c.x-a.x,c.y-a.y],v1=[b.x-a.x,b.y-a.y],v2=[x-a.x,y-a.y];const d00=dot(v0,v0),d01=dot(v0,v1),d02=dot(v0,v2),d11=dot(v1,v1),d12=dot(v1,v2),den=d00*d11-d01*d01;if(Math.abs(den)<.001)return false;const v=(d11*d02-d01*d12)/den,w=(d00*d12-d01*d02)/den;return v>=0&&w>=0&&v+w<=1;}
 function hitsQuad(x,y,c){return insideTriangle(x,y,c[0],c[1],c[2])||insideTriangle(x,y,c[0],c[2],c[3]);}
 
-export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}){
+export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false,handoffDeck=null}={}){
  if(!mount||!Array.isArray(deckIds)||deckIds.length!==78||new Set(deckIds).size!==78)throw new Error('A unique 78-card ordered handoff is required');
  const cardMap=new Map(DECK.map(c=>[c.id,c]));if(deckIds.some(id=>!cardMap.has(id)))throw new Error('Unrecognized card identities');
  const cards=deckIds.map(id=>cardMap.get(id)),points=sphereLayout();
+ // An explicit snapshot is supplied by the Gate B renderer on FINISH.
+ // Standalone Gate C preview can still launch its original demonstration.
+ let sourceDeck=null;
+ if(handoffDeck){
+  if(!Array.isArray(handoffDeck)||handoffDeck.length!==78||
+   new Set(handoffDeck.map(c=>c.id)).size!==78||
+   handoffDeck.some(c=>!deckIds.includes(c.id)))
+   throw new Error('Gate B/C handoff must contain all 78 identical physical card IDs');
+  sourceDeck=new Map(handoffDeck.map(c=>[c.id,gateBToGateCInstance(c)]));
+ }
  let choices=[],selectedAt=new Map(),lastPointer=null,yaw=0,pitch=0,raf=0,dead=false,ready=false,lastDraw=0,step='launch';
  let lockAt=null,tableau=null,tableauShown=false,handoff=null;const pickAnchors=new Map();
  const sessionFoil=chooseFoilFinish();
@@ -202,7 +228,7 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   camZ=cam;
   for(let i=0;i<78;i++){
    const id=deckIds[i],selected=selectedAt.has(id),pct=selected?selectedPct(id):0;
-   const p=cardPose(points[i],t,angle,0,pitch,pct);
+   const p=cardPose(points[i],t,angle,0,pitch,pct,sourceDeck?.get(id));
    let alpha=1;
    if(lockAt!==null){
     if(selected){
@@ -224,9 +250,10 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
    }
    if(alpha<.006)continue;
    const sheetScale=1-.26*smooth((t-4.4)/2.35); // smaller, denser interior card silhouettes
+   const halfW=p.halfWidth??.43*sheetScale,halfH=p.halfHeight??.70*sheetScale;
+   const halfCorner=(sx,sy)=>p.position.map((v,j)=>v+sx*halfW*p.right[j]+sy*halfH*p.up[j]);
    const corners=[
-    projectCorner(p.position,p.right,p.up,-1,-1,sheetScale),projectCorner(p.position,p.right,p.up,1,-1,sheetScale),
-    projectCorner(p.position,p.right,p.up,1,1,sheetScale),projectCorner(p.position,p.right,p.up,-1,1,sheetScale)
+    halfCorner(-1,-1),halfCorner(1,-1),halfCorner(1,1),halfCorner(-1,1)
    ];
    if(clipCardNearPlane(corners,cam).length<3)continue;
    const projected=corners.map(pt=>project(pt,cam,viewport)),center=project(p.position,cam,viewport);
