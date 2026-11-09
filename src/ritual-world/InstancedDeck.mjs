@@ -9,6 +9,7 @@
  */
 import {CARD_PERIMETER} from './CardSurface.mjs';
 import {deckPose,PHYSICAL_CARD} from './ShuffleChoreography.mjs';
+import {packetOf} from './OrganicDeck.mjs';
 
 const COUNT=78,STRIDE=9*4,INSTANCE_STRIDE=15*4,SHADOW_SIZE=1024;
 export const DECK_SHEET_STEP=.0170;
@@ -86,10 +87,9 @@ float shadowVisibility(){
 void main(){
  vec3 base;
  if(vSurface>1.5){
-  // Real separate edge faces: warm paper alternating with restrained
-  // navy/ink edge tint, lit per sheet. NOT a slab-side painted texture.
-  float ink=smoothstep(.72,.88,vEdgeTone);
-  base=mix(vec3(.83,.81,.75),vec3(.09,.15,.28),ink*.84);
+  // Uniform pearlescent cardstock within each macro packet.
+  // True packet seams and depth shadows replace painted zebra stripes.
+  base=mix(vec3(.80,.79,.77),vec3(.89,.89,.87),vEdgeTone);
  }else{
   float slot=vSurface<.5?vFaceSlot:78.;
   vec2 uv=(vec2(mod(slot,9.),floor(slot/9.))+vec2(mix(.009,.991,vUV.x),mix(.009,.991,vUV.y)))/9.;
@@ -169,7 +169,7 @@ export function deckInstanceLayout(cards,worldTime=0,closeup=1){
  const instances=cards.map(card=>{
   const pose=deckPose(card,worldTime);
   const normal=pose.attitude.normal;
-  const rank=card.orbitSlot,cluster=Math.floor(rank/5);
+  const rank=card.orbitSlot,packet=packetOf(rank);
   // Organic planar offsets are already part of deckPose — never add them
   // again only when the renderer changes at the end of consolidation.
   const p=pose.position;
@@ -177,7 +177,7 @@ export function deckInstanceLayout(cards,worldTime=0,closeup=1){
    id:card.id,rank,position:[p[0]*zoom,p[1]*zoom,p[2]+moveZ],
    right:pose.attitude.right,up:pose.attitude.up,normal,
    scale:pose.scale*zoom,frontSlot:card.index,
-   edgeTone:((Math.imul(cluster+31,2654435761)>>>0)%100)/100
+   edgeTone:.32+((Math.imul(packet+31,2654435761)>>>0)%100)/500
   };
  });
  return instances;
