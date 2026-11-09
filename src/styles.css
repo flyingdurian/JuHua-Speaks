@@ -411,3 +411,29 @@
 /* Remove the inherited 1240px stage box only while reviewing the sphere. */
 .site.ritual-focused .stage:has(.sphere-page){max-width:none;width:100%;margin:0;padding:0}
 .site.ritual-focused .stage:has(.sphere-page) .sphere-page{max-width:none;width:100%}
+
+/* Gate D v11: immersive three-card flip, subtle three-dimensional tilt and
+   foil only AFTER the face has been revealed. No exposed peek progress meter. */
+.site.ritual-focused .gate-d-reveal{max-width:none;width:100%;min-height:100svh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:92px 16px 46px;background:radial-gradient(ellipse at 50% 32%,#27233d 0%,#0b1022 46%,#03050b 100%);overflow:hidden}
+.gate-d-reveal .physical-card-row{width:min(1050px,96vw);gap:clamp(14px,5vw,88px);margin:clamp(22px,5vh,56px) auto 20px}
+.gate-d-reveal .physical-card-entry{flex:0 1 clamp(124px,19vw,233px)}
+.gate-d-role{font:600 clamp(15px,1.8vw,22px)/1.2 Georgia,serif;letter-spacing:.09em;color:#f4e3be;text-shadow:0 0 18px #a98c657a;margin-bottom:18px;text-transform:uppercase}
+.gate-d-card{cursor:pointer;transform:perspective(1100px) rotateX(-7deg);touch-action:manipulation;filter:drop-shadow(0 30px 28px #000a)}
+.gate-d-card:disabled{opacity:1;cursor:default}
+.gate-d-card .physical-card-rotator{--p:0;--ax:0;--ay:1;transform:rotateY(0deg);transition:transform .98s cubic-bezier(.18,.82,.19,1.02);filter:drop-shadow(0 0 22px #9ba0c329);border-radius:10px}
+.gate-d-card.is-flipped .physical-card-rotator{transform:rotateY(180deg)}
+.gate-d-card .physical-front{transform:rotateY(180deg) translateZ(2px)}
+.gate-d-card .physical-back{transform:translateZ(2px)}
+.gate-d-card .physical-side{box-shadow:inset 0 0 26px #f3d5a12e}
+.gate-d-card .physical-back:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(122deg,transparent 17%,#fff4d431 37%,transparent 51%,#e6cdef21 75%,transparent 85%);background-size:240% 100%;animation:gate-d-back-gloss 7s ease-in-out infinite}
+.gate-d-card .gate-d-gloss{position:absolute;inset:0;border-radius:9px;z-index:6;pointer-events:none;opacity:0;background:linear-gradient(112deg,transparent 28%,#fff7bd24 44%,#ffffff5b 49%,transparent 57%);background-size:280% 100%;transform:translateZ(12px);mix-blend-mode:screen}
+.gate-d-card.is-flipped .gate-d-gloss{animation:gate-d-foil 5.5s ease-in-out 1s infinite}
+.gate-d-reveal .physical-card-meta{min-height:112px}
+.gate-d-reveal .physical-card-meta strong{font-size:clamp(14px,1.6vw,20px);color:#ffe4b2}
+.gate-d-reveal .physical-card-meta p{font-size:clamp(12px,1.2vw,14px);line-height:1.5}
+.gate-d-reveal .physical-card-meta>span:first-child{font-size:11px}
+.gate-d-reveal .physical-card-entry.has-revealed .physical-card-rotator{animation:none;filter:drop-shadow(0 0 13px #d9bc8966)}
+@keyframes gate-d-foil{0%,17%,60%,100%{opacity:0;background-position:100% 0}30%{opacity:.36}48%{opacity:.57;background-position:0 0}}
+@keyframes gate-d-back-gloss{0%,22%{background-position:100% 0}62%,100%{background-position:0 0}}
+@media(max-width:740px){.gate-d-reveal .physical-card-row{gap:10px}.gate-d-reveal .physical-card-entry{flex-basis:31%}.gate-d-role{font-size:clamp(12px,3vw,16px);margin-bottom:9px}.gate-d-reveal .physical-card-meta p{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.gate-d-card .physical-card-rotator{transition:none!important}.gate-d-card .gate-d-gloss,.gate-d-card .physical-back:after{animation:none!important}}
