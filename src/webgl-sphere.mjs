@@ -91,6 +91,7 @@ layout(location=3) in float a_selected;
 layout(location=4) in float a_hover;
 layout(location=5) in float a_halo;
 layout(location=6) in float a_edge;
+layout(location=7) in float a_tile;
 uniform mat4 u_projection;
 out vec2 v_uv;
 out float v_light;
@@ -98,16 +99,19 @@ out float v_selected;
 out float v_hover;
 out float v_halo;
 out float v_edge;
-void main(){gl_Position=u_projection*vec4(a_position,1.0);v_uv=a_uv;v_light=a_light;v_selected=a_selected;v_hover=a_hover;v_halo=a_halo;v_edge=a_edge;}`;
+out float v_tile;
+void main(){gl_Position=u_projection*vec4(a_position,1.0);v_uv=a_uv;v_light=a_light;v_selected=a_selected;v_hover=a_hover;v_halo=a_halo;v_edge=a_edge;v_tile=a_tile;}`;
 const FRAG=`#version 300 es
 precision mediump float;
-in vec2 v_uv;in float v_light;in float v_selected;in float v_hover;in float v_halo;in float v_edge;
+in vec2 v_uv;in float v_light;in float v_selected;in float v_hover;in float v_halo;in float v_edge;in float v_tile;
 uniform sampler2D u_back;uniform float u_time;
 out vec4 outColor;
 void main(){
  if(v_halo>.5){float r=length((v_uv-.5)*2.0);float alpha=(1.0-smoothstep(.30,1.25,r))*(.20+.22*sin(u_time*1.9+v_uv.y*8.0));outColor=vec4(.95,.76,.44,alpha);return;}
  if(v_edge>.5){float lamination=.78+.22*step(.5,fract(v_uv.y*25.));vec3 gold=mix(vec3(.51,.34,.19),vec3(.99,.85,.62),lamination);outColor=vec4(gold*v_light,1.);return;}
- vec4 tex=texture(u_back,v_uv);
+ float tile=floor(v_tile+.5);
+ vec2 atlasUV=(vec2(mod(tile,9.0),floor(tile/9.0))+v_uv)/9.0;
+ vec4 tex=texture(u_back,atlasUV);
  float streak=pow(max(0.0,1.0-abs(v_uv.x*1.35+v_uv.y*.38-mod(u_time*.11,2.35))),13.0);
  float rim=1.0-smoothstep(0.005,0.07,min(min(v_uv.x,1.0-v_uv.x),min(v_uv.y,1.0-v_uv.y)));
  float shimmer=.7+.3*sin(u_time*2.3+v_uv.y*13.0);
@@ -140,20 +144,38 @@ function cardBackTexture(){
  ctx.font='16px Georgia,serif';ctx.fillText('✦     ✧     ✦',128,64);ctx.font='19px Georgia,serif';ctx.fillText(BRAND.cardBackLabel,128,364);
  return canvas;
 }
+const SPHERE_ATLAS_COLUMNS=9,SPHERE_ATLAS_ROWS=9,SPHERE_TILE_W=128,SPHERE_TILE_H=208;
+const SPHERE_BACK_SLOT=78;
+/** Historic RWS faces are sampled from their actual image assets. Every
+ * face remains bound to its immutable card ID, not its selection position. */
+function createSphereAtlas(){
+ const canvas=document.createElement('canvas');
+ canvas.width=SPHERE_TILE_W*SPHERE_ATLAS_COLUMNS;canvas.height=SPHERE_TILE_H*SPHERE_ATLAS_ROWS;
+ const ctx=canvas.getContext('2d');if(!ctx)throw Error('Sphere atlas canvas unavailable');
+ const back=cardBackTexture();
+ for(let i=0;i<81;i++)ctx.drawImage(back,(i%9)*SPHERE_TILE_W,Math.floor(i/9)*SPHERE_TILE_H,SPHERE_TILE_W,SPHERE_TILE_H);
+ return {canvas,ctx};
+}
+function addHistoricalFace(atlas,image,index){
+ const x=(index%9)*SPHERE_TILE_W,y=Math.floor(index/9)*SPHERE_TILE_H;
+ atlas.ctx.drawImage(image,x+2,y+2,SPHERE_TILE_W-4,SPHERE_TILE_H-4);
+}
 function perspective(aspect){const f=1/Math.tan(FIELD_OF_VIEW/2),near=.08,far=40;
  return new Float32Array([f/aspect,0,0,0,0,f,0,0,0,0,(far+near)/(near-far),-1,0,0,2*far*near/(near-far),0]);
 }
-function appendQuad(point,rot,verts,marked=false,hovered=false,lift=0,halo=false){
+function appendQuad(point,rot,verts,marked=false,hovered=false,lift=0,halo=false,faceSlot=SPHERE_BACK_SLOT){
  const radius=SPHERE_RADIUS;
  const c=rotatePoint(point.center.map(n=>n*(radius-lift+(halo?.08:0))/radius),rot.rx,rot.ry);
  const {right,up,normal}=cardAxes(point,rot.rx,rot.ry);
  const w=CARD_WIDTH/2*(halo?1.65:1),h=CARD_HEIGHT/2*(halo?1.56:1);
  const light=Math.max(.34,.57+.43*(-c[2]/SPHERE_RADIUS));
  const v=(x,y,z,u,t)=>({p:add(add(add(c,right,x*w),up,y*h),normal,z*SPHERE_CARD_HALF_DEPTH),u,t});
- const tri=(a,b,d,edge=0)=>{for(const x of [a,b,d])verts.push(...x.p,x.u,x.t,light,marked?1:0,hovered?1:0,halo?1:0,edge)};
- const face=(z)=>{const a=v(-1,-1,z,0,1),b=v(1,-1,z,1,1),d=v(1,1,z,1,0),e=v(-1,1,z,0,0);tri(a,b,d);tri(a,d,e)};
- if(halo){face(1.03);return}
- face(-1);face(1);
+ const tri=(a,b,d,edge=0,slot=SPHERE_BACK_SLOT)=>{for(const x of [a,b,d])verts.push(...x.p,x.u,x.t,light,marked?1:0,hovered?1:0,halo?1:0,edge,slot)};
+ const face=(z,slot)=>{const a=v(-1,-1,z,0,1),b=v(1,-1,z,1,1),d=v(1,1,z,1,0),e=v(-1,1,z,0,0);tri(a,b,d,0,slot);tri(a,d,e,0,slot)};
+ if(halo){face(-1.03,SPHERE_BACK_SLOT);return}
+ // Viewer is at sphere origin: -normal is the inside-facing illustrated
+ // face, +normal is the outside-facing decorative back.
+ face(-1,faceSlot);face(1,SPHERE_BACK_SLOT);
  const perimeter=[[-1,-1],[1,-1],[1,1],[-1,1]];
  for(let k=0;k<4;k++){
   const [x,y]=perimeter[k],[xx,yy]=perimeter[(k+1)%4];
@@ -170,18 +192,23 @@ export function mountWebGLSphere(scene,cards,picks,getRotation,options={}){
  try{gl=canvas.getContext('webgl2',{alpha:true,antialias:true,depth:true,powerPreference:'low-power'});}catch{}
  if(!gl){canvas.remove();return null}
  let prog,vao,buffer,texture,frame=0,disposed=false,stopped=false,lastFrame=0,previousTime=null,lastPaintRotation=null;
+ const artAtlas=createSphereAtlas(),loaded=new Set(),imageJobs=[];
+ const artSource=options.faceAssetForId||(()=>null);
  const layout=sphereLayout(cards.length),ids=cards.map(c=>c.id),selected=new Set(picks.map(p=>p.card.id)),hidden=new Set(picks.map(p=>p.card.id));
  let hoveredId=null;const liftState=new Map();
  const rot=()=>{const o=getRotation();return {rx:o.rx*Math.PI/180,ry:o.ry*Math.PI/180}};
- function dispose(){disposed=true;cancelAnimationFrame(frame);if(!gl.isContextLost()){if(prog)gl.deleteProgram(prog);if(vao)gl.deleteVertexArray(vao);if(buffer)gl.deleteBuffer(buffer);if(texture)gl.deleteTexture(texture)}canvas.remove()}
+ function dispose(){disposed=true;for(const image of imageJobs){image.onload=null;image.onerror=null;}cancelAnimationFrame(frame);if(!gl.isContextLost()){if(prog)gl.deleteProgram(prog);if(vao)gl.deleteVertexArray(vao);if(buffer)gl.deleteBuffer(buffer);if(texture)gl.deleteTexture(texture)}canvas.remove()}
  try{
   prog=program(gl,VERT,FRAG);vao=gl.createVertexArray();gl.bindVertexArray(vao);
   buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
-  const stride=40;for(const [location,size,offset] of [[0,3,0],[1,2,12],[2,1,20],[3,1,24],[4,1,28],[5,1,32],[6,1,36]]){gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,size,gl.FLOAT,false,stride,offset)}
+  const stride=44;for(const [location,size,offset] of [[0,3,0],[1,2,12],[2,1,20],[3,1,24],[4,1,28],[5,1,32],[6,1,36],[7,1,40]]){gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,size,gl.FLOAT,false,stride,offset)}
   texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
-  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cardBackTexture());
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,artAtlas.canvas);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.generateMipmap(gl.TEXTURE_2D);
+  // Four simultaneous image loads; redraw only once per eight completions.
+  let queued=0;const sendAtlas=()=>{if(disposed||gl.isContextLost())return;gl.bindTexture(gl.TEXTURE_2D,texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,artAtlas.canvas);gl.generateMipmap(gl.TEXTURE_2D)};
+  let next=0,completed=0;const loadNext=()=>{if(disposed||next>=cards.length)return;const index=next++,url=artSource(ids[index]);if(!url){completed++;loadNext();return;}const im=new Image();imageJobs.push(im);im.decoding='async';im.onload=()=>{if(disposed)return;addHistoricalFace(artAtlas,im,index);loaded.add(index);completed++;queued++;if(queued>=8||completed===cards.length){queued=0;sendAtlas()}loadNext();};im.onerror=()=>{completed++;loadNext();};im.src=url;};for(let loader=0;loader<4;loader++)loadNext();
   gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);
   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   const uProj=gl.getUniformLocation(prog,'u_projection'),uTime=gl.getUniformLocation(prog,'u_time');
@@ -206,11 +233,11 @@ export function mountWebGLSphere(scene,cards,picks,getRotation,options={}){
     const current=liftState.get(id)||0;
     const lift=current+(desired-current)*Math.min(1,delta/170+.13);
     liftState.set(id,lift);
-    if(marked)appendQuad(layout[i],angle,vertices,true,false,lift,true);
-    appendQuad(layout[i],angle,vertices,marked,hovered,lift,false);
+    if(marked)appendQuad(layout[i],angle,vertices,true,false,lift,true,i);
+    appendQuad(layout[i],angle,vertices,marked,hovered,lift,false,loaded.has(i)?i:SPHERE_BACK_SLOT);
    }
    gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.DYNAMIC_DRAW);
-   gl.drawArrays(gl.TRIANGLES,0,vertices.length/10);frame=requestAnimationFrame(paint);
+   gl.drawArrays(gl.TRIANGLES,0,vertices.length/11);frame=requestAnimationFrame(paint);
   }
   canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();stopped=true;cancelAnimationFrame(frame);scene.dispatchEvent(new CustomEvent('sphere-webgl-lost',{bubbles:true}))},{once:true});
   scene.classList.add('webgl-active');frame=requestAnimationFrame(paint);
