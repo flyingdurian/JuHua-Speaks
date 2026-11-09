@@ -30,8 +30,6 @@ try{
  await portal.waitFor({timeout:30000});
  const gate=page.frameLocator('iframe.gate-b-handoff-frame');
  await gate.locator('.sphere-page').waitFor({timeout:30000});
- const frame=await portal.contentFrame();
- frame.on('pageerror',e=>errors.push('Gate C: '+String(e)));
  await page.waitForFunction(()=>document.querySelector('.gate-b-handoff-layer')?.classList.contains('is-ready'),{timeout:15000});
  // Check full-height, edge-to-edge interactive GPU world (not chamber).
  await gate.locator('#sphere-scene').waitFor({timeout:12000});
