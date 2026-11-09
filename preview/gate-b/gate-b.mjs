@@ -2,6 +2,7 @@ import {DECK,shuffleDeck} from '../../src/deck.mjs';
 import {GATE_B_HANDOFF_KEY,createGateBHandoff} from '../../src/gate-b-handoff.mjs';
 import {createVisualSeed} from '../../src/ritual-world/OrbitalField.mjs';
 import {RitualWorld} from '../../src/ritual-world/RitualWorld.mjs';
+import {toCanonicalAge} from '../../src/ritual-world/ReferenceRitual.mjs';
 import {CanvasOrbit} from '../../src/ritual-world/CanvasOrbit.mjs';
 import {mountPostShuffle} from '../post-shuffle/scene.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
@@ -47,7 +48,7 @@ try{
 }
 const flowMist=initFlowMist({
  mount:document.getElementById('ritual-vortex-glow'),seed:visualSeed,
- getAge:()=>world?.phase==='shuffle_ritual'?world.getShuffleState().age:-1,
+ getAge:()=>world?.phase==='shuffle_ritual'?toCanonicalAge(world.getShuffleState().age):-1,
  reduceMotion:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||false
 });
 if(world)document.getElementById('card-counter').textContent=String(world.cards.length)+' INDIVIDUAL CARDS';
@@ -159,6 +160,6 @@ window.__ritualGateB={
  world,diagnostics:()=>world?{...world.getDiagnostics(),sky:sky.diagnostics(),vortex:flowMist.diagnostics()}:null,
  get phase(){return world?.phase||'unavailable'},
  get shuffle(){return world?.getShuffleState()||null},
- version:'Gate B v12 recovery · physical instanced stack / continuous sphere camera',
+ version:'Gate BC v3 · 10.6s organic 78-sheet ritual / 3D foil reveal',
 };
 window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();flowMist.dispose();world?.dispose();postShuffle?.dispose()},{once:true});
