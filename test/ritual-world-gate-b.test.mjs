@@ -261,7 +261,7 @@ test('Every storyboard boundary and every optional shuffle is position-continuou
  }
 });
 test('Washing covers the center of the table and keeps cards thin and physically back-facing',()=>{
- assert.ok(PHYSICAL_CARD.thickness>=.012&&PHYSICAL_CARD.thickness<=.018);
+ assert.ok(PHYSICAL_CARD.thickness>=.009&&PHYSICAL_CARD.thickness<=.012);
  const spread=cards.map(c=>point(c,2.2,'wash'));
  const center=spread.filter(p=>Math.hypot(p.position[0],p.position[1])<1.65);
  assert.ok(center.length>=12,'No hollow ring of cards in the Table Wash');

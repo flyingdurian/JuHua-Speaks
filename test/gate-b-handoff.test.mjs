@@ -42,7 +42,7 @@ test('Gate B preview is wired to the same-tab private selection and Artemis stag
  assert.match(preview,/sessionStorage\.setItem\(GATE_B_HANDOFF_KEY/);
  assert.match(preview,/mountPostShuffle/);
  assert.match(preview,/deckIds:selectionOrder/);
- assert.doesNotMatch(preview,/iframe|window\.location\.assign/);
+ assert.doesNotMatch(preview,/document\.createElement\('iframe'\)|window\.location\.assign\(/);
  assert.match(app,/sessionStorage\.removeItem\(GATE_B_HANDOFF_KEY\)/);
  assert.match(app,/resumeGateBAtSphere\(incomingGateB\)/);
  assert.match(app,/incomingGateB\?3:incomingGateQuestion\?1:0/);

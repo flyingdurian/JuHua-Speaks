@@ -1,0 +1,24 @@
+name: Physical Tarot deck and Gate C review (no deploy)
+on:
+  push:
+    branches: [feat/gate-b-deck-instances-gate-c-continuity]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax
+        run: |
+          node --check src/ritual-world/InstancedDeck.mjs
+          node --check src/ritual-world/RitualWorld.mjs
+          node --check preview/post-shuffle/scene.mjs
+          node --check preview/post-shuffle/geometry.mjs
+          node --check preview/gate-b/gate-b.mjs
+      - run: npm test

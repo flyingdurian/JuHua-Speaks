@@ -21,7 +21,7 @@ try{
   let newlySelected=false;
   for(let tries=0;tries<45&&!newlySelected;tries++){
    const pick=await page.evaluate((attempt)=>{
-    const v=window.__POST_SHUFFLE__.visible().filter(c=>c.side===1&&!c.selected&&c.x>30&&c.x<innerWidth-30&&c.y>76&&c.y<innerHeight-90).sort((a,b)=>a.depth-b.depth);
+    const v=window.__POST_SHUFFLE__.visible().filter(c=>c.side===0&&!c.selected&&c.x>30&&c.x<innerWidth-30&&c.y>76&&c.y<innerHeight-90).sort((a,b)=>a.depth-b.depth);
     return v[(attempt*3)%Math.max(1,v.length)]||null;
    },tries);
    if(!pick)throw Error('No visible inward-facing cards available');
