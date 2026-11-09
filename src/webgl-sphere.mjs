@@ -7,10 +7,11 @@ import {BRAND} from './brand-config.mjs';
 export const SPHERE_RADIUS=6.4;
 export const CARD_WIDTH=1.06;
 export const CARD_HEIGHT=1.72;
+export const SPHERE_CARD_HALF_DEPTH=.065; // Material edge thickness, not a paper plane.
 export const FIELD_OF_VIEW=Math.PI/2.75; // ~65.5 degrees
 const ROWS=6;
 const COLS=13;
-const ROW_LATITUDES=[-66,-40,-14,14,40,66];
+const GOLDEN_ANGLE=Math.PI*(3-Math.sqrt(5));
 const PI2=Math.PI*2;
 
 /** Predictable 6×13 celestial bands rather than irregular exterior clustering. */
@@ -18,8 +19,10 @@ export function sphereLayout(count=78){
  if(!Number.isSafeInteger(count)||count<2)throw new RangeError('Sphere requires at least two cards');
  return Array.from({length:count},(_,i)=>{
   const row=Math.floor(i/COLS),col=i%COLS;
-  const latitude=(ROW_LATITUDES[row%ROWS]??0)*Math.PI/180;
-  const yaw=PI2*(col+(row%2)*.5+(Math.floor(row/ROWS)*.19))/COLS;
+  // Equal-area latitude and golden-angle longitude: a full closed 3D sphere,
+  // not six flat-looking stacked rings or a front-facing card wall.
+  const latitude=Math.asin(1-2*(i+.5)/count);
+  const yaw=(i*GOLDEN_ANGLE+.38)%PI2;
   const normal=[Math.sin(yaw)*Math.cos(latitude),Math.sin(latitude),Math.cos(yaw)*Math.cos(latitude)];
   return {center:normal.map(v=>v*SPHERE_RADIUS),normal,latitude,yaw,row,column:col};
  });
@@ -31,11 +34,21 @@ export function rotatePoint([x,y,z],rx,ry){
 }
 const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
 const add=(a,b,k=1)=>[a[0]+b[0]*k,a[1]+b[1]*k,a[2]+b[2]*k];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const normalize=v=>{const d=Math.hypot(...v)||1;return v.map(x=>x/d)};
 export function cardAxes(point,rx=0,ry=0){
  const {yaw,latitude}=point;
- const right=rotatePoint([-Math.cos(yaw),0,Math.sin(yaw)],rx,ry);
- const up=rotatePoint([-Math.sin(latitude)*Math.sin(yaw),Math.cos(latitude),-Math.sin(latitude)*Math.cos(yaw)],rx,ry);
- return {right,up};
+ const originalRight=rotatePoint([-Math.cos(yaw),0,Math.sin(yaw)],rx,ry);
+ const originalUp=rotatePoint([-Math.sin(latitude)*Math.sin(yaw),Math.cos(latitude),-Math.sin(latitude)*Math.cos(yaw)],rx,ry);
+ const inward=rotatePoint(point.normal.map(n=>-n),rx,ry);
+ // Per-card slight tilt, still broadly tangent to the physical sphere:
+ // genuine sidewalls become readable when the viewer looks around.
+ const tx=.12+.13*Math.sin((point.column+1)*1.91+point.row*.72);
+ const ty=.08*Math.cos((point.row+1)*2.27+point.column*.67);
+ const right=normalize(add(originalRight,inward,tx));
+ const preliminary=normalize(add(originalUp,inward,ty));
+ const up=normalize(add(preliminary,right,-dot(preliminary,right)));
+ return {right,up,normal:normalize(cross(up,right))};
 }
 /** Projection into an inward-looking camera at the origin, facing -Z. */
 export function projectPoint(point,width,height){
@@ -55,14 +68,13 @@ export function pickSphereCard(layout,ids,selection,rx,ry,x,y,width,height,inclu
   if(!includeSelected&&selection.has(ids[i]))continue;
   const center=rotatePoint(layout[i].center,rx,ry);
   if(center[2]>=-.1)continue;
-  const n=rotatePoint(layout[i].normal,rx,ry);
+  const {right,up,normal:n}=cardAxes(layout[i],rx,ry);
   const facing=dot(n,ray);
   if(facing<=.03)continue;
   const t=dot(n,center)/facing;
   if(t<=0)continue;
   const hit=ray.map(v=>v*t);
   const delta=add(hit,center,-1);
-  const {right,up}=cardAxes(layout[i],rx,ry);
   const horizontal=dot(delta,right),vertical=dot(delta,up);
   if(Math.abs(horizontal)>CARD_WIDTH*.51||Math.abs(vertical)>CARD_HEIGHT*.51)continue;
   const score=t+(.01*Math.hypot(horizontal,vertical));
@@ -78,20 +90,23 @@ layout(location=2) in float a_light;
 layout(location=3) in float a_selected;
 layout(location=4) in float a_hover;
 layout(location=5) in float a_halo;
+layout(location=6) in float a_edge;
 uniform mat4 u_projection;
 out vec2 v_uv;
 out float v_light;
 out float v_selected;
 out float v_hover;
 out float v_halo;
-void main(){gl_Position=u_projection*vec4(a_position,1.0);v_uv=a_uv;v_light=a_light;v_selected=a_selected;v_hover=a_hover;v_halo=a_halo;}`;
+out float v_edge;
+void main(){gl_Position=u_projection*vec4(a_position,1.0);v_uv=a_uv;v_light=a_light;v_selected=a_selected;v_hover=a_hover;v_halo=a_halo;v_edge=a_edge;}`;
 const FRAG=`#version 300 es
 precision mediump float;
-in vec2 v_uv;in float v_light;in float v_selected;in float v_hover;in float v_halo;
+in vec2 v_uv;in float v_light;in float v_selected;in float v_hover;in float v_halo;in float v_edge;
 uniform sampler2D u_back;uniform float u_time;
 out vec4 outColor;
 void main(){
  if(v_halo>.5){float r=length((v_uv-.5)*2.0);float alpha=(1.0-smoothstep(.30,1.25,r))*(.20+.22*sin(u_time*1.9+v_uv.y*8.0));outColor=vec4(.95,.76,.44,alpha);return;}
+ if(v_edge>.5){float lamination=.78+.22*step(.5,fract(v_uv.y*25.));vec3 gold=mix(vec3(.51,.34,.19),vec3(.99,.85,.62),lamination);outColor=vec4(gold*v_light,1.);return;}
  vec4 tex=texture(u_back,v_uv);
  float streak=pow(max(0.0,1.0-abs(v_uv.x*1.35+v_uv.y*.38-mod(u_time*.11,2.35))),13.0);
  float rim=1.0-smoothstep(0.005,0.07,min(min(v_uv.x,1.0-v_uv.x),min(v_uv.y,1.0-v_uv.y)));
@@ -130,14 +145,20 @@ function perspective(aspect){const f=1/Math.tan(FIELD_OF_VIEW/2),near=.08,far=40
 }
 function appendQuad(point,rot,verts,marked=false,hovered=false,lift=0,halo=false){
  const radius=SPHERE_RADIUS;
- const targetRadius=halo?radius-lift+.08:radius-lift;
- const c=rotatePoint(point.center.map(n=>n*targetRadius/radius),rot.rx,rot.ry);
- const {right,up}=cardAxes(point,rot.rx,rot.ry);
- const corners=[[-1,-1,0,1],[1,-1,1,1],[1,1,1,0],[-1,-1,0,1],[1,1,1,0],[-1,1,0,0]];
- const light=Math.max(.2,.5+.5*(-c[2]/SPHERE_RADIUS));
- for(const [sx,sy,u,v] of corners){
-  let pos=add(add(c,right,sx*CARD_WIDTH/2*(halo?1.65:1)),up,sy*CARD_HEIGHT/2*(halo?1.56:1));
-  verts.push(pos[0],pos[1],pos[2],u,v,light,marked?1:0,hovered?1:0,halo?1:0);
+ const c=rotatePoint(point.center.map(n=>n*(radius-lift+(halo?.08:0))/radius),rot.rx,rot.ry);
+ const {right,up,normal}=cardAxes(point,rot.rx,rot.ry);
+ const w=CARD_WIDTH/2*(halo?1.65:1),h=CARD_HEIGHT/2*(halo?1.56:1);
+ const light=Math.max(.34,.57+.43*(-c[2]/SPHERE_RADIUS));
+ const v=(x,y,z,u,t)=>({p:add(add(add(c,right,x*w),up,y*h),normal,z*SPHERE_CARD_HALF_DEPTH),u,t});
+ const tri=(a,b,d,edge=0)=>{for(const x of [a,b,d])verts.push(...x.p,x.u,x.t,light,marked?1:0,hovered?1:0,halo?1:0,edge)};
+ const face=(z)=>{const a=v(-1,-1,z,0,1),b=v(1,-1,z,1,1),d=v(1,1,z,1,0),e=v(-1,1,z,0,0);tri(a,b,d);tri(a,d,e)};
+ if(halo){face(1.03);return}
+ face(-1);face(1);
+ const perimeter=[[-1,-1],[1,-1],[1,1],[-1,1]];
+ for(let k=0;k<4;k++){
+  const [x,y]=perimeter[k],[xx,yy]=perimeter[(k+1)%4];
+  const a=v(x,y,1,0,0),b=v(xx,yy,1,1,0),d=v(xx,yy,-1,1,1),e=v(x,y,-1,0,1);
+  tri(a,b,d,1);tri(a,d,e,1);
  }
 }
 export function mountWebGLSphere(scene,cards,picks,getRotation,options={}){
@@ -149,14 +170,14 @@ export function mountWebGLSphere(scene,cards,picks,getRotation,options={}){
  try{gl=canvas.getContext('webgl2',{alpha:true,antialias:true,depth:true,powerPreference:'low-power'});}catch{}
  if(!gl){canvas.remove();return null}
  let prog,vao,buffer,texture,frame=0,disposed=false,stopped=false,lastFrame=0,previousTime=null,lastPaintRotation=null;
- const layout=sphereLayout(cards.length),ids=cards.map(c=>c.id),selected=new Set(picks.map(p=>p.card.id)),hidden=new Set();
+ const layout=sphereLayout(cards.length),ids=cards.map(c=>c.id),selected=new Set(picks.map(p=>p.card.id)),hidden=new Set(picks.map(p=>p.card.id));
  let hoveredId=null;const liftState=new Map();
  const rot=()=>{const o=getRotation();return {rx:o.rx*Math.PI/180,ry:o.ry*Math.PI/180}};
  function dispose(){disposed=true;cancelAnimationFrame(frame);if(!gl.isContextLost()){if(prog)gl.deleteProgram(prog);if(vao)gl.deleteVertexArray(vao);if(buffer)gl.deleteBuffer(buffer);if(texture)gl.deleteTexture(texture)}canvas.remove()}
  try{
   prog=program(gl,VERT,FRAG);vao=gl.createVertexArray();gl.bindVertexArray(vao);
   buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
-  const stride=36;for(const [location,size,offset] of [[0,3,0],[1,2,12],[2,1,20],[3,1,24],[4,1,28],[5,1,32]]){gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,size,gl.FLOAT,false,stride,offset)}
+  const stride=40;for(const [location,size,offset] of [[0,3,0],[1,2,12],[2,1,20],[3,1,24],[4,1,28],[5,1,32],[6,1,36]]){gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,size,gl.FLOAT,false,stride,offset)}
   texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cardBackTexture());
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
@@ -189,14 +210,14 @@ export function mountWebGLSphere(scene,cards,picks,getRotation,options={}){
     appendQuad(layout[i],angle,vertices,marked,hovered,lift,false);
    }
    gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.DYNAMIC_DRAW);
-   gl.drawArrays(gl.TRIANGLES,0,vertices.length/9);frame=requestAnimationFrame(paint);
+   gl.drawArrays(gl.TRIANGLES,0,vertices.length/10);frame=requestAnimationFrame(paint);
   }
   canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();stopped=true;cancelAnimationFrame(frame);scene.dispatchEvent(new CustomEvent('sphere-webgl-lost',{bubbles:true}))},{once:true});
   scene.classList.add('webgl-active');frame=requestAnimationFrame(paint);
   return {
    canvas,
-   pick(clientX,clientY){const b=canvas.getBoundingClientRect(),a=lastPaintRotation||rot();return pickSphereCard(layout,ids,selected,a.rx,a.ry,clientX-b.left,clientY-b.top,b.width,b.height,true)},
-   pickCenter(){const b=canvas.getBoundingClientRect(),a=lastPaintRotation||rot();return pickSphereCard(layout,ids,selected,a.rx,a.ry,b.width/2,b.height/2,b.width,b.height,true)},
+   pick(clientX,clientY){const b=canvas.getBoundingClientRect(),a=lastPaintRotation||rot();return pickSphereCard(layout,ids,new Set([...selected,...hidden]),a.rx,a.ry,clientX-b.left,clientY-b.top,b.width,b.height,false)},
+   pickCenter(){const b=canvas.getBoundingClientRect(),a=lastPaintRotation||rot();return pickSphereCard(layout,ids,new Set([...selected,...hidden]),a.rx,a.ry,b.width/2,b.height/2,b.width,b.height,false)},
    projectCard(id){
     const index=ids.indexOf(id);if(index<0)return null;
     const b=canvas.getBoundingClientRect(),a=lastPaintRotation||rot();
