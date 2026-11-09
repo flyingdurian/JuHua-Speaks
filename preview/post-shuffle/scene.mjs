@@ -8,7 +8,7 @@
  */
 import {DECK,commonsThumbnailUrl,drawOrientation} from '../../src/deck.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
-import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,selectCard,getStage} from './geometry.mjs';
+import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,perspectiveFocal,CAMERA_CLIP_NEAR,CAMERA_NEAR,clipCardNearPlane} from './geometry.mjs';
 
 const W=174,H=288,COLS=10,ROWS=8,ATLAS_W=W*COLS,ATLAS_H=H*ROWS;
 const vs=`#version 300 es
@@ -68,10 +68,14 @@ function backArt(ctx,x,y){
  ctx.restore();
 }
 function fallbackFace(ctx,x,y,card){
- ctx.save();ctx.translate(x,y);ctx.fillStyle='#e7dfca';ctx.fillRect(0,0,W,H);ctx.strokeStyle='#4a4546';ctx.lineWidth=3;ctx.strokeRect(6,7,W-12,H-14);
- const grad=ctx.createLinearGradient(0,20,W,H-20);grad.addColorStop(0,'#787a8c');grad.addColorStop(.5,'#b7a58c');grad.addColorStop(1,'#53647d');ctx.fillStyle=grad;ctx.fillRect(12,22,W-24,H-54);
- ctx.fillStyle='#202638';ctx.beginPath();ctx.arc(W/2,H*.41,38,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#f5e8c5';ctx.stroke();ctx.fillStyle='#dfc9aa';ctx.textAlign='center';ctx.font='17px Georgia,serif';ctx.fillText('✦',W/2,H*.41+7);
- const words=card.name.toUpperCase().split(' ');ctx.fillStyle='#151515';ctx.font='bold 13px Georgia,serif';const lines=[];let l='';for(const w of words){if((l+' '+w).length>20){lines.push(l);l=w}else l=l?l+' '+w:w}lines.push(l);lines.slice(0,2).forEach((v,j)=>ctx.fillText(v,W/2,H-18-j*16));ctx.restore();
+ // Never substitute invented Tarot illustrations for missing historical RWS art.
+ ctx.save();ctx.translate(x,y);
+ ctx.fillStyle='#131827';ctx.fillRect(0,0,W,H);
+ ctx.strokeStyle='#b2ac9c';ctx.lineWidth=2;ctx.strokeRect(6,7,W-12,H-14);
+ ctx.textAlign='center';ctx.fillStyle='#e0caba';ctx.font='bold 14px Arial,sans-serif';
+ ctx.fillText('RWS ART',W/2,H/2-13);ctx.fillText('UNAVAILABLE',W/2,H/2+7);
+ ctx.fillStyle='#9e9c9e';ctx.font='11px Arial,sans-serif';ctx.fillText(card.id.replace(/_/g,' ').slice(0,21),W/2,H-26);
+ ctx.restore();
 }
 function atlasTexture(gl,cards,shouldRun){
  const canvas=document.createElement('canvas');canvas.width=ATLAS_W;canvas.height=ATLAS_H;
@@ -81,7 +85,7 @@ function atlasTexture(gl,cards,shouldRun){
  const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
  function upload(){if(!dirty||!shouldRun())return;gl.bindTexture(gl.TEXTURE_2D,tex);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,canvas);dirty=false}
  const imgs=[];
- function load(i,uri,fallback=false){if(!shouldRun())return;const img=new Image();img.decoding='async';imgs.push(img);img.onload=()=>{if(!shouldRun())return;ctx.drawImage(img,(i%COLS)*W,Math.floor(i/COLS)*H,W,H);dirty=true;loaded++};img.onerror=()=>{if(!fallback)load(i,commonsThumbnailUrl(cards[i]),true);else failed++};img.src=uri}
+ function load(i,uri,fallback=false){if(!shouldRun())return;const img=new Image();img.decoding='async';img.crossOrigin='anonymous';imgs.push(img);img.onload=()=>{if(!shouldRun())return;ctx.drawImage(img,(i%COLS)*W,Math.floor(i/COLS)*H,W,H);dirty=true;loaded++};img.onerror=()=>{if(!fallback)load(i,commonsThumbnailUrl(cards[i]),true);else failed++};img.src=uri}
  cards.forEach((card,i)=>load(i,new URL('../../assets/rws/'+card.id+'.jpg',import.meta.url).href));
  upload();return {tex,upload,stats:()=>({loaded,failed}),dispose(){imgs.forEach(i=>{i.onload=null;i.onerror=null;i.src=''});gl.deleteTexture(tex)}};
 }
@@ -107,7 +111,7 @@ function cardPose(point,t,turn,yaw,pitch,selectedPct){
  const uu=up.map((v,i)=>Math.cos(a)*v-Math.sin(a)*right[i]);
  return {position:p,normal:n,right:rr,up:uu};
 }
-function project(p,camZ,viewport){const z=camZ-p[2],f=viewport.h/(2*Math.tan(85*Math.PI/360/2));if(z<=.22)return null;return {x:viewport.w*.5+p[0]*f/z,y:viewport.h*.5-p[1]*f/z,z};}
+function project(p,camZ,viewport){const z=camZ-p[2],f=viewport.h*.5*perspectiveFocal();if(z<CAMERA_CLIP_NEAR)return null;return {x:viewport.w*.5+p[0]*f/z,y:viewport.h*.5-p[1]*f/z,z};}
 function insideTriangle(x,y,a,b,c){const v0=[c.x-a.x,c.y-a.y],v1=[b.x-a.x,b.y-a.y],v2=[x-a.x,y-a.y];const d00=dot(v0,v0),d01=dot(v0,v1),d02=dot(v0,v2),d11=dot(v1,v1),d12=dot(v1,v2),den=d00*d11-d01*d01;if(Math.abs(den)<.001)return false;const v=(d11*d02-d01*d12)/den,w=(d00*d12-d01*d02)/den;return v>=0&&w>=0&&v+w<=1;}
 function hitsQuad(x,y,c){return insideTriangle(x,y,c[0],c[1],c[2])||insideTriangle(x,y,c[0],c[2],c[3]);}
 
@@ -159,14 +163,20 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
    const id=deckIds[i],selected=selectedAt.has(id),pct=selected?selectedPct(id):0;
    const p=cardPose(points[i],t,angle,0,pitch,pct);
    const corners=[projectCorner(p.position,p.right,p.up,-1,-1),projectCorner(p.position,p.right,p.up,1,-1),projectCorner(p.position,p.right,p.up,1,1),projectCorner(p.position,p.right,p.up,-1,1)];
-   const projected=corners.map(pt=>project(pt,cam,viewport));const center=project(p.position,cam,viewport);
-   if(projected.some(p=>!p)||!center)continue;
+   const clipped=clipCardNearPlane(corners,cam);
+   if(clipped.length<3)continue;
+   const projected=corners.map(pt=>project(pt,cam,viewport)),center=project(p.position,cam,viewport);
    // Original RWS illustrations face the exterior; after camera entry the
-   // blue celestial backs of the SAME physical cards face the viewer.
+   // navy backs of these SAME physical cards face the viewer.
    const side=dot(p.normal,[0,0,cam].map((c,j)=>c-p.position[j]))>=0?1:0;
-   const order=[0,1,2,0,2,3],uv=[[0,0],[1,0],[1,1],[0,1]];
-   for(const k of order){const c=corners[k];vertex.push(c[0],c[1],c[2]-cam,uv[k][0],uv[k][1],i,side,selected?1:0)}
-   if(center.x>-170&&center.x<viewport.w+170&&center.y>-220&&center.y<viewport.h+220)visible.push({id,index:i,corners:projected,center,side,selected,depth:center.z});
+   // Clip a crossing physical card at the camera near plane rather than
+   // removing its entire sheet, which causes visible fly-by popping.
+   for(let j=1;j<clipped.length-1;j++)for(const v of [clipped[0],clipped[j],clipped[j+1]]){
+    const c=v.position;vertex.push(c[0],c[1],c[2]-cam,v.uv[0],v.uv[1],i,side,selected?1:0);
+   }
+   // A partly clipped card is never a selection target.
+   if(center&&projected.every(Boolean)&&center.x>-170&&center.x<viewport.w+170&&center.y>-220&&center.y<viewport.h+220)
+    visible.push({id,index:i,corners:projected,center,side,selected,depth:center.z});
   }
   return {vertices:new Float32Array(vertex),visible};
  }
@@ -190,9 +200,9 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   const state=getStage(t,choices.length);step=state;world.dataset.beat=state;
   ready=t>=BEATS.interactive;
   mount.querySelector('#ps-stage').textContent=state==='launch'?'DECK IN FLIGHT':state==='distribute'?'CARDS UNFOLDING':state==='enter'?'ENTERING THE SPHERE':state==='inside'?'INSIDE THE UNIVERSE':'YOUR SELECTION';
-  mount.querySelector('#ps-hint').textContent=ready?'Drag to look around · Tap a card to choose':'The cards are taking their places…';
+  mount.querySelector('#ps-hint').textContent=atlas.stats().failed>0?'RWS artwork unavailable on '+atlas.stats().failed+' cards · Please sync assets':ready?'Drag to look around · Tap a card to choose':'The cards are taking their places…';
   const data=computeGeometry(t);rendered=data.visible;
-  atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,1/Math.tan(85*Math.PI/360/2));gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,.07);gl.uniform1f(uniform.far,100);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/8);
+  atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,perspectiveFocal());gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,CAMERA_NEAR);gl.uniform1f(uniform.far,100);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/8);
   updateAuras();
  }
  let t=0;
