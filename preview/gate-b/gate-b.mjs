@@ -160,6 +160,6 @@ window.__ritualGateB={
  world,diagnostics:()=>world?{...world.getDiagnostics(),sky:sky.diagnostics(),vortex:flowMist.diagnostics()}:null,
  get phase(){return world?.phase||'unavailable'},
  get shuffle(){return world?.getShuffleState()||null},
- version:'Gate BC v3.3 · cohesive matte deck / 360° sphere / four hologram reveals',
+ version:'Gate BC v3.4 · rotating deck / ethereal mist / engraved overlays / seamless three-card handoff',
 };
 window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();flowMist.dispose();world?.dispose();postShuffle?.dispose()},{once:true});
