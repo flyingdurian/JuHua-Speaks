@@ -127,7 +127,25 @@ document.getElementById('finish-shuffle').addEventListener('click',()=>{
  const button=document.getElementById('finish-shuffle');button.disabled=true;
  root.classList.add('gate-b-entering-selection');
  notice.textContent='Entering the 78-card celestial sphere…';
- window.setTimeout(()=>window.location.assign(new URL('../../ritual.html',import.meta.url).href),650);
+ // Preserve the actual 3D deck until Gate C has a rendered viewport.
+ // A same-origin iframe uses the private single-use payload and prevents
+ // the visible flash/hard route cut between WebGL universes.
+ const layer=document.createElement('div');
+ layer.className='gate-b-handoff-layer';layer.setAttribute('aria-label','Entering the inner Tarot universe');
+ const frame=document.createElement('iframe');
+ frame.className='gate-b-handoff-frame';frame.title='Inside the Tarot cosmos';
+ frame.setAttribute('allow','fullscreen');layer.append(frame);document.body.append(layer);
+ frame.addEventListener('load',()=>{
+  root.classList.add('gate-b-handoff-ready');layer.classList.add('is-ready');
+  window.setTimeout(()=>{world?.setPaused(true);sky.dispose();flowMist.dispose()},1100);
+ },{once:true});
+ try{frame.src=new URL('../../ritual.html',import.meta.url).href;}
+ catch(error){
+  layer.remove();root.classList.remove('gate-b-entering-selection');handingOff=false;button.disabled=false;
+  notice.textContent='Scene failed to load. Retry Finish Shuffling.';
+  console.warn('Sphere handoff fallback',error);
+  window.location.assign(new URL('../../ritual.html',import.meta.url).href);
+ }
 });
 buttonPause.addEventListener('click',()=>{
  if(!world)return;
@@ -147,6 +165,6 @@ window.__ritualGateB={
  world,diagnostics:()=>world?{...world.getDiagnostics(),sky:sky.diagnostics(),vortex:flowMist.diagnostics()}:null,
  get phase(){return world?.phase||'unavailable'},
  get shuffle(){return world?.getShuffleState()||null},
- version:'Gate B v10.7 · 45-degree cyclone / selective accents',
+ version:'Gate B v11 · 10.95s / Anti-Solid / seamless sphere entrance',
 };
 window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();flowMist.dispose();world?.dispose()},{once:true});
