@@ -1,6 +1,8 @@
 name: Physical Tarot deck and Gate C review (no deploy)
 on:
   push:
+    branches: [feat/gate-b-deck-instances-gate-c-continuity, fix/gate-bc-continuity-overlay-idle-rotation]
+  pull_request:
     branches: [feat/gate-b-deck-instances-gate-c-continuity]
   workflow_dispatch:
 permissions:
