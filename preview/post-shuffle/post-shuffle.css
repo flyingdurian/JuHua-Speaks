@@ -407,6 +407,18 @@ body.gate-b-post-shuffle-live #post-shuffle-mount.ps-mount{position:fixed;inset:
  box-shadow:none!important;filter:none!important;
  will-change:background-position,opacity;
 }
+/* Visibility contract: the engraving has its OWN transparent layer, with
+ * ink/gold contour pixels already keyed against pale RWS artwork. Screen
+ * blending removed those dark contours and made the picker look inert. */
+.ps-card-front .ps-card-art-overlay{
+ display:block!important;visibility:visible!important;
+ isolation:isolate;mix-blend-mode:normal!important;
+ background-blend-mode:normal!important;opacity:.88!important;
+}
+.ps-card-front .ps-card-art-overlay[data-overlay-style="celestial-lattice"]{opacity:.82!important}
+.ps-card-front .ps-card-art-overlay[data-overlay-style="constellation-map"]{opacity:.92!important}
+.ps-card-front .ps-card-art-overlay[data-overlay-style="alchemical-glyphs"]{opacity:.89!important}
+.ps-card-front .ps-card-art-overlay[data-overlay-style="scroll-texture"]{opacity:.86!important}
 .ps-card-art-overlay::after{content:none!important}
 .ps-overlay-celestial-lattice .ps-card-art-overlay{
  opacity:.48;animation:ps-art-lattice 17s ease-in-out infinite alternate;
