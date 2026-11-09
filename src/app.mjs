@@ -11,10 +11,10 @@ import {createRitualSession,transitionRitual,canConfirmThree,DEFAULT_SHUFFLE_MS}
 import {prepareQuestionPreflight} from './reading-orchestrator.mjs';
 import {renderRitualLanding,renderRitualShuffle} from './ritual-views.mjs';
 import {mountRitualCinema,LAUNCH_DURATION_MS} from './ritual-cinema.mjs';
-import {renderPhysicalReveal,peekOrigin,peekProgress,clampPeek} from './physical-reveal.mjs';
+import {renderPhysicalReveal} from './physical-reveal.mjs';
 import {renderArtemisInvitation,renderArtemisTable} from './artemis-stage.mjs';
 import {GATE_B_HANDOFF_KEY,parseGateBHandoff,resumeGateBAtSphere} from './gate-b-handoff.mjs';
-import {clampReveal,progressFromCardDrag,progressFromPinch,nextRevealProgress,isRevealed,allCardsRevealed} from './reveal-interaction.mjs';
+import {allCardsRevealed} from './reveal-interaction.mjs';
 
 const root=document.querySelector('#app');
 let incomingGateQuestion='';
@@ -248,7 +248,6 @@ function go(step){if(step!==3)cancelAutoConfirm();if(step===3&&state.ritual.phas
 function reshuffle(){cancelAutoConfirm();resetDemo();state.shuffled=shuffleDeck();state.picks=[];state.shuffles++;state.revealIndex=0;state.revealProgress=0;state.revealedCards=[false,false,false]}
 function selectCard(card){if(!card||state.ritual.phase!=='sphere_selection'||state.ritualLocking)return;try{cancelAutoConfirm();state.ritual=transitionRitual(state.ritual,'TOGGLE_CARD',{cardId:card.id,orientation:drawOrientation()});state.picks=state.ritual.selected.map(c=>({card:BY_ID.get(c.cardId),orientation:c.orientation}));if(state.picks.length===3){state.autoConfirmAt=null;/* Foreground trio remains for visual inspection until explicit confirmation. */}render();}catch(e){toast(e.message);}}
 function toggleCard(card){selectCard(card);}
-function paintPhysicalPeek(index,progress,axis){const value=clampPeek(progress);state.peekProgress[index]=value;state.peekAxes[index]={ax:axis.ax,ay:axis.ay};const el=root.querySelector('[data-peek-card="'+index+'"]');if(el){el.style.setProperty('--p',String(value));el.style.setProperty('--ax',String(axis.ax));el.style.setProperty('--ay',String(axis.ay));el.setAttribute('aria-valuenow',String(Math.round(value*100)));}const meter=root.querySelector('[data-peek-progress="'+index+'"]');if(meter)meter.value=Math.round(value*100);}
 function revealPhysicalCard(index){if(state.step!==4||state.revealedCards[index])return;state.revealedCards[index]=true;state.peekProgress[index]=1;if(state.ritual.phase==='three_reveal')state.ritual=transitionRitual(state.ritual,'REVEAL_CARD',{index});render();}
 function centerRect(rect){return rect&&Number.isFinite(rect.left)?{x:rect.left+rect.width/2,y:rect.top+rect.height/2,width:rect.width,height:rect.height}:null}
 /** Picking remains locked until the chosen card has visibly arrived in the next hand slot. */
@@ -277,8 +276,6 @@ function catchCard(card,source){
 }
 
 function orbOrientation(){const el=root.querySelector('#orb');if(el){el.style.setProperty('--rx',state.rx+'deg');el.style.setProperty('--ry',state.ry+'deg')}}
-function paintPeel(progress){state.revealProgress=clampReveal(progress);const card=root.querySelector('#peel-card');if(card){card.style.setProperty('--reveal-p',state.revealProgress);card.setAttribute('aria-valuenow',String(Math.round(state.revealProgress*100)));}const bar=root.querySelector('#peel-track-fill');if(bar)bar.style.width=(state.revealProgress*100)+'%';const label=root.querySelector('#peel-progress-label');if(label)label.textContent=Math.round(state.revealProgress*100)+'%';}
-function completePeel(){state.revealProgress=1;state.revealedCards[state.revealIndex]=true;if(state.ritual.phase==='three_reveal')state.ritual=transitionRitual(state.ritual,'REVEAL_CARD',{index:state.revealIndex});render()}
 const oldDefault='Should I accept the new job offer or stay in my current role?',newDefault='我应该接受新工作，还是留在目前的职位？';
 root.addEventListener('sphere-webgl-lost',()=>{state.sphereMode='2d';render()});
 root.addEventListener('input',e=>{const key={question:'question',optionA:'optionA',optionB:'optionB'}[e.target.id];if(key)state[key]=e.target.value});
@@ -294,24 +291,16 @@ root.addEventListener('change',e=>{
  }catch(err){const output=root.querySelector('#private-import-status');if(output)output.textContent=err.message}
 });
 window.addEventListener('pagehide',()=>{for(const url of state.privateImages.values())URL.revokeObjectURL(url);ritualCinema?.dispose();clearLaunch();cancelAutoConfirm();});
-let drag=null,peelDrag=null,peelPinch=null,peelPoints=new Map(),peekDrag=null,ignoreClickUntil=0;
+let drag=null,ignoreClickUntil=0;
 root.addEventListener('pointerdown',e=>{
- const peek=e.target.closest?.('[data-peek-card]');
- if(peek&&state.step===4){const index=Number(peek.dataset.peekCard);if(state.revealedCards[index])return;const rect=peek.getBoundingClientRect(),origin=peekOrigin(e.clientX-rect.left,e.clientY-rect.top,rect.width,rect.height);peekDrag={pointerId:e.pointerId,index,startX:e.clientX,startY:e.clientY,width:rect.width,height:rect.height,startProgress:state.peekProgress[index],origin,moved:false};peek.setPointerCapture?.(e.pointerId);paintPhysicalPeek(index,state.peekProgress[index],origin);return;}
- const peel=e.target.closest('#peel-card');if(peel&&state.step===4&&!state.revealedCards[state.revealIndex]){
-  peelPoints.set(e.pointerId,e.clientX);
-  if(peelPoints.size===1)peelDrag={pointerId:e.pointerId,startX:e.clientX,startProgress:state.revealProgress,width:peel.getBoundingClientRect().width};
-  if(peelPoints.size===2){const points=Array.from(peelPoints.values());peelPinch={startDistance:Math.abs(points[1]-points[0]),startProgress:state.revealProgress,width:peel.getBoundingClientRect().width};peelDrag=null;}
-  peel.setPointerCapture?.(e.pointerId);peel.classList.add('gripping');e.preventDefault();return;
- }
  const scene=e.target.closest('#sphere-scene');if(!scene||pendingFlight)return;state.orbitHoldUntil=performance.now()+DRAG_RESUME_DELAY_MS;drag={startX:e.clientX,startY:e.clientY,rx:state.rx,ry:state.ry,moved:false};scene.classList.add('dragging')});
-root.addEventListener('pointermove',e=>{if(peekDrag&&peekDrag.pointerId===e.pointerId){const d=peekDrag,dx=e.clientX-d.startX,dy=e.clientY-d.startY;d.moved=d.moved||Math.hypot(dx,dy)>6;if(d.moved)paintPhysicalPeek(d.index,peekProgress(d.startProgress,dx,dy,d.width,d.height,d.origin),d.origin);return;}if(state.step===3&&e.target.id==='sphere-webgl'&&webglSphere&&!drag)webglSphere.setHover(webglSphere.pick(e.clientX,e.clientY));if(peelPoints.has(e.pointerId)){peelPoints.set(e.pointerId,e.clientX);if(peelPinch&&peelPoints.size===2){const points=Array.from(peelPoints.values());paintPeel(progressFromPinch(peelPinch.startProgress,peelPinch.startDistance,Math.abs(points[1]-points[0]),peelPinch.width));return;}}if(peelDrag&&e.pointerId===peelDrag.pointerId){paintPeel(progressFromCardDrag(peelDrag.startProgress,peelDrag.startX,e.clientX,peelDrag.width));return;}if(!drag)return;const dx=e.clientX-drag.startX,dy=e.clientY-drag.startY;if(Math.abs(dx)+Math.abs(dy)>7)drag.moved=true;if(drag.moved){state.ry=drag.ry+dx*.5;state.rx=Math.max(-82,Math.min(82,drag.rx-dy*.45));orbOrientation()}});
 const finishDrag=()=>{if(drag?.moved)ignoreClickUntil=Date.now()+300;if(drag)state.orbitHoldUntil=performance.now()+DRAG_RESUME_DELAY_MS;drag=null;root.querySelector('#sphere-scene')?.classList.remove('dragging')};
-root.addEventListener('pointerup',e=>{if(peekDrag&&peekDrag.pointerId===e.pointerId){const d=peekDrag;peekDrag=null;if(d.moved){ignoreClickUntil=Date.now()+430;if(state.peekProgress[d.index]>=.985)revealPhysicalCard(d.index);}return;}if(peelPoints.has(e.pointerId)){peelPoints.delete(e.pointerId);peelDrag=null;peelPinch=null;if(peelPoints.size===1){const [id,x]=peelPoints.entries().next().value;peelDrag={pointerId:id,startX:x,startProgress:state.revealProgress,width:root.querySelector('#peel-card')?.getBoundingClientRect().width||250};}else{root.querySelector('#peel-card')?.classList.remove('gripping');if(state.revealProgress>=.93)completePeel()}return}finishDrag()});
-root.addEventListener('pointercancel',()=>{peekDrag=null;peelDrag=null;peelPinch=null;peelPoints.clear();root.querySelector('#peel-card')?.classList.remove('gripping');finishDrag()});
-root.addEventListener('pointerleave',()=>{if(!peelDrag)finishDrag()});
+root.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.startX,dy=e.clientY-drag.startY;if(Math.abs(dx)+Math.abs(dy)>7)drag.moved=true;if(drag.moved){state.ry=drag.ry+dx*.5;state.rx=Math.max(-82,Math.min(82,drag.rx-dy*.45));orbOrientation()}});
+root.addEventListener('pointerup',()=>finishDrag());
+root.addEventListener('pointercancel',()=>finishDrag());
+root.addEventListener('pointerleave',()=>finishDrag());
 root.addEventListener('click',e=>{
-  const peekButton=e.target.closest?.('[data-peek-card]');if(peekButton){if(Date.now()<ignoreClickUntil)return;revealPhysicalCard(Number(peekButton.dataset.peekCard));return;}
+  const flipButton=e.target.closest?.('[data-flip-card]');if(flipButton){if(Date.now()<ignoreClickUntil)return;revealPhysicalCard(Number(flipButton.dataset.flipCard));return;}
   if(e.target.id==='sphere-webgl'){if(Date.now()<ignoreClickUntil||pendingFlight)return;const id=webglSphere?.pick(e.clientX,e.clientY);if(id)catchCard(BY_ID.get(id),{x:e.clientX,y:e.clientY,width:70,height:112});return}
   const button=e.target.closest('button');if(!button||!root.contains(button))return;
   if(pendingFlight&&button.dataset.action==='next')return;
@@ -340,8 +329,6 @@ root.addEventListener('click',e=>{
      case 'confirm-cards':confirmThreeCards();break;
     case 'shuffle':break; // 8.1 automatic shuffle is gated, not manually accelerated
     case 'next':go(state.step+1);break;
-    case 'complete-reveal':completePeel();break;
-    case 'peel-a-little':{const next=nextRevealProgress(state.revealProgress,.20);if(isRevealed(next))completePeel();else paintPeel(next);break;}
     case 'next-reveal':if(allCardsRevealed(state.revealedCards))go(5);break;
     case 'mapping-guide':{const blob=new Blob([deckFileNameGuide(DECK)],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='JuHua-Chinese-Tarot-78-card-filename-guide.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);break;}
     case 'use-rws':state.deckId='rws';state.modal=null;render();break;
@@ -365,7 +352,7 @@ root.addEventListener('click',e=>{
   }
 });
 root.addEventListener('submit',event=>{if(event.target?.id==='local-exodia-followup'){event.preventDefault();const field=root.querySelector('#local-exodia-question');const value=field?.value.trim();if(value?.length>=2)runLocalReading(value);return;}if(event.target?.id!=='demo-followup-form')return;event.preventDefault();const input=root.querySelector('#demo-followup-input');const message=input?.value.trim();if(!message)return;submitDemoFollowUp(message);if(input&&!input.disabled){input.value='';input.focus();}});
-root.addEventListener('keydown',e=>{if(e.target.closest?.('#peel-card')&&state.step===4&&!state.revealedCards[state.revealIndex]){if(['ArrowRight','ArrowLeft','Home','End'].includes(e.key)){e.preventDefault();const value=e.key==='End'?1:e.key==='Home'?0:nextRevealProgress(state.revealProgress,e.key==='ArrowRight'?.1:-.1);if(isRevealed(value))completePeel();else paintPeel(value);return;}}if(e.key==='Escape'&&state.modal){state.modal=null;render()}if(state.step===3&&!state.modal&&e.target.closest('#sphere-scene')){if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();state.orbitHoldUntil=performance.now()+DRAG_RESUME_DELAY_MS;if(e.key==='ArrowLeft')state.ry-=24;if(e.key==='ArrowRight')state.ry+=24;if(e.key==='ArrowUp')state.rx=Math.min(75,state.rx+16);if(e.key==='ArrowDown')state.rx=Math.max(-75,state.rx-16);orbOrientation()}else if(e.key==='Enter'&&e.target.id==='sphere-webgl'){const id=webglSphere?.pickCenter();if(id)catchCard(BY_ID.get(id),webglSphere?.projectCard(id))}}});
+root.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.modal){state.modal=null;render()}if(state.step===3&&!state.modal&&e.target.closest('#sphere-scene')){if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();state.orbitHoldUntil=performance.now()+DRAG_RESUME_DELAY_MS;if(e.key==='ArrowLeft')state.ry-=24;if(e.key==='ArrowRight')state.ry+=24;if(e.key==='ArrowUp')state.rx=Math.min(75,state.rx+16);if(e.key==='ArrowDown')state.rx=Math.max(-75,state.rx-16);orbOrientation()}else if(e.key==='Enter'&&e.target.id==='sphere-webgl'){const id=webglSphere?.pickCenter();if(id)catchCard(BY_ID.get(id),webglSphere?.projectCard(id))}}});
 render();
 
 // Local Exodia is unavailable from GitHub Pages and is never called automatically.
