@@ -5,9 +5,10 @@ import {makeLandingCardEntities} from '../src/ritual-world/OrbitalField.mjs';
 import {DECK} from '../src/deck.mjs';
 import {sampleVortexCard,sampleVortexRibbon,vortexCamera,rotateVortexBasis} from '../src/ritual-world/VortexRibbon.mjs';
 import {samplePhysicalShuffle} from '../src/ritual-world/ShuffleChoreography.mjs';
+import {RITUAL_TIME_SCALE} from '../src/ritual-world/ReferenceRitual.mjs';
 
 const cards=makeLandingCardEntities(DECK,2165840022);
-const sample=(card,t)=>samplePhysicalShuffle(card,{style:'auto',age:t,landingAt:7,worldTime:24.5});
+const sample=(card,t)=>samplePhysicalShuffle(card,{style:'auto',age:t/RITUAL_TIME_SCALE,landingAt:7,worldTime:24.5});
 
 test('Sequence 1 cards are carried through substantial 3D depth while revolving on coherent ribbons',()=>{
  for(const t of [1.4,2.1,3.0,3.8,4.7,5.25]){
@@ -88,19 +89,16 @@ test('Card faces, backs and edges rotate rigidly with the same camera bank as th
  assert.match(source,/rotateVortexBasis\(localAtt\.right,t\)/);
 });
 
-test('Approved Sequence 2 choreography and all subsequent steps are byte-for-byte frozen',async()=>{
+test('Gate BC v3 intentionally replaces stale Sequence 2 freeze with organic sphere/piles',async()=>{
  const source=await readFile(new URL('../src/ritual-world/ReferenceRitual.mjs',import.meta.url),'utf8');
- const boundary=source.indexOf('function pocketPose(');
- assert.ok(boundary>0);
- const frozen=source.slice(boundary);
- let h=2166136261;
- for(const c of frozen){h^=c.charCodeAt(0);h=Math.imul(h,16777619)>>>0}
- assert.equal(h.toString(16),'3b577ed3',
-  'Approved Sequence 2 changed: revert it before claiming a new Sequence 1 candidate');
- assert.match(source,/sampleVortexCard/);
+ const geometry=await readFile(new URL('../src/ritual-world/OrganicDeck.mjs',import.meta.url),'utf8');
+ assert.match(source,/positionOrganicSheet/);
+ assert.match(source,/active\*\(/);
+ assert.match(source,/RITUAL_DURATION=10\.60/);
+ assert.match(geometry,/ORGANIC_STEP=/);
  assert.equal(cards.length,78);
- for(const t of [7.5,9.2,10.7,13.6,16.55]){
-  const poses=cards.map(c=>sample(c,t));
+ for(const age of [7.5,9.2,10.7,13.6,16.55]){
+  const poses=cards.map(c=>sample(c,age));
   assert.ok(poses.every(p=>p.position.every(Number.isFinite)));
  }
 });
