@@ -207,8 +207,11 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
      p.up=norm(mix3(p.up,[0,1,0],collapse));
      alpha=1-smooth((collapse-.80)/.20);
     }else{
+     // Unchosen cards spiral out of the universe instead of snapping away.
      const drift=norm(p.position);
-     p.position=p.position.map((v,j)=>v+drift[j]*3.4*collapse);
+     const tangent=norm(cross([0,1,0],drift));
+     const spiral=.95*Math.sin(Math.PI*collapse);
+     p.position=p.position.map((v,j)=>v+drift[j]*3.7*collapse+tangent[j]*spiral);
      alpha=1-smooth(collapse);
     }
    }
