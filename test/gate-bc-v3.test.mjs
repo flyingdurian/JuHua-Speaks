@@ -88,7 +88,7 @@ test('GPU highlight belongs to the selected sheet and final tableau actually rev
  assert.match(tableau,/cardBrief\(pick\.id,pick\.orientation\)/);
  assert.match(tableau,/ps-revealed/);
  assert.match(css,/@keyframes ps-flip-land/);
- for(const finish of FOIL_FINISHES)assert.ok(css.includes('ps-holo-'+finish),finish);
+ for(const finish of FOIL_FINISHES)assert.ok(css.includes('ps-overlay-'+finish),finish);
 });
 
 test('Suspended organic deck continues a deliberately slow physical yaw in place',()=>{
