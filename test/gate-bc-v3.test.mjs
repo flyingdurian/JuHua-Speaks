@@ -66,7 +66,7 @@ test('Exactly four session finishes, authentic RWS interpretations and same foil
  assert.deepEqual(SPREAD_ROLES,['Past','Present','Future']);
  assert.deepEqual(FOIL_FINISHES.map((_,i)=>chooseFoilFinish(()=>i)),FOIL_FINISHES);
  assert.equal(chooseFoilFinish(()=>0),FOIL_FINISHES[0]);
- assert.match(cardBrief('major-17'),'Hope');
+ assert.match(cardBrief('major-17'),/Hope/);
  assert.match(cardBrief('major-17','reversed'),/Discouragement/);
  assert.throws(()=>chooseFoilFinish(()=>8),/Invalid/);
 });
