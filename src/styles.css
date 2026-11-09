@@ -437,3 +437,28 @@
 @keyframes gate-d-back-gloss{0%,22%{background-position:100% 0}62%,100%{background-position:0 0}}
 @media(max-width:740px){.gate-d-reveal .physical-card-row{gap:10px}.gate-d-reveal .physical-card-entry{flex-basis:31%}.gate-d-role{font-size:clamp(12px,3vw,16px);margin-bottom:9px}.gate-d-reveal .physical-card-meta p{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.gate-d-card .physical-card-rotator{transition:none!important}.gate-d-card .gate-d-gloss,.gate-d-card .physical-back:after{animation:none!important}}
+
+/* V11 Gate C. No chamber, no browser-sized card showcase. Full-viewport
+   interior universe; accessibility controls float above, not beside, the 3D. */
+.site.ritual-focused .sphere-page{max-width:none!important;width:100%;height:100svh;min-height:610px;position:relative;display:block!important;overflow:hidden;padding:0!important;isolation:isolate;background:#02040c}
+.site.ritual-focused .sphere-scene.inside-dome{position:absolute!important;inset:0!important;z-index:1;width:100vw!important;height:100svh!important;min-height:610px;max-height:none!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:radial-gradient(ellipse at 50% 58%,#212045c4,#060817 65%,#03040a 100%);overflow:hidden}
+.site.ritual-focused .sphere-page>.eyebrow,.site.ritual-focused .sphere-page>.intro,.site.ritual-focused .sphere-page>h1,.site.ritual-focused .sphere-page>.question-badge{position:absolute;z-index:12;left:50%;transform:translateX(-50%);margin:0;text-align:center;pointer-events:none;width:min(680px,90vw);text-shadow:0 3px 22px #01020af0}
+.site.ritual-focused .sphere-page>.eyebrow{top:clamp(80px,11vh,116px)}
+.site.ritual-focused .sphere-page>h1{top:clamp(102px,14vh,150px);font-size:clamp(27px,4vw,48px)}
+.site.ritual-focused .sphere-page>.intro{top:clamp(166px,23vh,240px);font-size:clamp(11px,1vw,14px);opacity:.79}
+.site.ritual-focused .sphere-page>.question-badge{display:none}
+.site.ritual-focused .sphere-page>.sphere-tools{position:absolute;bottom:clamp(265px,34vh,354px);z-index:13;left:50%;transform:translateX(-50%);margin:0;width:min(650px,96vw);justify-content:center}
+.site.ritual-focused .sphere-page>.sphere-renderer-choice{position:absolute;right:20px;top:60px;z-index:13;left:auto;font-size:10px;margin:0}
+.site.ritual-focused .sphere-page>.hand-label{position:absolute;bottom:clamp(212px,27vh,298px);z-index:12;left:50%;transform:translateX(-50%);width:min(500px,93vw);text-align:center;letter-spacing:.15em}
+.site.ritual-focused .sphere-page>.slots{position:absolute;bottom:clamp(98px,13vh,157px);z-index:13;left:50%;transform:translateX(-50%);width:min(625px,95vw);margin:0;display:flex;justify-content:center;gap:clamp(8px,4vw,32px)}
+.site.ritual-focused .sphere-page>.sphere-auto-lock{position:absolute;bottom:clamp(66px,8vh,101px);z-index:13;left:50%;transform:translateX(-50%);margin:0;font-size:10px;width:80vw}
+.site.ritual-focused .sphere-page>.cta-row{position:absolute;bottom:19px;z-index:13;left:50%;transform:translateX(-50%);margin:0;gap:8px;white-space:nowrap}
+.site.ritual-focused .sphere-page>.fine-print{display:none}
+.site.ritual-focused .sphere-page:before{content:"";pointer-events:none;position:absolute;inset:0;z-index:9;background:linear-gradient(#05091491,transparent 31%,transparent 44%,#040719d9 100%)}
+.site.ritual-focused .sphere-page .dome-reticle{opacity:.3}
+.gate-c-arriving .sphere-scene.inside-dome{animation:gate-c-world-entry 2.55s cubic-bezier(.19,.83,.23,1) both}
+.gate-c-arriving .sphere-page>.sphere-tools,.gate-c-arriving .sphere-page>.slots,.gate-c-arriving .sphere-page>.cta-row,.gate-c-arriving .sphere-page>.hand-label{animation:gate-c-hud-entry 1.5s ease 1.0s both}
+@keyframes gate-c-world-entry{0%{opacity:.15;filter:blur(9px) brightness(.72);transform:scale(.20) rotate(-4deg)}40%{opacity:.85;filter:blur(2px) brightness(1.2)}100%{opacity:1;filter:none;transform:scale(1) rotate(0)}}
+@keyframes gate-c-hud-entry{0%{opacity:0}100%{opacity:1}}
+@media(max-width:730px){.site.ritual-focused .sphere-page>.intro{top:22vh}.site.ritual-focused .sphere-page>.sphere-tools{bottom:32vh}.site.ritual-focused .sphere-page>.hand-label{bottom:25vh}.site.ritual-focused .sphere-page>.slots{bottom:12vh}.site.ritual-focused .sphere-page>.cta-row{bottom:16px}}
+@media(prefers-reduced-motion:reduce){.gate-c-arriving .sphere-scene.inside-dome,.gate-c-arriving .sphere-page>*{animation:none!important}}
