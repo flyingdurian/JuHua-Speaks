@@ -9,6 +9,8 @@
 import {DECK,commonsThumbnailUrl,drawOrientation} from '../../src/deck.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
 import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
+import {SPHERE_VERTEX_STRIDE,extrudedCardVertices} from './PhysicalSphereMesh.mjs';
+import {chooseFoilFinish,createTarotTableau} from './TarotTableau.mjs';
 import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,perspectiveFocal,CAMERA_CLIP_NEAR,CAMERA_NEAR,clipCardNearPlane} from './geometry.mjs';
 
 const W=174,H=288,COLS=10,ROWS=8,ATLAS_W=W*COLS,ATLAS_H=H*ROWS;
@@ -19,6 +21,7 @@ layout(location=1) in vec2 a_uv;
 layout(location=2) in float a_slot;
 layout(location=3) in float a_side;
 layout(location=4) in float a_selected;
+layout(location=5) in float a_alpha;
 uniform float u_focal;
 uniform float u_aspect;
 uniform float u_near;
@@ -26,34 +29,48 @@ uniform float u_far;
 out vec2 v_uv;
 flat out float v_slot;
 flat out float v_side;
-flat out float v_selected;
+out float v_selected;
+out float v_alpha;
 void main(){
  float z=a_position.z;
  gl_Position=vec4(u_focal*a_position.x/u_aspect,u_focal*a_position.y,
  (u_far+u_near)/(u_near-u_far)*z+(2.0*u_far*u_near)/(u_near-u_far),-z);
- v_uv=a_uv;v_slot=a_slot;v_side=a_side;v_selected=a_selected;
+ v_uv=a_uv;v_slot=a_slot;v_side=a_side;v_selected=a_selected;v_alpha=a_alpha;
 }`;
 const fs=`#version 300 es
-precision mediump float;
+precision highp float;
 in vec2 v_uv;
 flat in float v_slot;
 flat in float v_side;
-flat in float v_selected;
+in float v_selected;
+in float v_alpha;
 uniform sampler2D u_atlas;
+uniform float u_time;
 out vec4 frag;
 void main(){
+ if(v_alpha<.006)discard;
+ if(v_slot<-.5){
+  // Actual side-faces give the inward sphere its visibly thin 3D depth.
+  float thread=sin(v_uv.y*47.)*.06;
+  vec3 paper=mix(vec3(.78,.78,.80),vec3(.20,.31,.47),.36+thread);
+  frag=vec4(paper,v_alpha);return;
+ }
  float slot=mix(78.0,v_slot,v_side);
- float col=mod(slot,10.0);float row=floor(slot/10.0);
+ float col=mod(slot,10.0),row=floor(slot/10.0);
  vec2 uv=vec2((col+mix(.012,.988,v_uv.x))/10.0,1.0-(row+mix(.012,.988,1.0-v_uv.y))/8.0);
  vec4 tex=texture(u_atlas,uv);
- float border=min(min(v_uv.x,1.0-v_uv.x),min(v_uv.y,1.0-v_uv.y));
- if(v_selected>.5){
-  float gild=1.0-smoothstep(.012,.057,border);
-  tex.rgb=mix(tex.rgb,vec3(1.0,.86,.62),.53*gild);
-  tex.rgb+=vec3(.09,.082,.05);
+ float edge=min(min(v_uv.x,1.-v_uv.x),min(v_uv.y,1.-v_uv.y));
+ if(v_selected>.001){
+  // Gold light is attached to the CARD UVs, not an imprecise DOM halo.
+  float rim=1.-smoothstep(.012,.069,edge);
+  float sweep=exp(-pow((v_uv.x*.84+v_uv.y*.45)-fract(u_time*.23),2.)*96.);
+  float spec=pow(max(0.,sin(u_time*2.8+v_uv.x*6.+v_uv.y*7.)),4.);
+  vec3 reflective=vec3(.32,.25,.15)*rim+vec3(.31,.37,.39)*sweep+vec3(.09,.08,.10)*spec;
+  tex.rgb+=reflective*v_selected;
  }
- frag=vec4(tex.rgb,1.0);
+ frag=vec4(tex.rgb,v_alpha);
 }`;
+
 function compile(gl,type,source){const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw Error('Shader error '+gl.getShaderInfoLog(shader));return shader;}
 function makeProgram(gl){const p=gl.createProgram(),v=compile(gl,gl.VERTEX_SHADER,vs),f=compile(gl,gl.FRAGMENT_SHADER,fs);gl.attachShader(p,v);gl.attachShader(p,f);gl.linkProgram(p);gl.deleteShader(v);gl.deleteShader(f);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error('Program error '+gl.getProgramInfoLog(p));return p;}
 function backArt(ctx,x,y){
@@ -128,11 +145,11 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  let program,vertexBuffer,vao,atlas;
  try{
   program=makeProgram(gl);vao=gl.createVertexArray();gl.bindVertexArray(vao);vertexBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);
-  const stride=8*4;for(const [location,count,offset] of [[0,3,0],[1,2,12],[2,1,20],[3,1,24],[4,1,28]]){gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,count,gl.FLOAT,false,stride,offset)}
+  const stride=SPHERE_VERTEX_STRIDE*4;for(const [location,count,offset] of [[0,3,0],[1,2,12],[2,1,20],[3,1,24],[4,1,28],[5,1,32]]){gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,count,gl.FLOAT,false,stride,offset)}
   atlas=atlasTexture(gl,cards,()=>!dead);
-  gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);
+  gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
  }catch(e){sky.dispose();gl.deleteVertexArray(vao);gl.deleteBuffer(vertexBuffer);gl.deleteProgram(program);throw e}
- const uniform={focal:gl.getUniformLocation(program,'u_focal'),aspect:gl.getUniformLocation(program,'u_aspect'),near:gl.getUniformLocation(program,'u_near'),far:gl.getUniformLocation(program,'u_far'),atlas:gl.getUniformLocation(program,'u_atlas')};
+ const uniform={focal:gl.getUniformLocation(program,'u_focal'),aspect:gl.getUniformLocation(program,'u_aspect'),near:gl.getUniformLocation(program,'u_near'),far:gl.getUniformLocation(program,'u_far'),atlas:gl.getUniformLocation(program,'u_atlas'),time:gl.getUniformLocation(program,'u_time')};
  const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
  const start=performance.now(),roles=['Past','Present','Future'];
  let clock=0,clockFreeze=0,paused=false,camZ=12.6,rendered=[],viewport={w:1,h:1};
@@ -194,7 +211,7 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   mount.querySelector('#ps-stage').textContent=state==='launch'?'DECK IN FLIGHT':state==='distribute'?'CARDS UNFOLDING':state==='enter'?'ENTERING THE SPHERE':state==='inside'?'INSIDE THE UNIVERSE':'YOUR SELECTION';
   mount.querySelector('#ps-hint').textContent=atlas.stats().failed>0?'RWS artwork unavailable on '+atlas.stats().failed+' cards · Please sync assets':ready?'Drag to look around · Tap a card to choose':'The cards are taking their places…';
   const data=computeGeometry(t);rendered=data.visible;
-  atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,perspectiveFocal());gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,CAMERA_NEAR);gl.uniform1f(uniform.far,100);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/8);
+  atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,perspectiveFocal());gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,CAMERA_NEAR);gl.uniform1f(uniform.far,100);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.uniform1f(uniform.time,t);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/SPHERE_VERTEX_STRIDE);
   updateAuras();
  }
  let t=0;
