@@ -2,6 +2,39 @@
  * Times measured from clicking FINISH SHUFFLING, in seconds.
  */
 export const CARD_COUNT=78;
+/** One projection contract shared by the GPU and DOM hit-test camera. */
+export const CAMERA_VERTICAL_FOV_DEG=85;
+export const CAMERA_NEAR=.07;
+export const CAMERA_CLIP_NEAR=.075;
+export function perspectiveFocal(fovDegrees=CAMERA_VERTICAL_FOV_DEG){
+ if(!Number.isFinite(fovDegrees)||fovDegrees<=0||fovDegrees>=180)throw new RangeError('Invalid vertical camera field of view');
+ // The perspective matrix uses 1/tan(full-FOV/2): the old renderer divided by two twice.
+ return 1/Math.tan(fovDegrees*Math.PI/360);
+}
+/** Clip each physical card quad before projection, preventing entire sheets
+ * popping out when the entering camera crosses a card's near plane.
+ * UVs follow the clipped edge; WebGL then interpolates them perspectively. */
+export function clipCardNearPlane(corners,cameraZ,near=CAMERA_CLIP_NEAR){
+ if(!Array.isArray(corners)||corners.length!==4||!Number.isFinite(cameraZ)||!Number.isFinite(near)||near<=0)
+  throw new RangeError('Expected four card corners and a positive camera near distance');
+ const uv=[[0,0],[1,0],[1,1],[0,1]];
+ const result=[];
+ let previous={position:corners[3],uv:uv[3]};
+ for(let i=0;i<4;i++){
+  const current={position:corners[i],uv:uv[i]};
+  const prevDepth=cameraZ-previous.position[2],depth=cameraZ-current.position[2];
+  const prevInside=prevDepth>=near,inside=depth>=near;
+  if(prevInside!==inside){
+   const fraction=(near-prevDepth)/(depth-prevDepth);
+   result.push({position:previous.position.map((v,j)=>v+(current.position[j]-v)*fraction),
+    uv:previous.uv.map((v,j)=>v+(current.uv[j]-v)*fraction)});
+  }
+  if(inside)result.push(current);
+  previous=current;
+ }
+ return result;
+}
+
 export const BEATS=Object.freeze({launch:[0,1.2],scatter:[1.2,2.8],orbit:[2.8,4.3],camera:[4.3,6.9],interactive:6.9});
 export const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 export const smooth=n=>{const x=clamp(n);return x*x*(3-2*x)};
