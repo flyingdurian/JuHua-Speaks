@@ -218,7 +218,16 @@ export class RitualWorld{
      :this.phase==='sphere_transition'
        ?sampleSphereEntrance(card,{age:this.elapsed-this.sphereEntranceStartedAt,worldTime:this.sphereEntranceStartedAt})
        :deckPose(card,this.elapsed);
-     appendPremiumCard(vertices,{...card,...PHYSICAL_CARD},sample.position,sample.attitude,sample.scale,card.light,slotUv,{backSlot:this.phase==='deck_formed'&&card.orbitSlot===0?card.index:BACK_SLOT,edgeSlot:EDGE_SLOT});
+     // Match side-to-side page separation with the material thickness:
+     // 26 separate piles have NO hollow inter-page gaps; the final 78-page
+     // resting deck compresses naturally into a tightly laminated stack.
+     const pileAge=this.elapsed-this.shuffleStartedAt;
+     const envelope=this.phase==='shuffle_ritual'&&this.shuffleStyle==='auto'
+       ?Math.max(0,Math.min(1,(pileAge-10.70)/1.5))*Math.max(0,Math.min(1,(15.65-pileAge)/1.7)):0;
+     const settled=this.phase==='deck_formed'?1:this.phase==='shuffle_ritual'&&this.shuffleStyle==='auto'
+       ?Math.max(0,Math.min(1,(pileAge-15.65)/.9)):0;
+     const thickness=.0145+.0033*envelope-.005*settled;
+     appendPremiumCard(vertices,{...card,...PHYSICAL_CARD,thickness},sample.position,sample.attitude,sample.scale,card.light,slotUv,{backSlot:this.phase==='deck_formed'&&card.orbitSlot===0?card.index:BACK_SLOT,edgeSlot:EDGE_SLOT});
    }
   }
   gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.DYNAMIC_DRAW);

@@ -252,7 +252,7 @@ function subdeckPose(card,t){
  const centerX=[-3.78,0,3.78][g],centerZ=[-13.8,-13.35,-13.8][g];
  // Showcase 26 individually layered pages per pile, angled nearly edge-on.
  const orientation=facing(1.13+(g-1)*.07,-.07,.028*(g-1));
- const layer=(slot-12.5)*.052;
+ const layer=(slot-12.5)*.0355;
  return pose([
   centerX+orientation.normal[0]*layer+.011*Math.sin(slot*.81+g),
   -.08+orientation.normal[1]*layer+.014*Math.cos(slot*.74+g),

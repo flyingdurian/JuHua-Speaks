@@ -91,7 +91,7 @@ test('Card faces, backs and edges rotate rigidly with the same camera bank as th
 test('Owner-directed v10.7 finale: real three piles, then one consolidated deck',async()=>{
  const source=await readFile(new URL('../src/ritual-world/ReferenceRitual.mjs',import.meta.url),'utf8');
  assert.match(source,/function subdeckPose\(/);
- assert.match(source,/const layer=\(slot-12\.5\)\*\.052/);
+ assert.match(source,/const layer=\(slot-12\.5\)\*\.0355/);
  assert.match(source,/function transferPose\(/);
  assert.match(source,/sampleVortexCard/);
  const groups=[0,1,2].map(g=>cards.filter(c=>c.orbitSlot%3===g)
@@ -101,7 +101,7 @@ test('Owner-directed v10.7 finale: real three piles, then one consolidated deck'
   const zs=group.map(p=>p[2]);
   const xs=group.map(p=>p[0]);
   assert.ok(Math.max(...zs)-Math.min(...zs)>.35,'Individual card layers must read as a physical deck');
-  assert.ok(Math.max(...xs)-Math.min(...xs)>.8,'Side profile must reveal stacked page offsets');
+  assert.ok(Math.max(...xs)-Math.min(...xs)>.7,'Side profile must reveal stacked page offsets');
  }
  const before=sample(cards[0],13.1),after=sample(cards[0],16.55);
  assert.ok(Math.hypot(...before.position.map((v,i)=>v-after.position[i]))>.8,

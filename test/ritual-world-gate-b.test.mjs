@@ -116,7 +116,7 @@ test('WebGL and Canvas both run the same pure choreography, with a complete deck
   assert.match(code,/shuffleDuration\(this\.shuffleStyle\)/);
   assert.match(code,/PHYSICAL_CARD/);
  }
- assert.match(gl,/appendPremiumCard\(vertices,\{\.\.\.card,\.\.\.PHYSICAL_CARD\}/);
+ assert.match(gl,/appendPremiumCard\(vertices,\{\.\.\.card,\.\.\.PHYSICAL_CARD,thickness\}/);
  assert.match(cv,/dimensions=landing\?card:PHYSICAL_CARD/);
 });
 
