@@ -11,6 +11,7 @@ import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
 import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
 import {SPHERE_VERTEX_STRIDE,extrudedCardVertices} from './PhysicalSphereMesh.mjs';
 import {chooseFoilFinish,createTarotTableau} from './TarotTableau.mjs';
+import {createSelectionHandoff,HANDOFF_SETTLE_MS} from './SelectionHandoff.mjs';
 import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,gyroAttitude,selectCard,getStage,perspectiveFocal,pickProjectedCard,orbitYaw,selectionRise,CAMERA_CLIP_NEAR,CAMERA_NEAR,clipCardNearPlane} from './geometry.mjs';
 
 const W=174,H=288,COLS=10,ROWS=8,ATLAS_W=W*COLS,ATLAS_H=H*ROWS;
@@ -133,7 +134,8 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  const cardMap=new Map(DECK.map(c=>[c.id,c]));if(deckIds.some(id=>!cardMap.has(id)))throw new Error('Unrecognized card identities');
  const cards=deckIds.map(id=>cardMap.get(id)),points=sphereLayout();
  let choices=[],selectedAt=new Map(),lastPointer=null,yaw=0,pitch=0,raf=0,dead=false,ready=false,lastDraw=0,step='launch';
- let lockAt=null,tableau=null,tableauShown=false;const sessionFoil=chooseFoilFinish();
+ let lockAt=null,tableau=null,tableauShown=false,handoff=null;const pickAnchors=new Map();
+ const sessionFoil=chooseFoilFinish();
  mount.innerHTML='<div class="ps-world" role="region" aria-label="Continuous post-shuffle Tarot sphere" id="ps-world">'+
   '<div class="ps-sky" id="ps-sky"><canvas class="ps-stars" id="ps-stars"></canvas></div>'+
   '<canvas id="ps-cards" class="ps-cards" aria-label="78 Tarot cards in a three-dimensional sphere. Drag to look around, tap a card to select it." tabindex="0"></canvas>'+
@@ -170,9 +172,13 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   if(choices.length===3&&!lockAt){
    lockAt=performance.now();
    tableau=createTarotTableau({mount:world,picks:choices,foil:sessionFoil});
+   // Render target rectangles while they are transparent. Ghosts animate
+   // from the real 3D projected positions into these exact card positions.
+   tableau.prepareHandoff();
+   handoff=createSelectionHandoff({world,picks:choices,anchors:pickAnchors,
+    buttons:tableau.destinations,backUrl:tableau.backUrl,reducedMotion:reduced});
    parent.classList.remove('ps-visible');
-   guidance.textContent='Your three cards are chosen';
-   onComplete(choices.map(x=>({...x})));
+   guidance.textContent='Your three cards are taking their places';
   }
  }
  syncSlots();
@@ -240,9 +246,14 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   viewport={w:rect.width,h:rect.height};if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h)}
   const state=lockAt!==null?'tableau':getStage(t,choices.length);step=state;world.dataset.beat=state;
   ready=t>=BEATS.interactive&&lockAt===null;
-  if(lockAt!==null&&!tableauShown&&lockProgress()>.80){tableauShown=true;tableau?.show();mount.querySelector('#ps-pause').hidden=true;mount.querySelector('#ps-selections').classList.remove('ps-visible');}
+  if(lockAt!==null&&!tableauShown&&performance.now()-lockAt>=HANDOFF_SETTLE_MS){
+   tableauShown=true;tableau?.finishHandoff();
+   onComplete(choices.map(x=>({...x})));
+   mount.querySelector('#ps-pause').hidden=true;
+   mount.querySelector('#ps-selections').classList.remove('ps-visible');
+  }
   mount.querySelector('#ps-stage').textContent=state==='launch'?'DECK IN FLIGHT':state==='distribute'?'CARDS UNFOLDING':state==='enter'?'ENTERING THE SPHERE':state==='inside'?'INSIDE THE UNIVERSE':state==='tableau'?'PAST · PRESENT · FUTURE':'YOUR SELECTION';
-  mount.querySelector('#ps-hint').textContent=atlas.stats().failed>0?'RWS artwork unavailable on '+atlas.stats().failed+' cards · Please sync assets':lockAt!==null?'Choose a card to turn it over':ready?'Pan left or right · Tap a card to choose':'The cards are taking their places…';
+  mount.querySelector('#ps-hint').textContent=atlas.stats().failed>0?'RWS artwork unavailable on '+atlas.stats().failed+' cards · Please sync assets':lockAt!==null?(tableauShown?'Choose a card to turn it over':'Your chosen cards are arriving…'):ready?'Pan left or right · Tap a card to choose':'The cards are taking their places…';
   const data=computeGeometry(t);rendered=data.visible;
   atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,perspectiveFocal());gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,CAMERA_NEAR);gl.uniform1f(uniform.far,100);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.uniform1f(uniform.time,t);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/SPHERE_VERTEX_STRIDE);
 
@@ -254,7 +265,11 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   const previous=choices;
   choices=selectCard(choices,deckIds,candidate.id,drawOrientation());
   if(previous===choices)return null;
-  if(choices.some(c=>c.id===candidate.id))selectedAt.set(candidate.id,performance.now());else selectedAt.delete(candidate.id);
+  if(choices.some(c=>c.id===candidate.id)){
+   selectedAt.set(candidate.id,performance.now());
+   // Record actual selectable 3D corners at the moment each pick occurs.
+   pickAnchors.set(candidate.id,{corners:candidate.corners.map(p=>({...p}))});
+  }else{selectedAt.delete(candidate.id);pickAnchors.delete(candidate.id);}
   syncSlots();return candidate.id;
  }
  canvas.addEventListener('pointerdown',e=>{if(!ready||lastPointer)return;lastPointer={id:e.pointerId,x:e.clientX,y:e.clientY,yaw,moved:false};canvas.setPointerCapture?.(e.pointerId);});
@@ -268,8 +283,8 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  return {
   stage:()=>step,selected:()=>choices.map(c=>({...c})),deck:()=>[...deckIds],assetStatus:()=>atlas.stats(),ready:()=>ready,
   visible:()=>rendered.map(p=>({id:p.id,side:p.side,selected:p.selected,x:p.center.x,y:p.center.y,depth:p.depth})),
-  time:()=>t,tap,togglePause:changePause,orbitYaw:()=>yaw,hologram:()=>tableau?.hologram??sessionFoil,
-  foil:()=>tableau?.hologram??sessionFoil,tableau:()=>({active:tableauShown,revealed:tableau?.revealed||0,hologram:tableau?.hologram??sessionFoil}),
-  dispose(){dead=true;cancelAnimationFrame(raf);sky.dispose();tableau?.dispose();atlas.dispose();gl.deleteBuffer(vertexBuffer);gl.deleteVertexArray(vao);gl.deleteProgram(program);world.remove()}
+  time:()=>t,tap,togglePause:changePause,orbitYaw:()=>yaw,artOverlay:()=>tableau?.artOverlay??sessionFoil,hologram:()=>tableau?.hologram??sessionFoil,
+  foil:()=>tableau?.artOverlay??sessionFoil,tableau:()=>({active:tableauShown,revealed:tableau?.revealed||0,artOverlay:tableau?.artOverlay??sessionFoil}),
+  dispose(){dead=true;cancelAnimationFrame(raf);sky.dispose();handoff?.dispose();tableau?.dispose();atlas.dispose();gl.deleteBuffer(vertexBuffer);gl.deleteVertexArray(vao);gl.deleteProgram(program);world.remove()}
  };
 }
