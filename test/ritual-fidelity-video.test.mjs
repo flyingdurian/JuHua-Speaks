@@ -77,7 +77,7 @@ test('UI uses video fidelity stages without changing AI/reading back-end contrac
  assert.match(app,/mountRitualCinema/);assert.match(app,/renderPhysicalReveal/);
  assert.match(app,/replayShuffle\(style\)/);assert.match(app,/LAUNCH_DURATION_MS/);
  assert.match(app,/case 'next-reveal':if\(allCardsRevealed/);
- assert.match(app,/autoConfirmTimer=setTimeout/);
+ assert.match(app,/state\.autoConfirmAt=null/); // Trio waits in foreground for explicit user confirmation
  assert.match(gl,/setHover\(id\)/);
  assert.match(gl,/v_halo/);
  assert.match(css,/rotate3d\(var\(--ax\),var\(--ay\),0/);

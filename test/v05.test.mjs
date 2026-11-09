@@ -11,7 +11,7 @@ test('version badge corresponds to deployed package version',async()=>{
  const pkg=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
  assert.equal(APP_VERSION,pkg.version);
 });
-test('78 orderly inward-facing cards on concentric interior bands, no duplicate locations',()=>{
+test('78 inward-facing cards across a spherical Fibonacci lattice, no duplicate locations',()=>{
  const layout=sphereLayout();assert.equal(layout.length,78);
  assert.equal(new Set(layout.map(p=>p.row)).size,6);
  assert.equal(new Set(layout.map(p=>p.column)).size,13);
@@ -51,4 +51,18 @@ test('private Chinese deck requires exactly 78 correctly mapped local images',()
  assert.throws(()=>validatePrivateDeckFiles(bad,DECK),/Duplicate/);
  const wrong=files.map(x=>({...x}));wrong[7].name='random-card.jpg';
  assert.throws(()=>validatePrivateDeckFiles(wrong,DECK),/Unknown/);
+});
+
+test('Gate B review: 78 solid 3D cards form a complete spherical shell',async()=>{
+ const layout=sphereLayout(78),dpr=layout.map(p=>Math.hypot(...p.center));
+ assert.ok(dpr.every(r=>Math.abs(r-SPHERE_RADIUS)<1e-7));
+ assert.ok(Math.min(...layout.map(p=>p.latitude)) < -1.3);
+ assert.ok(Math.max(...layout.map(p=>p.latitude)) > 1.3);
+ const latitudes=new Set(layout.map(p=>p.latitude.toFixed(5)));
+ assert.equal(latitudes.size,78,'Sphere must not collapse to six planar latitude bands');
+ const edges=await readFile(new URL('../src/webgl-sphere.mjs',import.meta.url),'utf8');
+ assert.match(edges,/SPHERE_CARD_HALF_DEPTH/);
+ assert.match(edges,/const perimeter=/);
+ assert.match(edges,/layout\(location=6\) in float a_edge/);
+ assert.match(edges,/new Set\(\[\.\.\.selected,\.\.\.hidden\]\)/);
 });
