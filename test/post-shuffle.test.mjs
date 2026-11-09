@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {DECK} from '../src/deck.mjs';
-import {CARD_COUNT,BEATS,sphereLayout,cardWorld,orbitAngle,cameraDistance,gyroAttitude,projectedCardHit,pickProjectedCard,selectCard,getStage,assemblyProgress,perspectiveFocal,CAMERA_VERTICAL_FOV_DEG,CAMERA_CLIP_NEAR,clipCardNearPlane} from '../preview/post-shuffle/geometry.mjs';
+import {CARD_COUNT,BEATS,sphereLayout,cardWorld,orbitAngle,cameraDistance,gyroAttitude,projectedCardHit,pickProjectedCard,selectCard,getStage,assemblyProgress,orbitYaw,selectionRise,perspectiveFocal,CAMERA_VERTICAL_FOV_DEG,CAMERA_CLIP_NEAR,clipCardNearPlane} from '../preview/post-shuffle/geometry.mjs';
 
 test('One real, non-redealt 78-card spherical identity map',()=>{
  const points=sphereLayout();assert.equal(points.length,78);
@@ -100,4 +100,26 @@ test('Projected selection accepts actual edges, rejects distant misses and prefe
  const actual={id:'actual',side:0,depth:15,corners:rectangle};
  const nearby={id:'near',side:0,depth:2,corners:rectangle.map(p=>({x:p.x+100,y:p.y}))};
  assert.equal(pickProjectedCard([nearby,actual],60,60).id,'actual','actual silhouette beats a nearer loose margin');
+});
+
+test('user may drag or keyboard-orbit through unbounded 360-degree revolutions',async()=>{
+ assert.equal(orbitYaw(0,2*Math.PI),2*Math.PI);
+ assert.ok(orbitYaw(2*Math.PI,2*Math.PI)>12,'second full revolution must not clamp');
+ assert.ok(orbitYaw(-Math.PI*2,-Math.PI*2)<-12,'reverse revolutions supported');
+ assert.throws(()=>orbitYaw(0,Infinity),/Non-finite/);
+ const source=await readFile(new URL('../preview/post-shuffle/scene.mjs',import.meta.url),'utf8');
+ assert.match(source,/yaw=orbitYaw\(lastPointer\.yaw,dx\*\.0043\)/);
+ assert.match(source,/yaw=orbitYaw\(yaw,/);
+ assert.doesNotMatch(source,/clamp\(yaw,/);
+ const points=sphereLayout();
+ const azimuth=points.map(p=>Math.atan2(p.insideDirection[0],p.insideDirection[2]));
+ assert.ok(Math.max(...azimuth)-Math.min(...azimuth)>5.5,
+  'the panorama must cover the entire circle, not a 180-degree fan');
+});
+test('chosen physical card rises upward while halo pulls inward',async()=>{
+ assert.equal(selectionRise(0,0,1),0);
+ assert.ok(selectionRise(1,0,1)>.25);
+ assert.ok(selectionRise(1,0,1)<.40);
+ const source=await readFile(new URL('../preview/post-shuffle/scene.mjs',import.meta.url),'utf8');
+ assert.match(source,/p\[1\]\+=selectionRise\(selectedPct,t,point\.i\)/);
 });
