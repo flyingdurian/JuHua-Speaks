@@ -33,7 +33,7 @@ const hash=(i,seed=1)=>{
  return (x>>>0)/4294967296;
 };
 const PITCH=-.12;
-export const PHYSICAL_CARD=Object.freeze({width:1.28,height:2.12,thickness:.0081});
+export const PHYSICAL_CARD=Object.freeze({width:1.28,height:2.12,thickness:.0145});
 export const AUTO_SHUFFLE_SECONDS=RITUAL_DURATION;
 export const SHUFFLE_CHOICES=Object.freeze(['cosmic','riffle','wash']);
 export const SHUFFLE_DURATIONS=Object.freeze({cosmic:5.65,riffle:5.75,wash:5.85});
@@ -88,7 +88,7 @@ function blend(a,b,t){
  const right=vMix(a.attitude.right,b.attitude.right,w);
  return pose(vMix(a.position,b.position,w),attitudeFrom(fixedNormal,right),mix(a.scale,b.scale,w));
 }
-function stackPose(card,{center=[0,-.16,-17.0],yaw=.70,pitch=PITCH,roll=0,scale=1.14,rank=card.orbitSlot,count=N,step=.0181}={}){
+function stackPose(card,{center=[0,-.16,-17.0],yaw=.70,pitch=PITCH,roll=0,scale=1.14,rank=card.orbitSlot,count=N,step=.0210}={}){
  const basis=backAttitude(yaw,pitch,roll);
  const layer=(rank-(count-1)/2)*step;
  // Thin paper-like edge sheets, no overlap: each card thickness is .0096.
