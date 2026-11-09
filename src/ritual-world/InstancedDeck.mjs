@@ -9,12 +9,12 @@
  */
 import {CARD_PERIMETER} from './CardSurface.mjs';
 import {deckPose,PHYSICAL_CARD} from './ShuffleChoreography.mjs';
-import {packetOf,packetCount} from './OrganicDeck.mjs';
+import {packetOf,ORGANIC_STEP,ORGANIC_THICKNESS,ORGANIC_GAP} from './OrganicDeck.mjs';
 
 const COUNT=78,STRIDE=9*4,INSTANCE_STRIDE=16*4,SHADOW_SIZE=1024;
-export const DECK_SHEET_STEP=.0170;
-export const DECK_SHEET_THICKNESS=.0092;
-export const DECK_AIR_GAP=DECK_SHEET_STEP-DECK_SHEET_THICKNESS;
+export const DECK_SHEET_STEP=ORGANIC_STEP;
+export const DECK_SHEET_THICKNESS=ORGANIC_THICKNESS;
+export const DECK_AIR_GAP=ORGANIC_GAP;
 export const DECK_INSTANCE_COUNT=COUNT;
 const identity=n=>Math.max(0,Math.min(1,n));
 const smooth=t=>{t=identity(t);return t*t*(3-2*t)};
@@ -43,6 +43,7 @@ uniform mat4 uLightMatrix;
 out vec2 vUV;
 out vec3 vNormal;
 out vec3 vShadowCoord;
+out float vPaperDepth;
 flat out float vSurface;
 flat out float vFaceSlot;
 flat out float vEdgeTone;
@@ -58,13 +59,14 @@ void main(){
  vec4 shadow=uLightMatrix*vec4(world,1.);
  vShadowCoord=shadow.xyz/shadow.w*.5+.5;
  vNormal=normalize(iRight*aNormal.x+iUp*aNormal.y+iNormal*aNormal.z);
- vUV=aUv;vSurface=aSurface;vFaceSlot=iFaceSlot;vEdgeTone=iEdgeTone;
+ vUV=aUv;vPaperDepth=aPos.z+.5;vSurface=aSurface;vFaceSlot=iFaceSlot;vEdgeTone=iEdgeTone;
 }`;
 const FRAGMENT=String.raw`#version 300 es
 precision highp float;
 in vec2 vUV;
 in vec3 vNormal;
 in vec3 vShadowCoord;
+in float vPaperDepth;
 flat in float vSurface;
 flat in float vFaceSlot;
 flat in float vEdgeTone;
@@ -88,9 +90,12 @@ float shadowVisibility(){
 void main(){
  vec3 base;
  if(vSurface>1.5){
-  // A true matte cardstock surface: no atlas, no PCF shadow texture,
-  // no normal/bump procedural treatment or per-sheet edge tint.
-  color=vec4(.866,.870,.864,1.);return;
+  // One cohesive matte paper edge, with only six nearly invisible
+  // micro-creases. No seven gap cuts, opaque packet slabs or barcode.
+  float distanceToCrease=abs(fract(vPaperDepth*7.)-.5);
+  float hairline=1.-smoothstep(.480,.498,distanceToCrease);
+  float shade=.873-.009*hairline;
+  color=vec4(shade*.994,shade*.998,shade,1.);return;
  }
  float slot=vSurface<.5?vFaceSlot:78.;
  vec2 uv=(vec2(mod(slot,9.),floor(slot/9.))+vec2(mix(.009,.991,vUV.x),mix(.009,.991,vUV.y)))/9.;
@@ -188,32 +193,31 @@ export function deckInstanceLayout(cards,worldTime=0,closeup=1){
  });
  return instances;
 }
-/** Seven smooth matte packet sleeves cover subpixel individual card edges.
- * All 78 original individual fronts/backs retain their identity and gap. */
+/** One continuous, softly engraved cardstock side skin. All 78 individual
+ * GPU sheet faces remain present and independently shadowed underneath it.
+ * The envelope bridges microscopic inter-sheet gaps; it cannot split into
+ * seven giant blocks or reveal black packet seams. */
 export function deckPacketLayout(layout){
  if(!Array.isArray(layout)||layout.length!==COUNT)throw Error('Expected 78 physical card instances');
- return Array.from({length:packetCount(COUNT)},(_,packet)=>{
-  const members=layout.filter(c=>packetOf(c.rank,COUNT)===packet);
-  if(!members.length)throw Error('Empty paper packet '+packet);
-  const {right,up,normal}=members[0];
-  const depths=members.map(c=>vecDot(c.position,normal));
-  const low=Math.min(...depths),high=Math.max(...depths);
-  const avg=members[0].position.map((_,j)=>members.reduce((sum,c)=>sum+c.position[j],0)/members.length);
-  const shift=(low+high)*.5-vecDot(avg,normal);
-  return {
-   id:'paper-packet-'+packet,packet,sheets:members.length,
-   position:avg.map((v,j)=>v+normal[j]*shift),
-   right,up,normal,scale:members[0].scale*1.035,
-   frontSlot:78,edgeTone:.5,thickness:high-low+DECK_SHEET_THICKNESS
-  };
- });
+ const sorted=[...layout].sort((a,b)=>a.rank-b.rank);
+ const {right,up,normal}=sorted[0];
+ const depths=sorted.map(c=>vecDot(c.position,normal));
+ const low=Math.min(...depths),high=Math.max(...depths);
+ const avg=sorted[0].position.map((_,j)=>sorted.reduce((sum,c)=>sum+c.position[j],0)/COUNT);
+ const shift=(low+high)*.5-vecDot(avg,normal);
+ return [{
+  id:'continuous-pressed-cardstock',packet:0,sheets:COUNT,
+  position:avg.map((v,j)=>v+normal[j]*shift),
+  right,up,normal,scale:sorted[0].scale*1.01,
+  frontSlot:78,edgeTone:.5,thickness:high-low+DECK_SHEET_THICKNESS
+ }];
 }
 export function createInstancedDeck(gl,{atlasTexture}){
  const main=makeProgram(gl,VERTEX,FRAGMENT),depth=makeProgram(gl,DEPTH_VERT,DEPTH_FRAG);
  const vao=gl.createVertexArray(),geometry=gl.createBuffer(),instances=gl.createBuffer();
  const packetVao=gl.createVertexArray(),packetGeometry=gl.createBuffer();
  const vertices=mesh({faces:true,edges:false}); // 78 artwork-bearing individual sheets
- const packetVertices=mesh({faces:false,edges:true}); // 7 smooth side sleeves
+ const packetVertices=mesh({faces:false,edges:true}); // one continuous matte-paper edge envelope
  gl.bindBuffer(gl.ARRAY_BUFFER,instances);
  gl.bufferData(gl.ARRAY_BUFFER,COUNT*INSTANCE_STRIDE,gl.DYNAMIC_DRAW);
  function configure(vao,geom,verts){
@@ -278,7 +282,7 @@ export function createInstancedDeck(gl,{atlasTexture}){
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlasTexture);gl.uniform1i(uMain.atlas,0);
   gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,shadows?shadowTexture:null);gl.uniform1i(uMain.shadow,1);
   gl.drawArraysInstanced(gl.TRIANGLES,0,vertices.length/9,COUNT);
-  // Only these 7 side surfaces are visible as clean matte cardstock.
+  // One cohesive matte cardstock edge; never seven isolated slabs.
   const packets=deckPacketLayout(layout);
   gl.bindBuffer(gl.ARRAY_BUFFER,instances);gl.bufferSubData(gl.ARRAY_BUFFER,0,pack(packets));
   gl.bindVertexArray(packetVao);
@@ -292,5 +296,5 @@ export function createInstancedDeck(gl,{atlasTexture}){
   if(shadowTexture)gl.deleteTexture(shadowTexture);
   if(shadowFramebuffer)gl.deleteFramebuffer(shadowFramebuffer);
  }
- return {render,dispose,get shadowMapped(){return shadows},instanceCount:COUNT,packetCount:packetCount(COUNT)};
+ return {render,dispose,get shadowMapped(){return shadows},instanceCount:COUNT,packetCount:1};
 }
