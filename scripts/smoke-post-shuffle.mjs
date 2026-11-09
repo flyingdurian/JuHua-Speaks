@@ -41,10 +41,24 @@ try{
  const foil=await page.evaluate(()=>window.__POST_SHUFFLE__.foil());
  assert.ok(['celestial-holographic-wash','chroma-shifting-metallic-sheen','pearlescent-gloss','spectrum-activation-wave'].includes(foil));
  await page.screenshot({path:dir+'/07-three-selected-backs.png',timeout:60000});
+ // Let the tableau entrance finish before measuring structural layout stability.
+ await page.waitForTimeout(1050);
+ const stableCardBoxes=await page.locator('.ps-flip-button').evaluateAll(nodes=>nodes.map(n=>{
+  const r=n.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};
+ }));
+ // No fake click targets or old HUD should intrude into the interior.
+ assert.equal(await page.locator('.ps-selections').isVisible(),false);
+ const vapor=await page.locator('.ps-card-back').first().evaluate(el=>getComputedStyle(el,'::after').animationName);
+ assert.match(vapor,/ps-vapor-roll/);
  for(let i=0;i<3;i++){
   await page.locator('.ps-flip-button').nth(i).click();
   await page.waitForTimeout(1320);
   assert.equal(await page.locator('.ps-tableau-detail').nth(i).isVisible(),true,'Revealed card must show its meaning');
+  const after=await page.locator('.ps-flip-button').evaluateAll(nodes=>nodes.map(n=>{
+   const r=n.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};
+  }));
+  for(let j=0;j<3;j++)for(const k of ['x','y','width','height'])
+   assert.ok(Math.abs(after[j][k]-stableCardBoxes[j][k])<1.6,'reveal may not reflow '+j+'.'+k);
  }
  assert.equal(await page.evaluate(()=>window.__POST_SHUFFLE__.tableau().revealed),3);
  assert.equal(await page.locator('.ps-card-art').count(),3,'RWS front images must stay in the reveal');
