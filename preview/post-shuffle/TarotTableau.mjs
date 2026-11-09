@@ -6,7 +6,7 @@
 import {BY_ID,commonsThumbnailUrl,secureRandomInt} from '../../src/deck.mjs';
 import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
 import {createCardVapor} from './CardVapor.mjs';
-import {ART_OVERLAY_STYLES,ART_OVERLAY_LABELS,artOverlayDataUrls} from './ArtOverlays.mjs';
+import {ART_OVERLAY_STYLES,ART_OVERLAY_LABELS,artOverlayDataUrls,overlayBackground} from './ArtOverlays.mjs';
 
 export const FOIL_FINISHES=ART_OVERLAY_STYLES;
 // Legacy public names remain for old preview consumers, but now select art overlays.
@@ -65,7 +65,10 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
   if(disposed||!ART_OVERLAY_STYLES.includes(next))throw new RangeError('Unknown art overlay style');
   section.classList.remove('ps-overlay-'+activeStyle);
   activeStyle=next;section.classList.add('ps-overlay-'+activeStyle);
-  for(const layer of overlayLayers)layer.style.backgroundImage='url("'+overlayTiles[activeStyle]+'")';
+  for(const layer of overlayLayers){
+   layer.style.backgroundImage=overlayBackground(overlayTiles,activeStyle);
+   layer.dataset.overlayStyle=activeStyle;
+  }
   styleName.textContent='Art overlay · '+labelStyle(activeStyle);
   return activeStyle;
  }
@@ -96,7 +99,8 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
   image.style.transform=pick.orientation==='reversed'?'rotate(180deg)':'none';
   const foilLayer=node('div','ps-card-art-overlay');
   foilLayer.setAttribute('aria-hidden','true');
-  foilLayer.style.backgroundImage='url("'+overlayTiles[activeStyle]+'")';
+  foilLayer.style.backgroundImage=overlayBackground(overlayTiles,activeStyle);
+  foilLayer.dataset.overlayStyle=activeStyle;
   overlayLayers.push(foilLayer);
   const artifactNote=node('div','ps-card-art-unavailable','RWS artwork unavailable');
   artifactNote.hidden=true;
