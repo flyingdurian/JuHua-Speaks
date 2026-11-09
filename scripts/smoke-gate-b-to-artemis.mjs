@@ -1,7 +1,7 @@
 /**
- * Gate B → fullscreen sphere browser smoke. This intentionally stops at
- * three selected cards: rejected legacy ritual/reveal/Artemis is NOT used.
- * The filename remains for existing CI references; assertions are current.
+ * Gate B -> C owner-review browser smoke: physical piles, cinematic entry,
+ * truly fullscreen sphere, 3 gold-halo picks, then an interactive three-card
+ * reveal using original RWS artwork. Intentionally does not invoke Artemis.
  */
 import {chromium} from 'playwright';
 import {mkdir,writeFile} from 'node:fs/promises';
@@ -14,54 +14,75 @@ const browser=await chromium.launch({headless:true,args:[
 let page;
 const errors=[],steps=[];
 try{
- const context=await browser.newContext({viewport:{width:1100,height:770}});
- page=await context.newPage();
- page.on('pageerror',e=>errors.push(String(e)));
+ const ctx=await browser.newContext({viewport:{width:1200,height:800}});
+ page=await ctx.newPage();page.on('pageerror',e=>errors.push(String(e)));
  await page.goto('http://127.0.0.1:4184/preview/gate-b/?seed=2165840022&entrance=outside-in',
   {waitUntil:'domcontentloaded',timeout:60000});
- await page.waitForFunction(()=>window.__ritualGateB?.world?.cards?.length===78,{timeout:15000});
+ await page.waitForFunction(()=>window.__ritualGateB?.world?.cards?.length===78,null,{timeout:15000});
  await page.locator('#question').fill('How can I make this decision with more clarity?');
  await page.locator('#skip-to-deck').click();
- await page.waitForFunction(()=>window.__ritualGateB?.phase==='deck_formed',{timeout:12000});
+ await page.waitForFunction(()=>window.__ritualGateB?.phase==='deck_formed',null,{timeout:12000});
  await page.locator('#finish-shuffle').waitFor({state:'visible'});
- steps.push('Landing demo skip reaches the same 78-layer resting deck');
+ steps.push('Landing demo skip preserves the physical 78-layer resting deck');
  await page.screenshot({path:dir+'/handoff-resting-deck.png'});
  await page.locator('#finish-shuffle').click();
  const preserved=await page.evaluate(()=>JSON.parse(sessionStorage.getItem('juhua:gate-b-reveal:v1')).cardIds);
- assert.equal(preserved.length,78);
- assert.equal(new Set(preserved).size,78);
- await page.waitForURL('**/preview/gate-c14/?from=gate-b',{timeout:15000});
- await page.waitForFunction(()=>window.__JUHUA_C14__?.stage()==='sphere',{timeout:15000});
+ assert.equal(preserved.length,78);assert.equal(new Set(preserved).size,78);
+ assert.equal(await page.evaluate(()=>window.__ritualGateB.phase),'sphere_transition');
+ await page.waitForFunction(()=>window.__ritualGateB.shuffle.entryAge>.7,null,{timeout:3500});
+ steps.push('Finish Shuffling animates real 78-sheet sphere expansion; not immediate navigation');
+ await page.screenshot({path:dir+'/sphere-entry-in-motion.png'});
+ await page.waitForURL('**/preview/gate-c14/?from=gate-b',{timeout:20000});
+ await page.waitForFunction(()=>window.__JUHUA_C14__?.stage()==='sphere',null,{timeout:15000});
  const recovered=await page.evaluate(()=>window.__JUHUA_C14__.deck());
- assert.deepEqual(recovered,preserved,'Gate C may not silently reshuffle the private 78-card order');
+ assert.deepEqual(recovered,preserved,'Gate C must never silently reshuffle the transferred 78 cards');
  assert.equal(await page.evaluate(()=>sessionStorage.getItem('juhua:gate-b-reveal:v1')),null);
  assert.equal(await page.locator('.orbit-card').count(),78);
- assert.equal(await page.locator('.scene-cube,.scene-gate,.sphere-page,.physical-reveal').count(),0);
- steps.push('Finish Shuffling reaches fullscreen Gate C sphere, never rejected ritual.html or cube');
+ assert.equal(await page.locator('.dock,.dock-back,.scene-cube,.scene-gate,.physical-reveal').count(),0);
+ assert.ok((await page.locator('#sphere-message').textContent()).includes('0 selected'));
+ steps.push('Full-viewport interior sphere without the rejected THREE PATHS dock');
  await page.screenshot({path:dir+'/handoff-sphere.png'});
- // Exercise actual DOM click path for all three choices.
  for(let i=0;i<3;i++){
-  await page.locator('.orbit-card:not([hidden])').first().dispatchEvent('click');
-  await page.waitForFunction(n=>window.__JUHUA_C14__.selected().length===n,i+1);
+  await page.locator('.orbit-card:not([hidden]):not(.is-chosen)').first().dispatchEvent('click');
+  await page.waitForFunction(n=>window.__JUHUA_C14__.selected().length===n,i+1,{timeout:5000});
+  assert.equal(await page.locator('.orbit-card.is-chosen').count(),i+1);
  }
- const chosen=await page.evaluate(()=>window.__JUHUA_C14__.selected());
- assert.equal(chosen.length,3);
- assert.equal(new Set(chosen.map(x=>x.id)).size,3);
- for(const choice of chosen){
-  const hidden=await page.locator('.orbit-card[data-card-id="'+choice.id+'"]').evaluate(el=>el.hidden);
-  assert.equal(hidden,true,'Selected card must leave the sphere and appear in the foreground');
- }
- assert.equal(await page.locator('.dock-back.chosen').count(),3);
- assert.equal(await page.locator('#finish-label').isVisible(),true);
- steps.push('Three unique cards leave the sphere into Past / Present / Future foreground');
- await page.screenshot({path:dir+'/handoff-three-cards.png'});
- if(errors.length)throw Error('Page errors: '+errors.join(' | '));
- await writeFile(dir+'/handoff-report.json',JSON.stringify({passed:true,steps,errors},null,2));
- console.log('Gate B → full-screen sphere → staged three-card lineup PASS',steps);
+ const ids=await page.evaluate(()=>window.__JUHUA_C14__.selected().map(c=>c.id));
+ assert.equal(new Set(ids).size,3);
+ steps.push('Three 3D sphere cards lift and glow with animated gold foil');
+ await page.screenshot({path:dir+'/three-selected-halos.png'});
+ await page.waitForFunction(()=>window.__JUHUA_C14__.stage()==='reveal',null,{timeout:6000});
+ assert.equal(await page.locator('.peek-card').count(),3);
+ assert.equal(await page.locator('.trio-role').count(),3);
+ assert.equal(await page.locator('.dock').count(),0);
+ steps.push('75 remaining cards collapse; three selections appear large in the reveal');
+ await page.screenshot({path:dir+'/three-floating-cards.png'});
+ const first=await page.locator('[data-peek-index="0"]').boundingBox();
+ if(!first)throw new Error('First peel card is not visibly interactive');
+ await page.mouse.move(first.x+first.width*.91,first.y+first.height*.52);
+ await page.mouse.down();
+ await page.mouse.move(first.x+first.width*.19,first.y+first.height*.52,{steps:12});
+ await page.mouse.up();
+ const progress=await page.evaluate(()=>window.__JUHUA_C14__.peekStates()[0].progress);
+ assert.ok(progress>.4&&progress<1,'Right-edge drag must cause partial art exposure');
+ steps.push('Physical edge drag partially exposes authentic card art, with no whole-card flip');
+ await page.screenshot({path:dir+'/partial-card-peek.png'});
+ await page.evaluate(()=>{
+  window.__JUHUA_C14__.peek(0,1,'right');
+  window.__JUHUA_C14__.peek(1,1,'corner');
+  window.__JUHUA_C14__.peek(2,1,'bottom');
+ });
+ assert.equal(await page.locator('.trio-card-meta.is-visible').count(),3);
+ const images=await page.locator('.peek-art img').evaluateAll(a=>a.map(x=>({ok:x.complete&&x.naturalWidth>0,src:x.src})));
+ assert.equal(images.length,3);
+ assert.ok(images.every(x=>x.ok),'Historical RWS artwork must load for each selected card');
+ steps.push('Upright/reversed original RWS illustrations and short descriptions appear');
+ await page.screenshot({path:dir+'/three-revealed-cards.png'});
+ if(errors.length)throw Error('Browser errors: '+errors.join(' | '));
+ await writeFile(dir+'/handoff-report.json',JSON.stringify({passed:true,steps,errors,progress},null,2));
+ console.log('Gate B → sphere fly-through → 3 gold selections → tactile reveal PASS',steps);
 }catch(error){
  await page?.screenshot({path:dir+'/handoff-failure.png'}).catch(()=>{});
  await writeFile(dir+'/handoff-report.json',JSON.stringify({passed:false,steps,errors,error:String(error)},null,2));
  throw error;
-}finally{
- await browser.close();
-}
+}finally{await browser.close()}
