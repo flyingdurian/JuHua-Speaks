@@ -357,3 +357,8 @@ body.gate-b-post-shuffle-live #post-shuffle-mount.ps-mount{position:fixed;inset:
  .ps-revealed .ps-flip-inner{animation:none;transform:rotateX(2.4deg) rotateY(174deg)}
  .ps-flip-button::before{animation:none!important}
 }
+
+/* HTML boolean hidden must not be overridden by author img display rules. */
+.ps-card-art[hidden]{display:none!important}
+.ps-card-art-unavailable:not([hidden]){z-index:5}
+.ps-card-front .ps-card-foil{z-index:6}
