@@ -108,14 +108,14 @@ const rotX=(p,a)=>[p[0],p[1]*Math.cos(a)-p[2]*Math.sin(a),p[1]*Math.sin(a)+p[2]*
 function cardPose(point,t,turn,yaw,pitch,selectedPct){
  const s=smooth((t-.85)/2.3);
  const center=cardWorld(point,t,false);
- const r=point.radius*(1-.22*selectedPct);
+ const r=point.radius*(1-.055*selectedPct); // subtle in-world forward lift
  const center3=mix3(center,point.direction.map(n=>n*r),selectedPct);
  const p=rotX(rotY(center3,turn+yaw),pitch);
  const normal=norm(mix3([-.70,-.12,-.69],point.direction,s)); // illustrated faces OUT, navy backs IN
  let n=rotX(rotY(normal,turn+yaw),pitch);
  let right=norm(cross([0,1,0],n));if(Math.hypot(...right)<.3)right=[1,0,0];
  let up=norm(cross(n,right));
- const a=point.roll+(1-s)*(point.i*.27+t*4.9);
+ const a=point.roll*s-.045*(1-s)+Math.sin(Math.PI*s)*.35*Math.sin(point.i*.47+t*5.4); // all stacked sheets remain aligned until unfolding
  const rr=right.map((v,i)=>Math.cos(a)*v+Math.sin(a)*up[i]);
  const uu=up.map((v,i)=>Math.cos(a)*v-Math.sin(a)*right[i]);
  return {position:p,normal:n,right:rr,up:uu};
@@ -128,17 +128,16 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  if(!mount||!Array.isArray(deckIds)||deckIds.length!==78||new Set(deckIds).size!==78)throw new Error('A unique 78-card ordered handoff is required');
  const cardMap=new Map(DECK.map(c=>[c.id,c]));if(deckIds.some(id=>!cardMap.has(id)))throw new Error('Unrecognized card identities');
  const cards=deckIds.map(id=>cardMap.get(id)),points=sphereLayout();
- let choices=[],selectedAt=new Map(),lastPointer=null,dragging=false,yaw=0,pitch=0,raf=0,dead=false,ready=false,lastDraw=0,step='launch';
+ let choices=[],selectedAt=new Map(),lastPointer=null,yaw=0,pitch=0,raf=0,dead=false,ready=false,lastDraw=0,step='launch';
+ let lockAt=null,tableau=null,tableauShown=false;const sessionFoil=chooseFoilFinish();
  mount.innerHTML='<div class="ps-world" role="region" aria-label="Continuous post-shuffle Tarot sphere" id="ps-world">'+
   '<div class="ps-sky" id="ps-sky"><canvas class="ps-stars" id="ps-stars"></canvas></div>'+
   '<canvas id="ps-cards" class="ps-cards" aria-label="78 Tarot cards in a three-dimensional sphere. Drag to look around, tap a card to select it." tabindex="0"></canvas>'+
   '<header class="ps-header"><span class="ps-brand">✧ &nbsp; JuHua Speaks</span><span class="ps-guidance" id="ps-guidance" aria-live="polite">Please select 3 cards (0 cards selected)</span><span class="ps-stage" id="ps-stage">DECK IN FLIGHT</span></header>'+
-  '<div class="ps-aura-layer" id="ps-auras" aria-hidden="true"></div>'+
   '<div class="ps-readout"><span id="ps-hint">The cards are taking their places…</span><button type="button" id="ps-pause" aria-pressed="false" aria-label="Pause sphere rotation">Ⅱ</button></div>'+
   '<div class="ps-selections" id="ps-selections" aria-label="Past Present Future selections"></div>'+
   '<p class="ps-end" id="ps-end" hidden>THREE CARDS SELECTED · CONTINUE HELD FOR VISUAL REVIEW</p></div>';
- const world=mount.querySelector('#ps-world'),canvas=mount.querySelector('#ps-cards'),auras=mount.querySelector('#ps-auras'),guidance=mount.querySelector('#ps-guidance');
- const auraNodes=new Map();
+ const world=mount.querySelector('#ps-world'),canvas=mount.querySelector('#ps-cards'),guidance=mount.querySelector('#ps-guidance');
  const sky=initCelestialSky({mount:mount.querySelector('#ps-sky'),starCanvas:mount.querySelector('#ps-stars'),seed:0x7ac4fa2,reduceMotion:matchMedia('(prefers-reduced-motion:reduce)').matches});
  const gl=canvas.getContext('webgl2',{alpha:true,antialias:true,premultipliedAlpha:false,powerPreference:'high-performance'});
  if(!gl){sky.dispose();throw Error('WebGL2 is required for the physical Tarot sphere; graphics unavailable');}
@@ -154,50 +153,74 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  const start=performance.now(),roles=['Past','Present','Future'];
  let clock=0,clockFreeze=0,paused=false,camZ=12.6,rendered=[],viewport={w:1,h:1};
  const selectedPct=id=>{const at=selectedAt.get(id);return at===undefined?0:smooth((performance.now()-at)/780)};
- function syncSlots(){const parent=mount.querySelector('#ps-selections');parent.innerHTML=roles.map((r,i)=>{
-  const p=choices[i];return '<div class="ps-slot"><label>'+r+'</label><div class="ps-mark">'+(p?'✦':'·')+'</div>'+(p?'<button type="button" data-undo="'+p.id+'" aria-label="Undo '+r+' selection">UNDO</button>':'')+'</div>';}).join('');
-  parent.classList.toggle('ps-visible',choices.length>0);guidance.textContent='Please select 3 cards ('+choices.length+' cards selected)';
-  const done=choices.length===3;mount.querySelector('#ps-end').hidden=!done;
-  if(done)onComplete(choices.map(x=>({...x})));
+ function syncSlots(){
+  const parent=mount.querySelector('#ps-selections');
+  parent.innerHTML=roles.map((r,i)=>{
+   const p=choices[i];
+   return '<div class="ps-slot"><label>'+r+'</label><div class="ps-mark">'+(p?'✦':'·')+'</div>'+
+    (p&&!lockAt?'<button type="button" data-undo="'+p.id+'" aria-label="Undo '+r+' selection">UNDO</button>':'')+'</div>';
+  }).join('');
+  parent.classList.toggle('ps-visible',choices.length>0&&!lockAt);
+  guidance.textContent='Please select 3 cards ('+choices.length+' cards selected)';
+  if(choices.length===3&&!lockAt){
+   lockAt=performance.now();
+   tableau=createTarotTableau({mount:world,picks:choices,foil:sessionFoil});
+   parent.classList.remove('ps-visible');
+   guidance.textContent='Your three cards are chosen';
+   onComplete(choices.map(x=>({...x})));
+  }
  }
  syncSlots();
- function changePause(){paused=!paused;const button=mount.querySelector('#ps-pause');button.textContent=paused?'▶':'Ⅱ';button.setAttribute('aria-pressed',String(paused))}
+ function changePause(){
+  if(lockAt!==null)return;
+  paused=!paused;
+  const button=mount.querySelector('#ps-pause');
+  button.textContent=paused?'▶':'Ⅱ';button.setAttribute('aria-pressed',String(paused));
+ }
  mount.querySelector('#ps-pause').addEventListener('click',changePause);
- mount.addEventListener('click',e=>{const id=e.target.closest('[data-undo]')?.dataset.undo;if(!id)return;choices=choices.filter(c=>c.id!==id);selectedAt.delete(id);syncSlots()});
+ mount.addEventListener('click',e=>{
+  if(lockAt!==null)return;
+  const id=e.target.closest('[data-undo]')?.dataset.undo;if(!id)return;
+  choices=choices.filter(c=>c.id!==id);selectedAt.delete(id);syncSlots();
+ });
+ const lockProgress=()=>lockAt===null?0:smooth((performance.now()-lockAt)/1600);
  const projectCorner=(pos,right,up,sx,sy)=>[pos[0]+sx*.43*right[0]+sy*.70*up[0],pos[1]+sx*.43*right[1]+sy*.70*up[1],pos[2]+sx*.43*right[2]+sy*.70*up[2]];
  function computeGeometry(t){
   const angle=orbitAngle(t)+yaw,cam=cameraDistance(t),vertex=[],visible=[];
+  const collapse=lockProgress();
   camZ=cam;
   for(let i=0;i<78;i++){
    const id=deckIds[i],selected=selectedAt.has(id),pct=selected?selectedPct(id):0;
    const p=cardPose(points[i],t,angle,0,pitch,pct);
-   const corners=[projectCorner(p.position,p.right,p.up,-1,-1),projectCorner(p.position,p.right,p.up,1,-1),projectCorner(p.position,p.right,p.up,1,1),projectCorner(p.position,p.right,p.up,-1,1)];
-   const clipped=clipCardNearPlane(corners,cam);
-   if(clipped.length<3)continue;
-   const projected=corners.map(pt=>project(pt,cam,viewport)),center=project(p.position,cam,viewport);
-   // Original RWS illustrations face the exterior; after camera entry the
-   // navy backs of these SAME physical cards face the viewer.
-   const side=dot(p.normal,[0,0,cam].map((c,j)=>c-p.position[j]))>=0?1:0;
-   // Clip a crossing physical card at the camera near plane rather than
-   // removing its entire sheet, which causes visible fly-by popping.
-   for(let j=1;j<clipped.length-1;j++)for(const v of [clipped[0],clipped[j],clipped[j+1]]){
-    const c=v.position;vertex.push(c[0],c[1],c[2]-cam,v.uv[0],v.uv[1],i,side,selected?1:0);
+   let alpha=1;
+   if(lockAt!==null){
+    if(selected){
+     const place=choices.findIndex(x=>x.id===id);
+     const target=[(place-1)*1.54,-.04,-3.35];
+     p.position=mix3(p.position,target,collapse);
+     p.normal=norm(mix3(p.normal,[0,0,-1],collapse));
+     p.right=norm(mix3(p.right,[1,0,0],collapse));
+     p.up=norm(mix3(p.up,[0,1,0],collapse));
+     alpha=1-smooth((collapse-.80)/.20);
+    }else{
+     const drift=norm(p.position);
+     p.position=p.position.map((v,j)=>v+drift[j]*3.4*collapse);
+     alpha=1-smooth(collapse);
+    }
    }
-   // A partly clipped card is never a selection target.
-   if(center&&projected.every(Boolean)&&center.x>-170&&center.x<viewport.w+170&&center.y>-220&&center.y<viewport.h+220)
+   if(alpha<.006)continue;
+   const corners=[
+    projectCorner(p.position,p.right,p.up,-1,-1),projectCorner(p.position,p.right,p.up,1,-1),
+    projectCorner(p.position,p.right,p.up,1,1),projectCorner(p.position,p.right,p.up,-1,1)
+   ];
+   if(clipCardNearPlane(corners,cam).length<3)continue;
+   const projected=corners.map(pt=>project(pt,cam,viewport)),center=project(p.position,cam,viewport);
+   const side=dot(p.normal,[0,0,cam].map((c,j)=>c-p.position[j]))>=0?1:0;
+   vertex.push(...extrudedCardVertices({corners,normal:p.normal,cameraZ:cam,slot:i,selected:pct,alpha}));
+   if(!lockAt&&center&&projected.every(Boolean)&&center.x>-170&&center.x<viewport.w+170&&center.y>-220&&center.y<viewport.h+220)
     visible.push({id,index:i,corners:projected,center,side,selected,depth:center.z});
   }
   return {vertices:new Float32Array(vertex),visible};
- }
- function updateAuras(){
-  const active=new Set();
-  for(const p of rendered){if(!p.selected)continue;active.add(p.id);
-   let el=auraNodes.get(p.id);if(!el){el=document.createElement('div');el.className='ps-selected-halo';auras.append(el);auraNodes.set(p.id,el)}
-   const w=Math.hypot(p.corners[1].x-p.corners[0].x,p.corners[1].y-p.corners[0].y);
-   const h=Math.hypot(p.corners[3].x-p.corners[0].x,p.corners[3].y-p.corners[0].y);
-   el.style.cssText='left:'+p.center.x+'px;top:'+p.center.y+'px;width:'+Math.max(20,w*1.25)+'px;height:'+Math.max(34,h*1.2)+'px;';
-  }
-  for(const [id,node] of auraNodes)if(!active.has(id)){node.remove();auraNodes.delete(id)}
  }
  function draw(now){if(dead)return;raf=requestAnimationFrame(draw);const dt=Math.min(64,Math.max(0,now-lastDraw||0));lastDraw=now;
   if(paused){clockFreeze+=dt;return}
@@ -206,16 +229,17 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   const rect=world.getBoundingClientRect();if(rect.width<10||rect.height<10)return;
   const dpr=Math.min(devicePixelRatio||1,1.5),w=Math.round(rect.width*dpr),h=Math.round(rect.height*dpr);
   viewport={w:rect.width,h:rect.height};if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h)}
-  const state=getStage(t,choices.length);step=state;world.dataset.beat=state;
-  ready=t>=BEATS.interactive;
-  mount.querySelector('#ps-stage').textContent=state==='launch'?'DECK IN FLIGHT':state==='distribute'?'CARDS UNFOLDING':state==='enter'?'ENTERING THE SPHERE':state==='inside'?'INSIDE THE UNIVERSE':'YOUR SELECTION';
-  mount.querySelector('#ps-hint').textContent=atlas.stats().failed>0?'RWS artwork unavailable on '+atlas.stats().failed+' cards · Please sync assets':ready?'Drag to look around · Tap a card to choose':'The cards are taking their places…';
+  const state=lockAt!==null?'tableau':getStage(t,choices.length);step=state;world.dataset.beat=state;
+  ready=t>=BEATS.interactive&&lockAt===null;
+  if(lockAt!==null&&!tableauShown&&lockProgress()>.80){tableauShown=true;tableau?.show();mount.querySelector('#ps-pause').hidden=true;mount.querySelector('#ps-selections').classList.remove('ps-visible');}
+  mount.querySelector('#ps-stage').textContent=state==='launch'?'DECK IN FLIGHT':state==='distribute'?'CARDS UNFOLDING':state==='enter'?'ENTERING THE SPHERE':state==='inside'?'INSIDE THE UNIVERSE':state==='tableau'?'PAST · PRESENT · FUTURE':'YOUR SELECTION';
+  mount.querySelector('#ps-hint').textContent=atlas.stats().failed>0?'RWS artwork unavailable on '+atlas.stats().failed+' cards · Please sync assets':lockAt!==null?'Choose a card to turn it over':ready?'Pan left or right · Tap a card to choose':'The cards are taking their places…';
   const data=computeGeometry(t);rendered=data.visible;
   atlas.upload();gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(program);gl.bindVertexArray(vao);gl.uniform1f(uniform.focal,perspectiveFocal());gl.uniform1f(uniform.aspect,rect.width/rect.height);gl.uniform1f(uniform.near,CAMERA_NEAR);gl.uniform1f(uniform.far,100);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlas.tex);gl.uniform1i(uniform.atlas,0);gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);gl.bufferData(gl.ARRAY_BUFFER,data.vertices,gl.DYNAMIC_DRAW);gl.uniform1f(uniform.time,t);gl.drawArrays(gl.TRIANGLES,0,data.vertices.length/SPHERE_VERTEX_STRIDE);
-  updateAuras();
+
  }
  let t=0;
- function tap(x,y){if(!ready||dead)return null;const rect=canvas.getBoundingClientRect(),localX=x-rect.left,localY=y-rect.top;
+ function tap(x,y){if(!ready||dead||lockAt!==null)return null;const rect=canvas.getBoundingClientRect(),localX=x-rect.left,localY=y-rect.top;
   // True projected quad first; center fallback is bounded to card dimensions.
   const onCard=p=>{
    if(hitsQuad(localX,localY,p.corners))return true;
@@ -231,18 +255,18 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   if(choices.some(c=>c.id===candidate.id))selectedAt.set(candidate.id,performance.now());else selectedAt.delete(candidate.id);
   syncSlots();return candidate.id;
  }
- canvas.addEventListener('pointerdown',e=>{if(!ready)return;lastPointer={id:e.pointerId,x:e.clientX,y:e.clientY,yaw,pitch,moved:false};});
- canvas.addEventListener('pointermove',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;const dx=e.clientX-lastPointer.x,dy=e.clientY-lastPointer.y;if(Math.hypot(dx,dy)>7)lastPointer.moved=true;if(lastPointer.moved){yaw=lastPointer.yaw+dx*.0043;pitch=clamp(lastPointer.pitch+dy*.004,-1.05,1.05);}});
+ canvas.addEventListener('pointerdown',e=>{if(!ready)return;lastPointer={id:e.pointerId,x:e.clientX,y:e.clientY,yaw,moved:false};});
+ canvas.addEventListener('pointermove',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;const dx=e.clientX-lastPointer.x,dy=e.clientY-lastPointer.y;if(Math.hypot(dx,dy)>7)lastPointer.moved=true;if(lastPointer.moved){yaw=lastPointer.yaw+dx*.0043; // horizontal panning only}});
  let skipTap=false;
  canvas.addEventListener('pointerup',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;skipTap=lastPointer.moved;lastPointer=null});
  canvas.addEventListener('click',e=>{if(!ready)return;if(!skipTap)tap(e.clientX,e.clientY);skipTap=false});
  canvas.addEventListener('pointercancel',()=>{lastPointer=null});
- canvas.addEventListener('keydown',e=>{if(!ready)return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){yaw+=(e.key==='ArrowLeft'?-1:1)*.21;e.preventDefault()}if(e.key==='ArrowUp'||e.key==='ArrowDown'){pitch=clamp(pitch+(e.key==='ArrowUp'?-1:1)*.12,-1.05,1.05);e.preventDefault()}});
+ canvas.addEventListener('keydown',e=>{if(!ready)return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){yaw+=(e.key==='ArrowLeft'?-1:1)*.21;e.preventDefault()}});
  raf=requestAnimationFrame(draw);
  return {
   stage:()=>step,selected:()=>choices.map(c=>({...c})),deck:()=>[...deckIds],assetStatus:()=>atlas.stats(),ready:()=>ready,
   visible:()=>rendered.map(p=>({id:p.id,side:p.side,selected:p.selected,x:p.center.x,y:p.center.y,depth:p.depth})),
-  time:()=>t,tap,togglePause:changePause,
-  dispose(){dead=true;cancelAnimationFrame(raf);sky.dispose();atlas.dispose();gl.deleteBuffer(vertexBuffer);gl.deleteVertexArray(vao);gl.deleteProgram(program);world.remove()}
+  time:()=>t,tap,togglePause:changePause,foil:()=>sessionFoil,tableau:()=>({active:tableauShown,revealed:tableau?.revealed||0}),
+  dispose(){dead=true;cancelAnimationFrame(raf);sky.dispose();tableau?.dispose();atlas.dispose();gl.deleteBuffer(vertexBuffer);gl.deleteVertexArray(vao);gl.deleteProgram(program);world.remove()}
  };
 }
