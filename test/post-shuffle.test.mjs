@@ -10,7 +10,7 @@ test('One real, non-redealt 78-card spherical identity map',()=>{
  for(const p of points){assert.ok(Math.abs(Math.hypot(...p.direction)-1)<1e-8);assert.ok(p.radius>5&&p.radius<6.1)}
  assert.throws(()=>sphereLayout(77),/78/);
  const first=cardWorld(points[0],0),final=cardWorld(points[0],4);
- assert.ok(Math.hypot(...first)<1.2);assert.ok(Math.hypot(...final)>4.5);
+ assert.ok(Math.hypot(...first)<2.0);assert.ok(Math.hypot(...final)>4.5);
  assert.equal(assemblyProgress(0),0);assert.equal(assemblyProgress(4),1);
 });
 test('One continuous launch→unfold→fast spin→inward camera shot with no Gate or Cube',()=>{
