@@ -63,10 +63,23 @@ try{
   assert.ok(selected,'True card hit-testing failed at selection '+(i+1));
  }
  await page.screenshot({path:dir+'/06-three-chosen.png',timeout:60000});
- assert.equal(await page.locator('#ps-end').isVisible(),true);
+ await page.waitForFunction(()=>window.__POST_SHUFFLE__?.tableau()?.active===true,{timeout:10000});
+ assert.equal(await page.locator('.ps-tableau').isVisible(),true,'Three-card tableau must appear in-world');
+ assert.equal(await page.locator('.ps-flip-button').count(),3);
+ const foil=await page.evaluate(()=>window.__POST_SHUFFLE__.foil());
+ assert.ok(['celestial-holographic-wash','chroma-shifting-metallic-sheen','pearlescent-gloss','spectrum-activation-wave'].includes(foil));
+ await page.screenshot({path:dir+'/07-three-selected-backs.png',timeout:60000});
+ for(let i=0;i<3;i++){
+  await page.locator('.ps-flip-button').nth(i).click();
+  await page.waitForTimeout(1320);
+  assert.equal(await page.locator('.ps-tableau-detail').nth(i).isVisible(),true,'Revealed card must show its meaning');
+ }
+ assert.equal(await page.evaluate(()=>window.__POST_SHUFFLE__.tableau().revealed),3);
+ assert.equal(await page.locator('.ps-card-art').count(),3,'RWS front images must stay in the reveal');
+ await page.screenshot({path:dir+'/08-three-foil-reveals.png',timeout:60000});
  assert.deepEqual(errors,[]);
  await writeFile(dir+'/report.json',JSON.stringify({passed:true,diagnostics,selected:await page.evaluate(()=>window.__POST_SHUFFLE__.selected()),errors},null,2));
- console.log('GPU physical deck / same-page Gate C / 78 original identities / 3 selections: PASS');
+ console.log('GPU physical deck / same-page sphere / 78 originals / 3 selections / 3 foil flips: PASS');
 }catch(e){
  await page.screenshot({path:dir+'/failure.png',timeout:30000}).catch(()=>{});
  await writeFile(dir+'/report.json',JSON.stringify({passed:false,error:String(e),errors},null,2));
