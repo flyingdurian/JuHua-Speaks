@@ -32,6 +32,7 @@ test('v3.2 fail-closed artwork and 3D transforms must be present',async()=>{
  const css=await readFile(new URL('../preview/post-shuffle/post-shuffle.css',import.meta.url),'utf8');
  const smoke=await readFile(new URL('../scripts/smoke-post-shuffle.mjs',import.meta.url),'utf8');
  const deck=await readFile(new URL('../src/ritual-world/InstancedDeck.mjs',import.meta.url),'utf8');
+ const early=await readFile(new URL('../src/ritual-world/RitualWorld.mjs',import.meta.url),'utf8');
  assert.match(tableau,/image\.naturalWidth>0&&image\.naturalHeight>0/);
  assert.match(tableau,/button\.disabled=true/);
  assert.match(tableau,/vapor\.attach\(back\)/);
@@ -45,4 +46,6 @@ test('v3.2 fail-closed artwork and 3D transforms must be present',async()=>{
  assert.match(smoke,/cardTextGap>=0&&cardTextGap<29/);
  assert.match(deck,/packetVao/);
  assert.match(deck,/color=vec4\(\.866,\.870,\.864,1\.\);return;/);
+ assert.match(early,/ctx\.fillStyle='#dddedc';ctx\.fillRect\(ex,ey,TILE_W,TILE_H\)/);
+ assert.doesNotMatch(early,/for\(let i=0;i<TILE_H;i\+=5\)/);
 });
