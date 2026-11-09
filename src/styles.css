@@ -448,7 +448,7 @@
 .site.ritual-focused .sphere-page>.intro{top:clamp(166px,23vh,240px);font-size:clamp(11px,1vw,14px);opacity:.79}
 .site.ritual-focused .sphere-page>.question-badge{display:none}
 .site.ritual-focused .sphere-page>.sphere-tools{position:absolute;bottom:clamp(265px,34vh,354px);z-index:13;left:50%;transform:translateX(-50%);margin:0;width:min(650px,96vw);justify-content:center}
-.site.ritual-focused .sphere-page>.sphere-renderer-choice{position:absolute;right:20px;top:60px;z-index:13;left:auto;font-size:10px;margin:0}
+.site.ritual-focused .sphere-page>.sphere-renderer-choice{position:absolute;right:20px;top:106px;z-index:13;left:auto;font-size:10px;margin:0}
 .site.ritual-focused .sphere-page>.hand-label{position:absolute;bottom:clamp(212px,27vh,298px);z-index:12;left:50%;transform:translateX(-50%);width:min(500px,93vw);text-align:center;letter-spacing:.15em}
 .site.ritual-focused .sphere-page>.slots{position:absolute;bottom:clamp(98px,13vh,157px);z-index:13;left:50%;transform:translateX(-50%);width:min(625px,95vw);margin:0;display:flex;justify-content:center;gap:clamp(8px,4vw,32px)}
 .site.ritual-focused .sphere-page>.sphere-auto-lock{position:absolute;bottom:clamp(66px,8vh,101px);z-index:13;left:50%;transform:translateX(-50%);margin:0;font-size:10px;width:80vw}
