@@ -160,6 +160,6 @@ window.__ritualGateB={
  world,diagnostics:()=>world?{...world.getDiagnostics(),sky:sky.diagnostics(),vortex:flowMist.diagnostics()}:null,
  get phase(){return world?.phase||'unavailable'},
  get shuffle(){return world?.getShuffleState()||null},
- version:'Gate BC v3 · 10.6s organic 78-sheet ritual / 3D foil reveal',
+ version:'Gate BC v3.3 · cohesive matte deck / 360° sphere / four hologram reveals',
 };
 window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();flowMist.dispose();world?.dispose();postShuffle?.dispose()},{once:true});
