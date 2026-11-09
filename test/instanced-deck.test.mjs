@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {DECK} from '../src/deck.mjs';
 import {makeLandingCardEntities} from '../src/ritual-world/OrbitalField.mjs';
-import {deckInstanceLayout,DECK_SHEET_STEP,DECK_SHEET_THICKNESS,DECK_AIR_GAP,DECK_INSTANCE_COUNT} from '../src/ritual-world/InstancedDeck.mjs';
+import {deckInstanceLayout,deckPacketLayout,DECK_SHEET_STEP,DECK_SHEET_THICKNESS,DECK_AIR_GAP,DECK_INSTANCE_COUNT} from '../src/ritual-world/InstancedDeck.mjs';
 const cards=makeLandingCardEntities(DECK,2165840022);
 const dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0);
 test('78 separate thin instances with positive air-gaps, correct back orientation',()=>{
@@ -23,7 +23,7 @@ test('GPU instancing and a true shadow-depth framebuffer, never a combined slab'
  const code=await readFile(new URL('../src/ritual-world/InstancedDeck.mjs',import.meta.url),'utf8');
  const root=await readFile(new URL('../src/ritual-world/RitualWorld.mjs',import.meta.url),'utf8');
  assert.match(code,/vertexAttribDivisor\(loc,1\)/);
- assert.equal((code.match(/gl\.drawArraysInstanced\(/g)||[]).length,2);
+ assert.equal((code.match(/gl\.drawArraysInstanced\(/g)||[]).length,3);
  assert.match(code,/DEPTH_COMPONENT24/);
  assert.match(code,/framebufferTexture2D/);
  assert.match(root,/this\.instancedDeck\.render/);
@@ -71,4 +71,28 @@ test('canonical early deck, three mini-decks and final suspended stack all share
  assert.match(stage,/positionOrganicSheet\(\[centerX,-\.08,centerZ\]/);
  assert.match(choreography,/positionOrganicSheet\(center,basis,rank/);
  assert.match(instancing,/const p=pose\.position/);
+});
+
+test('v3.2: clean matte packet side sleeves replace aliased individual edge ribbons',()=>{
+ const scene=deckInstanceLayout(cards,32.5,1);
+ const packets=deckPacketLayout(scene);
+ assert.equal(packets.length,7);
+ assert.equal(packets.reduce((n,p)=>n+p.sheets,0),78);
+ assert.ok(packets.every(p=>p.thickness>.12&&p.thickness<.3));
+ assert.ok(packets.every(p=>p.position.every(Number.isFinite)));
+ for(let i=1;i<packets.length;i++){
+  const axis=packets[i-1].normal;
+  const a=dot(packets[i-1].position,axis)+packets[i-1].thickness*.5;
+  const b=dot(packets[i].position,axis)-packets[i].thickness*.5;
+  assert.ok(b-a>.007,'separate matte packets need visible free space');
+ }
+});
+test('v3.2: side materials have no texture, normal noise or shadow-map dither',async()=>{
+ const code=await readFile(new URL('../src/ritual-world/InstancedDeck.mjs',import.meta.url),'utf8');
+ assert.match(code,/mesh\(\{faces:true,edges:false\}\)/);
+ assert.match(code,/mesh\(\{faces:false,edges:true\}\)/);
+ assert.match(code,/packetVao/);
+ assert.match(code,/iThickness/);
+ assert.match(code,/color=vec4\(\.866,\.870,\.864,1\.\);return;/);
+ assert.doesNotMatch(code,/float ink=smoothstep/);
 });
