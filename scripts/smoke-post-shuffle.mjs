@@ -38,6 +38,19 @@ try{
  await page.waitForFunction(()=>window.__POST_SHUFFLE__?.tableau()?.active===true,{timeout:10000});
  assert.equal(await page.locator('.ps-tableau').isVisible(),true,'Three-card tableau must appear in-world');
  assert.equal(await page.locator('.ps-flip-button').count(),3);
+ // Historic artwork is a blocking reveal prerequisite, not an optional
+ // decorative image tag: all 3 visible faces must decode to real pixels.
+ await page.waitForFunction(()=>{
+  const imgs=[...document.querySelectorAll('.ps-tableau .ps-card-art')];
+  return imgs.length===3&&imgs.every(img=>img.complete&&img.naturalWidth>0&&img.naturalHeight>0);
+ },{timeout:18000});
+ assert.equal(await page.locator('.ps-flip-button:disabled').count(),0);
+ const composed=await page.evaluate(()=>{
+  const inner=document.querySelector('.ps-flip-inner');
+  return {filter:getComputedStyle(inner).filter,transform:getComputedStyle(inner).transform};
+ });
+ assert.equal(composed.filter,'none','flip parent must not flatten 3D faces');
+ assert.match(composed.transform,/matrix3d/,'unrevealed card should be slightly tilted in 3D');
  const foil=await page.evaluate(()=>window.__POST_SHUFFLE__.foil());
  assert.ok(['celestial-holographic-wash','chroma-shifting-metallic-sheen','pearlescent-gloss','spectrum-activation-wave'].includes(foil));
  await page.screenshot({path:dir+'/07-three-selected-backs.png',timeout:60000});
@@ -50,10 +63,29 @@ try{
  assert.equal(await page.locator('.ps-selections').isVisible(),false);
  const vapor=await page.locator('.ps-card-back').first().evaluate(el=>getComputedStyle(el,'::after').animationName);
  assert.match(vapor,/ps-vapor-roll/);
+ await page.waitForTimeout(180);
+ const vaporPixels=await page.locator('.ps-vapor-cloud').first().evaluate(node=>{
+  const ctx=node.getContext('2d'),p=ctx.getImageData(0,0,node.width,node.height).data;
+  let count=0;for(let i=3;i<p.length;i+=4)if(p[i]>12)count++;
+  return count;
+ });
+ assert.ok(vaporPixels>400,'procedural fluid noise must paint substantial translucent pixels');
+ const cardTextGap=await page.evaluate(()=>{
+  const a=document.querySelector('.ps-flip-button').getBoundingClientRect();
+  const b=document.querySelector('.ps-tableau-detail').getBoundingClientRect();
+  return b.top-a.bottom;
+ });
+ assert.ok(cardTextGap>=0&&cardTextGap<29,'reading must sit directly beneath its own card');
  for(let i=0;i<3;i++){
   await page.locator('.ps-flip-button').nth(i).click();
   await page.waitForTimeout(1320);
   assert.equal(await page.locator('.ps-tableau-detail').nth(i).isVisible(),true,'Revealed card must show its meaning');
+  const facing=await page.locator('.ps-flip-inner').nth(i).evaluate(node=>{
+   const m=new DOMMatrixReadOnly(getComputedStyle(node).transform);
+   return {z:m.m33,filter:getComputedStyle(node).filter};
+  });
+  assert.ok(facing.z<-.82,'actual 3D front must face camera after flip');
+  assert.equal(facing.filter,'none','no hidden flattening post flip');
   const after=await page.locator('.ps-flip-button').evaluateAll(nodes=>nodes.map(n=>{
    const r=n.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};
   }));
