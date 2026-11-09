@@ -165,10 +165,19 @@ function implosionPose(card,t){
 function chaoticGlobePose(card,t){
  const k=card.orbitSlot,seed=card.visualSeed>>>0;
  const rnd=n=>hash(k+n,seed);
- const latitude=1-2*(k+.5)/N;
- const ring=Math.sqrt(Math.max(0,1-latitude*latitude));
- const phi=k*GOLDEN+.23*(rnd(14)-.5);
  const time=t-7.10;
+ // Churn the actual cards around the shell before they construct into three
+ // decks. Three interwoven orbital currents exchange latitude/longitude;
+ // this is not a single static sphere texture rotating as one.
+ const active=ease((t-7.55)/.65)*(1-ease((t-11.83)/.52));
+ const stream=k%3,band=Math.floor(k/3);
+ const latitude=clamp(1-2*(k+.5)/N+
+  active*(.21*Math.sin(time*4.8+stream*TAU/3+band*.21)
+  +.055*Math.sin(time*8.7+k*.31)),-.97,.97);
+ const ring=Math.sqrt(Math.max(0,1-latitude*latitude));
+ const phi=k*GOLDEN+.23*(rnd(14)-.5)+active*(
+  .54*Math.sin(time*3.75+stream*TAU/3+band*.12)
+  +.19*Math.cos(time*6.5+k*.22));
  let p=[ring*Math.cos(phi),latitude,ring*Math.sin(phi)];
  // Whole globe revolves coherently on a slowly banked axis; individual
  // sheets also tumble relative to their local tangent planes.
