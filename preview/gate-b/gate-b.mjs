@@ -174,6 +174,6 @@ window.__ritualGateB={
  world,diagnostics:()=>world?{...world.getDiagnostics(),sky:sky.diagnostics(),vortex:flowMist.diagnostics()}:null,
  get phase(){return world?.phase||'unavailable'},
  get shuffle(){return world?.getShuffleState()||null},
- version:'Gate B v10.7 · 45-degree cyclone / selective accents',
+ version:'Gate B v10.8 · three-pile finale and cinematic sphere entry',
 };
 window.addEventListener('pagehide',()=>{clearInterval(statusTimer);if(entryTimer)clearTimeout(entryTimer);sky.dispose();flowMist.dispose();world?.dispose()},{once:true});

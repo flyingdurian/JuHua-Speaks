@@ -77,6 +77,9 @@ try{
  assert.equal(images.length,3);
  assert.ok(images.every(x=>x.ok),'Historical RWS artwork must load for each selected card');
  steps.push('Upright/reversed original RWS illustrations and short descriptions appear');
+ await page.waitForTimeout(320);
+ const contrast=await page.locator('.trio-card-meta.is-visible p').first().evaluate(el=>getComputedStyle(el).color);
+ assert.notEqual(contrast,'rgb(0, 0, 0)','Revealed meaning cannot be invisible dark text');
  await page.screenshot({path:dir+'/three-revealed-cards.png'});
  if(errors.length)throw Error('Browser errors: '+errors.join(' | '));
  await writeFile(dir+'/handoff-report.json',JSON.stringify({passed:true,steps,errors,progress},null,2));
