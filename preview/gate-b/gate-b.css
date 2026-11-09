@@ -231,3 +231,14 @@
 .gate-b-entering-selection .ritual-copy{opacity:0;transition:opacity .35s ease}
 .gate-b-entering-selection #gate-b-notice{color:#f7db9e;text-shadow:0 0 14px #dcb96e9c}
 @media(prefers-reduced-motion:reduce){.gate-b-entering-selection .world-root,.gate-b-entering-selection .ritual-copy{transition:none}}
+
+/* V11 in-page Gate B -> C camera handoff. The Gate B scene remains running
+   under the arriving sphere; two browser canvases cross-fade without reload. */
+.gate-b-handoff-layer{position:fixed;inset:0;z-index:2000;pointer-events:none;opacity:0;transition:opacity:1.1s ease;overflow:hidden;background:#030612}
+.gate-b-handoff-frame{display:block;position:absolute;inset:0;width:100%;height:100%;border:0;background:#030612;opacity:0;transform:scale(.62);transition:transform:2.5s cubic-bezier(.19,.85,.24,1),opacity:1s ease;pointer-events:none}
+.gate-b-handoff-layer.is-ready{opacity:1;pointer-events:auto}
+.gate-b-handoff-layer.is-ready .gate-b-handoff-frame{opacity:1;transform:scale(1);pointer-events:auto}
+.gate-b-entering-selection:not(.gate-b-handoff-ready) .world-root{opacity:1;transform:scale(.95);transition:transform:1s ease}
+.gate-b-entering-selection.gate-b-handoff-ready .world-root{opacity:0;transform:scale(.40);transition:opacity:1.1s ease,transform:1.6s ease}
+.gate-b-entering-selection .ritual-copy,.gate-b-entering-selection .ritual-panel{opacity:0;pointer-events:none;transition:opacity:.4s}
+@media(prefers-reduced-motion:reduce){.gate-b-handoff-layer,.gate-b-handoff-frame,.gate-b-entering-selection .world-root{transition:none!important}.gate-b-handoff-frame{transform:none!important}}
