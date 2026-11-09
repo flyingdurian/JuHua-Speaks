@@ -125,3 +125,17 @@ body.gate-b-post-shuffle-live #post-shuffle-mount.ps-mount{position:fixed;inset:
  .ps-card-foil,.ps-tableau::before{animation:none!important}
  .ps-tableau,.ps-tableau-detail{transition:none;animation:none}
 }
+
+
+/* Camera-interior atmosphere: broad illuminated grey-violet celestial clouds,
+   closer to the reference than a uniformly black, nearly empty background. */
+.ps-sky::after{
+ content:"";pointer-events:none;position:absolute;inset:-12%;z-index:1;
+ background:radial-gradient(ellipse at 36% 31%,rgba(150,161,175,.17),transparent 40%),
+  radial-gradient(ellipse at 72% 47%,rgba(99,105,143,.12),transparent 43%),
+  radial-gradient(ellipse at 39% 73%,rgba(110,121,155,.11),transparent 44%);
+ filter:blur(24px);mix-blend-mode:screen;opacity:.87;
+ animation:ps-nebula-cloud 34s ease-in-out infinite alternate;
+}
+@keyframes ps-nebula-cloud{from{transform:translate(-2%,1%) scale(1)}to{transform:translate(2%,-2%) scale(1.035)}}
+@media(prefers-reduced-motion:reduce){.ps-sky::after{animation:none!important}}
