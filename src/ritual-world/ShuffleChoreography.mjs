@@ -13,6 +13,7 @@
  * All 78 objects exist throughout; no new renderer or camera is created.
  */
 import {sampleReferenceRitual,referenceBeat,RITUAL_DURATION,RITUAL_BEATS} from './ReferenceRitual.mjs';
+import {positionOrganicSheet,ORGANIC_STEP} from './OrganicDeck.mjs';
 
 const N=78, TAU=Math.PI*2, GOLDEN=Math.PI*(3-Math.sqrt(5));
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
@@ -33,7 +34,7 @@ const hash=(i,seed=1)=>{
  return (x>>>0)/4294967296;
 };
 const PITCH=-.12;
-export const PHYSICAL_CARD=Object.freeze({width:1.28,height:2.12,thickness:.0145});
+export const PHYSICAL_CARD=Object.freeze({width:1.28,height:2.12,thickness:.0092});
 export const AUTO_SHUFFLE_SECONDS=RITUAL_DURATION;
 export const SHUFFLE_CHOICES=Object.freeze(['cosmic','riffle','wash']);
 export const SHUFFLE_DURATIONS=Object.freeze({cosmic:5.65,riffle:5.75,wash:5.85});
@@ -88,20 +89,23 @@ function blend(a,b,t){
  const right=vMix(a.attitude.right,b.attitude.right,w);
  return pose(vMix(a.position,b.position,w),attitudeFrom(fixedNormal,right),mix(a.scale,b.scale,w));
 }
-function stackPose(card,{center=[0,-.16,-17.0],yaw=.70,pitch=PITCH,roll=0,scale=1.14,rank=card.orbitSlot,count=N,step=.0190}={}){
+function stackPose(card,{center=[0,-.16,-17.0],yaw=-.70,pitch=PITCH,roll=0,scale=1.14,rank=card.orbitSlot,count=N,step=ORGANIC_STEP,group=0}={}){
  const basis=backAttitude(yaw,pitch,roll);
- const layer=(rank-(count-1)/2)*step;
- // Thin paper-like edge sheets, no overlap: each card thickness is .0096.
- return pose([
-  center[0]+basis.normal[0]*layer+.0072*Math.sin(rank*.79),
-  center[1]+basis.normal[1]*layer+.0056*Math.cos(rank*.72),
-  center[2]+basis.normal[2]*layer
- ],basis,scale);
+ // The same organic sheet basis exists in early deck pauses, all three
+ // 26-card piles, consolidation and the final 78-instance renderer.
+ const organic=positionOrganicSheet(center,basis,rank,{count,group});
+ if(step!==ORGANIC_STEP){
+  const delta=(rank-(count-1)/2)*(step-ORGANIC_STEP);
+  for(let i=0;i<3;i++)organic[i]+=basis.normal[i]*delta;
+ }
+ return pose(organic,basis,scale);
 }
 export function deckPose(card,worldTime=0){
  // Slow whole-stack idle turn. Individually modelled sheets have subtle,
  // fixed natural stagger; the top sheet displays the actual Tarot artwork.
- const yaw=.69+.11*Math.sin(worldTime*.17);
+ // Continuous slow yaw while suspended (one full revolution in ~370 seconds),
+ // not the old tiny back-and-forth wobble that looked nearly static.
+ const yaw=-.82+.017*worldTime+.028*Math.sin(worldTime*.18); // navy back on right, organic edges left
  const pitch=PITCH+.043*Math.sin(worldTime*.12);
  const roll=.037*Math.sin(worldTime*.16);
  return stackPose(card,{yaw,pitch,roll});

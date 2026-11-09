@@ -2,7 +2,9 @@ import {DECK,shuffleDeck} from '../../src/deck.mjs';
 import {GATE_B_HANDOFF_KEY,createGateBHandoff} from '../../src/gate-b-handoff.mjs';
 import {createVisualSeed} from '../../src/ritual-world/OrbitalField.mjs';
 import {RitualWorld} from '../../src/ritual-world/RitualWorld.mjs';
+import {toCanonicalAge} from '../../src/ritual-world/ReferenceRitual.mjs';
 import {CanvasOrbit} from '../../src/ritual-world/CanvasOrbit.mjs';
+import {mountPostShuffle} from '../post-shuffle/scene.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
 import {initFlowMist} from './FlowMist.mjs';
 
@@ -31,7 +33,7 @@ const sky=initCelestialSky({
 });
 const faceAssetForId=id=>new URL('../../assets/rws/'+id+'.jpg',import.meta.url).href;
 let world=null,loadCount=0,failedAssets=0,lastStatus='',renderError='';
-let selectionOrder=null,handingOff=false;
+let selectionOrder=null,handingOff=false,postShuffle=null;
 const onStatus=evt=>{
  if(evt.state==='context-lost'){status.textContent='GRAPHICS CONTEXT LOST';return}
  if(Number.isInteger(evt.loaded))loadCount=evt.loaded;
@@ -46,7 +48,7 @@ try{
 }
 const flowMist=initFlowMist({
  mount:document.getElementById('ritual-vortex-glow'),seed:visualSeed,
- getAge:()=>world?.phase==='shuffle_ritual'?world.getShuffleState().age:-1,
+ getAge:()=>world?.phase==='shuffle_ritual'?toCanonicalAge(world.getShuffleState().age):-1,
  reduceMotion:window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||false
 });
 if(world)document.getElementById('card-counter').textContent=String(world.cards.length)+' INDIVIDUAL CARDS';
@@ -125,9 +127,20 @@ document.getElementById('finish-shuffle').addEventListener('click',()=>{
  }
  handingOff=true;
  const button=document.getElementById('finish-shuffle');button.disabled=true;
- root.classList.add('gate-b-entering-selection');
- notice.textContent='Entering the 78-card celestial sphere…';
- window.setTimeout(()=>window.location.assign(new URL('../../ritual.html',import.meta.url).href),650);
+ const mount=document.createElement('section');mount.id='post-shuffle-mount';mount.className='ps-mount';
+ document.body.classList.add('gate-b-post-shuffle-live');document.body.append(mount);
+ try{
+  // Restore the audited Gate C: one continuous fullscreen camera journey.
+  // Never iframe, redirect, resample, auto-collapse or enter a fake cube gate.
+  postShuffle=mountPostShuffle({mount,deckIds:selectionOrder});
+  window.__POST_SHUFFLE__=postShuffle;
+  world.setPaused(true);
+  notice.textContent='';
+ }catch(error){
+  mount.remove();document.body.classList.remove('gate-b-post-shuffle-live');handingOff=false;button.disabled=false;
+  notice.textContent='3D transition could not start. Please retry.';
+  console.error('Post-shuffle continuous camera failed',error);
+ }
 });
 buttonPause.addEventListener('click',()=>{
  if(!world)return;
@@ -147,6 +160,6 @@ window.__ritualGateB={
  world,diagnostics:()=>world?{...world.getDiagnostics(),sky:sky.diagnostics(),vortex:flowMist.diagnostics()}:null,
  get phase(){return world?.phase||'unavailable'},
  get shuffle(){return world?.getShuffleState()||null},
- version:'Gate B v10.7 · 45-degree cyclone / selective accents',
+ version:'Gate BC v3.4 · rotating deck / ethereal mist / engraved overlays / seamless three-card handoff',
 };
-window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();flowMist.dispose();world?.dispose()},{once:true});
+window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();flowMist.dispose();world?.dispose();postShuffle?.dispose()},{once:true});
