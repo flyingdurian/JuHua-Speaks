@@ -42,6 +42,7 @@ export const smooth=n=>{const x=clamp(n);return x*x*(3-2*x)};
 const mix=(a,b,t)=>a+(b-a)*t;
 const fract=n=>n-Math.floor(n);
 export const hash=n=>fract(Math.sin(n*127.1+23.17)*43758.5453);
+export const normalize3=v=>{const length=Math.hypot(...v)||1;return v.map(x=>x/length)};
 export function sphereLayout(count=78){
  if(count!==CARD_COUNT)throw new Error('78 unique tarot cards are mandatory');
  return Array.from({length:count},(_,i)=>{
@@ -49,7 +50,16 @@ export function sphereLayout(count=78){
   const lat=(-66+row*26.4+(hash(i+21)-.5)*6)*Math.PI/180;
   const lon=(col+(row%2)*.5+(hash(i+111)-.5)*.34)*Math.PI*2/13;
   const radius=5.75+(hash(i+303)-.5)*.43;
-  return {i,row,col,radius,roll:(hash(i+404)-.5)*.28,direction:[Math.cos(lat)*Math.sin(lon),Math.sin(lat),Math.cos(lat)*Math.cos(lon)]};
+  // During the camera pass the original 3D shell resolves into a denser
+  // inward-looking celestial panorama. The same 78 physical identities move
+  // continuously, with enough cards at visible latitudes to match reference.
+  const arc=4.05,centerLongitude=Math.PI-orbitAngle(BEATS.interactive);
+  const inLat=(-38+row*15.2+(hash(i+89)-.5)*4.2)*Math.PI/180;
+  const inLon=centerLongitude+((col+.5+(row%2)*.4)/13-.5)*arc+(hash(i+111)-.5)*.07;
+  const insideDirection=[Math.cos(inLat)*Math.sin(inLon),Math.sin(inLat),Math.cos(inLat)*Math.cos(inLon)];
+  return {i,row,col,radius,roll:(hash(i+404)-.5)*.28,
+   direction:[Math.cos(lat)*Math.sin(lon),Math.sin(lat),Math.cos(lat)*Math.cos(lon)],
+   insideDirection};
  });
 }
 export function cameraDistance(time){
@@ -67,7 +77,9 @@ export function orbitAngle(time){
 }
 export function assemblyProgress(time){return smooth((time-1.05)/2.05);}
 export function cardWorld(point,time,selected=false){
- const t=Math.max(0,time),s=assemblyProgress(t),d=point.direction;
+ const t=Math.max(0,time),s=assemblyProgress(t);
+ const inside=smooth((t-4.5)/2.15);
+ const d=normalize3(point.direction.map((v,j)=>mix(v,point.insideDirection?.[j]??v,inside)));
  const centerZ=t<.75?mix(.25,-.75,smooth(t/.75)):-.75;
  const o=organicSheetOffset(point.i);
  const n=[-.70,-.12,-.69],r=[-.70,0,.70],u=[-.085,.99,-.084];
