@@ -15,15 +15,28 @@ export const ART_OVERLAY_LABELS=Object.freeze({
 });
 const TAU=Math.PI*2;
 function stroke(ctx,a,b,alpha=.24,width=.65){
- ctx.strokeStyle='rgba(220,187,128,'+alpha+')';ctx.lineWidth=width;
- ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
+ // Screen blending over an ivory RWS print made the old gold-only lines
+ // effectively invisible. A restrained ink keyline and metallic core stay
+ // recognizable over BOTH the pale and dark regions of authentic artwork.
+ const visibility=Math.min(.82,alpha*2.85);
+ ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);
+ ctx.strokeStyle='rgba(14,22,33,'+(visibility*.66)+')';
+ ctx.lineWidth=Math.max(1.25,width+1.15);ctx.stroke();
+ ctx.strokeStyle='rgba(206,150,66,'+visibility+')';
+ ctx.lineWidth=Math.max(.7,width+.12);ctx.stroke();
 }
 function dot(ctx,x,y,r=.95,alpha=.45){
- ctx.fillStyle='rgba(232,205,156,'+alpha+')';ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fill();
+ ctx.fillStyle='rgba(20,26,39,'+Math.min(.8,alpha*.88)+')';
+ ctx.beginPath();ctx.arc(x,y,r*1.7,0,TAU);ctx.fill();
+ ctx.fillStyle='rgba(235,181,94,'+Math.min(.93,alpha*1.95)+')';
+ ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fill();
 }
 function ring(ctx,x,y,r,alpha=.18){
- ctx.strokeStyle='rgba(226,192,133,'+alpha+')';ctx.lineWidth=.6;
- ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.stroke();
+ ctx.beginPath();ctx.arc(x,y,r,0,TAU);
+ ctx.strokeStyle='rgba(17,23,34,'+Math.min(.65,alpha*2)+')';
+ ctx.lineWidth=1.45;ctx.stroke();
+ ctx.strokeStyle='rgba(216,156,77,'+Math.min(.8,alpha*2.9)+')';
+ ctx.lineWidth=.72;ctx.stroke();
 }
 function lattice(ctx){
  // Intersecting sacred-triangle / hexagonal geometry, with open artwork zones.
@@ -64,7 +77,9 @@ function glyphs(ctx){
   const x=27+col*67+(row%2?17:0),y=30+row*67;
   const symbol=signs[(row*5+col*7)%signs.length];
   ctx.font='17px "Noto Sans Symbols 2","DejaVu Sans",Georgia,serif';
-  ctx.fillStyle='rgba(218,183,121,.24)';ctx.fillText(symbol,x,y);
+  ctx.lineWidth=1.3;ctx.strokeStyle='rgba(17,23,34,.52)';
+  ctx.strokeText(symbol,x,y);
+  ctx.fillStyle='rgba(194,139,60,.79)';ctx.fillText(symbol,x,y);
   if((col+row)%3===0){
    ring(ctx,x,y,14,.16);
    stroke(ctx,[x-21,y+22],[x+21,y+22],.15,.6);
@@ -104,12 +119,33 @@ export function paintArtOverlay(ctx,style,width=256,height=448){
  else scroll(ctx);
  ctx.restore();
 }
+// Fail visibly, never silently, if Canvas 2D/data-URL creation is unavailable.
+const FALLBACK_OVERLAYS=Object.freeze({
+ 'celestial-lattice':'repeating-linear-gradient(60deg,transparent 0 22px,rgba(99,64,26,.27) 23px 24px,transparent 25px 46px),repeating-linear-gradient(120deg,transparent 0 22px,rgba(99,64,26,.27) 23px 24px,transparent 25px 46px)',
+ 'constellation-map':'radial-gradient(circle at 25% 19%,rgba(118,76,24,.6) 0 2px,transparent 3px),radial-gradient(circle at 65% 58%,rgba(118,76,24,.6) 0 2px,transparent 3px),radial-gradient(circle at 39% 78%,rgba(118,76,24,.6) 0 2px,transparent 3px),linear-gradient(35deg,transparent 45%,rgba(118,76,24,.18) 46%,transparent 47%)',
+ 'alchemical-glyphs':'radial-gradient(circle at 50% 50%,transparent 0 23%,rgba(118,76,24,.37) 24%,transparent 25%),linear-gradient(0deg,transparent 49.5%,rgba(118,76,24,.3) 50%,transparent 50.5%),linear-gradient(90deg,transparent 49.5%,rgba(118,76,24,.3) 50%,transparent 50.5%)',
+ 'scroll-texture':'repeating-linear-gradient(12deg,transparent 0 11px,rgba(118,76,24,.31) 12px,transparent 13px 28px)'
+});
+export function overlayBackground(tiles,style){
+ if(!ART_OVERLAY_STYLES.includes(style))throw new RangeError('Unknown art overlay style');
+ const asset=tiles?.[style]||FALLBACK_OVERLAYS[style];
+ return typeof asset==='string'&&asset.startsWith('data:image/')?'url("'+asset+'")':asset;
+}
 export function artOverlayDataUrls(){
  const tiles={};
  for(const style of ART_OVERLAY_STYLES){
-  const canvas=document.createElement('canvas');canvas.width=256;canvas.height=448;
-  paintArtOverlay(canvas.getContext('2d'),style);
-  tiles[style]=canvas.toDataURL('image/png');
+  try{
+   const canvas=document.createElement('canvas');canvas.width=256;canvas.height=448;
+   const ctx=canvas.getContext('2d');
+   if(!ctx)throw new Error('Canvas 2D unavailable');
+   paintArtOverlay(ctx,style);
+   const src=canvas.toDataURL('image/png');
+   if(!src.startsWith('data:image/'))throw new Error('Invalid Canvas tile');
+   tiles[style]=src;
+  }catch(error){
+   console.warn('Tarot engraving tile unavailable; showing CSS fallback for '+style,error);
+   tiles[style]=FALLBACK_OVERLAYS[style];
+  }
  }
  return tiles;
 }

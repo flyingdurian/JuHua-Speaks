@@ -3,6 +3,35 @@
  */
 import {organicSheetOffset} from '../../src/ritual-world/OrganicDeck.mjs';
 export const CARD_COUNT=78;
+/**
+ * A Gate B suspended card is projected by a stationary 58-degree camera at
+ * the world origin. Gate C starts at 85 degrees with the camera at z=9.5.
+ * Converting every coordinate and both sheet dimensions with this SAME
+ * scale keeps the first Gate C frame pixel-aligned with the final Gate B
+ * frame instead of fabricating a new deck at camera launch.
+ */
+export const HANDOFF_CAMERA_Z=9.5;
+export const GATE_B_VERTICAL_FOV_DEG=58;
+export function gateBToGateCInstance(instance,{cameraZ=HANDOFF_CAMERA_Z}={}){
+ if(!instance||!Number.isFinite(cameraZ)||!Array.isArray(instance.position)||instance.position.length!==3||
+  !Number.isFinite(instance.scale)||instance.scale<=0||
+  !['normal','right','up'].every(key=>Array.isArray(instance[key])&&instance[key].length===3))
+  throw new RangeError('Gate BC handoff requires a finite physical deck instance');
+ const ratio=perspectiveFocal(GATE_B_VERTICAL_FOV_DEG)/perspectiveFocal();
+ return {
+  id:instance.id,rank:instance.rank,
+  // Convert the *view plane* with the FOV ratio while keeping depth in
+  // camera space unchanged. The earlier uniform xyz scaling cancelled the
+  // ratio on perspective division and jumped the deck on the first frame.
+  position:[instance.position[0]*ratio,instance.position[1]*ratio,cameraZ+instance.position[2]],
+  right:[instance.right[0]*ratio,instance.right[1]*ratio,instance.right[2]],
+  up:[instance.up[0]*ratio,instance.up[1]*ratio,instance.up[2]],
+  normal:[...instance.normal],
+  halfWidth:1.28*.5*instance.scale,
+  halfHeight:2.12*.5*instance.scale
+ };
+}
+
 /** One projection contract shared by the GPU and DOM hit-test camera. */
 export const CAMERA_VERTICAL_FOV_DEG=85;
 export const CAMERA_NEAR=.07;

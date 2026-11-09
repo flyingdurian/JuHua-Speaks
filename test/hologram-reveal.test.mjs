@@ -49,7 +49,8 @@ test('four original-art preservation overlays are alpha-only canvas tiles',async
  const scene=await readFile(new URL('../preview/post-shuffle/TarotTableau.mjs',import.meta.url),'utf8');
  assert.equal(ART_OVERLAY_STYLES.length,4);
  assert.match(art,/clearRect\(0,0,width,height\)/);
- assert.match(art,/paintArtOverlay\(canvas\.getContext\('2d'\),style\)/);
+ assert.match(art,/paintArtOverlay\(ctx,style\)/);
+ assert.match(art,/if\(!ctx\)throw new Error\('Canvas 2D unavailable'\)/);
  assert.match(scene,/face\.append\(image,foilLayer,artifactNote\)/);
  assert.doesNotMatch(scene,/ps-card-hologram ps-card-foil/);
  assert.ok(typeof paintArtOverlay==='function');

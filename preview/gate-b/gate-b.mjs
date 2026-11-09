@@ -2,6 +2,7 @@ import {DECK,shuffleDeck} from '../../src/deck.mjs';
 import {GATE_B_HANDOFF_KEY,createGateBHandoff} from '../../src/gate-b-handoff.mjs';
 import {createVisualSeed} from '../../src/ritual-world/OrbitalField.mjs';
 import {RitualWorld} from '../../src/ritual-world/RitualWorld.mjs';
+import {deckInstanceLayout} from '../../src/ritual-world/InstancedDeck.mjs';
 import {toCanonicalAge} from '../../src/ritual-world/ReferenceRitual.mjs';
 import {CanvasOrbit} from '../../src/ritual-world/CanvasOrbit.mjs';
 import {mountPostShuffle} from '../post-shuffle/scene.mjs';
@@ -132,7 +133,14 @@ document.getElementById('finish-shuffle').addEventListener('click',()=>{
  try{
   // Restore the audited Gate C: one continuous fullscreen camera journey.
   // Never iframe, redirect, resample, auto-collapse or enter a fake cube gate.
-  postShuffle=mountPostShuffle({mount,deckIds:selectionOrder});
+  // Snapshot the ACTUAL 78 visible Gate B sheet poses on this exact frame.
+  // Gate C accepts immutable physical positions/basis and compensates its
+  // 85-degree camera before dispersing; no second reconstructed deck.
+  const elapsed=Number(world.elapsed)||0;
+  const readyAt=Number(world.deckFormedAt)||elapsed;
+  const eased=Math.max(0,Math.min(1,(elapsed-readyAt)/1.8));
+  const handoffDeck=deckInstanceLayout(world.cards,elapsed,eased);
+  postShuffle=mountPostShuffle({mount,deckIds:selectionOrder,handoffDeck});
   window.__POST_SHUFFLE__=postShuffle;
   world.setPaused(true);
   notice.textContent='';
