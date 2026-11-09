@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {cinematicPose,cinematicBeat,SHUFFLE_BEATS,LAUNCH_DURATION_MS} from '../src/ritual-cinema.mjs';
-import {peekOrigin,peekProgress,clampPeek,revealFace} from '../src/physical-reveal.mjs';
+import {renderPhysicalReveal} from '../src/physical-reveal.mjs';
 import {createRitualSession,transitionRitual,DEFAULT_SHUFFLE_MS} from '../src/ritual-machine.mjs';
 import {DECK} from '../src/deck.mjs';
 
@@ -37,23 +37,17 @@ test('near-card orbit, camera launch and interior formation are genuine 3D coord
  const globe=cinematicPose(8,3300,'launch');
  assert.ok(Math.abs(globe.x)+Math.abs(globe.y)+Math.abs(globe.z)>2);
 });
-test('a card supports left/right/top/bottom and corner peeking instead of linear wipe',()=>{
- const w=200,h=350;
- const left=peekOrigin(2,h/2,w,h),right=peekOrigin(198,h/2,w,h);
- const top=peekOrigin(w/2,3,w,h),bottom=peekOrigin(w/2,347,w,h);
- const corner=peekOrigin(3,3,w,h);
- assert.equal(left.mode,'edge-x');assert.equal(right.mode,'edge-x');
- assert.equal(top.mode,'edge-y');assert.equal(bottom.mode,'edge-y');
- assert.equal(corner.mode,'corner');assert.ok(corner.ax!==0&&corner.ay!==0);
- assert.ok(peekProgress(0,120,0,w,h,left)>.7);
- assert.ok(peekProgress(0,-120,0,w,h,right)>.7);
- assert.ok(peekProgress(0,0,290,w,h,top)>.7);
- assert.ok(peekProgress(0,0,-290,w,h,bottom)>.7);
- assert.ok(peekProgress(0,90,125,w,h,corner)>.4);
- assert.ok(peekProgress(.7,-50,0,w,h,left)<.7);
- assert.equal(clampPeek(Infinity),0);
- assert.equal(revealFace(null,1,corner).complete,true);
- assert.equal(revealFace(null,.25,corner).faceVisible,false);
+test('ceremonial reveal uses three real illustrated cards with button-triggered flips',()=>{
+ const roles=['Past','Present','Future'];
+ const picks=DECK.slice(0,3).map(card=>({card,orientation:'upright'}));
+ const base={state:{locale:'en',picks,revealedCards:[false,false,false]},t:en=>en,h:v=>String(v),eyebrow:v=>v,cardBack:()=>'<span class="back"></span>',cardFace:card=>'<img data-card-id="'+card.id+'">',description:()=>'',roleNames:()=>roles,btn:()=>'<button></button>'};
+ const html=renderPhysicalReveal(base);
+ assert.equal((html.match(/data-flip-card=/g)||[]).length,3);
+ assert.equal((html.match(/data-card-id=/g)||[]).length,3);
+ assert.doesNotMatch(html,/data-peek-card|data-peek-progress|data-action="peel"/);
+ assert.match(html,/Past/);assert.match(html,/Present/);assert.match(html,/Future/);
+ const revealed=renderPhysicalReveal({...base,state:{...base.state,revealedCards:[true,true,true]}});
+ assert.equal((revealed.match(/is-flipped/g)||[]).length,3);
 });
 test('shuffle again is state-gated and leaves original 78-card deck unbiased',()=>{
  let s=createRitualSession();
@@ -80,7 +74,7 @@ test('UI uses video fidelity stages without changing AI/reading back-end contrac
  assert.match(app,/state\.autoConfirmAt=null/); // Trio waits in foreground for explicit user confirmation
  assert.match(gl,/setHover\(id\)/);
  assert.match(gl,/v_halo/);
- assert.match(css,/rotate3d\(var\(--ax\),var\(--ay\),0/);
+ assert.match(css,/rotateY\(180deg\)/);
  assert.match(view,/data-shuffle-style/);
  assert.doesNotMatch(app,/requestAiReading\s*\(/,'No new direct live AI calls');
 });

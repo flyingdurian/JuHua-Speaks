@@ -58,7 +58,7 @@ function audit(time){
  };
 }
 test('V7 tunnel sweeps independent Tarot sheets through near, middle and far perspective',()=>{
- const times=[1.65,2.5,3.55,4.75];
+ const times=[1.45,2.2,3.25,4.28];
  const states=times.map(t=>cards.map(c=>pose(c,t)));
  let depthChanged=0,angleTraveled=0;
  for(let i=0;i<78;i++){
@@ -66,7 +66,7 @@ test('V7 tunnel sweeps independent Tarot sheets through near, middle and far per
   if(Math.max(...p.map(q=>q[2]))-Math.min(...p.map(q=>q[2]))>2.5)depthChanged++;
   if(Math.hypot(p[3][0]-p[0][0],p[3][1]-p[0][1])>3)angleTraveled++;
  }
- const measured=audit(3.55);
+ const measured=audit(3.1);
  assert.ok(depthChanged>=55,'Sheets must sweep through distinct axial layers, not fixed-Z rings');
  assert.ok(angleTraveled>=50,'Cards traverse substantial curved screen paths');
  assert.ok(Math.max(...measured.positions.map(p=>p[2]))-Math.min(...measured.positions.map(p=>p[2]))>20,'Coexisting near and far sheets must occupy distinct 3D depths');
@@ -75,9 +75,9 @@ test('V7 tunnel sweeps independent Tarot sheets through near, middle and far per
 });
 
 test('V7 globe forms a legible hollow sphere with circumferential card silhouettes',()=>{
- const before=audit(6.75),opening=audit(7.90);
+ const before=audit(5.30),opening=audit(6.46);
  assert.ok(opening.coverageFraction>before.coverageFraction*5,'The stack must bloom visibly into a globe');
- for(const t of [8.8,10.2,11.4]){
+ for(const t of [6.74,7.20,7.85]){
   const m=audit(t);
   assert.ok(m.faces>=18&&m.faces<=60,'Historic illustrated fronts and dark backs both present');
   assert.ok(m.depthRatio>1.8,'Large actual near and far hemisphere separation');
@@ -88,8 +88,8 @@ test('V7 globe forms a legible hollow sphere with circumferential card silhouett
  }
 });
 
-test('three separate 26-sheet decks follow the globe after the longer reference pacing',()=>{
- const piles=cards.map(card=>({card,position:pose(card,13.60).position}));
+test('three separate 26-sheet decks follow the globe after the retimed reference pacing',()=>{
+ const piles=cards.map(card=>({card,position:pose(card,9.20).position}));
  const groups=[0,1,2].map(i=>piles.filter(x=>x.card.orbitSlot%3===i));
  assert.deepEqual(groups.map(a=>a.length),[26,26,26]);
  const centers=groups.map(g=>g.reduce((v,c)=>v+c.position[0],0)/g.length);
@@ -99,9 +99,9 @@ test('three separate 26-sheet decks follow the globe after the longer reference 
 test('each of the three decks continues to transfer distinct sheets independently',()=>{
  const chosen=cards.filter(c=>c.orbitSlot%3!==1),states={waiting:0,arrived:0,inflight:0};
  for(const card of chosen){
-  const before=pose(card,13.75).position;
-  const mid=pose(card,14.65).position;
-  const after=pose(card,15.25).position;
+  const before=pose(card,9.34).position;
+  const mid=pose(card,10.0).position;
+  const after=pose(card,10.50).position;
   if(dist(mid,before)<.2)states.waiting++;
   else if(dist(mid,after)<.2)states.arrived++;
   else states.inflight++;
@@ -111,7 +111,7 @@ test('each of the three decks continues to transfer distinct sheets independentl
 });
 
 test('reference sequence stays continuous and all 78 entities finish the same canonical deck',()=>{
- assert.equal(RITUAL_BEATS.length,10);
+ assert.equal(RITUAL_BEATS.length,9);
  assert.equal(RITUAL_BEATS.at(-1).end,RITUAL_DURATION);
  for(const beat of RITUAL_BEATS.slice(0,-1)){
   const delta=Math.max(...cards.map(card=>dist(
@@ -127,7 +127,7 @@ test('V7 uses material-synchronized atmosphere, no decorative tornado decal',asy
  const markup=await readFile(new URL('../preview/gate-b/index.html',import.meta.url),'utf8');
  const script=await readFile(new URL('../preview/gate-b/gate-b.mjs',import.meta.url),'utf8');
  const mist=await readFile(new URL('../preview/gate-b/FlowMist.mjs',import.meta.url),'utf8');
- assert.match(markup,/GATE B v10.7/);
+ assert.match(markup,/GATE B v11/);
  assert.doesNotMatch(markup,/data-shuffle=/);
  assert.match(markup,/FINISH SHUFFLING/);
  assert.doesNotMatch(script,/initVortexAtmosphere/);

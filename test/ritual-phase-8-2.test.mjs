@@ -36,6 +36,7 @@ test('existing reducer invitation is not implicitly skipped by UI',async()=>{
  assert.match(app,/renderArtemisInvitation/);
  assert.match(app,/case 'invite-reader'/);
  assert.match(app,/phase==='reader_invitation'/);
- assert.match(reveal,/data-peek-progress/);
+ assert.match(reveal,/data-flip-card/);
+ assert.doesNotMatch(reveal,/data-peek-progress|data-peek-card/);
  assert.doesNotMatch(app,/ALL_REVEALED'\);state\.ritual=transitionRitual\(state\.ritual,'INVITE_READER'/);
 });

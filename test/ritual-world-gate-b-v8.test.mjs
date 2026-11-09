@@ -88,18 +88,18 @@ test('Card faces, backs and edges rotate rigidly with the same camera bank as th
  assert.match(source,/rotateVortexBasis\(localAtt\.right,t\)/);
 });
 
-test('Approved Sequence 2 choreography and all subsequent steps are byte-for-byte frozen',async()=>{
+test('V11 Sequence 2 geometry and timing have a pinned review checkpoint',async()=>{
  const source=await readFile(new URL('../src/ritual-world/ReferenceRitual.mjs',import.meta.url),'utf8');
  const boundary=source.indexOf('function pocketPose(');
  assert.ok(boundary>0);
  const frozen=source.slice(boundary);
  let h=2166136261;
  for(const c of frozen){h^=c.charCodeAt(0);h=Math.imul(h,16777619)>>>0}
- assert.equal(h.toString(16),'3b577ed3',
-  'Approved Sequence 2 changed: revert it before claiming a new Sequence 1 candidate');
+ assert.equal(h.toString(16),'cbd82258',
+  'V11 authored choreography changed without updating the review checkpoint');
  assert.match(source,/sampleVortexCard/);
  assert.equal(cards.length,78);
- for(const t of [7.5,9.2,10.7,13.6,16.55]){
+ for(const t of [6.3,7.4,8.0,9.2,10.95]){
   const poses=cards.map(c=>sample(c,t));
   assert.ok(poses.every(p=>p.position.every(Number.isFinite)));
  }

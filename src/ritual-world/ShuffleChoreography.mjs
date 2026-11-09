@@ -104,7 +104,7 @@ function stackPose(card,{center=[0,-.16,-17.0],yaw=.70,pitch=PITCH,roll=0,scale=
 }
 export function deckPose(card,worldTime=0){
  // Actual continuous slow rotation, not a frozen stack or oscillating brick.
- const yaw=.76+worldTime*.12;
+ const yaw=.73+.12*Math.sin(worldTime*.16); // Slow 3/4 rotation; backed face must remain visible
  const pitch=PITCH+.032*Math.sin(worldTime*.16);
  const roll=.027*Math.sin(worldTime*.22);
  return stackPose(card,{yaw,pitch,roll});
