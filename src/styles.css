@@ -462,3 +462,22 @@
 @keyframes gate-c-hud-entry{0%{opacity:0}100%{opacity:1}}
 @media(max-width:730px){.site.ritual-focused .sphere-page>.intro{top:22vh}.site.ritual-focused .sphere-page>.sphere-tools{bottom:32vh}.site.ritual-focused .sphere-page>.hand-label{bottom:25vh}.site.ritual-focused .sphere-page>.slots{bottom:12vh}.site.ritual-focused .sphere-page>.cta-row{bottom:16px}}
 @media(prefers-reduced-motion:reduce){.gate-c-arriving .sphere-scene.inside-dome,.gate-c-arriving .sphere-page>*{animation:none!important}}
+
+/* V11 exit: exactly 75 distinct unchosen card projections collapse into one
+   dark point; three real chosen cards remain separate in the foreground. */
+.ritual-vortex-transition.v11-exit .ritual-vortex-debris>div{
+ position:absolute;top:var(--sy);left:var(--sx);width:var(--w);height:auto;aspect-ratio:1100/1920;
+ --tx:calc(50vw - var(--sx));--ty:calc(45vh - var(--sy));
+ transform-origin:center;animation:gate-v11-card-vacuum 1.47s cubic-bezier(.40,.05,.85,1) both;
+ animation-delay:calc(var(--i) * 3.2ms);filter:drop-shadow(0 0 8px #cdb69388)
+}
+.ritual-vortex-transition.v11-exit .ritual-vortex-debris .card-back{height:100%;width:100%}
+.ritual-vortex-transition.v11-exit .ritual-locked-trio{z-index:2;align-items:center;transform:translateY(-12px)}
+.ritual-vortex-transition.v11-exit .ritual-black-hole{z-index:1;animation:gate-v11-singularity 1.64s ease-out both}
+@keyframes gate-v11-card-vacuum{
+ 0%{opacity:.9;transform:translate(-50%,-50%) rotate(var(--angle)) scale(.9)}
+ 28%{opacity:1;transform:translate(calc(-50% + var(--tx) * .15),calc(-50% + var(--ty) * .15)) rotate(calc(var(--angle) + 50deg)) scale(.75)}
+ 100%{opacity:0;transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) rotate(calc(var(--angle) + 450deg)) scale(.003)}
+}
+@keyframes gate-v11-singularity{0%{transform:translate(-50%,-50%) scale(.32);opacity:.05}43%{opacity:1}90%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(.04);opacity:0}}
+@media(prefers-reduced-motion:reduce){.ritual-vortex-transition.v11-exit .ritual-vortex-debris>div,.ritual-vortex-transition.v11-exit .ritual-black-hole{animation:none!important}}
