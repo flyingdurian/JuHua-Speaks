@@ -21,13 +21,16 @@ export function sphereLayout(count=78){
 export function projectCard(point,yawDeg,pitchDeg,width,height){
  if(width<=0||height<=0)return null;
  const [x,y,z]=point.vector,ry=yawDeg*Math.PI/180,rx=pitchDeg*Math.PI/180;
- const X=x*Math.cos(ry)+z*Math.sin(ry),Z=-x*Math.sin(ry)+z*Math.cos(ry);
- const Y=y*Math.cos(rx)-Z*Math.sin(rx),D=y*Math.sin(rx)+Z*Math.cos(rx);
- if(D>=-.20)return null;
+ // Perspective is computed from REAL spherical XYZ, not unit vectors
+ // whose depth accidentally gives every card the same apparent size.
+ const r=point.radius;
+ const X=r*(x*Math.cos(ry)+z*Math.sin(ry)),Z=r*(-x*Math.sin(ry)+z*Math.cos(ry));
+ const Y=r*y*Math.cos(rx)-Z*Math.sin(rx),D=r*y*Math.sin(rx)+Z*Math.cos(rx);
+ if(D>=-.65)return null;
  // Wide interior FOV: ~20–25 visible cards at 1440×900, matching the video rather than a giant-card wall.
  const focal=height*.48,px=width*.5+focal*X/-D,py=height*.515-focal*Y/-D;
  if(px < -180||px > width+180||py < -245||py > height+245)return null;
- const depth=-D,w=clamp(.94*focal/(point.radius*depth),31,172);
+ const depth=-D,w=clamp(.96*focal/depth,35,160);
  return {x:px,y:py,width:w,height:w*1.64,angle:clamp(point.twist+Math.atan2(X,depth)*9,-29,29),yaw:clamp(Math.atan2(X,depth)*24,-39,39),depth,opacity:clamp(.45+depth*.55,.50,1),radius:point.radius};
 }
 export function validateDeck(deck){

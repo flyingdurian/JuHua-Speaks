@@ -43,7 +43,7 @@ function sphereMarkup(){
 }
 function showSphere(){
  stage='sphere';root.dataset.stage='sphere';root.innerHTML=sphereMarkup();buttons.clear();
- enteredAt=performance.now();mountSky();
+ enteredAt=performance.now()-(handoff?2200:0);mountSky();
  const field=root.querySelector('#orbit-field');
  for(const id of deck){
   const b=document.createElement('button');b.type='button';b.className='orbit-card';
@@ -63,7 +63,7 @@ function paint(){
   if(!projected){b.hidden=true;continue}
   const pos=entryProjection(projected,entering,rect.width,rect.height),chosen=selected.has(id);
   b.hidden=false;b.classList.toggle('is-chosen',chosen);b.setAttribute('aria-pressed',String(chosen));
-  b.style.cssText='--px:'+pos.x.toFixed(2)+'px;--py:'+pos.y.toFixed(2)+'px;--w:'+pos.width.toFixed(2)+'px;--h:'+pos.height.toFixed(2)+'px;--tilt:'+pos.yaw.toFixed(2)+'deg;--spin:'+pos.angle.toFixed(2)+'deg;--alpha:'+pos.opacity.toFixed(2)+';z-index:'+(chosen?2100:Math.round(pos.depth*100));
+  b.style.cssText='--px:'+pos.x.toFixed(2)+'px;--py:'+pos.y.toFixed(2)+'px;--w:'+pos.width.toFixed(2)+'px;--h:'+pos.height.toFixed(2)+'px;--tilt:'+pos.yaw.toFixed(2)+'deg;--spin:'+pos.angle.toFixed(2)+'deg;--alpha:'+pos.opacity.toFixed(2)+';z-index:'+(chosen?2100:Math.round(1000/(pos.depth+.3)));
  }
 }
 function announcement(){
