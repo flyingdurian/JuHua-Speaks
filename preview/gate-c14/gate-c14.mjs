@@ -1,78 +1,234 @@
-/** Gate C concept fidelity — only 01 Fullscreen Gate, 02 Entry Cube, 03 Inside, 04 Selection.
- * Single 78-ID deck, no stage 05; safe standalone visual acceptance branch.
+/**
+ * Gate C review: one fullscreen 78-card globe and an independent 3-card
+ * physical peel. No gate/cube, no selection dock, no legacy ritual.html.
+ *
+ * The deck is one immutable sequence transferred from Gate B once through
+ * sessionStorage. Visual feedback never changes the selected identities.
  */
-import {DECK,shuffleDeck,drawOrientation} from '../../src/deck.mjs';
+import {DECK,BY_ID,shuffleDeck,drawOrientation} from '../../src/deck.mjs';
 import {GATE_B_HANDOFF_KEY,parseGateBHandoff} from '../../src/gate-b-handoff.mjs';
 import {sphereLayout,projectCard,validateDeck,addChoice,removeChoice,assertSelection,entryProjection,entryProgress} from './geometry.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
-const root=document.getElementById('ritual'),params=new URLSearchParams(location.search),roles=['Past','Present','Future'],reduced=()=>matchMedia('(prefers-reduced-motion:reduce)').matches;
-const validIds=new Set(DECK.map(c=>c.id)),asset='../../assets/gate-c14/card-back.svg';
+
+const root=document.getElementById('ritual'),params=new URLSearchParams(location.search);
+const roles=['Past','Present','Future'];
+const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+const escapeHtml=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const backArt='../../assets/gate-c14/card-back.svg',frontArt=id=>'../../assets/rws/'+id+'.jpg';
+const validIds=new Set(DECK.map(c=>c.id)),skySeed=(globalThis.crypto?.getRandomValues?.(new Uint32Array(1))?.[0]||183792212)>>>0;
 let handoff=null;
-try{const raw=sessionStorage.getItem(GATE_B_HANDOFF_KEY);if(raw){sessionStorage.removeItem(GATE_B_HANDOFF_KEY);handoff=parseGateBHandoff(raw)}}catch(e){console.warn('Expired Gate B handoff discarded:',e.message)}
-// Only a standalone direct review may generate a temporary deck. Arrival from
-// Gate B must have its one-use 78-ID envelope; never substitute a second draw.
+try{
+ const raw=sessionStorage.getItem(GATE_B_HANDOFF_KEY);
+ if(raw){sessionStorage.removeItem(GATE_B_HANDOFF_KEY);handoff=parseGateBHandoff(raw)}
+}catch(error){console.warn('Gate B handoff discarded:',error.message)}
 if(params.get('from')==='gate-b'&&!handoff){
- root.innerHTML='<section role="alert" style="padding:23vh 7vw;text-align:center;color:#f2ddbb"><h1>Selection session expired</h1><p>Return to Finish Shuffling to enter with your existing 78-card deck.</p><a href="../gate-b/" style="color:#f4d092">Back to shuffling</a></section>';
- throw new Error('Gate B handoff was missing or expired — no replacement deck was drawn');
+ root.innerHTML='<section role="alert" class="expired-selection"><h1>The cards have lost their place.</h1><p>Your selection session expired. Start again from the resting deck.</p><a href="../gate-b/">Return to shuffling</a></section>';
+ throw new Error('Gate B handoff expired or missing; refusing to silently reshuffle 78 cards');
 }
-const deck=validateDeck(handoff?.cardIds?.every(x=>validIds.has(x))?handoff.cardIds:shuffleDeck().map(x=>x.id));
+const deck=validateDeck(handoff?.cardIds?.every(id=>validIds.has(id))?handoff.cardIds:shuffleDeck().map(c=>c.id));
 const layout=sphereLayout(),coordinates=new Map(deck.map((id,i)=>[id,layout[i]])),buttons=new Map();
-let activeGhost=null;let entryPulseTimer=null;let skyEnvironment=null,sphereEnteredAt=0;let stage='sphere',choices=[],yaw=-14,pitch=-9,paused=false,lastSelected=null,press=null,suppressClickUntil=0,enterTimer=null,frame=0,previous=0;
-const back=()=>'<img src="'+asset+'" alt="" draggable="false">';
-const skySeed=(globalThis.crypto?.getRandomValues?.(new Uint32Array(1))?.[0]||183792212)>>>0;
-function mast(index,name){return '<header class="mast"><div class="brand"><span>✦</span>JuHua Speaks</div><small>'+index+' / 04 &nbsp; '+name+'</small></header>'}
-function common(cls){return '<div class="backdrop" aria-hidden="true"></div>'+(cls==='gate'?'<div class="architecture" aria-hidden="true"></div>':'')+'<div class="veil" aria-hidden="true"></div>'}
-// The rejected Gate/Cube opening is intentionally absent: Gate B hands
-// its single shuffled 78-card deck directly into the full-screen sphere.
-function sphere(){return '<section class="scene scene-sphere" aria-label="Inside the full-screen 78-card Tarot sphere">'+common('sphere')+'<div class="deep-sky" id="deep-sky" aria-hidden="true"><canvas class="deep-star-canvas" id="deep-star-canvas"></canvas></div><div class="dome-rings" aria-hidden="true"><div class="dome-ring"></div><div class="dome-ring"></div><div class="dome-ring"></div></div>'+mast('03','INSIDE THE SPHERE')+'<div class="sphere-label"><div class="title" id="sphere-title">✧ &nbsp; YOU ARE WITHIN THE STARS &nbsp; ✧</div><p id="sphere-message" aria-live="polite">Please select 3 cards (0 selected)</p></div><div class="sphere-space" id="sphere-space" role="region" aria-label="78 inward-facing Tarot cards, drag to look around and tap a card"><div class="orbit-field" id="orbit-field"></div></div><div class="focus" id="focus" aria-hidden="true"><div class="focus-halo"></div><div class="focus-front">'+back()+'</div></div><nav class="sphere-controls"><button data-action="left" aria-label="Look left">←</button><button data-action="right" aria-label="Look right">→</button><button data-action="pause" aria-label="Pause orbit">Ⅱ</button></nav><section class="dock" aria-label="Your Past Present Future card choices"><strong>THE THREE PATHS</strong><div class="dock-slots" id="dock-slots"></div><div class="dock-count" id="dock-count">0 <small>/ 3</small></div></section><div class="finish-label" id="finish-label" hidden>✧ THREE CARDS SELECTED · PAST · PRESENT · FUTURE ✧</div></section>'}
-function show(next){if(skyEnvironment){skyEnvironment.dispose();skyEnvironment=null;}if(enterTimer){clearTimeout(enterTimer);enterTimer=null}if(entryPulseTimer){clearTimeout(entryPulseTimer);entryPulseTimer=null}stage=next;root.dataset.stage=next;root.innerHTML=sphere();
- buttons.clear();
- if(next==='sphere'){sphereEnteredAt=performance.now();skyEnvironment=initCelestialSky({mount:root.querySelector('#deep-sky'),starCanvas:root.querySelector('#deep-star-canvas'),seed:skySeed,reduceMotion:reduced()});const field=root.querySelector('#orbit-field');for(const id of deck){const b=document.createElement('button');b.type='button';b.className='orbit-card';b.dataset.cardId=id;b.setAttribute('aria-label','Choose '+(DECK.find(c=>c.id===id)?.name||id));b.innerHTML=back();buttons.set(id,b);field.append(b)}updateDock();paint()}
+let stage='sphere',choices=[],yaw=-14,pitch=-9,paused=false,press=null,frame=0,previous=0,enteredAt=0,sky=null,transitionTimer=null;
+let peeking=null,ignoreClickUntil=0;
+const peel=Array.from({length:3},()=>({mode:'right',progress:0}));
+const back=()=>'<img src="'+backArt+'" alt="" draggable="false">';
+function sceneSky(){return '<div class="deep-sky" id="deep-sky" aria-hidden="true"><canvas class="deep-star-canvas" id="deep-star-canvas"></canvas></div>'}
+function mountSky(){sky?.dispose();sky=initCelestialSky({mount:root.querySelector('#deep-sky'),starCanvas:root.querySelector('#deep-star-canvas'),seed:skySeed,reduceMotion:reduced()})}
+function sphereMarkup(){
+ return '<section class="scene scene-sphere sphere-immersive" aria-label="Inside the full-screen Tarot sphere">'+sceneSky()+
+  '<header class="mast"><div class="brand"><span>✦</span>JuHua Speaks</div><small>WITHIN THE UNIVERSE</small></header>'+
+  '<div class="sphere-label"><p id="sphere-message" role="status" aria-live="polite">Please select 3 cards (0 selected)</p></div>'+
+  '<div class="sphere-space" id="sphere-space" role="region" aria-label="Inside a living sphere of 78 Tarot cards. Drag to look around; tap three to choose."><div class="orbit-field" id="orbit-field"></div></div>'+
+  '<nav class="sphere-controls" aria-label="Look around the universe"><button data-action="left" aria-label="Look left">←</button><button data-action="right" aria-label="Look right">→</button><button data-action="pause" aria-label="Pause orbit">Ⅱ</button></nav>'+
+  '<div class="sphere-transition-core" aria-hidden="true"></div></section>';
+}
+function showSphere(){
+ stage='sphere';root.dataset.stage='sphere';root.innerHTML=sphereMarkup();buttons.clear();
+ enteredAt=performance.now();mountSky();
+ const field=root.querySelector('#orbit-field');
+ for(const id of deck){
+  const b=document.createElement('button');b.type='button';b.className='orbit-card';
+  b.dataset.cardId=id;b.setAttribute('aria-label','Select '+(BY_ID.get(id)?.name||id));
+  b.innerHTML=back();buttons.set(id,b);field.append(b);
+ }
+ paint();
 }
 function paint(){
  if(stage!=='sphere'&&stage!=='select')return;
- const world=root.querySelector('#sphere-space');if(!world)return;
- const rect=world.getBoundingClientRect();if(rect.width<10||rect.height<10)return;
- const entering=entryProgress(performance.now()-sphereEnteredAt,reduced());
+ const space=root.querySelector('#sphere-space');if(!space)return;
+ const rect=space.getBoundingClientRect();if(rect.width<10||rect.height<10)return;
+ const entering=entryProgress(performance.now()-enteredAt,reduced());
  const selected=new Set(choices.map(c=>c.id));
  for(const id of deck){
-  const b=buttons.get(id),projection=projectCard(coordinates.get(id),yaw,pitch,rect.width,rect.height);
-  if(!projection){b.hidden=true;continue}
-  const p=entryProjection(projection,entering,rect.width,rect.height),chosen=selected.has(id);
-  // A selected sheet has physically left the spherical shell and now
-  // lives in the foreground Past/Present/Future dock, never duplicated.
-  if(chosen){b.hidden=true;continue}
-  b.hidden=false;b.classList.toggle('is-chosen',false);
-  b.setAttribute('aria-pressed',String(chosen));
-  const scale=1;
-  b.style.cssText='--px:'+p.x.toFixed(2)+'px;--py:'+p.y.toFixed(2)+'px;--w:'+(p.width*scale).toFixed(2)+'px;--h:'+(p.height*scale).toFixed(2)+'px;--tilt:'+p.yaw.toFixed(2)+'deg;--spin:'+p.angle.toFixed(2)+'deg;--alpha:'+p.opacity.toFixed(2)+';z-index:'+(chosen?2000:Math.round(p.depth*1000));
+  const b=buttons.get(id),projected=projectCard(coordinates.get(id),yaw,pitch,rect.width,rect.height);
+  if(!projected){b.hidden=true;continue}
+  const pos=entryProjection(projected,entering,rect.width,rect.height),chosen=selected.has(id);
+  b.hidden=false;b.classList.toggle('is-chosen',chosen);b.setAttribute('aria-pressed',String(chosen));
+  b.style.cssText='--px:'+pos.x.toFixed(2)+'px;--py:'+pos.y.toFixed(2)+'px;--w:'+pos.width.toFixed(2)+'px;--h:'+pos.height.toFixed(2)+'px;--tilt:'+pos.yaw.toFixed(2)+'deg;--spin:'+pos.angle.toFixed(2)+'deg;--alpha:'+pos.opacity.toFixed(2)+';z-index:'+(chosen?2100:Math.round(pos.depth*100));
  }
 }
-function dockHtml(){return roles.map((r,i)=>{const choice=choices[i];return '<div class="dock-slot"><label>'+r+'</label><div class="dock-back '+(choice?'chosen':'')+'">'+(choice?back():'0'+(i+1))+'</div>'+(choice?'<button data-undo="'+choice.id+'" aria-label="Unselect '+r+'">UNDO</button>':'<small>AWAITING</small>')+'</div>'}).join('')}
-function updateDock(){const slots=root.querySelector('#dock-slots');if(!slots)return;slots.innerHTML=dockHtml();root.querySelector('#dock-count').innerHTML=choices.length+' <small>/ 3</small>';root.querySelector('#focus').classList.remove('active');root.querySelector('#finish-label').hidden=choices.length!==3;const msg=root.querySelector('#sphere-message');if(msg)msg.textContent='Please select 3 cards ('+choices.length+' selected)';assertSelection(choices,deck)}
-function choose(id){if(!['sphere','select'].includes(stage)||!buttons.has(id))return;if(choices.some(x=>x.id===id)){undo(id);return;}if(choices.length>=3)return;
- const node=buttons.get(id),from=node.getBoundingClientRect(),next=addChoice(choices,id,drawOrientation(),deck);
- if(next===choices)return;choices=next;lastSelected=id;
- if(stage==='sphere'){stage='select';root.dataset.stage='select';root.querySelector('.mast small').innerHTML='04 / 04 &nbsp; SELECT THE CARDS';root.querySelector('#sphere-title').innerHTML='✧ &nbsp; THE CARDS ANSWER &nbsp; ✧';root.querySelector('#sphere-message').textContent='Select three cards (1 selected) · Drag to look around'}
- const focus=root.querySelector('#focus');focus.classList.remove('active');
- if(activeGhost){activeGhost.remove();activeGhost=null}if(from.width>5&&!reduced()){const ghost=document.createElement('div');activeGhost=ghost;ghost.className='card-flight';ghost.innerHTML=back();ghost.style.cssText='left:'+from.left+'px;top:'+from.top+'px;width:'+from.width+'px;height:'+from.height+'px';document.body.append(ghost);
- const destination=root.querySelectorAll('.dock-back')[choices.length-1]?.getBoundingClientRect();
- const centerX=destination?destination.left+destination.width*.5:innerWidth*.5;
- const centerY=destination?destination.top+destination.height*.5:innerHeight*.78;
- const dx=centerX-(from.left+from.width*.5),dy=centerY-(from.top+from.height*.5);
- const animation=ghost.animate([{transform:'translate(0,0) scale(1)',filter:'drop-shadow(0 0 2px #fff4ca)'},{offset:.54,transform:'translate('+dx*.48+'px,'+(dy*.38-70)+'px) scale(2.15)',filter:'drop-shadow(0 0 40px #ffe6ae)'},{transform:'translate('+dx+'px,'+dy+'px) scale(.78)',opacity:0}],{duration:1050,fill:'forwards',easing:'cubic-bezier(.15,.68,.16,1)'});animation.finished.catch(()=>{}).finally(()=>{ghost.remove();if(activeGhost===ghost)activeGhost=null});setTimeout(()=>{ghost.remove();if(activeGhost===ghost)activeGhost=null},1320)}
- updateDock();paint();
+function announcement(){
+ const msg=root.querySelector('#sphere-message');
+ if(msg)msg.textContent='Please select 3 cards ('+choices.length+' selected)';
+ assertSelection(choices,deck);
 }
-function undo(id){if(stage!=='select'||!choices.some(c=>c.id===id))return;choices=removeChoice(choices,id);lastSelected=choices.at(-1)?.id||null;
- if(!choices.length){stage='sphere';root.dataset.stage='sphere';root.querySelector('.mast small').innerHTML='03 / 04 &nbsp; INSIDE THE SPHERE';root.querySelector('#sphere-title').textContent='✧ YOU ARE WITHIN THE STARS ✧';root.querySelector('#sphere-message').textContent='Select three cards (0 selected) · Drag to look around'}
- updateDock();paint();}
-root.addEventListener('click',event=>{const btn=event.target.closest('button');if(!btn)return;const id=btn.dataset.cardId;if(id){if(Date.now()>=suppressClickUntil)choose(id);return}if(btn.dataset.undo){undo(btn.dataset.undo);return}
- switch(btn.dataset.action){case 'left':yaw-=17;paint();break;case 'right':yaw+=17;paint();break;case 'pause':paused=!paused;btn.textContent=paused?'▶':'Ⅱ';break;}});
-root.addEventListener('pointerdown',event=>{if(!['sphere','select'].includes(stage)||!event.target.closest('#sphere-space'))return;press={pid:event.pointerId,x:event.clientX,y:event.clientY,yaw,pitch,id:event.target.closest('button[data-card-id]')?.dataset.cardId||null,moved:false}});
-window.addEventListener('pointermove',event=>{if(!press||event.pointerId!==press.pid)return;const dx=event.clientX-press.x,dy=event.clientY-press.y;if(!press.moved&&Math.hypot(dx,dy)<8)return;press.moved=true;yaw=press.yaw+dx*.30;pitch=Math.max(-67,Math.min(67,press.pitch-dy*.23));paint()});
-window.addEventListener('pointerup',event=>{if(!press||event.pointerId!==press.pid)return;const p=press;press=null;suppressClickUntil=Date.now()+370;if(!p.moved&&p.id)choose(p.id)});
-window.addEventListener('pointercancel',()=>{press=null});
-function tick(t){const dt=previous?Math.min(75,t-previous):0;previous=t;if(['sphere','select'].includes(stage)){if(!paused&&!press&&!reduced())yaw=(yaw+dt*.0028)%360;paint()}frame=requestAnimationFrame(tick)}
-window.addEventListener('pagehide',()=>{clearTimeout(enterTimer);clearTimeout(entryPulseTimer);skyEnvironment?.dispose();cancelAnimationFrame(frame)});
-window.__JUHUA_C14__={stage:()=>stage,selected:()=>choices.map(x=>({...x})),deck:()=>[...deck],visible:()=>[...buttons].filter(([,b])=>!b.hidden).map(([id])=>id),choose,undo,enterScene:()=>show('sphere')};
-show('sphere');frame=requestAnimationFrame(tick);
+function choose(id){
+ if(!['sphere','select'].includes(stage)||!buttons.has(id))return;
+ if(choices.some(c=>c.id===id)){undo(id);return}
+ if(choices.length>=3)return;
+ choices=addChoice(choices,id,drawOrientation(),deck);
+ if(stage==='sphere'){stage='select';root.dataset.stage='select'}
+ announcement();paint();
+ if(choices.length===3){
+  transitionTimer=setTimeout(beginCollapse,reduced()?300:1050);
+ }
+}
+function undo(id){
+ if(!['sphere','select'].includes(stage))return;
+ if(transitionTimer){clearTimeout(transitionTimer);transitionTimer=null}
+ choices=removeChoice(choices,id);
+ if(!choices.length){stage='sphere';root.dataset.stage='sphere'}
+ announcement();paint();
+}
+function beginCollapse(){
+ if(choices.length!==3||stage!=='select')return;
+ stage='collapse';root.dataset.stage='collapse';
+ root.querySelector('#sphere-message').textContent='The cards have chosen their places';
+ // All other 75 sheets converge; the three chosen sheets retain their golden halo.
+ transitionTimer=setTimeout(showTrio,reduced()?150:1280);
+}
+const progressLabel=mode=>({'left':'left edge','right':'right edge','bottom':'bottom edge','corner':'lower corner'}[mode]||'edge');
+function trioMarkup(){
+ return '<section class="scene scene-reveal" aria-label="Past Present Future physical card reveal">'+sceneSky()+
+ '<header class="mast"><div class="brand"><span>✦</span>JuHua Speaks</div><small>PAST · PRESENT · FUTURE</small></header>'+
+ '<h1 class="trio-heading">Click cards to see results</h1>'+
+ '<p class="trio-peek-instruction">Drag a side, corner or lower edge to gently peek beneath each card.</p>'+
+ '<div class="trio-stage">'+choices.map((choice,i)=>{
+  const card=BY_ID.get(choice.id);
+  const meaning=choice.orientation==='reversed'?card.reversed:card.upright;
+  return '<article class="trio-item" data-trio-index="'+i+'">'+
+   '<div class="peek-card" role="slider" tabindex="0" data-peek-index="'+i+'" aria-label="'+roles[i]+' Tarot card, peel to reveal" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Card back unrevealed">'+
+   '<div class="peek-art '+(choice.orientation==='reversed'?'orientation-reversed':'')+'"><img src="'+frontArt(choice.id)+'" alt="'+escapeHtml(card.name)+' Tarot card artwork" draggable="false"/></div>'+
+   '<div class="peek-back-cover" data-peek-cover="'+i+'">'+back()+'</div>'+
+   '<div class="peek-fold" aria-hidden="true"></div>'+
+   '<span class="peek-edge-light" aria-hidden="true"></span></div>'+
+   '<div class="trio-role"><span>0'+(i+1)+'</span> '+roles[i]+'</div>'+
+   '<div class="trio-card-meta" data-trio-meta="'+i+'" aria-live="polite">'+
+    '<strong>'+escapeHtml(card.name)+'</strong><span> · '+(choice.orientation==='reversed'?'Reversed':'Upright')+'</span>'+
+    '<p>'+escapeHtml(meaning)+'</p></div>'+
+  '</article>';
+ }).join('')+'</div></section>';
+}
+function showTrio(){
+ if(choices.length!==3)return;
+ stage='reveal';root.dataset.stage='reveal';root.innerHTML=trioMarkup();mountSky();
+ choices.forEach((_,i)=>paintPeel(i));
+}
+function clamp(x){return Math.max(0,Math.min(1,Number.isFinite(x)?x:0))}
+function paintPeel(i){
+ const el=root.querySelector('[data-peek-index="'+i+'"]'),cover=root.querySelector('[data-peek-cover="'+i+'"]'),meta=root.querySelector('[data-trio-meta="'+i+'"]');
+ if(!el||!cover||!meta)return;
+ const {mode,progress:p}=peel[i],v=+(100*p).toFixed(3);
+ const mask=mode==='left'?'inset(0 0 0 '+v+'% round 6px)':
+  mode==='bottom'?'inset(0 0 '+v+'% 0 round 6px)':
+  mode==='corner'?'polygon(0 0,100% 0,100% '+(100-v)+'%, '+(100-v)+'% 100%,0 100%)':
+  'inset(0 '+v+'% 0 0 round 6px)';
+ cover.style.clipPath=mask;
+ cover.style.opacity=p>=.985?'0':'1';
+ el.style.setProperty('--peel-progress',String(p));
+ el.dataset.peelMode=mode;
+ el.classList.toggle('is-revealed',p>=.985);
+ el.setAttribute('aria-valuenow',String(Math.round(p*100)));
+ el.setAttribute('aria-valuetext',p>=.985?'Card fully revealed':Math.round(p*100)+' percent revealed from '+progressLabel(mode));
+ meta.classList.toggle('is-visible',p>=.985);
+}
+function setPeel(i,p,mode=peel[i]?.mode||'right'){
+ if(!peel[i]||!['left','right','bottom','corner'].includes(mode))return;
+ peel[i]={mode,progress:clamp(p)};
+ paintPeel(i);
+}
+function peekMode(target,x,y){
+ const rect=target.getBoundingClientRect(),rx=(x-rect.left)/rect.width,ry=(y-rect.top)/rect.height;
+ if(ry>.78&&rx>.72)return 'corner';
+ if(ry>.77)return 'bottom';
+ if(rx<.27)return 'left';
+ if(rx>.73)return 'right';
+ return 'right';
+}
+root.addEventListener('click',event=>{
+ const button=event.target.closest('button');
+ if(button?.dataset.cardId){if(Date.now()>=ignoreClickUntil)choose(button.dataset.cardId);return}
+ if(button?.dataset.action){
+  if(button.dataset.action==='left'){yaw-=18;paint()}
+  if(button.dataset.action==='right'){yaw+=18;paint()}
+  if(button.dataset.action==='pause'){paused=!paused;button.textContent=paused?'▶':'Ⅱ';button.setAttribute('aria-label',paused?'Resume orbit':'Pause orbit')}
+ }
+ const hit=event.target.closest('[data-peek-index]');
+ if(hit&&stage==='reveal'&&Date.now()>=ignoreClickUntil){
+  const i=Number(hit.dataset.peekIndex);
+  if(peel[i].progress<.985)setPeel(i,peel[i].progress+.23,peekMode(hit,event.clientX,event.clientY));
+ }
+});
+root.addEventListener('pointerdown',event=>{
+ const hit=event.target.closest('[data-peek-index]');
+ if(hit&&stage==='reveal'){
+  const i=Number(hit.dataset.peekIndex);
+  peeking={pid:event.pointerId,i,mode:peekMode(hit,event.clientX,event.clientY),x:event.clientX,y:event.clientY,base:peel[i].progress,width:hit.clientWidth,height:hit.clientHeight,moved:false};
+  hit.setPointerCapture?.(event.pointerId);return;
+ }
+ if(!['sphere','select'].includes(stage)||!event.target.closest('#sphere-space'))return;
+ press={pid:event.pointerId,x:event.clientX,y:event.clientY,yaw,pitch,id:event.target.closest('button[data-card-id]')?.dataset.cardId||null,moved:false};
+});
+window.addEventListener('pointermove',event=>{
+ if(peeking&&peeking.pid===event.pointerId){
+  const p=peeking,dx=event.clientX-p.x,dy=event.clientY-p.y;
+  if(Math.hypot(dx,dy)>6)p.moved=true;
+  if(!p.moved)return;
+  const increment=p.mode==='left'?dx/p.width:p.mode==='bottom'?-dy/p.height:p.mode==='corner'?(-dx/p.width-dy/p.height)*.7:-dx/p.width;
+  setPeel(p.i,p.base+increment,p.mode);return;
+ }
+ if(!press||press.pid!==event.pointerId)return;
+ const dx=event.clientX-press.x,dy=event.clientY-press.y;
+ if(!press.moved&&Math.hypot(dx,dy)<8)return;
+ press.moved=true;yaw=press.yaw+dx*.30;pitch=Math.max(-67,Math.min(67,press.pitch-dy*.23));paint();
+});
+window.addEventListener('pointerup',event=>{
+ if(peeking&&peeking.pid===event.pointerId){
+  const p=peeking;peeking=null;
+  if(p.moved){ignoreClickUntil=Date.now()+400;if(peel[p.i].progress>.93)setPeel(p.i,1,p.mode)}return;
+ }
+ if(!press||press.pid!==event.pointerId)return;
+ const p=press;press=null;ignoreClickUntil=Date.now()+350;
+ if(!p.moved&&p.id)choose(p.id);
+});
+window.addEventListener('pointercancel',()=>{press=null;peeking=null});
+root.addEventListener('keydown',event=>{
+ if(stage==='reveal'){
+  const el=event.target.closest('[data-peek-index]');if(!el)return;
+  const i=Number(el.dataset.peekIndex);
+  if(['ArrowLeft','ArrowDown','ArrowRight','ArrowUp','Home','End','Enter',' '].includes(event.key)){
+   event.preventDefault();
+   setPeel(i,event.key==='Home'?0:event.key==='End'?1:peel[i].progress+(event.key==='ArrowLeft'||event.key==='ArrowDown'?-.08:event.key==='ArrowUp'||event.key==='ArrowRight'?.08:.23));
+  }return;
+ }
+ if(!['sphere','select'].includes(stage))return;
+ if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key)){
+  event.preventDefault();if(event.key==='ArrowLeft')yaw-=17;if(event.key==='ArrowRight')yaw+=17;
+  if(event.key==='ArrowUp')pitch=Math.min(67,pitch+12);if(event.key==='ArrowDown')pitch=Math.max(-67,pitch-12);paint();
+ }
+});
+function tick(time){
+ const dt=previous?Math.min(75,time-previous):0;previous=time;
+ if(['sphere','select'].includes(stage)){
+  if(!paused&&!press&&!reduced())yaw=(yaw+dt*.0028)%360;
+  paint();
+ }
+ frame=requestAnimationFrame(tick);
+}
+window.addEventListener('pagehide',()=>{if(transitionTimer)clearTimeout(transitionTimer);sky?.dispose();cancelAnimationFrame(frame)});
+window.__JUHUA_C14__={
+ stage:()=>stage,selected:()=>choices.map(x=>({...x})),deck:()=>[...deck],
+ visible:()=>[...buttons].filter(([,b])=>!b.hidden).map(([id])=>id),
+ choose,undo,enterScene:showSphere,showTrio,
+ peek:(i,p,mode)=>setPeel(i,p,mode),peekStates:()=>peel.map(x=>({...x}))
+};
+showSphere();frame=requestAnimationFrame(tick);
