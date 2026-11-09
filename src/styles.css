@@ -407,3 +407,7 @@
  .sphere-page .slot-image.is-filled{transform:translateY(-7px) scale(1.03)}
 }
 @media(prefers-reduced-motion:reduce){.sphere-page .slot-image.is-filled{transition:none}}
+
+/* Remove the inherited 1240px stage box only while reviewing the sphere. */
+.site.ritual-focused .stage:has(.sphere-page){max-width:none;width:100%;margin:0;padding:0}
+.site.ritual-focused .stage:has(.sphere-page) .sphere-page{max-width:none;width:100%}
