@@ -44,3 +44,84 @@ button{font:inherit;cursor:pointer}button:focus-visible,canvas:focus-visible{out
 
 /* Same Gate B document; no iframe or route navigation. */
 body.gate-b-post-shuffle-live #post-shuffle-mount.ps-mount{position:fixed;inset:0;z-index:1200;width:100vw;height:100dvh;overflow:hidden;background:#010103}
+
+
+/* Gate BC v3 — three chosen physical backs settle into one foreground tableau. */
+.ps-tableau[hidden],.ps-tableau-detail[hidden],.ps-card-art-unavailable[hidden]{display:none!important}
+.ps-tableau{
+ position:absolute;inset:0;z-index:22;display:flex;flex-direction:column;
+ align-items:center;justify-content:center;gap:clamp(7px,1.8vh,18px);
+ padding:clamp(38px,6vh,80px) 20px 30px;overflow-y:auto;
+ opacity:0;transform:translateY(16px);pointer-events:none;
+ transition:opacity .85s ease,transform .85s cubic-bezier(.16,.82,.15,1);
+ background:radial-gradient(ellipse at 50% 58%,rgba(38,43,66,.13),rgba(0,0,0,.62) 78%);
+}
+.ps-tableau.ps-tableau-visible{opacity:1;transform:translateY(0);pointer-events:auto}
+.ps-tableau::before{
+ content:"";position:absolute;top:38%;left:12%;width:76%;height:35%;
+ border-radius:50%;background:radial-gradient(ellipse,rgba(129,139,176,.15),rgba(57,69,119,.08) 39%,transparent 72%);
+ filter:blur(31px);pointer-events:none;animation:ps-tableau-nebula 11s ease-in-out infinite alternate;
+}
+.ps-tableau-heading{z-index:1;margin:0;color:#f1ebea;font:400 clamp(19px,2.7vw,32px) Georgia,serif;letter-spacing:.03em;text-align:center}
+.ps-tableau-help{z-index:1;margin:0 0 clamp(6px,2vh,22px);font:12px/1.5 Arial,sans-serif;color:#bdb7c1;text-align:center}
+.ps-tableau-spread{position:relative;z-index:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(13px,3vw,68px);width:min(930px,98%);align-items:start}
+.ps-tableau-item{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:0}
+.ps-tableau-role{font:400 clamp(15px,1.7vw,23px)/1.25 Georgia,serif;color:#f4eee7;margin:0;letter-spacing:.035em;text-align:center;text-shadow:0 1px 11px #000}
+.ps-flip-button{display:block;position:relative;padding:0;border:0;background:transparent;border-radius:7px;
+ width:min(100%,184px);aspect-ratio:256/448;perspective:1000px;
+ filter:drop-shadow(0 0 13px rgba(208,195,157,.24));cursor:pointer;transform:translateZ(0)}
+.ps-flip-button:hover:not(:disabled){filter:drop-shadow(0 0 24px rgba(223,205,161,.49));}
+.ps-flip-button:disabled{cursor:default}
+.ps-flip-button::before{content:"";position:absolute;inset:-9%;border-radius:30%;
+ background:radial-gradient(ellipse,rgba(234,214,164,.12),rgba(118,116,159,.10) 40%,transparent 72%);
+ filter:blur(13px);pointer-events:none}
+.ps-flip-inner{position:absolute;inset:0;transform-style:preserve-3d;transform:rotateY(0)}
+.ps-card-side{position:absolute;inset:0;overflow:hidden;border-radius:5px;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+ border:2px solid #d7c9ae;box-shadow:inset 0 0 0 3px #172847,0 14px 24px rgba(0,0,0,.62)}
+.ps-card-back{background:#0b1b36 center/100% 100% no-repeat;transform:translateZ(1px)}
+.ps-card-front{background:#12182d;transform:rotateY(180deg) translateZ(1px);isolation:isolate;
+ box-shadow:inset 0 0 0 2px #e5cb93,0 16px 24px rgba(0,0,0,.67)}
+.ps-card-art{display:block;width:100%;height:100%;object-fit:fill;image-rendering:auto;}
+.ps-card-art-unavailable{position:absolute;inset:0;display:grid;place-items:center;padding:14px;text-align:center;background:#101827;color:#e6dac9;font:12px Arial}
+.ps-card-foil{position:absolute;inset:0;z-index:3;pointer-events:none;mix-blend-mode:screen;
+ border-radius:4px;box-shadow:inset 0 0 20px 6px rgba(223,214,199,.10);}
+.ps-revealed .ps-flip-inner{animation:ps-flip-land 1150ms cubic-bezier(.18,.67,.18,1) both}
+.ps-tableau-detail{text-align:center;max-width:225px;animation:ps-detail-land .55s ease both}
+.ps-tableau-card-name{font:400 15px/1.3 Georgia,serif;color:#f1e1c6;margin:0 0 5px}
+.ps-tableau-card-brief{font:12px/1.48 Arial,sans-serif;color:#d1c9cc;margin:0;max-width:27ch}
+.ps-foil-celestial-holographic-wash .ps-card-foil{
+ background:linear-gradient(118deg,transparent 9%,rgba(74,177,234,.43) 27%,rgba(237,148,234,.34) 45%,rgba(221,234,178,.28) 65%,transparent 86%);
+ background-size:230% 230%;opacity:.56;animation:ps-foil-rainbow 5.8s linear infinite alternate}
+.ps-foil-chroma-shifting-metallic-sheen .ps-card-foil{
+ background:linear-gradient(112deg,transparent 11%,rgba(93,211,212,.31) 27%,rgba(228,145,218,.52) 48%,rgba(241,219,148,.39) 57%,rgba(132,158,235,.34) 78%,transparent);
+ background-size:250% 250%;opacity:.53;animation:ps-foil-chroma 4.2s ease-in-out infinite alternate}
+.ps-foil-pearlescent-gloss .ps-card-foil{
+ background:radial-gradient(ellipse at 28% 19%,rgba(245,214,244,.48),transparent 54%),
+  radial-gradient(ellipse at 73% 77%,rgba(185,237,232,.43),transparent 53%),
+  linear-gradient(125deg,transparent,rgba(238,220,193,.20),transparent);
+ background-size:160% 160%;opacity:.55;animation:ps-foil-pearl 7.5s ease-in-out infinite alternate}
+.ps-foil-spectrum-activation-wave .ps-card-foil{
+ background:linear-gradient(133deg,transparent 34%,rgba(102,228,247,.11) 42%,rgba(235,143,255,.62) 49%,rgba(255,245,178,.68) 53%,rgba(122,215,243,.24) 60%,transparent 68%);
+ background-size:300% 300%;opacity:.65;animation:ps-foil-wave 3.4s cubic-bezier(.26,.02,.23,1) infinite}
+@keyframes ps-flip-land{0%{transform:rotateY(0) translateY(0) scale(1)}42%{transform:rotateY(92deg) translateY(-25px) scale(1.075)}72%{transform:rotateY(190deg) translateY(-11px) scale(1.025)}88%{transform:rotateY(174deg) translateY(4px)}100%{transform:rotateY(180deg) translateY(0) scale(1)}}
+@keyframes ps-detail-land{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ps-tableau-nebula{from{transform:translate(-3%,1%) scale(.94);opacity:.55}to{transform:translate(4%,-2%) scale(1.08);opacity:.9}}
+@keyframes ps-foil-rainbow{from{background-position:90% 10%;filter:hue-rotate(-16deg)}to{background-position:8% 92%;filter:hue-rotate(32deg)}}
+@keyframes ps-foil-chroma{from{background-position:2% 90%;filter:hue-rotate(-32deg) contrast(1.2)}to{background-position:99% 6%;filter:hue-rotate(76deg) contrast(1.45)}}
+@keyframes ps-foil-pearl{from{background-position:0 5%;filter:hue-rotate(-10deg)}to{background-position:98% 91%;filter:hue-rotate(24deg)}}
+@keyframes ps-foil-wave{from{background-position:100% 100%}to{background-position:0% 0%}}
+@media(max-width:680px){
+ .ps-tableau{padding:75px 9px 22px;justify-content:center;gap:8px}
+ .ps-tableau-spread{gap:8px;width:100%}
+ .ps-tableau-item{gap:8px}
+ .ps-tableau-role{font-size:clamp(11px,3vw,15px)}
+ .ps-tableau-card-name{font-size:11px}
+ .ps-tableau-card-brief{font-size:10px;line-height:1.36}
+ .ps-tableau-help{font-size:10px;margin-bottom:10px}
+ .ps-flip-button{width:min(100%,140px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .ps-revealed .ps-flip-inner{animation:none;transform:rotateY(180deg)}
+ .ps-card-foil,.ps-tableau::before{animation:none!important}
+ .ps-tableau,.ps-tableau-detail{transition:none;animation:none}
+}
