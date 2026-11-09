@@ -20,7 +20,7 @@ test('all 78 original cards remain distinct physical objects and visual shuffle 
  assert.equal(new Set(cards.map(x=>x.orbitSlot)).size,78);
  assert.deepEqual(SHUFFLE_CHOICES,['cosmic','riffle','wash']);
  assert.ok(PHYSICAL_CARD.width>0&&PHYSICAL_CARD.height>0);
- assert.ok(AUTO_SHUFFLE_SECONDS>=14&&AUTO_SHUFFLE_SECONDS<=20);
+ assert.ok(AUTO_SHUFFLE_SECONDS>=9&&AUTO_SHUFFLE_SECONDS<=12);
  for(const style of ['auto',...SHUFFLE_CHOICES]){
   for(const t of [0,.25,1.2,2.3,3.8,6.6]){
    const poses=cards.map(c=>point(c,t,style));
@@ -42,18 +42,18 @@ test('automatic coherent tornado has bounded radius and real depth without face-
  assert.ok(poses.every(p=>p.position[2]<-3&&p.position[2]>-66),'Dolly-out preserves long-range tunnel perspective');
  assert.equal(shuffleBeat('auto',2.5),'vortex');
  assert.equal(shuffleBeat('auto',3.7),'vortex');
- assert.equal(shuffleBeat('auto',5.2),'vortex');
- assert.equal(shuffleBeat('auto',6.4),'suspension');
- assert.equal(shuffleBeat('auto',8.25),'globe');
- assert.equal(shuffleBeat('auto',9.8),'globe');
+ assert.equal(shuffleBeat('auto',4.3),'vortex');
+ assert.equal(shuffleBeat('auto',5.3),'suspension');
+ assert.equal(shuffleBeat('auto',7.25),'globe');
+ assert.equal(shuffleBeat('auto',9.2),'three_piles');
 });
 test('physical deck is 78 closely stacked backs, not a singular facing card',()=>{
  const deck=cards.map(c=>deckPose(c,24.5));
  assert.equal(deck.length,78);
  assert.equal(unique(deck.map(p=>p.position)),78);
- assert.ok(deckThickness(cards)>1&&deckThickness(cards)<1.6,'Actual stack thickness');
+ assert.ok(deckThickness(cards)>.55&&deckThickness(cards)<1.01,'Actual stack thickness');
  assert.ok(deck.every(p=>p.attitude.normal[2]<-.25),'tilted backs face the viewer without flat billboard presentation');
- assert.ok(deck.every(p=>p.scale>=1&&p.scale<=1.3),'compact reference-scaled deck, not oversized slab');
+ assert.ok(deck.every(p=>p.scale>=.88&&p.scale<=1.15),'compact reference-scaled deck, not oversized slab');
  const end=cards.map(c=>point(c,AUTO_SHUFFLE_SECONDS));
  for(let i=0;i<78;i++)assert.deepEqual(end[i],deck[i]);
  assert.equal(shuffleBeat('auto',AUTO_SHUFFLE_SECONDS),'deck_ready');
@@ -211,7 +211,7 @@ test('Both renderers validate geometry before changing ritual phases',async()=>{
 test('Reference-directed automatic ritual uses ten authored beats in correct order',()=>{
  assert.deepEqual(AUTO_RITUAL_BEATS.map(x=>x.id),[
   'approach','vortex','implosion','suspension','detonation','globe',
-  'dispersal','three_piles','pile_shuffle','consolidation'
+  'dispersal','three_piles','consolidation'
  ]);
  assert.equal(AUTO_RITUAL_BEATS[0].start,0);
  assert.equal(AUTO_RITUAL_BEATS.at(-1).end,AUTO_SHUFFLE_SECONDS);
@@ -222,7 +222,7 @@ test('Reference-directed automatic ritual uses ten authored beats in correct ord
 });
 
 test('V7 globe shows historical fronts on near hemisphere and engraved backs behind',()=>{
- const globe=cards.map(c=>point(c,9.5));
+ const globe=cards.map(c=>point(c,7.45));
  const backs=globe.filter(p=>p.attitude.normal[2]<0);
  const faces=globe.filter(p=>p.attitude.normal[2]>0);
  assert.ok(faces.length>=20&&faces.length<=58);
@@ -232,7 +232,7 @@ test('V7 globe shows historical fronts on near hemisphere and engraved backs beh
 });
 
 test('V7 still forms 3 actual 26-card stacks after the hollow globe',()=>{
- const piles=cards.map(c=>({card:c,position:point(c,13.6).position}));
+ const piles=cards.map(c=>({card:c,position:point(c,9.23).position}));
  const groups=[0,1,2].map(j=>piles.filter(p=>p.card.orbitSlot%3===j));
  assert.deepEqual(groups.map(g=>g.length),[26,26,26]);
  const centers=groups.map(g=>g.reduce((v,c)=>v+c.position[0],0)/g.length);
@@ -261,7 +261,7 @@ test('Every storyboard boundary and every optional shuffle is position-continuou
  }
 });
 test('Washing covers the center of the table and keeps cards thin and physically back-facing',()=>{
- assert.ok(PHYSICAL_CARD.thickness>=.012&&PHYSICAL_CARD.thickness<=.018);
+ assert.ok(PHYSICAL_CARD.thickness>=.007&&PHYSICAL_CARD.thickness<=.010);
  const spread=cards.map(c=>point(c,2.2,'wash'));
  const center=spread.filter(p=>Math.hypot(p.position[0],p.position[1])<1.65);
  assert.ok(center.length>=12,'No hollow ring of cards in the Table Wash');
@@ -294,7 +294,7 @@ test('keyframe envelopes contrast the wide physical tunnel, empty deck pause and
   const projected=cards.map(card=>point(card,t).position).map(p=>f*p[0]/(-p[2]));
   return Math.max(...projected)-Math.min(...projected);
  }
- const tunnel=span(3.6),pocket=span(6.7),globe=span(9.5),piles=span(13.6),deck=span(AUTO_SHUFFLE_SECONDS);
+ const tunnel=span(3.6),pocket=span(5.33),globe=span(7.45),piles=span(9.23),deck=span(AUTO_SHUFFLE_SECONDS);
  assert.ok(tunnel>380,'Tunnel must span substantial screen space');
  assert.ok(globe>390,'Hollow sphere must span substantial screen space');
  assert.ok(piles>300&&pocket<90&&deck<90);
@@ -307,18 +307,18 @@ test('automatic story remains isolated from optional shuffle methods until deck 
  const choreography=await readFile(new URL('../src/ritual-world/ShuffleChoreography.mjs',import.meta.url),'utf8');
  const ritual=await readFile(new URL('../src/ritual-world/ReferenceRitual.mjs',import.meta.url),'utf8');
  assert.match(choreography,/sampleReferenceRitual/);
- assert.match(ritual,/RITUAL_DURATION=16\.55/);
+ assert.match(ritual,/RITUAL_DURATION=10\.95/);
  assert.doesNotMatch(preview,/document\.querySelectorAll\('\[data-shuffle\]'\)/);
  assert.match(html,/shuffle-buttons/);
  assert.match(html,/FINISH SHUFFLING/);
 });
 test('V7 authored stages extend naturally with no arbitrary 10.8-second deadline',()=>{
- assert.equal(AUTO_RITUAL_BEATS.length,10);
+ assert.equal(AUTO_RITUAL_BEATS.length,9);
  for(let i=1;i<AUTO_RITUAL_BEATS.length;i++)
   assert.equal(AUTO_RITUAL_BEATS[i].start,AUTO_RITUAL_BEATS[i-1].end);
  assert.equal(AUTO_RITUAL_BEATS.at(-1).end,AUTO_SHUFFLE_SECONDS);
  assert.deepEqual([0,1,2].map(g=>cards.filter(card=>card.orbitSlot%3===g).length),[26,26,26]);
- for(const [age,expected] of [[2,'vortex'],[5,'vortex'],[6.7,'suspension'],
-  [7.6,'detonation'],[9.5,'globe'],[13.6,'three_piles'],[14.7,'pile_shuffle'],[15.8,'consolidation']])
+ for(const [age,expected] of [[2,'vortex'],[4.3,'vortex'],[5.3,'suspension'],
+  [5.8,'detonation'],[7.5,'globe'],[9.2,'three_piles'],[10.2,'consolidation']])
   assert.equal(shuffleBeat('auto',age),expected);
 });

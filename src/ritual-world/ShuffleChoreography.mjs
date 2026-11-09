@@ -33,7 +33,7 @@ const hash=(i,seed=1)=>{
  return (x>>>0)/4294967296;
 };
 const PITCH=-.12;
-export const PHYSICAL_CARD=Object.freeze({width:1.28,height:2.12,thickness:.0145});
+export const PHYSICAL_CARD=Object.freeze({width:1.28,height:2.12,thickness:.0078});
 export const AUTO_SHUFFLE_SECONDS=RITUAL_DURATION;
 export const SHUFFLE_CHOICES=Object.freeze(['cosmic','riffle','wash']);
 export const SHUFFLE_DURATIONS=Object.freeze({cosmic:5.65,riffle:5.75,wash:5.85});
@@ -88,22 +88,25 @@ function blend(a,b,t){
  const right=vMix(a.attitude.right,b.attitude.right,w);
  return pose(vMix(a.position,b.position,w),attitudeFrom(fixedNormal,right),mix(a.scale,b.scale,w));
 }
-function stackPose(card,{center=[0,-.16,-17.0],yaw=.70,pitch=PITCH,roll=0,scale=1.14,rank=card.orbitSlot,count=N,step=.0190}={}){
- const basis=backAttitude(yaw,pitch,roll);
+function stackPose(card,{center=[0,-.16,-17.0],yaw=.70,pitch=PITCH,roll=0,scale=.99,rank=card.orbitSlot,count=N,step=.0104}={}){
+ // Anti-Solid: each real sheet is 0.0078 units thick; the spacing leaves
+ // a positive 0.0026 micro-air gap. Very shallow organic bow and staggering
+ // give individually illuminated paper edges without a fused cuboid.
+ const n=count>1?(rank-(count-1)/2)/((count-1)/2):0;
+ const bow=.019*(1-n*n),offset=.0058*Math.sin(rank*.79),ruffle=.0032*Math.cos(rank*.72);
+ const basis=backAttitude(yaw,pitch,roll+.008*Math.sin(rank*.31));
  const layer=(rank-(count-1)/2)*step;
- // Thin paper-like edge sheets, no overlap: each card thickness is .0096.
  return pose([
-  center[0]+basis.normal[0]*layer+.0072*Math.sin(rank*.79),
-  center[1]+basis.normal[1]*layer+.0056*Math.cos(rank*.72),
+  center[0]+basis.normal[0]*layer+bow+offset,
+  center[1]+basis.normal[1]*layer+.007*n*n+ruffle,
   center[2]+basis.normal[2]*layer
  ],basis,scale);
 }
 export function deckPose(card,worldTime=0){
- // Slow whole-stack idle turn. Individually modelled sheets have subtle,
- // fixed natural stagger; the top sheet displays the actual Tarot artwork.
- const yaw=.69+.11*Math.sin(worldTime*.17);
- const pitch=PITCH+.043*Math.sin(worldTime*.12);
- const roll=.037*Math.sin(worldTime*.16);
+ // Actual continuous slow rotation, not a frozen stack or oscillating brick.
+ const yaw=.76+worldTime*.12;
+ const pitch=PITCH+.032*Math.sin(worldTime*.16);
+ const roll=.027*Math.sin(worldTime*.22);
  return stackPose(card,{yaw,pitch,roll});
 }
 export function deckThickness(cards){
@@ -117,7 +120,7 @@ export function deckThickness(cards){
 function cosmicInitialSplit(card){
  const half=card.orbitSlot%2,side=half?-1:1,index=Math.floor(card.orbitSlot/2);
  return stackPose(card,{center:[side*1.58,-.14,-16.7],yaw:.55+side*.10,pitch:-.13,
-  scale:1.08,rank:index,count:39,step:.0145});
+  scale:1.08,rank:index,count:39,step:.0104});
 }
 function cosmicHalvesPose(card,t){
  const rank=card.orbitSlot,half=rank%2,slot=Math.floor(rank/2),side=half?-1:1;

@@ -34,19 +34,37 @@ const hash=(i,s=0)=>{
  x=Math.imul(x,0x846ca68b);x^=x>>>16;
  return (x>>>0)/4294967296;
 };
-export const RITUAL_DURATION=16.55;
+/** V11: one continuous 10.95s ritual, no redundant secondary auto-shuffle. */
+export const RITUAL_DURATION=10.95;
 export const RITUAL_BEATS=Object.freeze([
- Object.freeze({id:'approach',start:0,end:1.10}),
- Object.freeze({id:'vortex',start:1.10,end:5.45}),
- Object.freeze({id:'implosion',start:5.45,end:6.30}),
- Object.freeze({id:'suspension',start:6.30,end:7.10}),
- Object.freeze({id:'detonation',start:7.10,end:8.15}),
- Object.freeze({id:'globe',start:8.15,end:12.35}),
- Object.freeze({id:'dispersal',start:12.35,end:13.20}),
- Object.freeze({id:'three_piles',start:13.20,end:14.00}),
- Object.freeze({id:'pile_shuffle',start:14.00,end:15.30}),
- Object.freeze({id:'consolidation',start:15.30,end:RITUAL_DURATION})
+ Object.freeze({id:'approach',start:0,end:.85}),
+ Object.freeze({id:'vortex',start:.85,end:4.60}),
+ Object.freeze({id:'implosion',start:4.60,end:5.22}),
+ Object.freeze({id:'suspension',start:5.22,end:5.41}),
+ Object.freeze({id:'detonation',start:5.41,end:6.17}),
+ Object.freeze({id:'globe',start:6.17,end:8.28}),
+ Object.freeze({id:'dispersal',start:8.28,end:8.96}),
+ Object.freeze({id:'three_piles',start:8.96,end:9.46}),
+ Object.freeze({id:'consolidation',start:9.46,end:RITUAL_DURATION})
 ]);
+// Map to the visually accepted physical paths; change their speed, not
+// the identities or the camera/card coordinate system. The final pile transfer
+// is a SINGLE consolidation, not another shuffle.
+const RETIME=Object.freeze([
+ [0,0],[.85,1.10],[4.60,5.45],[5.22,6.30],[5.41,7.10],
+ [6.17,8.15],[8.28,12.35],[8.96,13.20],[9.46,14.00],
+ [10.55,15.30],[RITUAL_DURATION,16.55]
+]);
+export function legacyChoreographyClock(age){
+ const t=clamp(Math.max(0,Number(age)||0),0,RITUAL_DURATION);
+ for(let i=1;i<RETIME.length;i++){
+  if(t<=RETIME[i][0]){
+   const [a,b]=RETIME[i-1],[c,d]=RETIME[i];
+   return mix(b,d,(t-a)/(c-a));
+  }
+ }
+ return 16.55;
+}
 
 function orientedFrom(normal,rightHint=[1,0,0]){
  const n=norm(normal);
@@ -140,7 +158,7 @@ function suctionPose(card,t){
 }
 function pocketPose(card,t){
  const k=card.orbitSlot,normal=facing(1.11+.05*Math.sin(t*.32),-.09,.018*Math.sin(t*.5));
- const layer=(k-38.5)*.0145;
+ const layer=(k-38.5)*.0099;
  return pose([
   normal.normal[0]*layer,
   -.10+normal.normal[1]*layer,
@@ -251,7 +269,7 @@ function subdeckPose(card,t){
  const k=card.orbitSlot,g=k%3,slot=Math.floor(k/3);
  const centerX=[-3.65,0,3.65][g],centerZ=[-14.2,-14.0,-14.5][g];
  const orientation=facing(.49+(g-1)*.10,-.10,.026*(g-1));
- const layer=(slot-12.5)*.0145;
+ const layer=(slot-12.5)*.0099;
  return pose([
   centerX+orientation.normal[0]*layer,
   -.08+orientation.normal[1]*layer,
@@ -269,7 +287,7 @@ function splitPose(card,t){
 function fannedDeckPose(card,t){
  const k=card.orbitSlot,ang=k*GOLDEN;
  const orientation=facing(.98+.02*Math.sin(t*.3),-.11,.012*Math.cos(t*.8));
- const layer=(k-38.5)*.0158;
+ const layer=(k-38.5)*.0108;
  return pose([
   orientation.normal[0]*layer+.054*Math.sin(ang),
   -.08+orientation.normal[1]*layer+.034*Math.cos(ang),
@@ -293,7 +311,7 @@ function settlePose(card,t,deckPose,worldTime){
 }
 export function sampleReferenceRitual(card,{age=0,landingAt=0,worldTime=0,entranceMode='inside-out',deckPose}={}){
  if(typeof deckPose!=='function')throw Error('Reference ritual requires a physical canonical deckPose');
- const t=Math.max(0,Number(age)||0);
+ const t=legacyChoreographyClock(age);
  if(t<1.10)return blend(currentLanding(card,landingAt,entranceMode),suctionPose(card,t),t/1.10);
  if(t<5.45)return suctionPose(card,t);
  if(t<6.30)return implosionPose(card,t);

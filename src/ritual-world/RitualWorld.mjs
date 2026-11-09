@@ -75,7 +75,7 @@ function makeAtlas(){
  backing(ctx,(BACK_SLOT%ATLAS_COLS)*TILE_W,Math.floor(BACK_SLOT/ATLAS_COLS)*TILE_H);
  const ex=(EDGE_SLOT%ATLAS_COLS)*TILE_W,ey=Math.floor(EDGE_SLOT/ATLAS_COLS)*TILE_H;
  ctx.fillStyle='#be9c69';ctx.fillRect(ex,ey,TILE_W,TILE_H);
- for(let i=0;i<TILE_H;i+=5){ctx.fillStyle=i%3?'#d5bd84':'#76624a';ctx.fillRect(ex,ey+i,TILE_W,1)}
+ for(let i=0;i<TILE_H;i+=3){ctx.fillStyle=i%6?'#dfd0a5':'#5b4c48';ctx.fillRect(ex,ey+i,TILE_W,1)}
  return {canvas,ctx};
 }
 function pushQuad(verts,A,B,C,D,slot,brightness){
