@@ -87,14 +87,13 @@ float shadowVisibility(){
 void main(){
  vec3 base;
  if(vSurface>1.5){
-  // Uniform pearlescent cardstock within each macro packet.
-  // True packet seams and depth shadows replace painted zebra stripes.
-  base=mix(vec3(.80,.79,.77),vec3(.89,.89,.87),vEdgeTone);
- }else{
-  float slot=vSurface<.5?vFaceSlot:78.;
-  vec2 uv=(vec2(mod(slot,9.),floor(slot/9.))+vec2(mix(.009,.991,vUV.x),mix(.009,.991,vUV.y)))/9.;
-  base=texture(uAtlas,uv).rgb;
+  // A true matte cardstock surface: no atlas, no PCF shadow texture,
+  // no normal/bump procedural treatment or per-sheet edge tint.
+  color=vec4(.866,.870,.864,1.);return;
  }
+ float slot=vSurface<.5?vFaceSlot:78.;
+ vec2 uv=(vec2(mod(slot,9.),floor(slot/9.))+vec2(mix(.009,.991,vUV.x),mix(.009,.991,vUV.y)))/9.;
+ base=texture(uAtlas,uv).rgb;
  float diffuse=max(0.,dot(normalize(vNormal),normalize(uLightDir)));
  float shadow=shadowVisibility();
  float rim=pow(1.-abs(normalize(vNormal).z),2.)*.08;
