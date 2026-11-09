@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {DECK} from '../src/deck.mjs';
-import {CARD_COUNT,BEATS,sphereLayout,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,assemblyProgress,perspectiveFocal,CAMERA_VERTICAL_FOV_DEG,CAMERA_CLIP_NEAR,clipCardNearPlane} from '../preview/post-shuffle/geometry.mjs';
+import {CARD_COUNT,BEATS,sphereLayout,cardWorld,orbitAngle,cameraDistance,gyroAttitude,projectedCardHit,pickProjectedCard,selectCard,getStage,assemblyProgress,perspectiveFocal,CAMERA_VERTICAL_FOV_DEG,CAMERA_CLIP_NEAR,clipCardNearPlane} from '../preview/post-shuffle/geometry.mjs';
 
 test('One real, non-redealt 78-card spherical identity map',()=>{
  const points=sphereLayout();assert.equal(points.length,78);
@@ -17,7 +17,13 @@ test('One continuous launch→unfold→fast spin→inward camera shot with no Ga
  assert.equal(BEATS.interactive,6.9);
  assert.equal(getStage(0,0),'launch');assert.equal(getStage(2,0),'distribute');assert.equal(getStage(5,0),'enter');
  assert.equal(getStage(7.1,0),'inside');assert.equal(getStage(7.1,1),'select');
- assert.ok(cameraDistance(0)>9&&cameraDistance(0)<10);assert.ok(cameraDistance(1.2)>12);assert.ok(cameraDistance(4.2)>10);assert.equal(cameraDistance(7),0);
+ assert.ok(cameraDistance(0)>9&&cameraDistance(0)<10);
+ assert.ok(cameraDistance(1.2)>12);
+ for(let t=1.22;t<6.85;t+=.13)
+  assert.ok(cameraDistance(t+.06)<cameraDistance(t),'approach must never stall between unfolding and entry');
+ assert.equal(cameraDistance(7),0);
+ assert.ok(gyroAttitude(3).pitch!==0&&gyroAttitude(3).roll!==0);
+ assert.ok(Math.abs(gyroAttitude(7.4).pitch)<.00001);
  assert.ok(orbitAngle(4.1)-orbitAngle(2.1)>8,'sphere must rotate rapidly before entry');
  assert.ok(orbitAngle(11)-orbitAngle(9)<.2,'settled interior should rotate gently');
 });
@@ -79,4 +85,19 @@ test('FINISH stage constructs an actual compact stacked deck, then unwinds all 7
  assert.ok(extent(first)<2,'no giant fanned stack at launch');
  assert.ok(extent(mid)>2.0,'individual sheets must unravel before sphere entry');
  assert.ok(extent(full)>5,'physical sphere must grow to its full radius');
+});
+
+test('Projected selection accepts actual edges, rejects distant misses and prefers frontmost physical card',()=>{
+ const rectangle=[{x:20,y:20},{x:120,y:20},{x:120,y:170},{x:20,y:170}];
+ assert.deepEqual(projectedCardHit(60,60,rectangle).inside,true);
+ assert.ok(projectedCardHit(121,80,rectangle).hit,'edge forgiveness');
+ assert.equal(projectedCardHit(145,80,rectangle).hit,false,'not an oversized invisible target');
+ const rear={id:'rear',side:0,depth:9,corners:rectangle};
+ const front={id:'front',side:0,depth:3,corners:rectangle};
+ assert.equal(pickProjectedCard([rear,front],60,60).id,'front');
+ assert.equal(pickProjectedCard([rear,{...front,side:1}],60,60).id,'rear','back-facing cards are not selectable');
+ assert.equal(pickProjectedCard([rear,front],400,400),null);
+ const actual={id:'actual',side:0,depth:15,corners:rectangle};
+ const nearby={id:'near',side:0,depth:2,corners:rectangle.map(p=>({x:p.x+100,y:p.y}))};
+ assert.equal(pickProjectedCard([nearby,actual],60,60).id,'actual','actual silhouette beats a nearer loose margin');
 });
