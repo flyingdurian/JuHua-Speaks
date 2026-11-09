@@ -88,7 +88,7 @@ function blend(a,b,t){
  const right=vMix(a.attitude.right,b.attitude.right,w);
  return pose(vMix(a.position,b.position,w),attitudeFrom(fixedNormal,right),mix(a.scale,b.scale,w));
 }
-function stackPose(card,{center=[0,-.16,-17.0],yaw=.70,pitch=PITCH,roll=0,scale=1.14,rank=card.orbitSlot,count=N,step=.0170}={}){
+function stackPose(card,{center=[0,-.16,-17.0],yaw=-.70,pitch=PITCH,roll=0,scale=1.14,rank=card.orbitSlot,count=N,step=.0170}={}){
  const basis=backAttitude(yaw,pitch,roll);
  const layer=(rank-(count-1)/2)*step;
  // 78 separate instances: .0092 paper thickness and .0078 free gap per layer.
@@ -101,7 +101,7 @@ function stackPose(card,{center=[0,-.16,-17.0],yaw=.70,pitch=PITCH,roll=0,scale=
 export function deckPose(card,worldTime=0){
  // Slow whole-stack idle turn. Individually modelled sheets have subtle,
  // fixed natural stagger; the top sheet displays the actual Tarot artwork.
- const yaw=.69+.11*Math.sin(worldTime*.17);
+ const yaw=-.72+.045*Math.sin(worldTime*.17); // reference three-quarter back on RIGHT; open edges extend LEFT
  const pitch=PITCH+.043*Math.sin(worldTime*.12);
  const roll=.037*Math.sin(worldTime*.16);
  return stackPose(card,{yaw,pitch,roll});
