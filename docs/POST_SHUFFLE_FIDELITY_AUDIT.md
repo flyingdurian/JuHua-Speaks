@@ -38,3 +38,27 @@ The Finish control is visibly engaged at approximately video 5.0–5.3s. Relativ
 - Detailed frame maps, quality gates, screenshots, test logs and migration notes stay in `docs/` and GitHub Actions artifacts.
 - New iteration replaces the same draft PR review branch; no successive branches/PRs for minor fixes. Do not claim approval from unit or browser test results.
 - Explicit reviewer signoff needed before black-hole collapse, true peel/reveal, or Artemis reading.
+
+## 2026-11-09 — New reference videos / ref1 corrective pass
+
+Source videos examined (ChatARot on left, JuHua on right):
+- Side by side compare of the sequences up until FINISH SHUFFLE phase(1).mp4 — 19.633 seconds, 30 fps.
+- Side by side comparison from FINISH SHUFFLING TO REVEAL(1).mp4 — 37.700 seconds, 30 fps.
+
+Source sampled-frame observations (not synchronized beat-for-beat):
+- Pre-finish ~14s and ~17s: reference holds a very small, slim edge-on deck against nearly black space; compared build displays a much larger, visibly fanned navy-and-white striped shape.
+- Pre-finish ~8–11s: reference collapses to an isolated tiny stack as compared build is still a large card globe. The videos' halves are not synchronized by scene stage.
+- Post-finish ~2s: suspended reference deck remains small, isolated, and luminous.
+- Post-finish ~5s: sphere formation and rapid orbit; avoid a smaller clumped ball or static sphere wallpaper.
+- Post-finish ~8s: camera sweeps past large close cards into a shell; maintain 3D near-plane clipping and correct matching perspective.
+- Post-finish ~11–17s: reference has a broad black starfield and numerous smaller navy backs. Preserve authentic depth and gentler smoky ambience.
+- Post-finish ~20–32s: reference proceeds into selection/reveal, but this PR is limited to Gate C entry and three picks until visual sign-off.
+
+Changes in this corrective pass:
+- Remove the previous +11.55 world-Z push into the camera. The suspended deck now eases 1.10 units away and scales down 10.5% during settling.
+- Keep genuine 78 instances, physical sheet thickness 0.0092, adjacent spacing 0.0170, and per-sheet shadow casting.
+- Add restrained rank-clustered stagger and shallow bow within the card plane to soften barcode alignment without eliminating true air gaps.
+- Share one original midnight-indigo, detailed champagne-gold engraved back across Gate B and Gate C.
+- Preserve earlier 85-degree field-of-view and camera near-plane clipping correction.
+
+Acceptance: sampled-frame video analysis is not owner visual signoff. All changes remain unmerged and unreleased. Run source tests, GPU browser smoke, and direct video review before approval.
