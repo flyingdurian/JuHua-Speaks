@@ -112,7 +112,8 @@ test('BC fix: Finish Shuffling transfers the live renderer snapshot, not a secon
  const gate=await readFile(new URL('../preview/gate-b/gate-b.mjs',import.meta.url),'utf8');
  const post=await readFile(new URL('../preview/post-shuffle/scene.mjs',import.meta.url),'utf8');
  assert.match(gate,/deckInstanceLayout\(world\.cards,elapsed,eased\)/);
- assert.match(gate,/mount,deckIds:selectionOrder,handoffDeck,question/);
+ assert.match(gate,/mountPostShuffle\(\{/);
+ assert.match(gate,/deckIds:selectionOrder,handoffDeck/);
  assert.match(post,/sourceDeck=new Map\(handoffDeck\.map/);
  assert.match(post,/gateBToGateCInstance\(c\)/);
  assert.match(post,/sourceDeck\?\.get\(id\)/);
