@@ -45,7 +45,7 @@ function noisePlane(layer,time,canvas,ctx){
   const u=(x+.5)/WIDTH,v=(y+.5)/HEIGHT;
   const d=sampleVapor(u,v,time,layer),i=(y*WIDTH+x)*4;
   p[i]=layer?216:198;p[i+1]=layer?219:207;p[i+2]=layer?225:219;
-  p[i+3]=Math.round(d*195);
+  p[i+3]=Math.round(Math.pow(d,.82)*232);
  }
  ctx.putImageData(data,0,0);
  return canvas;
