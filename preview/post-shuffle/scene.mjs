@@ -11,7 +11,7 @@ import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
 import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
 import {SPHERE_VERTEX_STRIDE,extrudedCardVertices} from './PhysicalSphereMesh.mjs';
 import {chooseFoilFinish,createTarotTableau} from './TarotTableau.mjs';
-import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,perspectiveFocal,CAMERA_CLIP_NEAR,CAMERA_NEAR,clipCardNearPlane} from './geometry.mjs';
+import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,gyroAttitude,selectCard,getStage,perspectiveFocal,CAMERA_CLIP_NEAR,CAMERA_NEAR,clipCardNearPlane} from './geometry.mjs';
 
 const W=174,H=288,COLS=10,ROWS=8,ATLAS_W=W*COLS,ATLAS_H=H*ROWS;
 const vs=`#version 300 es
@@ -112,12 +112,13 @@ function cardPose(point,t,turn,yaw,pitch,selectedPct){
  const direction=norm(mix3(point.direction,point.insideDirection??point.direction,inside));
  const r=point.radius*(1-.055*selectedPct); // subtle in-world forward lift
  const center3=mix3(center,direction.map(n=>n*r),selectedPct);
- const p=rotX(rotY(center3,turn+yaw),pitch);
+ const gyro=gyroAttitude(t);
+ const p=rotX(rotY(center3,turn+yaw),pitch+gyro.pitch);
  const normal=norm(mix3([-.70,-.12,-.69],direction,s)); // illustrated faces OUT, navy backs IN
- let n=rotX(rotY(normal,turn+yaw),pitch);
+ let n=rotX(rotY(normal,turn+yaw),pitch+gyro.pitch);
  let right=norm(cross([0,1,0],n));if(Math.hypot(...right)<.3)right=[1,0,0];
  let up=norm(cross(n,right));
- const a=point.roll*s-.045*(1-s)+Math.sin(Math.PI*s)*.35*Math.sin(point.i*.47+t*5.4); // all stacked sheets remain aligned until unfolding
+ const a=point.roll*s-.045*(1-s)+gyro.roll+Math.sin(Math.PI*s)*.35*Math.sin(point.i*.47+t*5.4); // all stacked sheets remain aligned until unfolding
  const rr=right.map((v,i)=>Math.cos(a)*v+Math.sin(a)*up[i]);
  const uu=up.map((v,i)=>Math.cos(a)*v-Math.sin(a)*right[i]);
  return {position:p,normal:n,right:rr,up:uu};
