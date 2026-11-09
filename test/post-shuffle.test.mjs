@@ -17,7 +17,7 @@ test('One continuous launch→unfold→fast spin→inward camera shot with no Ga
  assert.equal(BEATS.interactive,6.9);
  assert.equal(getStage(0,0),'launch');assert.equal(getStage(2,0),'distribute');assert.equal(getStage(5,0),'enter');
  assert.equal(getStage(7.1,0),'inside');assert.equal(getStage(7.1,1),'select');
- assert.ok(cameraDistance(0)<4);assert.ok(cameraDistance(1.2)>12);assert.ok(cameraDistance(4.2)>10);assert.equal(cameraDistance(7),0);
+ assert.ok(cameraDistance(0)>9&&cameraDistance(0)<10);assert.ok(cameraDistance(1.2)>12);assert.ok(cameraDistance(4.2)>10);assert.equal(cameraDistance(7),0);
  assert.ok(orbitAngle(4.1)-orbitAngle(2.1)>8,'sphere must rotate rapidly before entry');
  assert.ok(orbitAngle(11)-orbitAngle(9)<.2,'settled interior should rotate gently');
 });
@@ -70,4 +70,13 @@ test('Renderer does not fabricate Tarot art or use stale narrow camera formula',
  assert.doesNotMatch(scene,/Math\.tan\(85\*Math\.PI\/360\/2\)/);
  assert.match(scene,/RWS ART/);
  assert.match(scene,/UNAVAILABLE/);
+});
+
+test('FINISH stage constructs an actual compact stacked deck, then unwinds all 78 sheets',()=>{
+ const points=sphereLayout();
+ const first=points.map(p=>cardWorld(p,0)),mid=points.map(p=>cardWorld(p,2.1)),full=points.map(p=>cardWorld(p,4.0));
+ const extent=arr=>Math.max(...arr.map(v=>Math.hypot(...v)));
+ assert.ok(extent(first)<2,'no giant fanned stack at launch');
+ assert.ok(extent(mid)>2.0,'individual sheets must unravel before sphere entry');
+ assert.ok(extent(full)>5,'physical sphere must grow to its full radius');
 });
