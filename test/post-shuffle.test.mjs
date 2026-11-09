@@ -51,7 +51,7 @@ test('True 85-degree projection matches shader and JS picking camera',()=>{
  assert.throws(()=>perspectiveFocal(180),/Invalid/);
 });
 test('Physical cards are clipped instead of disappearing as camera enters sphere',()=>{
- const behind=[[-1,-1,-.05],[1,-1,-.05],[1,1,.15],[-1,1,.15]];
+ const behind=[[-1,-1,-.20],[1,-1,-.20],[1,1,.15],[-1,1,.15]];
  const clipped=clipCardNearPlane(behind,0);
  assert.equal(clipped.length,4);
  for(const c of clipped){
