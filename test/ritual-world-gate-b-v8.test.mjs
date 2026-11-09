@@ -88,20 +88,27 @@ test('Card faces, backs and edges rotate rigidly with the same camera bank as th
  assert.match(source,/rotateVortexBasis\(localAtt\.right,t\)/);
 });
 
-test('Approved Sequence 2 choreography and all subsequent steps are byte-for-byte frozen',async()=>{
+test('Owner-directed v10.7 finale: real three piles, then one consolidated deck',async()=>{
  const source=await readFile(new URL('../src/ritual-world/ReferenceRitual.mjs',import.meta.url),'utf8');
- const boundary=source.indexOf('function pocketPose(');
- assert.ok(boundary>0);
- const frozen=source.slice(boundary);
- let h=2166136261;
- for(const c of frozen){h^=c.charCodeAt(0);h=Math.imul(h,16777619)>>>0}
- assert.equal(h.toString(16),'3b577ed3',
-  'Approved Sequence 2 changed: revert it before claiming a new Sequence 1 candidate');
+ assert.match(source,/function subdeckPose\(/);
+ assert.match(source,/const layer=\(slot-12\.5\)\*\.052/);
+ assert.match(source,/function transferPose\(/);
  assert.match(source,/sampleVortexCard/);
- assert.equal(cards.length,78);
- for(const t of [7.5,9.2,10.7,13.6,16.55]){
+ const groups=[0,1,2].map(g=>cards.filter(c=>c.orbitSlot%3===g)
+  .map(c=>sample(c,13.1).position));
+ assert.deepEqual(groups.map(g=>g.length),[26,26,26]);
+ for(const group of groups){
+  const zs=group.map(p=>p[2]);
+  const xs=group.map(p=>p[0]);
+  assert.ok(Math.max(...zs)-Math.min(...zs)>.35,'Individual card layers must read as a physical deck');
+  assert.ok(Math.max(...xs)-Math.min(...xs)>.8,'Side profile must reveal stacked page offsets');
+ }
+ const before=sample(cards[0],13.1),after=sample(cards[0],16.55);
+ assert.ok(Math.hypot(...before.position.map((v,i)=>v-after.position[i]))>.8,
+  'Three separate piles must physically travel into one suspended deck');
+ for(const t of [7.5,9.2,10.2,11.5,13.1,14.5,16.55]){
   const poses=cards.map(c=>sample(c,t));
-  assert.ok(poses.every(p=>p.position.every(Number.isFinite)));
+  assert.ok(poses.every(p=>p.position.every(Number.isFinite)&&p.scale>0));
  }
 });
 

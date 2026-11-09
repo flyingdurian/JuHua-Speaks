@@ -77,7 +77,7 @@ test('V7 tunnel sweeps independent Tarot sheets through near, middle and far per
 test('V7 globe forms a legible hollow sphere with circumferential card silhouettes',()=>{
  const before=audit(6.75),opening=audit(7.90);
  assert.ok(opening.coverageFraction>before.coverageFraction*5,'The stack must bloom visibly into a globe');
- for(const t of [8.8,10.2,11.4]){
+ for(const t of [8.8,9.5,10.2]){
   const m=audit(t);
   assert.ok(m.faces>=18&&m.faces<=60,'Historic illustrated fronts and dark backs both present');
   assert.ok(m.depthRatio>1.8,'Large actual near and far hemisphere separation');

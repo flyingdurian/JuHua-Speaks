@@ -47,10 +47,13 @@ test('Gate B skip and Finish Shuffling target the restored fullscreen sphere, ne
  assert.match(preview,/new URL\('\.\.\/gate-c14\/\?from=gate-b',import\.meta\.url\)/);
  assert.doesNotMatch(preview,/new URL\('\.\.\/\.\.\/ritual\.html'/);
  assert.match(sphere,/sessionStorage\.removeItem\(GATE_B_HANDOFF_KEY\)/);
- assert.match(sphere,/show\('sphere'\)/);
+ assert.match(sphere,/showSphere\(\)/);
  assert.doesNotMatch(sphere,/function cube\(/);
  assert.doesNotMatch(sphere,/function gate\(/);
- assert.match(sphere,/if\(chosen\)\{b\.hidden=true;continue\}/);
+ assert.match(sphere,/b\.classList\.toggle\('is-chosen',chosen\)/);
+ assert.doesNotMatch(sphere,/THREE PATHS|AWAITING/);
+ assert.match(sphere,/trioMarkup\(\)/);
+ assert.match(sphere,/data-peek-index/);
  assert.match(server,/pathname\.startsWith\('\/preview\/gate-c14\/'\)/);
  assert.doesNotMatch(server,/pathname==='\/ritual\.html'/);
 });

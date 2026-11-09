@@ -135,6 +135,7 @@ function paintPeel(i){
  cover.style.clipPath=mask;
  cover.style.opacity=p>=.985?'0':'1';
  el.style.setProperty('--peel-progress',String(p));
+ el.style.setProperty('--peel-width',v+'%');
  el.dataset.peelMode=mode;
  el.classList.toggle('is-revealed',p>=.985);
  el.setAttribute('aria-valuenow',String(Math.round(p*100)));
