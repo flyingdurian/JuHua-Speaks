@@ -19,6 +19,7 @@ try{
  await page.waitForTimeout(1600);
  const diagnostics=await page.evaluate(()=>window.__ritualGateB.world.getDiagnostics());
  assert.equal(diagnostics.deckInstances,78);
+ assert.equal(diagnostics.deckPacketCount,7,'final deck uses exactly seven visible matte paper sleeves');
  assert.equal(diagnostics.deckShadowMap,true,'WebGL2 depth-shadow FBO required');
  await page.screenshot({path:dir+'/01-78-physical-instanced-deck.png',timeout:60000});
  const oldUrl=page.url();
