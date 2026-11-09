@@ -139,3 +139,112 @@ body.gate-b-post-shuffle-live #post-shuffle-mount.ps-mount{position:fixed;inset:
 }
 @keyframes ps-nebula-cloud{from{transform:translate(-2%,1%) scale(1)}to{transform:translate(2%,-2%) scale(1.035)}}
 @media(prefers-reduced-motion:reduce){.ps-sky::after{animation:none!important}}
+
+
+/* Gate BC v3.1 — staged owner corrections: depth, frozen composition, vapor,
+   four distinct metallic finishes and layered interstellar clouds. */
+.ps-selections{display:none!important}
+.ps-demo-deck{
+ background:#0b1b36;
+ border:2px solid #d9c69f;
+ box-shadow:inset 0 0 0 2px #223651,0 0 20px #505c8c40;
+}
+/* Text reserves exactly the same vertical slot BEFORE and AFTER each flip. */
+.ps-tableau{--ps-reading-height:76px;overflow:hidden;overscroll-behavior:contain}
+.ps-tableau-spread{align-items:stretch}
+.ps-tableau-item{
+ display:grid;grid-template-rows:clamp(23px,4vh,35px) minmax(0,1fr) var(--ps-reading-height);
+ justify-items:center;align-items:start;gap:clamp(9px,1.5vh,16px);
+ height:clamp(312px,65vh,565px);
+}
+.ps-tableau-role{align-self:center}
+.ps-flip-button{align-self:start;justify-self:center;transform:translateZ(0)}
+.ps-tableau-detail{
+ height:var(--ps-reading-height);min-height:var(--ps-reading-height);
+ width:100%;overflow:hidden;margin:0;padding:2px 2px 0;
+ align-self:start;justify-self:center;pointer-events:none;
+}
+.ps-tableau-detail[hidden]{display:block!important;visibility:hidden;opacity:0;animation:none}
+.ps-tableau-detail:not([hidden]){visibility:visible}
+.ps-tableau-card-name{line-height:1.24}
+.ps-tableau-card-brief{font-size:clamp(10px,.95vw,12px);line-height:1.36}
+.ps-flip-inner{transform-style:preserve-3d;filter:drop-shadow(8px 12px 11px rgba(0,0,0,.55))}
+.ps-flip-inner::before{
+ content:"";position:absolute;inset:1px -4px 1px 1px;border-radius:6px;
+ background:linear-gradient(90deg,#faf0dc 0%,#d2c19d 37%,#ffffff 63%,#77684f 100%);
+ transform:rotateY(90deg) translateZ(2px);transform-origin:right center;
+ pointer-events:none;backface-visibility:visible;
+}
+.ps-card-side{
+ border:2px solid #ddcfaa;box-shadow:inset 0 0 0 1px rgba(255,255,255,.26),
+ inset 0 0 0 4px #142742,0 8px 13px rgba(0,0,0,.54),0 20px 28px rgba(0,0,0,.49);
+}
+.ps-card-back{transform:translateZ(4px)}
+.ps-card-front{transform:rotateY(180deg) translateZ(4px)}
+/* Pre-reveal smoke stays on the midnight-blue reverse, NEVER on a face-up RWS scan. */
+.ps-card-back::after{
+ content:"";position:absolute;inset:-18%;pointer-events:none;border-radius:18%;
+ background:
+  radial-gradient(ellipse at 30% 33%,rgba(231,236,249,.28),transparent 45%),
+  radial-gradient(ellipse at 67% 54%,rgba(195,200,220,.26),transparent 42%),
+  radial-gradient(ellipse at 39% 78%,rgba(239,239,241,.20),transparent 48%),
+  conic-gradient(from 46deg at 50% 47%,transparent,rgba(204,215,231,.12),transparent,rgba(239,231,223,.16),transparent);
+ filter:blur(16px);mix-blend-mode:screen;opacity:.83;
+ animation:ps-vapor-roll 8.6s cubic-bezier(.44,.04,.58,.96) infinite alternate;
+}
+@keyframes ps-vapor-roll{
+ 0%{transform:translate(-10%,9%) rotate(-11deg) scale(1.02);opacity:.36}
+ 45%{transform:translate(8%,-3%) rotate(15deg) scale(1.19);opacity:.76}
+ 100%{transform:translate(-1%,-13%) rotate(-19deg) scale(1.04);opacity:.55}
+}
+/* Metallic light behaves as a streak on the surface, not a recolor of the art. */
+.ps-card-foil{
+ mix-blend-mode:screen;opacity:.84!important;
+ background-blend-mode:screen;isolation:isolate;
+ box-shadow:inset 0 0 1px 1px rgba(255,246,202,.45),inset 0 0 22px rgba(244,235,189,.21);
+}
+.ps-card-foil::after{
+ content:"";position:absolute;inset:-15%;pointer-events:none;
+ background:linear-gradient(108deg,transparent 22%,rgba(250,245,222,.035) 30%,rgba(255,253,230,.73) 42%,rgba(242,230,255,.24) 49%,transparent 64%);
+ transform:translateX(-120%) rotate(-3deg);opacity:.88;
+ animation:ps-prestige-sweep 4.9s cubic-bezier(.2,.42,.4,.95) infinite;
+}
+@keyframes ps-prestige-sweep{
+ 0%,15%{transform:translateX(-124%) rotate(-3deg);opacity:0}
+ 31%{opacity:.82}
+ 58%{transform:translateX(122%) rotate(-3deg);opacity:.95}
+ 65%,100%{transform:translateX(122%) rotate(-3deg);opacity:0}
+}
+/* A cloud bank with three scales/depth planes to avoid uniform flat black. */
+.ps-tableau::before{
+ left:-9%;top:18%;width:118%;height:73%;border-radius:47%;
+ background:
+ radial-gradient(ellipse at 26% 47%,rgba(166,164,189,.20),transparent 38%),
+ radial-gradient(ellipse at 54% 52%,rgba(74,111,146,.21),transparent 48%),
+ radial-gradient(ellipse at 80% 37%,rgba(155,103,169,.18),transparent 40%),
+ radial-gradient(ellipse at 57% 77%,rgba(88,131,168,.17),transparent 35%);
+ filter:blur(31px) saturate(1.32);
+ animation:ps-nebula-volumetric 25s ease-in-out infinite alternate;
+}
+.ps-tableau::after{
+ content:"";position:absolute;inset:7% 0 4%;pointer-events:none;
+ background:
+ radial-gradient(circle at 13% 20%,rgba(244,222,176,.34) 0 1px,transparent 2px),
+ radial-gradient(circle at 82% 35%,rgba(244,223,194,.32) 0 1px,transparent 2px),
+ radial-gradient(circle at 62% 84%,rgba(206,220,255,.22) 0 1px,transparent 2px),
+ radial-gradient(ellipse at 55% 58%,rgba(35,61,101,.10),transparent 60%);
+ opacity:.77;mix-blend-mode:screen;
+}
+@keyframes ps-nebula-volumetric{
+ from{transform:translate(-3%,1%) scale(.94) rotate(-2deg);opacity:.56}
+ to{transform:translate(4%,-3%) scale(1.06) rotate(2deg);opacity:.90}
+}
+@media(max-width:680px){
+ .ps-tableau{--ps-reading-height:63px;padding:46px 6px 8px}
+ .ps-tableau-item{height:clamp(254px,55vh,450px);gap:7px;grid-template-rows:23px minmax(0,1fr) var(--ps-reading-height)}
+ .ps-flip-button{width:min(100%,140px)}
+ .ps-card-back::after{filter:blur(10px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .ps-card-back::after,.ps-card-foil::after,.ps-tableau::before{animation:none!important}
+}
