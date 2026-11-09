@@ -45,9 +45,20 @@ try{
     return v[(n*7)%v.length]||null;
    },k);
    if(!pick)throw Error('No visible inward-facing selectable card');
+   if(i===0&&k<4){
+    const state=await page.evaluate(p=>({
+     hit:document.elementFromPoint(p.x,p.y)?.outerHTML?.slice(0,300),
+     selections:window.__POST_SHUFFLE__.selected(),
+     stage:window.__POST_SHUFFLE__.stage(),
+     visible:window.__POST_SHUFFLE__.visible().length,
+     side0:window.__POST_SHUFFLE__.visible().filter(v=>v.side===0).length,
+     target:p
+    }),pick);console.log('PICK DEBUG',JSON.stringify(state));
+   }
    await page.mouse.click(pick.x,pick.y);
    await page.waitForTimeout(90);
    selected=(await page.evaluate(()=>window.__POST_SHUFFLE__.selected().length))===i+1;
+   if(i===0&&k<4)console.log('AFTER PICK',JSON.stringify(await page.evaluate(()=>window.__POST_SHUFFLE__.selected())));
   }
   assert.ok(selected,'True card hit-testing failed at selection '+(i+1));
  }
