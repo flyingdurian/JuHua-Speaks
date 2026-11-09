@@ -2,13 +2,14 @@
  * Canonical organic 78-sheet card stock.
  * Every condensed state (first compact deck, three piles, consolidation,
  * suspended deck and post-Finish launch) uses this one coordinate contract.
- * Seven macro packets are made of *real* individual sheets with positive air
- * gaps; the additional packet seams replace procedural zebra/barcode stripes.
+ * Individual sheets retain microscopic positive air gaps; macro packet slits
+ * are expressly forbidden. The final side silhouette is cohesive cardstock.
  */
-export const ORGANIC_STEP=.0170;
+export const ORGANIC_STEP=.0108;
 export const ORGANIC_THICKNESS=.0092;
 export const ORGANIC_GAP=ORGANIC_STEP-ORGANIC_THICKNESS;
-export const PACKET_SEAM_EXTRA=.023;
+// A submillimeter-in-scene tonal break; formerly .023 (= visible concrete slabs).
+export const PACKET_SEAM_EXTRA=.0007;
 export const DEFAULT_PACKET_COUNT=7;
 const fract=x=>x-Math.floor(x);
 const hash=n=>fract(Math.sin(n*127.1+19.7)*43758.5453);
@@ -33,8 +34,8 @@ export function organicSheetOffset(rank,{count=78,group=0}={}){
  const staggerX=(hash(cluster+group*107)-.5)*.011+(hash(rank+group*199)-.5)*.004;
  const staggerY=(hash(cluster+group*71)-.5)*.010+(hash(rank+group*307)-.5)*.004;
  const bow=.015*Math.sin(Math.PI*(rank+.5)/count);
- // Each packet has one continuous set of thin, pale sheets, followed by a
- // genuine dark air seam. Center the seam staircase to avoid deck translation.
+ // Keep micro-layer spacing positive with only a near-invisible depth shift.
+ // Never introduce an independently visible space between groups of sheets.
  const depth=(rank-(count-1)/2)*ORGANIC_STEP+
   (packet-(groups-1)/2)*PACKET_SEAM_EXTRA;
  return {x:packetX+staggerX,y:packetY+staggerY+bow,depth,packet,cluster};
