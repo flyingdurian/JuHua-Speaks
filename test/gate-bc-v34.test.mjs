@@ -79,9 +79,15 @@ test('BC fix: 78 exact suspended-card projections remain pixel-aligned across th
   const receivedY=viewport.h/2-destFocal*converted.position[1]/depth;
   assert.ok(Math.abs(expectedX-receivedX)<1e-8,'same screen X');
   assert.ok(Math.abs(expectedY-receivedY)<1e-8,'same screen Y');
-  const expectedWidth=sourceFocal*(1.28*raw.scale)/(-raw.position[2]);
-  const mappedWidth=destFocal*(converted.halfWidth*2)/depth;
-  assert.ok(Math.abs(expectedWidth-mappedWidth)<1e-8,'card face has matching projected width');
+  // Source and destination must agree at *all four projected corners*
+  // even when the physically tilted cardstock crosses multiple depths.
+  for(const [sx,sy] of [[-1,-1],[1,-1],[1,1],[-1,1]]){
+   const original=raw.position.map((v,j)=>v+sx*.64*raw.scale*raw.right[j]+sy*1.06*raw.scale*raw.up[j]);
+   const mapped=converted.position.map((v,j)=>v+sx*converted.halfWidth*converted.right[j]+sy*converted.halfHeight*converted.up[j]);
+   const zOriginal=-original[2],zMapped=HANDOFF_CAMERA_Z-mapped[2];
+   assert.ok(Math.abs((sourceFocal*original[0]/zOriginal)-(destFocal*mapped[0]/zMapped))<1e-8,'card corner X');
+   assert.ok(Math.abs((sourceFocal*original[1]/zOriginal)-(destFocal*mapped[1]/zMapped))<1e-8,'card corner Y');
+  }
  }
  assert.throws(()=>gateBToGateCInstance({}),/handoff/);
 });
@@ -106,7 +112,7 @@ test('BC fix: Finish Shuffling transfers the live renderer snapshot, not a secon
  const gate=await readFile(new URL('../preview/gate-b/gate-b.mjs',import.meta.url),'utf8');
  const post=await readFile(new URL('../preview/post-shuffle/scene.mjs',import.meta.url),'utf8');
  assert.match(gate,/deckInstanceLayout\(world\.cards,elapsed,eased\)/);
- assert.match(gate,/mountPostShuffle\(\{mount,deckIds:selectionOrder,handoffDeck\}\)/);
+ assert.match(gate,/mount,deckIds:selectionOrder,handoffDeck,question/);
  assert.match(post,/sourceDeck=new Map\(handoffDeck\.map/);
  assert.match(post,/gateBToGateCInstance\(c\)/);
  assert.match(post,/sourceDeck\?\.get\(id\)/);
