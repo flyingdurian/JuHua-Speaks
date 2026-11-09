@@ -362,3 +362,91 @@ body.gate-b-post-shuffle-live #post-shuffle-mount.ps-mount{position:fixed;inset:
 .ps-card-art[hidden]{display:none!important}
 .ps-card-art-unavailable:not([hidden]){z-index:5}
 .ps-card-front .ps-card-foil{z-index:6}
+
+
+/* Gate BC v3.3 · approved owner correction: no detachable paper flap.
+   Two genuine 3D face planes with subpixel depth and a thin integrated rim. */
+.ps-flip-inner::before{content:none!important;display:none!important}
+.ps-flip-inner{transform-style:preserve-3d!important}
+.ps-card-back{transform:translateZ(.65px)!important}
+.ps-card-front{transform:rotateY(180deg) translateZ(.65px)!important}
+.ps-card-side{
+ border:1px solid rgba(221,210,190,.88);
+ box-shadow:inset 0 0 0 1px rgba(236,220,193,.17),
+  inset 0 0 0 3px #172840,0 10px 23px rgba(0,0,0,.43);
+}
+.ps-flip-button{filter:none!important;box-shadow:0 4px 18px rgba(0,0,0,.20);}
+
+/* Soft gossamer white-violet cosmic veil moves in TWO curl-advection layers,
+   intermittently obscuring celestial engraving without bleaching its gold. */
+.ps-card-back::after{content:none!important;display:none!important}
+.ps-vapor-cloud{mix-blend-mode:screen;filter:blur(2.3px);opacity:.52}
+.ps-vapor-cloud.ps-vapor-far{opacity:.29;transform:translateY(-1%) scale(1.015)}
+.ps-vapor-cloud.ps-vapor-near{opacity:.42;transform:translateY(-2%) scale(1.028)}
+.ps-card-back{isolation:isolate}
+
+/* Hologram preview · user can cycle all four treatments without re-dealing.
+   Spectral overlays sit on top of real RWS art and never replace source pixels. */
+.ps-hologram-controls{
+ z-index:5;display:flex;align-items:center;justify-content:center;gap:12px;
+ min-height:32px;pointer-events:auto;color:#d6d0e0;
+ font:10px Arial,sans-serif;letter-spacing:.10em;
+}
+.ps-hologram-controls button{
+ width:28px;height:28px;display:grid;place-items:center;border-radius:50%;
+ border:1px solid rgba(203,187,162,.46);background:rgba(10,17,34,.75);
+ color:#f0e7d7;font:20px Georgia,serif;line-height:1;
+}
+.ps-hologram-controls button:hover{background:rgba(36,45,76,.9);border-color:#e2ceac}
+.ps-hologram-name{min-width:160px;text-align:center}
+.ps-card-hologram.ps-card-foil{
+ position:absolute;inset:0;overflow:hidden;border-radius:3px;
+ pointer-events:none;mix-blend-mode:screen;isolation:auto;z-index:6;
+ opacity:.48!important;background-blend-mode:screen;
+ box-shadow:inset 0 0 6px rgba(236,240,255,.12)!important;
+}
+.ps-card-hologram.ps-card-foil::after{
+ content:none!important;display:none!important;animation:none!important;
+}
+.ps-holo-prismatic .ps-card-hologram{
+ background:
+  repeating-linear-gradient(149deg,
+   transparent 0%,rgba(87,224,239,.12) 7%,rgba(218,128,242,.22) 14%,
+   rgba(251,204,128,.13) 21%,transparent 29%,transparent 48%),
+  linear-gradient(56deg,transparent 20%,rgba(149,208,245,.23) 49%,transparent 71%);
+ background-size:245% 245%;animation:ps-holo-prismatic 8s linear infinite alternate;
+}
+.ps-holo-aurora .ps-card-hologram{
+ background:
+  radial-gradient(ellipse at 18% 28%,rgba(83,230,201,.19),transparent 49%),
+  linear-gradient(112deg,transparent 9%,rgba(88,180,240,.15) 31%,rgba(216,122,246,.24) 47%,rgba(132,237,202,.17) 65%,transparent 89%);
+ background-size:190% 185%;animation:ps-holo-aurora 10.3s ease-in-out infinite alternate;
+}
+.ps-holo-starfield .ps-card-hologram{
+ background:
+  radial-gradient(circle at 23% 18%,rgba(248,242,202,.66) 0 1px,transparent 2.8px),
+  radial-gradient(circle at 77% 37%,rgba(175,221,249,.63) 0 1px,transparent 2.6px),
+  radial-gradient(circle at 44% 76%,rgba(230,176,245,.55) 0 1px,transparent 3px),
+  linear-gradient(125deg,transparent 33%,rgba(161,223,247,.17) 49%,transparent 67%);
+ background-size:130% 150%,180% 130%,145% 165%,220% 220%;
+ animation:ps-holo-starfield 12.5s ease-in-out infinite alternate;
+}
+.ps-holo-glass-spectrum .ps-card-hologram{
+ background:
+  linear-gradient(110deg,transparent 25%,rgba(185,214,252,.15) 43%,rgba(255,247,209,.12) 53%,transparent 70%),
+  radial-gradient(ellipse at 78% 16%,rgba(205,185,237,.12),transparent 62%);
+ background-size:220% 220%;opacity:.30!important;
+ animation:ps-holo-glass 11s ease-in-out infinite alternate;
+}
+@keyframes ps-holo-prismatic{from{background-position:95% 8%}to{background-position:4% 96%}}
+@keyframes ps-holo-aurora{from{background-position:4% 28%}to{background-position:95% 78%}}
+@keyframes ps-holo-starfield{from{background-position:0 7%}to{background-position:95% 93%}}
+@keyframes ps-holo-glass{from{background-position:100% 0}to{background-position:0 100%}}
+@media(max-width:680px){
+ .ps-hologram-controls{gap:8px;margin-top:-2px;margin-bottom:2px}
+ .ps-hologram-name{min-width:128px;font-size:9px}
+ .ps-hologram-controls button{width:25px;height:25px}
+}
+@media(prefers-reduced-motion:reduce){
+ .ps-card-hologram.ps-card-foil{animation:none!important}
+}
