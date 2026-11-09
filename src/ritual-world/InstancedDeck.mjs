@@ -163,18 +163,25 @@ function camera(aspect){
 export function deckInstanceLayout(cards,worldTime=0,closeup=1){
  if(!Array.isArray(cards)||cards.length!==COUNT||new Set(cards.map(c=>c.id)).size!==COUNT)
   throw Error('The physical deck must contain 78 different Tarot cards');
- const progress=smooth(closeup),zoom=1+.48*progress,moveZ=11.55*progress;
- // Each card remains independent; the camera dolly is expressed as a shared
- // world-space displacement so its true relative inter-card gaps persist.
+ // The suspended reference deck remains small in deep space. The former
+ // +11.55 Z dolly pushed the card stack into the camera and magnified stripes.
+ const progress=smooth(closeup),zoom=1-.105*progress,moveZ=-1.1*progress;
  const instances=cards.map(card=>{
   const pose=deckPose(card,worldTime);
   const normal=pose.attitude.normal;
-  const rank=card.orbitSlot;
+  const rank=card.orbitSlot,cluster=Math.floor(rank/7);
+  // Physically independent sheets with clustered, in-plane micro-stagger.
+  // These offsets preserve all inter-sheet air gaps along the stack normal.
+  const sideways=.012*Math.sin(cluster*2.37)+.0045*Math.sin(rank*1.71);
+  const vertical=.008*Math.cos(cluster*1.13)+.003*Math.cos(rank*2.09);
+  const bow=.012*Math.sin(Math.PI*(rank+.5)/78);
+  const p=pose.position.map((v,i)=>v+
+   pose.attitude.right[i]*sideways+pose.attitude.up[i]*(vertical+bow));
   return {
-   id:card.id,rank,position:[pose.position[0]*zoom,pose.position[1]*zoom,pose.position[2]+moveZ],
+   id:card.id,rank,position:[p[0]*zoom,p[1]*zoom,p[2]+moveZ],
    right:pose.attitude.right,up:pose.attitude.up,normal,
    scale:pose.scale*zoom,frontSlot:card.index,
-   edgeTone:((Math.imul(rank+31,2654435761)>>>0)%100)/100
+   edgeTone:((Math.imul(cluster+31,2654435761)>>>0)%100)/100
   };
  });
  return instances;
