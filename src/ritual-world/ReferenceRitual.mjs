@@ -13,6 +13,7 @@
  */
 import {sampleLandingPose,landingAttitude} from './OrbitalField.mjs';
 import {sampleVortexCard,vortexCamera,rotateVortexBasis} from './VortexRibbon.mjs';
+import {positionOrganicSheet} from './OrganicDeck.mjs';
 
 const N=78,TAU=2*Math.PI,GOLDEN=Math.PI*(3-Math.sqrt(5));
 const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
@@ -34,19 +35,23 @@ const hash=(i,s=0)=>{
  x=Math.imul(x,0x846ca68b);x^=x>>>16;
  return (x>>>0)/4294967296;
 };
-export const RITUAL_DURATION=16.55;
-export const RITUAL_BEATS=Object.freeze([
- Object.freeze({id:'approach',start:0,end:1.10}),
- Object.freeze({id:'vortex',start:1.10,end:5.45}),
- Object.freeze({id:'implosion',start:5.45,end:6.30}),
- Object.freeze({id:'suspension',start:6.30,end:7.10}),
- Object.freeze({id:'detonation',start:7.10,end:8.15}),
- Object.freeze({id:'globe',start:8.15,end:12.35}),
- Object.freeze({id:'dispersal',start:12.35,end:13.20}),
- Object.freeze({id:'three_piles',start:13.20,end:14.00}),
- Object.freeze({id:'pile_shuffle',start:14.00,end:15.30}),
- Object.freeze({id:'consolidation',start:15.30,end:RITUAL_DURATION})
+// Gate BC v3: reference finishes ~9s before the old 16.55-second version.
+// Compress to 10.6s (5.95s cut) without removing the physical three-pile beat.
+// Choreography math continues to sample the canonical reference rail.
+export const CANONICAL_RITUAL_DURATION=16.55;
+export const RITUAL_DURATION=10.60;
+export const RITUAL_TIME_SCALE=CANONICAL_RITUAL_DURATION/RITUAL_DURATION;
+export const toCanonicalAge=age=>Math.max(0,Number(age)||0)*RITUAL_TIME_SCALE;
+const CANONICAL_BEATS=Object.freeze([
+ ['approach',0,1.10],['vortex',1.10,5.45],
+ ['implosion',5.45,6.30],['suspension',6.30,7.10],
+ ['detonation',7.10,8.15],['globe',8.15,12.35],
+ ['dispersal',12.35,13.20],['three_piles',13.20,14.00],
+ ['pile_shuffle',14.00,15.30],['consolidation',15.30,16.55]
 ]);
+export const RITUAL_BEATS=Object.freeze(CANONICAL_BEATS.map(([id,start,end])=>Object.freeze({
+ id,start:start/RITUAL_TIME_SCALE,end:end/RITUAL_TIME_SCALE
+})));
 
 function orientedFrom(normal,rightHint=[1,0,0]){
  const n=norm(normal);
@@ -139,13 +144,8 @@ function suctionPose(card,t){
  return pose(v.position,attitude,scale);
 }
 function pocketPose(card,t){
- const k=card.orbitSlot,normal=facing(1.11+.05*Math.sin(t*.32),-.09,.018*Math.sin(t*.5));
- const layer=(k-38.5)*.0145;
- return pose([
-  normal.normal[0]*layer,
-  -.10+normal.normal[1]*layer,
-  -16.2+normal.normal[2]*layer
- ],normal,1.05);
+ const k=card.orbitSlot,basis=facing(1.11+.05*Math.sin(t*.32),-.09,.018*Math.sin(t*.5));
+ return pose(positionOrganicSheet([0,-.10,-16.2],basis,k),basis,1.05);
 }
 function implosionPose(card,t){
  const delay=(card.orbitSlot%6)*.017;
@@ -250,13 +250,10 @@ function detonationPose(card,t){
 function subdeckPose(card,t){
  const k=card.orbitSlot,g=k%3,slot=Math.floor(k/3);
  const centerX=[-3.65,0,3.65][g],centerZ=[-14.2,-14.0,-14.5][g];
- const orientation=facing(.49+(g-1)*.10,-.10,.026*(g-1));
- const layer=(slot-12.5)*.0145;
- return pose([
-  centerX+orientation.normal[0]*layer,
-  -.08+orientation.normal[1]*layer,
-  centerZ+orientation.normal[2]*layer
- ],orientation,1.04);
+ // A real 26-sheet miniature of the EXACT SAME organic deck; no return
+ // to an older rigid/flat card renderer during split or consolidation.
+ const basis=facing(.49+(g-1)*.10,-.10,.026*(g-1));
+ return pose(positionOrganicSheet([centerX,-.08,centerZ],basis,slot,{count:26,group:g+1}),basis,1.04);
 }
 function splitPose(card,t){
  const delay=(card.orbitSlot%7)*.012;
@@ -267,14 +264,11 @@ function splitPose(card,t){
  return result;
 }
 function fannedDeckPose(card,t){
- const k=card.orbitSlot,ang=k*GOLDEN;
- const orientation=facing(.98+.02*Math.sin(t*.3),-.11,.012*Math.cos(t*.8));
- const layer=(k-38.5)*.0158;
- return pose([
-  orientation.normal[0]*layer+.054*Math.sin(ang),
-  -.08+orientation.normal[1]*layer+.034*Math.cos(ang),
-  -16.25+orientation.normal[2]*layer+.063*Math.cos(ang)
- ],orientation,1.06);
+ const k=card.orbitSlot;
+ const basis=facing(.98+.02*Math.sin(t*.3),-.11,.012*Math.cos(t*.8));
+ // Blend the organic 78-sheet deck into its final attitude, avoiding a
+ // late abrupt renderer switch from uniformly spaced painted stripes.
+ return pose(positionOrganicSheet([0,-.08,-16.25],basis,k),basis,1.06);
 }
 function transferPose(card,t){
  const k=card.orbitSlot,g=k%3,slot=Math.floor(k/3),from=subdeckPose(card,t);
@@ -293,7 +287,7 @@ function settlePose(card,t,deckPose,worldTime){
 }
 export function sampleReferenceRitual(card,{age=0,landingAt=0,worldTime=0,entranceMode='inside-out',deckPose}={}){
  if(typeof deckPose!=='function')throw Error('Reference ritual requires a physical canonical deckPose');
- const t=Math.max(0,Number(age)||0);
+ const t=toCanonicalAge(age);
  if(t<1.10)return blend(currentLanding(card,landingAt,entranceMode),suctionPose(card,t),t/1.10);
  if(t<5.45)return suctionPose(card,t);
  if(t<6.30)return implosionPose(card,t);
