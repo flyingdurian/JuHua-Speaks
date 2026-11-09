@@ -11,7 +11,7 @@ import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
 import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
 import {SPHERE_VERTEX_STRIDE,extrudedCardVertices} from './PhysicalSphereMesh.mjs';
 import {chooseFoilFinish,createTarotTableau} from './TarotTableau.mjs';
-import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,gyroAttitude,selectCard,getStage,perspectiveFocal,pickProjectedCard,CAMERA_CLIP_NEAR,CAMERA_NEAR,clipCardNearPlane} from './geometry.mjs';
+import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,gyroAttitude,selectCard,getStage,perspectiveFocal,pickProjectedCard,orbitYaw,selectionRise,CAMERA_CLIP_NEAR,CAMERA_NEAR,clipCardNearPlane} from './geometry.mjs';
 
 const W=174,H=288,COLS=10,ROWS=8,ATLAS_W=W*COLS,ATLAS_H=H*ROWS;
 const vs=`#version 300 es
@@ -114,6 +114,7 @@ function cardPose(point,t,turn,yaw,pitch,selectedPct){
  const center3=mix3(center,direction.map(n=>n*r),selectedPct);
  const gyro=gyroAttitude(t);
  const p=rotX(rotY(center3,turn+yaw),pitch+gyro.pitch);
+ p[1]+=selectionRise(selectedPct,t,point.i); // chosen card visibly ascends while its halo forms
  const normal=norm(mix3([-.70,-.12,-.69],direction,s)); // illustrated faces OUT, navy backs IN
  let n=rotX(rotY(normal,turn+yaw),pitch+gyro.pitch);
  let right=norm(cross([0,1,0],n));if(Math.hypot(...right)<.3)right=[1,0,0];
@@ -256,13 +257,13 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   if(choices.some(c=>c.id===candidate.id))selectedAt.set(candidate.id,performance.now());else selectedAt.delete(candidate.id);
   syncSlots();return candidate.id;
  }
- canvas.addEventListener('pointerdown',e=>{if(!ready)return;lastPointer={id:e.pointerId,x:e.clientX,y:e.clientY,yaw,moved:false};});
- canvas.addEventListener('pointermove',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;const dx=e.clientX-lastPointer.x,dy=e.clientY-lastPointer.y;if(Math.hypot(dx,dy)>7)lastPointer.moved=true;if(lastPointer.moved){yaw=clamp(lastPointer.yaw+dx*.0043,-1.65,1.65);}}); // horizontal panning only
+ canvas.addEventListener('pointerdown',e=>{if(!ready||lastPointer)return;lastPointer={id:e.pointerId,x:e.clientX,y:e.clientY,yaw,moved:false};canvas.setPointerCapture?.(e.pointerId);});
+ canvas.addEventListener('pointermove',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;const dx=e.clientX-lastPointer.x,dy=e.clientY-lastPointer.y;if(Math.hypot(dx,dy)>7)lastPointer.moved=true;if(lastPointer.moved){yaw=orbitYaw(lastPointer.yaw,dx*.0043);}}); // unbounded full 360-degree orbit
  let skipTap=false;
- canvas.addEventListener('pointerup',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;skipTap=lastPointer.moved;lastPointer=null});
+ canvas.addEventListener('pointerup',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;skipTap=lastPointer.moved;lastPointer=null;if(canvas.hasPointerCapture?.(e.pointerId))canvas.releasePointerCapture(e.pointerId)});
  canvas.addEventListener('click',e=>{if(!ready)return;if(!skipTap)tap(e.clientX,e.clientY);skipTap=false});
  canvas.addEventListener('pointercancel',()=>{lastPointer=null});
- canvas.addEventListener('keydown',e=>{if(!ready)return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){yaw=clamp(yaw+(e.key==='ArrowLeft'?-1:1)*.21,-1.65,1.65);e.preventDefault()}});
+ canvas.addEventListener('keydown',e=>{if(!ready)return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){yaw=orbitYaw(yaw,(e.key==='ArrowLeft'?-1:1)*.21);e.preventDefault()}});
  raf=requestAnimationFrame(draw);
  return {
   stage:()=>step,selected:()=>choices.map(c=>({...c})),deck:()=>[...deckIds],assetStatus:()=>atlas.stats(),ready:()=>ready,
