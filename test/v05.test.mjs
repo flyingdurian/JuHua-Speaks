@@ -64,5 +64,5 @@ test('Gate B review: 78 solid 3D cards form a complete spherical shell',async()=
  assert.match(edges,/SPHERE_CARD_HALF_DEPTH/);
  assert.match(edges,/const perimeter=/);
  assert.match(edges,/layout\(location=6\) in float a_edge/);
- assert.match(edges,/new Set\(\.\.\.\[\.\.\.selected,\.\.\.hidden\]\)/);
+ assert.match(edges,/new Set\(\[\.\.\.selected,\.\.\.hidden\]\)/);
 });
