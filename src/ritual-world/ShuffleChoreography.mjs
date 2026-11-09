@@ -103,7 +103,9 @@ function stackPose(card,{center=[0,-.16,-17.0],yaw=-.70,pitch=PITCH,roll=0,scale
 export function deckPose(card,worldTime=0){
  // Slow whole-stack idle turn. Individually modelled sheets have subtle,
  // fixed natural stagger; the top sheet displays the actual Tarot artwork.
- const yaw=-.72+.045*Math.sin(worldTime*.17); // reference three-quarter back on RIGHT; open edges extend LEFT
+ // Continuous slow yaw while suspended (one full revolution in ~370 seconds),
+ // not the old tiny back-and-forth wobble that looked nearly static.
+ const yaw=-.82+.017*worldTime+.028*Math.sin(worldTime*.18); // navy back on right, organic edges left
  const pitch=PITCH+.043*Math.sin(worldTime*.12);
  const roll=.037*Math.sin(worldTime*.16);
  return stackPose(card,{yaw,pitch,roll});
