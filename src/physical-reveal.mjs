@@ -20,7 +20,7 @@ export function renderPhysicalReveal({state,t,h,btn,eyebrow,cardBack,cardFace,de
    return '<article class="physical-card-entry '+(revealed?'has-revealed':'')+'" data-card-index="'+i+'">'+
     '<div class="physical-card-aura"></div>'+
     '<div class="gate-d-role">'+role+'</div>'+
-    '<button type="button" class="physical-card gate-d-card '+(revealed?'is-flipped':'')+'" data-flip-card="'+i+'" aria-label="'+
+    '<button type="button" class="physical-card gate-d-card '+(revealed?'is-flipped':'')+(revealed&&state.lastFlipIndex===i?' just-flipped':'')+'" data-flip-card="'+i+'" aria-label="'+
     (revealed?t('Revealed','已揭开'):t('Flip','翻开'))+' '+rank+' '+role+'" aria-pressed="'+revealed+'" '+(revealed?'disabled':'')+'>'+
      '<span class="physical-card-rotator">'+
       '<span class="physical-side physical-back">'+cardBack()+'</span>'+

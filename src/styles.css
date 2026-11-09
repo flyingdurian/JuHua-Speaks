@@ -481,3 +481,10 @@
 }
 @keyframes gate-v11-singularity{0%{transform:translate(-50%,-50%) scale(.32);opacity:.05}43%{opacity:1}90%{transform:translate(-50%,-50%) scale(1);opacity:1}100%{transform:translate(-50%,-50%) scale(.04);opacity:0}}
 @media(prefers-reduced-motion:reduce){.ritual-vortex-transition.v11-exit .ritual-vortex-debris>div,.ritual-vortex-transition.v11-exit .ritual-black-hole{animation:none!important}}
+
+/* A new card node is inserted after each reducer transition. CSS transitions
+   do not fire for an already-180deg node. Animate only the newly revealed
+   index once; previous cards keep their settled orientation. */
+.gate-d-card.just-flipped .physical-card-rotator{animation:gate-d-flip-now .98s cubic-bezier(.18,.82,.19,1.02) both}
+@keyframes gate-d-flip-now{0%{transform:rotateY(0deg);filter:drop-shadow(0 15px 22px #0008)}44%{filter:drop-shadow(0 0 33px #eed49ba8)}100%{transform:rotateY(180deg);filter:drop-shadow(0 0 13px #d9bc8966)}}
+@media(prefers-reduced-motion:reduce){.gate-d-card.just-flipped .physical-card-rotator{animation:none!important}}
