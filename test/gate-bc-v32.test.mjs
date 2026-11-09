@@ -7,14 +7,14 @@ import {DECK} from '../src/deck.mjs';
 import {makeLandingCardEntities} from '../src/ritual-world/OrbitalField.mjs';
 
 const cards=makeLandingCardEntities(DECK,2165840022);
-test('v3.2 matte paper packets are exactly seven physical side skins',()=>{
+test('v3.3 matte paper side is exactly one continuous skin',()=>{
  const sheets=deckInstanceLayout(cards,31,1),skins=deckPacketLayout(sheets);
  assert.equal(sheets.length,78);
- assert.equal(skins.length,7);
+ assert.equal(skins.length,1);
  assert.equal(skins.reduce((n,p)=>n+p.sheets,0),78);
- assert.ok(skins.every(p=>p.scale>0&&p.thickness>.12&&p.thickness<.25));
+ assert.ok(skins.every(p=>p.scale>0&&p.thickness>.72&&p.thickness<1.05));
  assert.ok(skins.every(p=>p.position.every(Number.isFinite)));
- assert.deepEqual(skins.map(p=>p.packet),[0,1,2,3,4,5,6]);
+ assert.deepEqual(skins.map(p=>p.packet),[0]);
 });
 test('v3.2 layered vapor is procedural moving noise, not drifted CSS blobs',()=>{
  for(const xy of [[.25,.36],[.5,.5],[.7,.82]]){
@@ -45,7 +45,8 @@ test('v3.2 fail-closed artwork and 3D transforms must be present',async()=>{
  assert.match(smoke,/vaporPixels>400/);
  assert.match(smoke,/cardTextGap>=0&&cardTextGap<29/);
  assert.match(deck,/packetVao/);
- assert.match(deck,/color=vec4\(\.866,\.870,\.864,1\.\);return;/);
+ assert.match(deck,/float hairline=smoothstep/);
+ assert.match(css,/\.ps-flip-inner::before\{content:none!important;display:none!important\}/);
  assert.match(early,/ctx\.fillStyle='#dddedc';ctx\.fillRect\(ex,ey,TILE_W,TILE_H\)/);
  assert.doesNotMatch(early,/for\(let i=0;i<TILE_H;i\+=5\)/);
 });
