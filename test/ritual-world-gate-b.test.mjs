@@ -283,7 +283,7 @@ test('Canvas and WebGL both show real RWS illustrated faces during the reference
  const gl=await readFile(new URL('../src/ritual-world/RitualWorld.mjs',import.meta.url),'utf8');
  const mesh=await readFile(new URL('../src/ritual-world/CardSurface.mjs',import.meta.url),'utf8');
  assert.match(cv,/const src=pose\.frontFacingCamera\?this\.fronts\.get\(card\.id\)/);
- assert.match(gl,/appendPremiumCard\(vertices,\{\.\.\.card,\.\.\.PHYSICAL_CARD\}/);
+ assert.match(gl,/appendPremiumCard\(vertices,\{\.\.\.card,\.\.\.PHYSICAL_CARD,thickness\}/);
  assert.match(mesh,/card\.thickness \?\? \(EDGE_THICKNESS\*card\.width\)/);
 });
 
