@@ -13,6 +13,7 @@
  * All 78 objects exist throughout; no new renderer or camera is created.
  */
 import {sampleReferenceRitual,referenceBeat,RITUAL_DURATION,RITUAL_BEATS} from './ReferenceRitual.mjs';
+import {positionOrganicSheet,ORGANIC_STEP} from './OrganicDeck.mjs';
 
 const N=78, TAU=Math.PI*2, GOLDEN=Math.PI*(3-Math.sqrt(5));
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
@@ -88,15 +89,16 @@ function blend(a,b,t){
  const right=vMix(a.attitude.right,b.attitude.right,w);
  return pose(vMix(a.position,b.position,w),attitudeFrom(fixedNormal,right),mix(a.scale,b.scale,w));
 }
-function stackPose(card,{center=[0,-.16,-17.0],yaw=-.70,pitch=PITCH,roll=0,scale=1.14,rank=card.orbitSlot,count=N,step=.0170}={}){
+function stackPose(card,{center=[0,-.16,-17.0],yaw=-.70,pitch=PITCH,roll=0,scale=1.14,rank=card.orbitSlot,count=N,step=ORGANIC_STEP,group=0}={}){
  const basis=backAttitude(yaw,pitch,roll);
- const layer=(rank-(count-1)/2)*step;
- // 78 separate instances: .0092 paper thickness and .0078 free gap per layer.
- return pose([
-  center[0]+basis.normal[0]*layer+.0072*Math.sin(rank*.79),
-  center[1]+basis.normal[1]*layer+.0056*Math.cos(rank*.72),
-  center[2]+basis.normal[2]*layer
- ],basis,scale);
+ // The same organic sheet basis exists in early deck pauses, all three
+ // 26-card piles, consolidation and the final 78-instance renderer.
+ const organic=positionOrganicSheet(center,basis,rank,{count,group});
+ if(step!==ORGANIC_STEP){
+  const delta=(rank-(count-1)/2)*(step-ORGANIC_STEP);
+  for(let i=0;i<3;i++)organic[i]+=basis.normal[i]*delta;
+ }
+ return pose(organic,basis,scale);
 }
 export function deckPose(card,worldTime=0){
  // Slow whole-stack idle turn. Individually modelled sheets have subtle,
