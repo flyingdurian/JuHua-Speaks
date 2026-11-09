@@ -85,3 +85,10 @@ test('GPU highlight belongs to the selected sheet and final tableau actually rev
  assert.match(css,/@keyframes ps-flip-land/);
  for(const finish of FOIL_FINISHES)assert.ok(css.includes('ps-foil-'+finish),finish);
 });
+
+test('Suspended organic deck continues a deliberately slow physical yaw in place',()=>{
+ const first=deckPose(cards[0],24.5),later=deckPose(cards[0],38.5);
+ const distance=dist(first.attitude.normal,later.attitude.normal);
+ assert.ok(distance>.10&&distance<.50,'suspended deck must visibly turn without fast spinning');
+ assert.ok(later.attitude.normal[2]<-.25,'reference engraved back should remain visible during initial turn');
+});
