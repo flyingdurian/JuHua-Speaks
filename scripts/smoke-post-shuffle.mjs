@@ -51,14 +51,14 @@ try{
  });
  assert.equal(composed.filter,'none','flip parent must not flatten 3D faces');
  assert.match(composed.transform,/matrix3d/,'unrevealed card should be slightly tilted in 3D');
- const hologram=await page.evaluate(()=>window.__POST_SHUFFLE__.hologram());
- assert.ok(['prismatic','aurora','starfield','glass-spectrum'].includes(hologram));
+ const art overlay=await page.evaluate(()=>window.__POST_SHUFFLE__.artOverlay());
+ assert.ok(['celestial-lattice','constellation-map','alchemical-glyphs','scroll-texture'].includes(art overlay));
  const previewStyles=new Set();
  for(let j=0;j<4;j++){
-  previewStyles.add(await page.locator('.ps-hologram-name').textContent());
-  await page.locator('.ps-hologram-next').click();
+  previewStyles.add(await page.locator('.ps-overlay-name').textContent());
+  await page.locator('.ps-overlay-next').click();
  }
- assert.equal(previewStyles.size,4,'all hologram finishes can be cycled without re-dealing');
+ assert.equal(previewStyles.size,4,'all four art overlays can be cycled without re-dealing');
  await page.screenshot({path:dir+'/07-three-selected-backs.png',timeout:60000});
  // Let the tableau entrance finish before measuring structural layout stability.
  await page.waitForTimeout(1050);
@@ -100,7 +100,7 @@ try{
  }
  assert.equal(await page.evaluate(()=>window.__POST_SHUFFLE__.tableau().revealed),3);
  assert.equal(await page.locator('.ps-card-art').count(),3,'RWS front images must stay in the reveal');
- await page.screenshot({path:dir+'/08-three-hologram-reveals.png',timeout:60000});
+ await page.screenshot({path:dir+'/08-three-art overlay-reveals.png',timeout:60000});
  assert.deepEqual(errors,[]);
- console.log('Post-shuffle browser PASS: continuous universe, 3 physical selections, four holograms, 3 RWS flips and descriptions');
+ console.log('Post-shuffle browser PASS: continuous universe, 3 physical selections, four art overlays, 3 RWS flips and descriptions');
 }finally{await browser.close()}
