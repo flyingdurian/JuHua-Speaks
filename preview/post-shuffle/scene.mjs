@@ -12,6 +12,7 @@ import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
 import {SPHERE_VERTEX_STRIDE,extrudedCardVertices} from './PhysicalSphereMesh.mjs';
 import {chooseFoilFinish,createTarotTableau} from './TarotTableau.mjs';
 import {createSelectionHandoff,HANDOFF_SETTLE_MS} from './SelectionHandoff.mjs';
+import {mountArtemisStage} from '../artemis/ArtemisStage.mjs';
 import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,gyroAttitude,selectCard,getStage,perspectiveFocal,pickProjectedCard,orbitYaw,selectionRise,CAMERA_CLIP_NEAR,CAMERA_NEAR,clipCardNearPlane,gateBToGateCInstance} from './geometry.mjs';
 
 const W=174,H=288,COLS=10,ROWS=8,ATLAS_W=W*COLS,ATLAS_H=H*ROWS;
@@ -145,7 +146,7 @@ function project(p,camZ,viewport){const z=camZ-p[2],f=viewport.h*.5*perspectiveF
 function insideTriangle(x,y,a,b,c){const v0=[c.x-a.x,c.y-a.y],v1=[b.x-a.x,b.y-a.y],v2=[x-a.x,y-a.y];const d00=dot(v0,v0),d01=dot(v0,v1),d02=dot(v0,v2),d11=dot(v1,v1),d12=dot(v1,v2),den=d00*d11-d01*d01;if(Math.abs(den)<.001)return false;const v=(d11*d02-d01*d12)/den,w=(d00*d12-d01*d02)/den;return v>=0&&w>=0&&v+w<=1;}
 function hitsQuad(x,y,c){return insideTriangle(x,y,c[0],c[1],c[2])||insideTriangle(x,y,c[0],c[2],c[3]);}
 
-export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false,handoffDeck=null}={}){
+export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false,handoffDeck=null,question='',locale='en'}={}){
  if(!mount||!Array.isArray(deckIds)||deckIds.length!==78||new Set(deckIds).size!==78)throw new Error('A unique 78-card ordered handoff is required');
  const cardMap=new Map(DECK.map(c=>[c.id,c]));if(deckIds.some(id=>!cardMap.has(id)))throw new Error('Unrecognized card identities');
  const cards=deckIds.map(id=>cardMap.get(id)),points=sphereLayout();
@@ -160,7 +161,7 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false,han
   sourceDeck=new Map(handoffDeck.map(c=>[c.id,gateBToGateCInstance(c)]));
  }
  let choices=[],selectedAt=new Map(),lastPointer=null,yaw=0,pitch=0,raf=0,dead=false,ready=false,lastDraw=0,step='launch';
- let lockAt=null,tableau=null,tableauShown=false,handoff=null;const pickAnchors=new Map();
+ let lockAt=null,tableau=null,tableauShown=false,handoff=null,artemis=null;const pickAnchors=new Map();
  const sessionFoil=chooseFoilFinish();
  mount.innerHTML='<div class="ps-world" role="region" aria-label="Continuous post-shuffle Tarot sphere" id="ps-world">'+
   '<div class="ps-sky" id="ps-sky"><canvas class="ps-stars" id="ps-stars"></canvas></div>'+
@@ -197,7 +198,16 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false,han
   guidance.textContent='Please select 3 cards ('+choices.length+' cards selected)';
   if(choices.length===3&&!lockAt){
    lockAt=performance.now();
-   tableau=createTarotTableau({mount:world,picks:choices,foil:sessionFoil});
+   tableau=createTarotTableau({
+    mount:world,picks:choices,foil:sessionFoil,
+    onRevealed:({allRevealed})=>{
+     if(!allRevealed||artemis||dead)return;
+     // A new stage emerges ONLY after the three real physical RWS reveals;
+     // it does not navigate away, resample identities or interrupt selection.
+     artemis=mountArtemisStage({mount:world,picks:choices,question,locale});
+     window.__ARTEMIS_STAGE__=artemis; // isolated review diagnostics
+    }
+   });
    // Render target rectangles while they are transparent. Ghosts animate
    // from the real 3D projected positions into these exact card positions.
    tableau.prepareHandoff();
@@ -312,6 +322,7 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false,han
   visible:()=>rendered.map(p=>({id:p.id,side:p.side,selected:p.selected,x:p.center.x,y:p.center.y,depth:p.depth})),
   time:()=>t,tap,togglePause:changePause,orbitYaw:()=>yaw,artOverlay:()=>tableau?.artOverlay??sessionFoil,hologram:()=>tableau?.hologram??sessionFoil,
   foil:()=>tableau?.artOverlay??sessionFoil,tableau:()=>({active:tableauShown,revealed:tableau?.revealed||0,artOverlay:tableau?.artOverlay??sessionFoil}),
-  dispose(){dead=true;cancelAnimationFrame(raf);sky.dispose();handoff?.dispose();tableau?.dispose();atlas.dispose();gl.deleteBuffer(vertexBuffer);gl.deleteVertexArray(vao);gl.deleteProgram(program);world.remove()}
+  artemis:()=>artemis?.state??null,
+  dispose(){dead=true;cancelAnimationFrame(raf);sky.dispose();handoff?.dispose();artemis?.dispose();tableau?.dispose();atlas.dispose();gl.deleteBuffer(vertexBuffer);gl.deleteVertexArray(vao);gl.deleteProgram(program);world.remove()}
  };
 }
