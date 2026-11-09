@@ -9,8 +9,10 @@ import {
  samplePhysicalShuffle,deckPose,deckThickness,shuffleDuration,shuffleBeat,assertShuffleGeometry
 } from '../src/ritual-world/ShuffleChoreography.mjs';
 
+import {RITUAL_TIME_SCALE,CANONICAL_RITUAL_DURATION} from '../src/ritual-world/ReferenceRitual.mjs';
 const cards=makeLandingCardEntities(DECK,702509);
-const point=(c,age,style='auto')=>samplePhysicalShuffle(c,{style,age,landingAt:7,worldTime:24.5});
+// Historical visual audit landmarks below use canonical reference seconds.
+const point=(c,age,style='auto')=>samplePhysicalShuffle(c,{style,age:style==='auto'&&age!==AUTO_SHUFFLE_SECONDS?age/RITUAL_TIME_SCALE:age,landingAt:7,worldTime:24.5});
 const dist=(a,b)=>Math.hypot(...a.map((v,i)=>v-b[i]));
 const unique=arr=>new Set(arr.map(x=>x.join(',').slice(0,60))).size;
 
@@ -20,7 +22,7 @@ test('all 78 original cards remain distinct physical objects and visual shuffle 
  assert.equal(new Set(cards.map(x=>x.orbitSlot)).size,78);
  assert.deepEqual(SHUFFLE_CHOICES,['cosmic','riffle','wash']);
  assert.ok(PHYSICAL_CARD.width>0&&PHYSICAL_CARD.height>0);
- assert.ok(AUTO_SHUFFLE_SECONDS>=14&&AUTO_SHUFFLE_SECONDS<=20);
+ assert.ok(AUTO_SHUFFLE_SECONDS>=10&&AUTO_SHUFFLE_SECONDS<=11);
  for(const style of ['auto',...SHUFFLE_CHOICES]){
   for(const t of [0,.25,1.2,2.3,3.8,6.6]){
    const poses=cards.map(c=>point(c,t,style));
@@ -40,12 +42,12 @@ test('automatic coherent tornado has bounded radius and real depth without face-
  assert.ok(Math.max(...z)-Math.min(...z)>2,'Tornado moves through 3D depth');
  assert.ok(poses.filter(p=>p.attitude.normal[2]<0).length>=45,'The helical storm must predominantly show dark backs');
  assert.ok(poses.every(p=>p.position[2]<-3&&p.position[2]>-66),'Dolly-out preserves long-range tunnel perspective');
- assert.equal(shuffleBeat('auto',2.5),'vortex');
- assert.equal(shuffleBeat('auto',3.7),'vortex');
- assert.equal(shuffleBeat('auto',5.2),'vortex');
- assert.equal(shuffleBeat('auto',6.4),'suspension');
- assert.equal(shuffleBeat('auto',8.25),'globe');
- assert.equal(shuffleBeat('auto',9.8),'globe');
+ assert.equal(shuffleBeat('auto',2.5/RITUAL_TIME_SCALE),'vortex');
+ assert.equal(shuffleBeat('auto',3.7/RITUAL_TIME_SCALE),'vortex');
+ assert.equal(shuffleBeat('auto',5.2/RITUAL_TIME_SCALE),'vortex');
+ assert.equal(shuffleBeat('auto',6.4/RITUAL_TIME_SCALE),'suspension');
+ assert.equal(shuffleBeat('auto',8.25/RITUAL_TIME_SCALE),'globe');
+ assert.equal(shuffleBeat('auto',9.8/RITUAL_TIME_SCALE),'globe');
 });
 test('physical deck is 78 closely stacked backs, not a singular facing card',()=>{
  const deck=cards.map(c=>deckPose(c,24.5));
@@ -308,18 +310,19 @@ test('automatic story remains isolated from optional shuffle methods until deck 
  const choreography=await readFile(new URL('../src/ritual-world/ShuffleChoreography.mjs',import.meta.url),'utf8');
  const ritual=await readFile(new URL('../src/ritual-world/ReferenceRitual.mjs',import.meta.url),'utf8');
  assert.match(choreography,/sampleReferenceRitual/);
- assert.match(ritual,/RITUAL_DURATION=16\.55/);
+ assert.match(ritual,/RITUAL_DURATION=10\.60/);
  assert.doesNotMatch(preview,/document\.querySelectorAll\('\[data-shuffle\]'\)/);
  assert.match(html,/shuffle-buttons/);
  assert.match(html,/FINISH SHUFFLING/);
 });
-test('V7 authored stages extend naturally with no arbitrary 10.8-second deadline',()=>{
+test('Gate BC v3 compresses the physical 10-beat ritual into 10.6 seconds',()=>{
  assert.equal(AUTO_RITUAL_BEATS.length,10);
+ assert.equal(AUTO_SHUFFLE_SECONDS,10.6);
  for(let i=1;i<AUTO_RITUAL_BEATS.length;i++)
   assert.equal(AUTO_RITUAL_BEATS[i].start,AUTO_RITUAL_BEATS[i-1].end);
  assert.equal(AUTO_RITUAL_BEATS.at(-1).end,AUTO_SHUFFLE_SECONDS);
  assert.deepEqual([0,1,2].map(g=>cards.filter(card=>card.orbitSlot%3===g).length),[26,26,26]);
  for(const [age,expected] of [[2,'vortex'],[5,'vortex'],[6.7,'suspension'],
   [7.6,'detonation'],[9.5,'globe'],[13.6,'three_piles'],[14.7,'pile_shuffle'],[15.8,'consolidation']])
-  assert.equal(shuffleBeat('auto',age),expected);
+  assert.equal(shuffleBeat('auto',age/RITUAL_TIME_SCALE),expected);
 });
