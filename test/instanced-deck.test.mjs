@@ -41,9 +41,14 @@ test('ref1 suspended-deck proportions: pull back rather than push towards camera
  assert.equal(new Set(sorted.map(c=>c.id)).size,78);
  const layers=sorted.map(c=>dot(c.position,sorted[0].normal));
  assert.ok(layers.every((n,i)=>i===0||n>layers[i-1]+DECK_SHEET_THICKNESS*.85),'micro-stagger must not collapse the air gaps');
- const deviations=sorted.map((c,i)=>{
-  const original=atStart.find(v=>v.id===c.id);
-  return [c.position[0]/.895-original.position[0],c.position[1]/.895-original.position[1]];
+ const origin=sorted[0].position,normal=sorted[0].normal;
+ const deviations=sorted.map(c=>{
+  const d=c.position.map((v,j)=>v-origin[j]);
+  const axial=dot(d,normal);
+  return [
+   d[0]-normal[0]*axial,
+   d[1]-normal[1]*axial
+  ];
  });
  assert.ok(new Set(deviations.map(d=>d.map(x=>x.toFixed(3)).join(','))).size>35,
   'deck edges need organic variation rather than repeated barcode alignment');
@@ -56,4 +61,14 @@ test('one shared detailed celestial back engraving across Gate B and Gate C',asy
  for(const motif of ['compass(ctx)','crescent(ctx','star(ctx','border(ctx'])assert.ok(art.includes(motif),motif);
  assert.match(ritual,/paintCelestialBack\(ctx,x,y,TILE_W,TILE_H\)/);
  assert.match(sphere,/paintCelestialBack\(ctx,x,y,W,H\)/);
+});
+
+test('canonical early deck, three mini-decks and final suspended stack all share organic layering',async()=>{
+ const stage=await readFile(new URL('../src/ritual-world/ReferenceRitual.mjs',import.meta.url),'utf8');
+ const choreography=await readFile(new URL('../src/ritual-world/ShuffleChoreography.mjs',import.meta.url),'utf8');
+ const instancing=await readFile(new URL('../src/ritual-world/InstancedDeck.mjs',import.meta.url),'utf8');
+ assert.match(stage,/positionOrganicSheet\(\[0,-\.10,-16\.2\]/);
+ assert.match(stage,/positionOrganicSheet\(\[centerX,-\.08,centerZ\]/);
+ assert.match(choreography,/positionOrganicSheet\(center,basis,rank/);
+ assert.match(instancing,/const p=pose\.position/);
 });
