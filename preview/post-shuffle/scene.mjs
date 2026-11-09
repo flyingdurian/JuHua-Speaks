@@ -108,10 +108,12 @@ const rotX=(p,a)=>[p[0],p[1]*Math.cos(a)-p[2]*Math.sin(a),p[1]*Math.sin(a)+p[2]*
 function cardPose(point,t,turn,yaw,pitch,selectedPct){
  const s=smooth((t-.85)/2.3);
  const center=cardWorld(point,t,false);
+ const inside=smooth((t-4.5)/2.15);
+ const direction=norm(mix3(point.direction,point.insideDirection??point.direction,inside));
  const r=point.radius*(1-.055*selectedPct); // subtle in-world forward lift
- const center3=mix3(center,point.direction.map(n=>n*r),selectedPct);
+ const center3=mix3(center,direction.map(n=>n*r),selectedPct);
  const p=rotX(rotY(center3,turn+yaw),pitch);
- const normal=norm(mix3([-.70,-.12,-.69],point.direction,s)); // illustrated faces OUT, navy backs IN
+ const normal=norm(mix3([-.70,-.12,-.69],direction,s)); // illustrated faces OUT, navy backs IN
  let n=rotX(rotY(normal,turn+yaw),pitch);
  let right=norm(cross([0,1,0],n));if(Math.hypot(...right)<.3)right=[1,0,0];
  let up=norm(cross(n,right));
@@ -184,7 +186,7 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   choices=choices.filter(c=>c.id!==id);selectedAt.delete(id);syncSlots();
  });
  const lockProgress=()=>lockAt===null?0:smooth((performance.now()-lockAt)/1600);
- const projectCorner=(pos,right,up,sx,sy)=>[pos[0]+sx*.43*right[0]+sy*.70*up[0],pos[1]+sx*.43*right[1]+sy*.70*up[1],pos[2]+sx*.43*right[2]+sy*.70*up[2]];
+ const projectCorner=(pos,right,up,sx,sy,scale=1)=>[pos[0]+scale*(sx*.43*right[0]+sy*.70*up[0]),pos[1]+scale*(sx*.43*right[1]+sy*.70*up[1]),pos[2]+scale*(sx*.43*right[2]+sy*.70*up[2])];
  function computeGeometry(t){
   const angle=orbitAngle(t)+yaw,cam=cameraDistance(t),vertex=[],visible=[];
   const collapse=lockProgress();
@@ -209,9 +211,10 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
     }
    }
    if(alpha<.006)continue;
+   const sheetScale=1-.26*smooth((t-4.4)/2.35); // smaller, denser interior card silhouettes
    const corners=[
-    projectCorner(p.position,p.right,p.up,-1,-1),projectCorner(p.position,p.right,p.up,1,-1),
-    projectCorner(p.position,p.right,p.up,1,1),projectCorner(p.position,p.right,p.up,-1,1)
+    projectCorner(p.position,p.right,p.up,-1,-1,sheetScale),projectCorner(p.position,p.right,p.up,1,-1,sheetScale),
+    projectCorner(p.position,p.right,p.up,1,1,sheetScale),projectCorner(p.position,p.right,p.up,-1,1,sheetScale)
    ];
    if(clipCardNearPlane(corners,cam).length<3)continue;
    const projected=corners.map(pt=>project(pt,cam,viewport)),center=project(p.position,cam,viewport);
@@ -256,12 +259,12 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   syncSlots();return candidate.id;
  }
  canvas.addEventListener('pointerdown',e=>{if(!ready)return;lastPointer={id:e.pointerId,x:e.clientX,y:e.clientY,yaw,moved:false};});
- canvas.addEventListener('pointermove',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;const dx=e.clientX-lastPointer.x,dy=e.clientY-lastPointer.y;if(Math.hypot(dx,dy)>7)lastPointer.moved=true;if(lastPointer.moved){yaw=lastPointer.yaw+dx*.0043;}}); // horizontal panning only
+ canvas.addEventListener('pointermove',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;const dx=e.clientX-lastPointer.x,dy=e.clientY-lastPointer.y;if(Math.hypot(dx,dy)>7)lastPointer.moved=true;if(lastPointer.moved){yaw=clamp(lastPointer.yaw+dx*.0043,-1.65,1.65);}}); // horizontal panning only
  let skipTap=false;
  canvas.addEventListener('pointerup',e=>{if(!lastPointer||lastPointer.id!==e.pointerId)return;skipTap=lastPointer.moved;lastPointer=null});
  canvas.addEventListener('click',e=>{if(!ready)return;if(!skipTap)tap(e.clientX,e.clientY);skipTap=false});
  canvas.addEventListener('pointercancel',()=>{lastPointer=null});
- canvas.addEventListener('keydown',e=>{if(!ready)return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){yaw+=(e.key==='ArrowLeft'?-1:1)*.21;e.preventDefault()}});
+ canvas.addEventListener('keydown',e=>{if(!ready)return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){yaw=clamp(yaw+(e.key==='ArrowLeft'?-1:1)*.21,-1.65,1.65);e.preventDefault()}});
  raf=requestAnimationFrame(draw);
  return {
   stage:()=>step,selected:()=>choices.map(c=>({...c})),deck:()=>[...deckIds],assetStatus:()=>atlas.stats(),ready:()=>ready,
