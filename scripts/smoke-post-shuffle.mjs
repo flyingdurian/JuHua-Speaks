@@ -51,8 +51,8 @@ try{
  });
  assert.equal(composed.filter,'none','flip parent must not flatten 3D faces');
  assert.match(composed.transform,/matrix3d/,'unrevealed card should be slightly tilted in 3D');
- const art overlay=await page.evaluate(()=>window.__POST_SHUFFLE__.artOverlay());
- assert.ok(['celestial-lattice','constellation-map','alchemical-glyphs','scroll-texture'].includes(art overlay));
+ const artOverlay=await page.evaluate(()=>window.__POST_SHUFFLE__.artOverlay());
+ assert.ok(['celestial-lattice','constellation-map','alchemical-glyphs','scroll-texture'].includes(artOverlay));
  const previewStyles=new Set();
  for(let j=0;j<4;j++){
   previewStyles.add(await page.locator('.ps-overlay-name').textContent());
