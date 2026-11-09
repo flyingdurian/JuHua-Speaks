@@ -128,7 +128,7 @@ test('V7 uses material-synchronized atmosphere, no decorative tornado decal',asy
  const markup=await readFile(new URL('../preview/gate-b/index.html',import.meta.url),'utf8');
  const script=await readFile(new URL('../preview/gate-b/gate-b.mjs',import.meta.url),'utf8');
  const mist=await readFile(new URL('../preview/gate-b/FlowMist.mjs',import.meta.url),'utf8');
- assert.match(markup,/GATE B v12/);
+ assert.match(markup,/GATE BC v3\.3/);
  assert.doesNotMatch(markup,/data-shuffle=/);
  assert.match(markup,/FINISH SHUFFLING/);
  assert.doesNotMatch(script,/initVortexAtmosphere/);
