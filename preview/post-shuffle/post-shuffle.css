@@ -450,3 +450,116 @@ body.gate-b-post-shuffle-live #post-shuffle-mount.ps-mount{position:fixed;inset:
 @media(prefers-reduced-motion:reduce){
  .ps-card-hologram.ps-card-foil{animation:none!important}
 }
+
+
+/* Gate BC v3.4 — quiet, illuminated line-work on original RWS art.
+ * Replaces the entire v3.3 prismatic/aurora/spectrum hologram treatment.
+ * Artwork stays untouched and perfectly legible beneath the alpha tile. */
+.ps-overlay-controls{
+ z-index:5;display:flex;align-items:center;justify-content:center;gap:12px;
+ min-height:32px;pointer-events:auto;color:#d9ceba;
+ font:10px Arial,sans-serif;letter-spacing:.10em;
+}
+.ps-overlay-controls button{
+ width:28px;height:28px;display:grid;place-items:center;border-radius:50%;
+ border:1px solid rgba(209,180,125,.46);background:rgba(10,17,34,.75);
+ color:#f0e7d7;font:20px Georgia,serif;line-height:1;
+}
+.ps-overlay-controls button:hover{background:rgba(36,45,65,.88);border-color:#e2ceac}
+.ps-overlay-name{min-width:165px;text-align:center}
+.ps-card-art-overlay{
+ position:absolute;inset:0;z-index:6;pointer-events:none;
+ background-position:50% 50%;background-size:100% 100%;background-repeat:repeat;
+ mix-blend-mode:screen;opacity:.50;
+ box-shadow:none!important;filter:none!important;
+ will-change:background-position,opacity;
+}
+.ps-card-art-overlay::after{content:none!important}
+.ps-overlay-celestial-lattice .ps-card-art-overlay{
+ opacity:.48;animation:ps-art-lattice 17s ease-in-out infinite alternate;
+}
+.ps-overlay-constellation-map .ps-card-art-overlay{
+ opacity:.58;animation:ps-art-constellation 24s ease-in-out infinite alternate;
+}
+.ps-overlay-alchemical-glyphs .ps-card-art-overlay{
+ opacity:.47;animation:ps-art-glyphs 19s ease-in-out infinite alternate;
+}
+.ps-overlay-scroll-texture .ps-card-art-overlay{
+ opacity:.41;animation:ps-art-scroll 26s linear infinite;
+}
+@keyframes ps-art-lattice{
+ from{background-position:50% 49%;opacity:.39}
+ to{background-position:50% 51%;opacity:.53}
+}
+@keyframes ps-art-constellation{
+ from{background-position:50% 48%;opacity:.44}
+ to{background-position:50% 52%;opacity:.60}
+}
+@keyframes ps-art-glyphs{
+ from{background-position:49% 50%;opacity:.34}
+ to{background-position:51% 50%;opacity:.52}
+}
+@keyframes ps-art-scroll{
+ from{background-position:0 0}
+ to{background-position:0 448px}
+}
+/* Intensified ethereal flow: two translucent independently advected cloud
+ * layers, never a solid smoky fill that hides the celestial engraving. */
+.ps-vapor-cloud{mix-blend-mode:screen;filter:blur(2.2px);opacity:.76}
+.ps-vapor-cloud.ps-vapor-far{opacity:.49;transform:translateY(-1.5%) scale(1.035)}
+.ps-vapor-cloud.ps-vapor-near{opacity:.71;transform:translateY(-3.5%) scale(1.065)}
+/* Selection-to-reveal: the three physical cards stay visible while the
+ * tableau fades in, then overlay handoff surfaces converge on their exact
+ * DOM destination card rectangles. No instantaneous stage replacement. */
+.ps-tableau.ps-handoff-prepared{
+ opacity:0;transform:none;pointer-events:none;
+ transition:none!important;
+}
+.ps-tableau.ps-handoff-prepared .ps-tableau-heading,
+.ps-tableau.ps-handoff-prepared .ps-tableau-help,
+.ps-tableau.ps-handoff-prepared .ps-overlay-controls,
+.ps-tableau.ps-handoff-prepared .ps-tableau-role,
+.ps-tableau.ps-handoff-prepared .ps-tableau-detail{
+ opacity:0;
+}
+.ps-tableau.ps-handoff-prepared .ps-flip-button{
+ opacity:0;
+}
+.ps-tableau.ps-handoff-prepared.ps-handoff-settled{
+ opacity:1;pointer-events:auto;
+ transition:none!important;
+}
+.ps-tableau.ps-handoff-settled .ps-flip-button{
+ opacity:1;transition:opacity .32s ease;
+}
+.ps-tableau.ps-handoff-settled .ps-tableau-heading,
+.ps-tableau.ps-handoff-settled .ps-tableau-help,
+.ps-tableau.ps-handoff-settled .ps-overlay-controls,
+.ps-tableau.ps-handoff-settled .ps-tableau-role,
+.ps-tableau.ps-handoff-settled .ps-tableau-detail{
+ opacity:1;transition:opacity .5s ease;
+}
+.ps-handoff-card{
+ position:fixed;left:0;top:0;z-index:26;
+ width:256px;height:448px;border-radius:7px;
+ background:#07152c center/100% 100% no-repeat;
+ border:1px solid rgba(225,197,148,.9);
+ box-shadow:0 0 23px rgba(238,199,128,.29),0 18px 40px rgba(0,0,0,.62);
+ backface-visibility:hidden;pointer-events:none;
+ transform-origin:0 0;
+ will-change:transform,opacity,filter;
+}
+.ps-handoff-card::after{
+ content:"";position:absolute;inset:-11%;border-radius:12px;
+ background:radial-gradient(ellipse,rgba(233,203,150,.17),transparent 68%);
+ filter:blur(15px);pointer-events:none;
+}
+@media(max-width:680px){
+ .ps-overlay-controls{gap:8px;margin-top:-2px;margin-bottom:2px}
+ .ps-overlay-name{min-width:131px;font-size:9px}
+ .ps-overlay-controls button{width:25px;height:25px}
+}
+@media(prefers-reduced-motion:reduce){
+ .ps-card-art-overlay{animation:none!important}
+ .ps-handoff-card{transition:none!important;animation:none!important}
+}
