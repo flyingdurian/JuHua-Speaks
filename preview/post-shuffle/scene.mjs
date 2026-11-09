@@ -11,7 +11,7 @@ import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
 import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
 import {SPHERE_VERTEX_STRIDE,extrudedCardVertices} from './PhysicalSphereMesh.mjs';
 import {chooseFoilFinish,createTarotTableau} from './TarotTableau.mjs';
-import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,gyroAttitude,selectCard,getStage,perspectiveFocal,CAMERA_CLIP_NEAR,CAMERA_NEAR,clipCardNearPlane} from './geometry.mjs';
+import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,gyroAttitude,selectCard,getStage,perspectiveFocal,pickProjectedCard,CAMERA_CLIP_NEAR,CAMERA_NEAR,clipCardNearPlane} from './geometry.mjs';
 
 const W=174,H=288,COLS=10,ROWS=8,ATLAS_W=W*COLS,ATLAS_H=H*ROWS;
 const vs=`#version 300 es
@@ -62,10 +62,10 @@ void main(){
  float edge=min(min(v_uv.x,1.-v_uv.x),min(v_uv.y,1.-v_uv.y));
  if(v_selected>.001){
   // Gold light is attached to the CARD UVs, not an imprecise DOM halo.
-  float rim=1.-smoothstep(.012,.069,edge);
-  float sweep=exp(-pow((v_uv.x*.84+v_uv.y*.45)-fract(u_time*.23),2.)*96.);
+  float rim=1.-smoothstep(.012,.093,edge);
+  float sweep=exp(-pow((v_uv.x*.84+v_uv.y*.45)-fract(u_time*.23),2.)*85.);
   float spec=pow(max(0.,sin(u_time*2.8+v_uv.x*6.+v_uv.y*7.)),4.);
-  vec3 reflective=vec3(.32,.25,.15)*rim+vec3(.31,.37,.39)*sweep+vec3(.09,.08,.10)*spec;
+  vec3 reflective=vec3(.56,.41,.16)*rim+vec3(.62,.53,.38)*sweep+vec3(.16,.13,.12)*spec;
   tex.rgb+=reflective*v_selected;
  }
  frag=vec4(tex.rgb,v_alpha);
@@ -110,7 +110,7 @@ function cardPose(point,t,turn,yaw,pitch,selectedPct){
  const center=cardWorld(point,t,false);
  const inside=smooth((t-4.5)/2.15);
  const direction=norm(mix3(point.direction,point.insideDirection??point.direction,inside));
- const r=point.radius*(1-.055*selectedPct); // subtle in-world forward lift
+ const r=point.radius*(1-.125*selectedPct); // unmistakable in-world lift
  const center3=mix3(center,direction.map(n=>n*r),selectedPct);
  const gyro=gyroAttitude(t);
  const p=rotX(rotY(center3,turn+yaw),pitch+gyro.pitch);
@@ -163,7 +163,8 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
    return '<div class="ps-slot"><label>'+r+'</label><div class="ps-mark">'+(p?'✦':'·')+'</div>'+
     (p&&!lockAt?'<button type="button" data-undo="'+p.id+'" aria-label="Undo '+r+' selection">UNDO</button>':'')+'</div>';
   }).join('');
-  parent.classList.toggle('ps-visible',choices.length>0&&!lockAt);
+  // Selection is communicated by the moving gold-highlighted cards, not HUD slots.
+  parent.classList.remove('ps-visible');
   guidance.textContent='Please select 3 cards ('+choices.length+' cards selected)';
   if(choices.length===3&&!lockAt){
    lockAt=performance.now();
@@ -244,15 +245,8 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  }
  let t=0;
  function tap(x,y){if(!ready||dead||lockAt!==null)return null;const rect=canvas.getBoundingClientRect(),localX=x-rect.left,localY=y-rect.top;
-  // True projected quad first; center fallback is bounded to card dimensions.
-  const onCard=p=>{
-   if(hitsQuad(localX,localY,p.corners))return true;
-   const a=p.corners,d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),
-    h=Math.hypot(a[0].x-a[3].x,a[0].y-a[3].y);
-   return Math.hypot(localX-p.center.x,localY-p.center.y)<Math.max(5,Math.min(d,h)*.22);
-  };
-  const candidates=rendered.filter(p=>p.side===0&&onCard(p)).sort((a,b)=>a.depth-b.depth);
-  const candidate=candidates[0];if(!candidate)return null;
+  // Forgiving CSS-pixel polygon test; resolve overlapping cards by depth.
+  const candidate=pickProjectedCard(rendered,localX,localY,{tolerance:11});if(!candidate)return null;
   const previous=choices;
   choices=selectCard(choices,deckIds,candidate.id,drawOrientation());
   if(previous===choices)return null;
