@@ -10,7 +10,7 @@ const fract=x=>x-Math.floor(x);
 const hash=n=>fract(Math.sin(n*127.1+19.7)*43758.5453);
 export function organicSheetOffset(rank,{count=78,group=0}={}){
  if(!Number.isInteger(rank)||rank<0||!Number.isInteger(count)||count<1||rank>=count||!Number.isInteger(group))
-  throw new RangeError('Invalid organic sheet address');
+  throw new RangeError('Invalid shuffle XYZ geometry: organic sheet address');
  const cluster=Math.floor(rank/5);
  const staggerX=(hash(cluster+group*107)-.5)*.029+(hash(rank+group*199)-.5)*.009;
  const staggerY=(hash(cluster+group*71)-.5)*.023+(hash(rank+group*307)-.5)*.008;
