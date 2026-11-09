@@ -154,6 +154,10 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
  mount.append(section);
  return {
   get foil(){return activeStyle},get artOverlay(){return activeStyle},get hologram(){return activeStyle},
+  get backUrl(){return backUrl},
+  get destinations(){return controls},
+  prepareHandoff(){if(disposed)return;section.hidden=false;section.classList.add('ps-handoff-prepared');section.classList.add('ps-tableau-visible');},
+  finishHandoff(){if(disposed)return;section.classList.add('ps-handoff-settled');vapor.start();},
   setArtOverlayStyle,setHologramStyle:setArtOverlayStyle,
   cycleArtOverlay(direction=1){return setArtOverlayStyle(nextArtOverlayStyle(activeStyle,direction))},
   cycleHologram(direction=1){return setArtOverlayStyle(nextArtOverlayStyle(activeStyle,direction))},
