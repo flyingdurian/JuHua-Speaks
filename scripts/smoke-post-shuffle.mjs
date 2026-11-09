@@ -100,7 +100,7 @@ try{
  }
  assert.equal(await page.evaluate(()=>window.__POST_SHUFFLE__.tableau().revealed),3);
  assert.equal(await page.locator('.ps-card-art').count(),3,'RWS front images must stay in the reveal');
- await page.screenshot({path:dir+'/08-three-art overlay-reveals.png',timeout:60000});
+ await page.screenshot({path:dir+'/08-three-art-overlay-reveals.png',timeout:60000});
  assert.deepEqual(errors,[]);
  console.log('Post-shuffle browser PASS: continuous universe, 3 physical selections, four art overlays, 3 RWS flips and descriptions');
 }finally{await browser.close()}
