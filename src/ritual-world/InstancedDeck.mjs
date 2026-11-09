@@ -169,14 +169,10 @@ export function deckInstanceLayout(cards,worldTime=0,closeup=1){
  const instances=cards.map(card=>{
   const pose=deckPose(card,worldTime);
   const normal=pose.attitude.normal;
-  const rank=card.orbitSlot,cluster=Math.floor(rank/7);
-  // Physically independent sheets with clustered, in-plane micro-stagger.
-  // These offsets preserve all inter-sheet air gaps along the stack normal.
-  const sideways=.012*Math.sin(cluster*2.37)+.0045*Math.sin(rank*1.71);
-  const vertical=.008*Math.cos(cluster*1.13)+.003*Math.cos(rank*2.09);
-  const bow=.012*Math.sin(Math.PI*(rank+.5)/78);
-  const p=pose.position.map((v,i)=>v+
-   pose.attitude.right[i]*sideways+pose.attitude.up[i]*(vertical+bow));
+  const rank=card.orbitSlot,cluster=Math.floor(rank/5);
+  // Organic planar offsets are already part of deckPose — never add them
+  // again only when the renderer changes at the end of consolidation.
+  const p=pose.position;
   return {
    id:card.id,rank,position:[p[0]*zoom,p[1]*zoom,p[2]+moveZ],
    right:pose.attitude.right,up:pose.attitude.up,normal,
