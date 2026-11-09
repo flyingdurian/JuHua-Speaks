@@ -37,7 +37,11 @@ test('Every deck uses a distinct organic sheet but keeps real positive air gaps'
  const xys=new Set(offsets.map(o=>[o.x.toFixed(4),o.y.toFixed(4)].join(',')));
  assert.ok(xys.size>65);
  const positions=offsets.map((o,i)=>positionOrganicSheet([0,0,0],basis,i));
- for(let i=1;i<positions.length;i++)assert.ok(Math.abs(positions[i][2]-positions[i-1][2]-ORGANIC_STEP)<1e-10);
+ // Normal-axis increments are either one thin sheet or one real packet
+ // seam; they must never collapse or reverse adjacent physical cards.
+ const depths=positions.slice(1).map((p,i)=>p[2]-positions[i][2]);
+ assert.ok(depths.every(d=>d>=ORGANIC_STEP-1e-10));
+ assert.equal(depths.filter(d=>d>ORGANIC_STEP+.01).length,6,'seven physical packets have six dark shadow seams');
  for(let g=0;g<3;g++){
   const pile=Array.from({length:26},(_,slot)=>positionOrganicSheet([g*4,0,0],basis,slot,{count:26,group:g+1}));
   assert.ok(pile.every(p=>p.every(Number.isFinite)));
@@ -91,4 +95,24 @@ test('Suspended organic deck continues a deliberately slow physical yaw in place
  const distance=dist(first.attitude.normal,later.attitude.normal);
  assert.ok(distance>.10&&distance<.50,'suspended deck must visibly turn without fast spinning');
  assert.ok(later.attitude.normal[2]<-.25,'reference engraved back should remain visible during initial turn');
+});
+
+test('Gate BC v3.1 acceptance guards: packet shader, tactile reveal and static layout',async()=>{
+ const organic=await readFile(new URL('../src/ritual-world/OrganicDeck.mjs',import.meta.url),'utf8');
+ const deck=await readFile(new URL('../src/ritual-world/InstancedDeck.mjs',import.meta.url),'utf8');
+ const scene=await readFile(new URL('../preview/post-shuffle/scene.mjs',import.meta.url),'utf8');
+ const css=await readFile(new URL('../preview/post-shuffle/post-shuffle.css',import.meta.url),'utf8');
+ assert.match(organic,/DEFAULT_PACKET_COUNT=7/);
+ assert.match(organic,/PACKET_SEAM_EXTRA/);
+ assert.match(deck,/packetOf\(rank\)/);
+ assert.doesNotMatch(deck,/float ink=smoothstep/);
+ assert.match(scene,/pickProjectedCard\(rendered,localX,localY/);
+ assert.doesNotMatch(scene,/const candidates=rendered\.filter/);
+ assert.match(css,/\.ps-tableau-detail\[hidden\]\{display:block!important/);
+ assert.match(css,/grid-template-rows:clamp\(23px,4vh,35px\)/);
+ assert.match(css,/\.ps-card-back::after/);
+ assert.match(css,/@keyframes ps-vapor-roll/);
+ assert.match(css,/@keyframes ps-prestige-sweep/);
+ assert.match(css,/@keyframes ps-nebula-volumetric/);
+ assert.match(css,/\.ps-flip-inner::before/);
 });
