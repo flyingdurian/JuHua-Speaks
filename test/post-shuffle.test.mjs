@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {DECK} from '../src/deck.mjs';
-import {CARD_COUNT,BEATS,sphereLayout,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,assemblyProgress} from '../preview/post-shuffle/geometry.mjs';
+import {CARD_COUNT,BEATS,sphereLayout,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,assemblyProgress,perspectiveFocal,CAMERA_VERTICAL_FOV_DEG,CAMERA_CLIP_NEAR,clipCardNearPlane} from '../preview/post-shuffle/geometry.mjs';
 
 test('One real, non-redealt 78-card spherical identity map',()=>{
  const points=sphereLayout();assert.equal(points.length,78);
@@ -42,4 +42,32 @@ test('Gate B Finish Shuffling mounts continuity inline instead of redirecting or
  assert.match(post,/pointerup/);
  assert.doesNotMatch(post,/Gate \(Fullscreen\)|Celestial Gate|cube-stage/);
  assert.match(server,/preview\/post-shuffle/);
+});
+
+test('True 85-degree projection matches shader and JS picking camera',()=>{
+ assert.equal(CAMERA_VERTICAL_FOV_DEG,85);
+ assert.ok(Math.abs(perspectiveFocal()-1/Math.tan(85*Math.PI/360))<1e-12);
+ assert.ok(perspectiveFocal()<1.2,'85-degree view must remain genuinely wide');
+ assert.throws(()=>perspectiveFocal(180),/Invalid/);
+});
+test('Physical cards are clipped instead of disappearing as camera enters sphere',()=>{
+ const behind=[[-1,-1,-.05],[1,-1,-.05],[1,1,.15],[-1,1,.15]];
+ const clipped=clipCardNearPlane(behind,0);
+ assert.equal(clipped.length,4);
+ for(const c of clipped){
+  assert.ok(-c.position[2]>=CAMERA_CLIP_NEAR-1e-12,'no clipped vertex may cross the near plane');
+  assert.ok(c.uv.every(v=>v>=0&&v<=1),'clipped card keeps valid artwork UV coordinates');
+ }
+ const front=[[-1,-1,-.2],[1,-1,-.2],[1,1,-.2],[-1,1,-.2]];
+ assert.equal(clipCardNearPlane(front,0).length,4);
+ const invisible=front.map(p=>[p[0],p[1],.2]);
+ assert.equal(clipCardNearPlane(invisible,0).length,0);
+});
+test('Renderer does not fabricate Tarot art or use stale narrow camera formula',async()=>{
+ const scene=await readFile(new URL('../preview/post-shuffle/scene.mjs',import.meta.url),'utf8');
+ assert.match(scene,/clipCardNearPlane\(corners,cam\)/);
+ assert.match(scene,/gl\.uniform1f\(uniform\.focal,perspectiveFocal\(\)\)/);
+ assert.doesNotMatch(scene,/Math\.tan\(85\*Math\.PI\/360\/2\)/);
+ assert.match(scene,/RWS ART/);
+ assert.match(scene,/UNAVAILABLE/);
 });
