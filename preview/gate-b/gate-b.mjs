@@ -127,7 +127,7 @@ document.getElementById('finish-shuffle').addEventListener('click',()=>{
  handingOff=true;
  const button=document.getElementById('finish-shuffle');button.disabled=true;
  const mount=document.createElement('section');mount.id='post-shuffle-mount';mount.className='ps-mount';
- document.body.append(mount);
+ document.body.classList.add('gate-b-post-shuffle-live');document.body.append(mount);
  try{
   // Restore the audited Gate C: one continuous fullscreen camera journey.
   // Never iframe, redirect, resample, auto-collapse or enter a fake cube gate.
@@ -136,7 +136,7 @@ document.getElementById('finish-shuffle').addEventListener('click',()=>{
   world.setPaused(true);
   notice.textContent='';
  }catch(error){
-  mount.remove();handingOff=false;button.disabled=false;
+  mount.remove();document.body.classList.remove('gate-b-post-shuffle-live');handingOff=false;button.disabled=false;
   notice.textContent='3D transition could not start. Please retry.';
   console.error('Post-shuffle continuous camera failed',error);
  }

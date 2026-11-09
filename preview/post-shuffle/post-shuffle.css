@@ -43,4 +43,4 @@ button{font:inherit;cursor:pointer}button:focus-visible,canvas:focus-visible{out
 @media(prefers-reduced-motion:reduce){.ps-sky .nebula-texture,.ps-sky .twinkle-canvas,.ps-demo-deck,.ps-selected-halo{animation:none!important}}
 
 /* Same Gate B document; no iframe or route navigation. */
-#post-shuffle-mount.ps-mount{position:fixed;inset:0;z-index:1200;width:100vw;height:100dvh;overflow:hidden;background:#010103}
+body.gate-b-post-shuffle-live #post-shuffle-mount.ps-mount{position:fixed;inset:0;z-index:1200;width:100vw;height:100dvh;overflow:hidden;background:#010103}
