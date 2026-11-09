@@ -231,3 +231,7 @@
 .gate-b-entering-selection .ritual-copy{opacity:0;transition:opacity .35s ease}
 .gate-b-entering-selection #gate-b-notice{color:#f7db9e;text-shadow:0 0 14px #dcb96e9c}
 @media(prefers-reduced-motion:reduce){.gate-b-entering-selection .world-root,.gate-b-entering-selection .ritual-copy{transition:none}}
+
+/* Review-only landing shortcut: visible, subdued, never hidden in the landing. */
+.gate-b .question-panel .demo-skip{display:block;margin:12px auto 0;border:1px solid #dcc7a05e;background:#090d1ba6;color:#e5d6b9;letter-spacing:.12em;font:600 10px Arial,sans-serif;padding:11px 17px;border-radius:4px;cursor:pointer;transition:border-color .2s,background .2s}
+.gate-b .question-panel .demo-skip:hover,.gate-b .question-panel .demo-skip:focus-visible{border-color:#f6d99e;background:#192038}

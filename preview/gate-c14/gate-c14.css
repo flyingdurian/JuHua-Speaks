@@ -232,3 +232,31 @@ linear-gradient(0deg,#080417a9,transparent 37%,transparent 82%,#08051779)}
 .scene-sphere .orbit-card.is-chosen img{filter:saturate(1) brightness(1.06)!important}
 .scene-cube .cube-face img{filter:sepia(.16) hue-rotate(-9deg) brightness(1.15) saturate(1.27)!important}
 @media(max-width:750px){.scene-sphere .sphere-label{top:40px;width:96vw!important}.scene-sphere .sphere-label p{font-size:clamp(12px,3.8vw,16px)!important}}
+
+/* Active branch: real card staging, not three static highlights in the sphere.
+   The stage stays fullscreen black space, with the three chosen cards separate. */
+.scene-sphere .orbit-card::before{content:"";position:absolute;inset:2px -4px -3px 2px;z-index:-1;border-radius:4px;background:linear-gradient(90deg,#b09a76,#f8ddb0 48%,#4a3a37 100%);box-shadow:4px 3px 8px #0008;transform:translateZ(-5px)}
+.scene-sphere .dock{left:50%;bottom:clamp(10px,2vh,22px);width:min(730px,94vw);height:clamp(170px,24vh,232px);padding:22px clamp(10px,3vw,27px) 10px;gap:clamp(15px,4vw,47px);background:linear-gradient(180deg,#100b23de,#070615f4)!important;border:1px solid #d2a96c96!important;box-shadow:0 0 34px #cfb7ed4d,0 23px 48px #000c!important;opacity:.99!important;pointer-events:auto!important;backdrop-filter:blur(14px)}
+.scene-sphere .dock>strong{display:block;color:#eacb98;font-size:10px;top:8px}
+.scene-sphere .dock-slots{gap:clamp(14px,3.8vw,40px)}
+.scene-sphere .dock-slot{min-width:clamp(64px,11vw,105px);gap:4px}
+.scene-sphere .dock-slot label{font:normal clamp(12px,1.5vw,17px) Georgia,serif;color:#f4debb}
+.scene-sphere .dock-back{display:grid;place-items:center;width:clamp(62px,9vw,100px);height:clamp(102px,14.8vw,163px);border:1px solid #d7b8898c;background:#131328;border-radius:5px;box-shadow:inset 0 0 25px #a1a2c033}
+.scene-sphere .dock-back.chosen{border-color:#ffe3a6;box-shadow:0 0 0 2px #f3d5a4,0 0 24px #ffdca58c,0 0 53px #b48bee7b,0 14px 25px #0009;filter:brightness(1.18)}
+.scene-sphere .dock-back img{border-radius:4px}
+.scene-sphere .dock-count{font:normal 28px Georgia,serif;color:#f4dfb4;padding-left:15px}
+.scene-sphere .dock-count small{font-size:12px}
+.scene-sphere .dock-slot button{font-size:10px}
+.scene-sphere .dock-slot small{color:#b9a6bd;font-size:9px}
+.scene-sphere .sphere-label{top:clamp(15px,4vh,39px)}
+.scene-sphere .finish-label{bottom:calc(clamp(170px,24vh,232px) + 30px);font-size:10px;letter-spacing:.13em}
+.ritual[data-stage="sphere"] .dock,.ritual[data-stage="select"] .dock{opacity:.99!important;pointer-events:auto!important}
+@media(max-width:750px){
+ .scene-sphere .dock{width:96vw;height:178px;bottom:6px;gap:9px;padding:20px 6px 8px}
+ .scene-sphere .dock-slots{gap:10px}
+ .scene-sphere .dock-slot{min-width:60px}
+ .scene-sphere .dock-back{width:58px;height:95px}
+ .scene-sphere .dock-slot label{font-size:12px}
+ .scene-sphere .finish-label{bottom:193px;font-size:8px}
+ .scene-sphere .sphere-controls{bottom:193px}
+}

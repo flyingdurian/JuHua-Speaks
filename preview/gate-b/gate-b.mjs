@@ -105,6 +105,28 @@ buttonStart.addEventListener('click',()=>{
  root.classList.add('in-ritual');overlay.hidden=false;deckControls.hidden=true;notice.textContent='';
  renderUI();
 });
+// Fast visual-review shortcut. Uses the exact same canonical 78 physical
+// objects and draws the secure selection order once, just like Start Divination.
+// It skips only the animation: never bypasses card count or question validation.
+document.getElementById('skip-to-deck').addEventListener('click',()=>{
+ if(!world||world.phase!=='landing'||handingOff)return;
+ const question=document.getElementById('question'),value=question.value.trim();
+ if(value.length<3||value.length>600){question.focus();return}
+ try{
+  world.beginAutoShuffle();
+  selectionOrder=shuffleDeck().map(card=>card.id);
+  world.setPhase('deck_formed');
+  renderError='';
+  notice.textContent='';
+  root.classList.add('in-ritual');
+  overlay.hidden=false;
+  renderUI();
+ }catch(error){
+  renderError=error.message;
+  status.textContent='DEMO SHORTCUT UNAVAILABLE · '+renderError;
+  console.error('Gate B skip failed:',error);
+ }
+});
 document.getElementById('shuffle-buttons').addEventListener('click',event=>{
  const style=event.target.closest?.('[data-shuffle-style]')?.dataset.shuffleStyle;
  if(!style||!world||world.phase!=='deck_formed')return;
@@ -126,8 +148,8 @@ document.getElementById('finish-shuffle').addEventListener('click',()=>{
  handingOff=true;
  const button=document.getElementById('finish-shuffle');button.disabled=true;
  root.classList.add('gate-b-entering-selection');
- notice.textContent='Entering the 78-card celestial sphere…';
- window.setTimeout(()=>window.location.assign(new URL('../../ritual.html',import.meta.url).href),650);
+ notice.textContent='Entering the fullscreen 78-card sphere…';
+ window.setTimeout(()=>window.location.assign(new URL('../gate-c14/?from=gate-b',import.meta.url).href),650);
 });
 buttonPause.addEventListener('click',()=>{
  if(!world)return;
