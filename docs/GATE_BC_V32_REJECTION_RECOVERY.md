@@ -7,7 +7,7 @@
 - The three card backs remain visible even while the card meanings are already shown. Earlier browser tests counted img nodes without proving image decoding or correct front-facing 3D flips.
 - Huge blank space separates the card's lower edge from its interpretation because of a flexible grid middle row that expands within a 65vh layout.
 - The former mist was animated radial CSS gradients, not a procedural flowing smoke field; no genuine eddies.
-- The previous stack used seven packet positions, but the GPU still rendered 78 microscopic individual side ribbons with PCF shadow sampling, a potential source of noisy granite or barcode aliases.
+- The previous stack used seven packet positions, but the GPU still rendered 78 microscopic individual side ribbons with PCF shadow sampling. **An additional concrete defect was found:** the early Gate B shuffle renderer's shared EDGE_SLOT atlas literally painted alternating one-pixel gold/brown stripes onto every physical edge. The atlas striping has now been removed and replaced with solid matte #dddedc.
 - A CSS drop-shadow filter on the transform-preserving flip inner is a 3D flattening hazard.
 
 ## Corrective implementation
