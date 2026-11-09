@@ -1,6 +1,7 @@
 /** Post-shuffle sphere: deterministic card identities + continuous camera flight.
  * Times measured from clicking FINISH SHUFFLING, in seconds.
  */
+import {organicSheetOffset} from '../../src/ritual-world/OrganicDeck.mjs';
 export const CARD_COUNT=78;
 /** One projection contract shared by the GPU and DOM hit-test camera. */
 export const CAMERA_VERTICAL_FOV_DEG=85;
@@ -52,8 +53,9 @@ export function sphereLayout(count=78){
  });
 }
 export function cameraDistance(time){
- // Close-up deck recedes and lifts, then the camera flies through its sphere.
- if(time<1.2)return mix(3.15,12.6,smooth(time/1.2));
+ // Deck first drops AWAY into deep space. Only after it is very small do
+ // all 78 sheets scatter toward the viewer as the camera crosses the shell.
+ if(time<1.2)return mix(9.5,12.6,smooth(time/1.2));
  return 12.6*(1-smooth((time-4.1)/2.7));
 }
 export function orbitAngle(time){
@@ -66,12 +68,23 @@ export function orbitAngle(time){
 export function assemblyProgress(time){return smooth((time-1.05)/2.05);}
 export function cardWorld(point,time,selected=false){
  const t=Math.max(0,time),s=assemblyProgress(t),d=point.direction;
- const centerZ=t<.75?mix(1.0,0,smooth(t/.75)):0;
- const layer=(point.i-38.5)*.0170; // the 78 real separate deck sheets
- const stack=[-.70*layer,-.12*layer,centerZ-.69*layer];
- const wobble=Math.sin(s*Math.PI)*.36;
- const extent=point.radius*(selected?.83:1);
- return [mix(stack[0],d[0]*extent,s)+wobble*Math.sin(point.i*.73),mix(stack[1],d[1]*extent,s)+wobble*Math.cos(point.i*.91),mix(stack[2],d[2]*extent,s)];
+ const centerZ=t<.75?mix(.25,-.75,smooth(t/.75)):-.75;
+ const o=organicSheetOffset(point.i);
+ const n=[-.70,-.12,-.69],r=[-.70,0,.70],u=[-.085,.99,-.084];
+ const stack=[
+   n[0]*o.depth+r[0]*o.x+u[0]*o.y,
+   -.20+n[1]*o.depth+r[1]*o.x+u[1]*o.y,
+   centerZ+n[2]*o.depth+r[2]*o.x+u[2]*o.y
+ ];
+ // A staggered unwinding wave throws individual physical sheets outwards
+ // instead of an instantaneous sphere pop or a pre-scattered barcode deck.
+ const wave=Math.sin(s*Math.PI)*(.22+.12*Math.sin(point.i*.33));
+ const extent=point.radius*(selected?.955:1);
+ return [
+  mix(stack[0],d[0]*extent,s)+wave*Math.sin(point.i*.73+t*3.5),
+  mix(stack[1],d[1]*extent,s)+wave*Math.cos(point.i*.91+t*3),
+  mix(stack[2],d[2]*extent,s)
+ ];
 }
 export function selectCard(choices,deck,id,orientation='upright'){
  if(!Array.isArray(deck)||deck.length!==78||new Set(deck).size!==78)throw Error('Requires one unique 78-card deck');
