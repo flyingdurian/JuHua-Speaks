@@ -128,10 +128,33 @@ function paintPeel(i){
  const el=root.querySelector('[data-peek-index="'+i+'"]'),cover=root.querySelector('[data-peek-cover="'+i+'"]'),meta=root.querySelector('[data-trio-meta="'+i+'"]');
  if(!el||!cover||!meta)return;
  const {mode,progress:p}=peel[i],v=+(100*p).toFixed(3);
- const mask=mode==='left'?'inset(0 0 0 '+v+'% round 6px)':
-  mode==='bottom'?'inset(0 0 '+v+'% 0 round 6px)':
-  mode==='corner'?'polygon(0 0,100% 0,100% '+(100-v)+'%, '+(100-v)+'% 100%,0 100%)':
-  'inset(0 '+v+'% 0 0 round 6px)';
+ // A flexible Tarot paper layer has a CURVED fold line. Build a sampled
+ // clip boundary in card-local percentages, not a flat left/right wipe.
+ const bulge=4*Math.sin(Math.PI*p),samples=12;
+ const xy=(x,y)=>x.toFixed(2)+'% '+y.toFixed(2)+'%';
+ const boundary=[];
+ let polygon;
+ if(mode==='right'||mode==='left'){
+  for(let j=0;j<=samples;j++){
+   const y=j/samples*100;
+   const x=mode==='right'?100-v+bulge*Math.sin(Math.PI*j/samples):v-bulge*Math.sin(Math.PI*j/samples);
+   boundary.push(xy(Math.max(0,Math.min(100,x)),y));
+  }
+  polygon=mode==='right'?[xy(0,0),...boundary,xy(0,100)]:[...boundary,xy(100,100),xy(100,0)];
+ }else if(mode==='bottom'){
+  for(let j=samples;j>=0;j--){
+   const x=j/samples*100,y=100-v+bulge*Math.sin(Math.PI*j/samples);
+   boundary.push(xy(x,Math.max(0,Math.min(100,y))));
+  }
+  polygon=[xy(0,0),xy(100,0),...boundary];
+ }else{
+  for(let j=0;j<=samples;j++){
+   const angle=j/samples*Math.PI/2;
+   boundary.push(xy(100-v*Math.sin(angle),100-v*Math.cos(angle)));
+  }
+  polygon=[xy(0,0),xy(100,0),...boundary,xy(0,100)];
+ }
+ const mask='polygon('+polygon.join(',')+')';
  cover.style.clipPath=mask;
  cover.style.opacity=p>=.985?'0':'1';
  el.style.setProperty('--peel-progress',String(p));
