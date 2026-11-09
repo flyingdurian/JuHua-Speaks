@@ -31,7 +31,7 @@ test('Gate BC v3: 5.95 seconds removed while preserving 10 physical beats',()=>{
  }
 });
 test('Every deck uses a distinct organic sheet but keeps real positive air gaps',()=>{
- assert.ok(ORGANIC_GAP>.007);
+ assert.ok(ORGANIC_GAP>.001&&ORGANIC_GAP<.002,'compressed cards retain microscopic air space');
  const basis={normal:[0,0,1],right:[1,0,0],up:[0,1,0]};
  const offsets=Array.from({length:78},(_,rank)=>organicSheetOffset(rank));
  const xys=new Set(offsets.map(o=>[o.x.toFixed(4),o.y.toFixed(4)].join(',')));
@@ -41,7 +41,8 @@ test('Every deck uses a distinct organic sheet but keeps real positive air gaps'
  // seam; they must never collapse or reverse adjacent physical cards.
  const depths=positions.slice(1).map((p,i)=>p[2]-positions[i][2]);
  assert.ok(depths.every(d=>d>=ORGANIC_STEP-1e-10));
- assert.equal(depths.filter(d=>d>ORGANIC_STEP+.01).length,6,'seven physical packets have six dark shadow seams');
+ assert.equal(depths.filter(d=>d>ORGANIC_STEP+.01).length,0,'no large dark inter-packet slits');
+ assert.ok(Math.max(...depths)-Math.min(...depths)<.001,'only subtle micro-seam variations');
  for(let g=0;g<3;g++){
   const pile=Array.from({length:26},(_,slot)=>positionOrganicSheet([g*4,0,0],basis,slot,{count:26,group:g+1}));
   assert.ok(pile.every(p=>p.every(Number.isFinite)));
@@ -83,11 +84,11 @@ test('GPU highlight belongs to the selected sheet and final tableau actually rev
  assert.match(scene,/p\.position=p\.position\.map/);
  assert.match(scene,/choices\.length===3&&/);
  assert.doesNotMatch(scene,/function updateAuras/);
- assert.match(scene,/horizontal panning only/);
+ assert.match(scene,/unbounded full 360-degree orbit/);
  assert.match(tableau,/cardBrief\(pick\.id,pick\.orientation\)/);
  assert.match(tableau,/ps-revealed/);
  assert.match(css,/@keyframes ps-flip-land/);
- for(const finish of FOIL_FINISHES)assert.ok(css.includes('ps-foil-'+finish),finish);
+ for(const finish of FOIL_FINISHES)assert.ok(css.includes('ps-holo-'+finish),finish);
 });
 
 test('Suspended organic deck continues a deliberately slow physical yaw in place',()=>{
@@ -114,5 +115,5 @@ test('Gate BC v3.1 acceptance guards: packet shader, tactile reveal and static l
  assert.match(css,/@keyframes ps-vapor-roll/);
  assert.match(css,/@keyframes ps-prestige-sweep/);
  assert.match(css,/@keyframes ps-nebula-volumetric/);
- assert.match(css,/\.ps-flip-inner::before/);
+ assert.match(css,/\.ps-flip-inner::before\{content:none!important;display:none!important\}/);
 });
