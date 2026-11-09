@@ -255,7 +255,7 @@ function centerRect(rect){return rect&&Number.isFinite(rect.left)?{x:rect.left+r
 function catchCard(card,source){
  if(!card||pendingFlight||state.step!==3||state.picks.length>=3||state.picks.some(p=>p.card.id===card.id))return;
  const destination=root.querySelectorAll('.slots .slot-image')[state.picks.length];
- const from=source||centerRect(root.querySelector('#sphere-scene')?.getBoundingClientRect())||{x:innerWidth/2,y:innerHeight/2,width:60,height:96};
+ const from=source||webglSphere?.projectCard(card.id)||centerRect(root.querySelector('#sphere-scene')?.getBoundingClientRect())||{x:innerWidth/2,y:innerHeight/2,width:60,height:96};
  const to=centerRect(destination?.getBoundingClientRect());
  if(!to||motionReduced()||!document.body||typeof document.body.animate==='undefined'){
   selectCard(card);render();return;
@@ -312,7 +312,7 @@ root.addEventListener('pointercancel',()=>{peekDrag=null;peelDrag=null;peelPinch
 root.addEventListener('pointerleave',()=>{if(!peelDrag)finishDrag()});
 root.addEventListener('click',e=>{
   const peekButton=e.target.closest?.('[data-peek-card]');if(peekButton){if(Date.now()<ignoreClickUntil)return;revealPhysicalCard(Number(peekButton.dataset.peekCard));return;}
-  if(e.target.id==='sphere-webgl'){if(Date.now()<ignoreClickUntil||pendingFlight)return;const id=webglSphere?.pick(e.clientX,e.clientY);if(id)toggleCard(BY_ID.get(id));return}
+  if(e.target.id==='sphere-webgl'){if(Date.now()<ignoreClickUntil||pendingFlight)return;const id=webglSphere?.pick(e.clientX,e.clientY);if(id)catchCard(BY_ID.get(id),{x:e.clientX,y:e.clientY,width:70,height:112});return}
   const button=e.target.closest('button');if(!button||!root.contains(button))return;
   if(pendingFlight&&button.dataset.action==='next')return;
   if(button.hasAttribute('data-reading-beat')){changeReadingBeat(Number(button.dataset.readingBeat));return;}
@@ -365,7 +365,7 @@ root.addEventListener('click',e=>{
   }
 });
 root.addEventListener('submit',event=>{if(event.target?.id==='local-exodia-followup'){event.preventDefault();const field=root.querySelector('#local-exodia-question');const value=field?.value.trim();if(value?.length>=2)runLocalReading(value);return;}if(event.target?.id!=='demo-followup-form')return;event.preventDefault();const input=root.querySelector('#demo-followup-input');const message=input?.value.trim();if(!message)return;submitDemoFollowUp(message);if(input&&!input.disabled){input.value='';input.focus();}});
-root.addEventListener('keydown',e=>{if(e.target.closest?.('#peel-card')&&state.step===4&&!state.revealedCards[state.revealIndex]){if(['ArrowRight','ArrowLeft','Home','End'].includes(e.key)){e.preventDefault();const value=e.key==='End'?1:e.key==='Home'?0:nextRevealProgress(state.revealProgress,e.key==='ArrowRight'?.1:-.1);if(isRevealed(value))completePeel();else paintPeel(value);return;}}if(e.key==='Escape'&&state.modal){state.modal=null;render()}if(state.step===3&&!state.modal&&e.target.closest('#sphere-scene')){if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();state.orbitHoldUntil=performance.now()+DRAG_RESUME_DELAY_MS;if(e.key==='ArrowLeft')state.ry-=24;if(e.key==='ArrowRight')state.ry+=24;if(e.key==='ArrowUp')state.rx=Math.min(75,state.rx+16);if(e.key==='ArrowDown')state.rx=Math.max(-75,state.rx-16);orbOrientation()}else if(e.key==='Enter'&&e.target.id==='sphere-webgl'){const id=webglSphere?.pickCenter();if(id)toggleCard(BY_ID.get(id))}}});
+root.addEventListener('keydown',e=>{if(e.target.closest?.('#peel-card')&&state.step===4&&!state.revealedCards[state.revealIndex]){if(['ArrowRight','ArrowLeft','Home','End'].includes(e.key)){e.preventDefault();const value=e.key==='End'?1:e.key==='Home'?0:nextRevealProgress(state.revealProgress,e.key==='ArrowRight'?.1:-.1);if(isRevealed(value))completePeel();else paintPeel(value);return;}}if(e.key==='Escape'&&state.modal){state.modal=null;render()}if(state.step===3&&!state.modal&&e.target.closest('#sphere-scene')){if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();state.orbitHoldUntil=performance.now()+DRAG_RESUME_DELAY_MS;if(e.key==='ArrowLeft')state.ry-=24;if(e.key==='ArrowRight')state.ry+=24;if(e.key==='ArrowUp')state.rx=Math.min(75,state.rx+16);if(e.key==='ArrowDown')state.rx=Math.max(-75,state.rx-16);orbOrientation()}else if(e.key==='Enter'&&e.target.id==='sphere-webgl'){const id=webglSphere?.pickCenter();if(id)catchCard(BY_ID.get(id),webglSphere?.projectCard(id))}}});
 render();
 
 // Local Exodia is unavailable from GitHub Pages and is never called automatically.
