@@ -93,7 +93,7 @@ void main(){
   // One cohesive matte paper edge, with only six nearly invisible
   // micro-creases. No seven gap cuts, opaque packet slabs or barcode.
   float distanceToCrease=abs(fract(vPaperDepth*7.)-.5);
-  float hairline=1.-smoothstep(.480,.498,distanceToCrease);
+  float hairline=smoothstep(.486,.499,distanceToCrease);
   float shade=.873-.009*hairline;
   color=vec4(shade*.994,shade*.998,shade,1.);return;
  }
