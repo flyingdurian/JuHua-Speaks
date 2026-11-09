@@ -53,7 +53,7 @@ test('physical deck is 78 closely stacked backs, not a singular facing card',()=
  const deck=cards.map(c=>deckPose(c,24.5));
  assert.equal(deck.length,78);
  assert.equal(unique(deck.map(p=>p.position)),78);
- assert.ok(deckThickness(cards)>1&&deckThickness(cards)<1.6,'Actual stack thickness');
+ assert.ok(deckThickness(cards)>.75&&deckThickness(cards)<1.05,'compressed 78-sheet stack thickness');
  assert.ok(deck.every(p=>p.attitude.normal[2]<-.25),'tilted backs face the viewer without flat billboard presentation');
  assert.ok(deck.every(p=>p.scale>=1&&p.scale<=1.3),'compact reference-scaled deck, not oversized slab');
  const end=cards.map(c=>point(c,AUTO_SHUFFLE_SECONDS));
@@ -128,7 +128,7 @@ test('Gate B preview starts independently of production and uses port 4184',asyn
  const css=await readFile(new URL('../preview/gate-b/gate-b.css',import.meta.url),'utf8');
  const pkg=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
  const server=await readFile(new URL('../scripts/serve-gate-a.mjs',import.meta.url),'utf8');
- assert.match(html,/GATE B/);
+ assert.match(html,/GATE BC v3\.3/);
  assert.doesNotMatch(html,/data-shuffle="cosmic"/);
  assert.doesNotMatch(html,/data-shuffle="riffle"/);
  assert.doesNotMatch(html,/data-shuffle="wash"/);
