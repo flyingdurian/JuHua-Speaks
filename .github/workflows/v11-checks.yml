@@ -29,3 +29,33 @@ jobs:
           node --check preview/gate-b/gate-b.mjs
       - name: All source regression tests
         run: npm test
+
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright
+      - run: npx playwright install chromium --only-shell
+      - name: Load original public-domain Rider-Waite-Smith scans
+        run: npm run assets:sync
+      - name: Run local Gate B server
+        run: |
+          npm run preview:gate-b > /tmp/v11-preview.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4184/preview/gate-b/ >/dev/null; then break; fi
+            sleep 2
+          done
+      - name: Verify full viewport, card counts, flip and Artemis in browser
+        run: node scripts/smoke-v11-gates.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v11-screenshots-and-report
+          path: |
+            artifacts/v11-review
+            /tmp/v11-preview.log
+          retention-days: 14
