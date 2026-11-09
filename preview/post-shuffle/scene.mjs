@@ -268,7 +268,8 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
  return {
   stage:()=>step,selected:()=>choices.map(c=>({...c})),deck:()=>[...deckIds],assetStatus:()=>atlas.stats(),ready:()=>ready,
   visible:()=>rendered.map(p=>({id:p.id,side:p.side,selected:p.selected,x:p.center.x,y:p.center.y,depth:p.depth})),
-  time:()=>t,tap,togglePause:changePause,foil:()=>sessionFoil,tableau:()=>({active:tableauShown,revealed:tableau?.revealed||0}),
+  time:()=>t,tap,togglePause:changePause,orbitYaw:()=>yaw,hologram:()=>tableau?.hologram??sessionFoil,
+  foil:()=>tableau?.hologram??sessionFoil,tableau:()=>({active:tableauShown,revealed:tableau?.revealed||0,hologram:tableau?.hologram??sessionFoil}),
   dispose(){dead=true;cancelAnimationFrame(raf);sky.dispose();tableau?.dispose();atlas.dispose();gl.deleteBuffer(vertexBuffer);gl.deleteVertexArray(vao);gl.deleteProgram(program);world.remove()}
  };
 }
