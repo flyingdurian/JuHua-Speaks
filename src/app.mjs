@@ -231,12 +231,26 @@ function confirmThreeCards(){
  state.ritualLocking=true;const token=++state.ritualEpoch;
  // The API will be called exactly once on this lock in 8.3; Phase 8.1 does not invoke it.
  if(motionReduced()){finishVortex(token);return;}
- const overlay=document.createElement('div');overlay.className='ritual-vortex-transition';
- overlay.setAttribute('role','status');overlay.setAttribute('aria-label',t('Three cards locked. The remaining cards return to the stars.','三张牌已锁定，其余牌面重返星辰。'));
- overlay.innerHTML='<div class="ritual-black-hole"></div><div class="ritual-vortex-debris">'+Array.from({length:38},(_,i)=>'<div style="--i:'+i+';--angle:'+(i*137.5)+'deg">'+cardBack()+'</div>').join('')+'</div>'+
+ const overlay=document.createElement('div');overlay.className='ritual-vortex-transition v11-exit';
+ overlay.setAttribute('role','status');overlay.setAttribute('aria-label',t('Three cards locked. The remaining 75 cards return to the stars.','三张牌已锁定，其余75张牌返回星辰。'));
+ const chosenIds=new Set(state.picks.map(p=>p.card.id));
+ const residual=state.shuffled.filter(card=>!chosenIds.has(card.id));
+ if(residual.length!==75)throw Error('Sphere exit must conserve exactly 3 chosen and 75 unchosen Tarot cards');
+ // All 75 visual departures come from distinct physical card IDs and their
+ // actual sphere projections. No anonymous duplicated decorative card list.
+ const falling=residual.map((card,i)=>{
+  const p=webglSphere?.projectCard(card.id);
+  const theta=i*2.399963229728653;
+  const x=p?.x??(innerWidth*.5+Math.cos(theta)*innerWidth*.58);
+  const y=p?.y??(innerHeight*.5+Math.sin(theta)*innerHeight*.58);
+  const w=Math.min(92,Math.max(26,p?.width||47));
+  webglSphere?.hideCard(card.id);
+  return '<div data-residual-card="'+h(card.id)+'" style="--sx:'+x.toFixed(1)+'px;--sy:'+y.toFixed(1)+'px;--i:'+i+';--w:'+w+'px;--angle:'+(i*137.5)+'deg">'+cardBack()+'</div>';
+ }).join('');
+ overlay.innerHTML='<div class="ritual-black-hole"></div><div class="ritual-vortex-debris">'+falling+'</div>'+
  '<div class="ritual-locked-trio">'+state.picks.map((p,i)=>'<div style="--i:'+i+'">'+cardBack()+'<span>'+['01 PAST','02 PRESENT','03 FUTURE'][i]+'</span></div>').join('')+'</div>';
  document.body.append(overlay);state.ritualOverlay=overlay;
- setTimeout(()=>finishVortex(token),1550);
+ setTimeout(()=>finishVortex(token),1700);
 }
 function finishVortex(token){
  if(token!==state.ritualEpoch||state.ritual.phase!=='three_locked')return;
