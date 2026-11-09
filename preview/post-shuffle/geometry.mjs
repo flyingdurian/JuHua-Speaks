@@ -39,6 +39,17 @@ export function clipCardNearPlane(corners,cameraZ,near=CAMERA_CLIP_NEAR){
 export const BEATS=Object.freeze({launch:[0,1.2],scatter:[1.2,2.8],orbit:[2.8,4.3],camera:[4.3,6.9],interactive:6.9});
 export const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 export const smooth=n=>{const x=clamp(n);return x*x*(3-2*x)};
+/** Pan freely through multiple revolutions. The trig transform is periodic;
+ * its stored yaw must NEVER clamp at 180 degrees or reset mid-drag. */
+export function orbitYaw(yaw,delta){
+ if(!Number.isFinite(yaw)||!Number.isFinite(delta))throw new RangeError('Non-finite sphere orbit');
+ return yaw+delta;
+}
+/** In-world chosen-card ascent, independent from its inward halo lift. */
+export function selectionRise(progress,time=0,cardIndex=0){
+ const p=smooth(progress);
+ return p*(.30+.035*Math.sin(time*1.35+cardIndex*.47));
+}
 const mix=(a,b,t)=>a+(b-a)*t;
 const fract=n=>n-Math.floor(n);
 export const hash=n=>fract(Math.sin(n*127.1+23.17)*43758.5453);
@@ -53,7 +64,9 @@ export function sphereLayout(count=78){
   // During the camera pass the original 3D shell resolves into a denser
   // inward-looking celestial panorama. The same 78 physical identities move
   // continuously, with enough cards at visible latitudes to match reference.
-  const arc=4.05,centerLongitude=Math.PI-orbitAngle(BEATS.interactive);
+  // 360-degree continuous panorama: never compress all 78 cards into a
+  // 232-degree fan that leaves a dead sector when the user rotates fully.
+  const arc=Math.PI*2,centerLongitude=Math.PI-orbitAngle(BEATS.interactive);
   const inLat=(-38+row*15.2+(hash(i+89)-.5)*4.2)*Math.PI/180;
   const inLon=centerLongitude+((col+.5+(row%2)*.4)/13-.5)*arc+(hash(i+111)-.5)*.07;
   const insideDirection=[Math.cos(inLat)*Math.sin(inLon),Math.sin(inLat),Math.cos(inLat)*Math.cos(inLon)];
