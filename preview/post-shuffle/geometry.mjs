@@ -122,3 +122,42 @@ export function selectCard(choices,deck,id,orientation='upright'){
  return [...choices,{id,orientation}];
 }
 export function getStage(time,selectedCount){return time<1.05?'launch':time<3.1?'distribute':time<6.9?'enter':selectedCount>0?'select':'inside'};
+
+/**
+ * Projected physical card picking in CSS pixels. Edge tolerance is capped so
+ * a small distant card never acquires an enormous invisible click target.
+ * True shape containment wins; overlapping sheets then resolve by camera
+ * depth. This replaces the fragile center-circle fallback.
+ */
+const pointSegmentDistance=(x,y,a,b)=>{
+ const dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy;
+ const t=len2?clamp(((x-a.x)*dx+(y-a.y)*dy)/len2):0;
+ return Math.hypot(x-(a.x+t*dx),y-(a.y+t*dy));
+};
+export function projectedCardHit(x,y,corners,tolerance=10){
+ if(!Array.isArray(corners)||corners.length!==4||corners.some(p=>!p||!Number.isFinite(p.x)||!Number.isFinite(p.y)))
+  return {hit:false,inside:false,distance:Infinity};
+ const lengths=corners.map((p,i)=>Math.hypot(p.x-corners[(i+1)%4].x,p.y-corners[(i+1)%4].y));
+ const size=Math.min(Math.max(lengths[0],lengths[2]),Math.max(lengths[1],lengths[3]));
+ const allowance=Math.max(4,Math.min(tolerance,size*.16));
+ const crosses=corners.map((a,i)=>{
+  const b=corners[(i+1)%4];
+  return (b.x-a.x)*(y-a.y)-(b.y-a.y)*(x-a.x);
+ });
+ const inside=crosses.every(c=>c>=-1e-6)||crosses.every(c=>c<=1e-6);
+ const distance=inside?0:Math.min(...corners.map((p,i)=>pointSegmentDistance(x,y,p,corners[(i+1)%4])));
+ return {hit:inside||distance<=allowance,inside,distance};
+}
+export function pickProjectedCard(visible,x,y,{tolerance=10}={}){
+ if(!Array.isArray(visible)||!Number.isFinite(x)||!Number.isFinite(y))return null;
+ const hits=[];
+ for(const card of visible){
+  if(card.side!==0||!Number.isFinite(card.depth)||card.depth<=0)continue;
+  const result=projectedCardHit(x,y,card.corners,tolerance);
+  if(result.hit)hits.push({card,...result});
+ }
+ // Pick the physical nearest sheet, but prioritize actual silhouettes over
+ // speculative forgiving hit margins (important at overlaps).
+ hits.sort((a,b)=>(b.inside?1:0)-(a.inside?1:0)||a.card.depth-b.card.depth||a.distance-b.distance);
+ return hits[0]?.card??null;
+}
