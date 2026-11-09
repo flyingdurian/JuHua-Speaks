@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {DECK} from '../src/deck.mjs';
 import {makeLandingCardEntities} from '../src/ritual-world/OrbitalField.mjs';
 import {samplePhysicalShuffle,deckPose,PHYSICAL_CARD,assertShuffleGeometry} from '../src/ritual-world/ShuffleChoreography.mjs';
-import {RITUAL_DURATION,RITUAL_BEATS,sampleReferenceGlobeCanonical} from '../src/ritual-world/ReferenceRitual.mjs';
+import {RITUAL_DURATION,RITUAL_BEATS,RITUAL_TIME_SCALE,CANONICAL_RITUAL_DURATION,sampleReferenceGlobeCanonical} from '../src/ritual-world/ReferenceRitual.mjs';
 import {buildVortexTexture} from '../preview/gate-b/VortexAtmosphere.mjs';
 
 // Earlier Gate B builds tested the span of CARD CENTERS only. A 78-card
@@ -12,7 +12,7 @@ import {buildVortexTexture} from '../preview/gate-b/VortexAtmosphere.mjs';
 // instead projects the four true card corners and counts the density of
 // physically overdrawn pixels in the 860x720 reference camera.
 const cards=makeLandingCardEntities(DECK,702509);
-const pose=(card,age)=>samplePhysicalShuffle(card,{style:'auto',age,landingAt:7,worldTime:24.5});
+const pose=(card,age)=>samplePhysicalShuffle(card,{style:'auto',age:age/RITUAL_TIME_SCALE,landingAt:7,worldTime:24.5});
 const dist=(a,b)=>Math.hypot(...a.map((v,i)=>v-b[i]));
 const camera={width:860,height:720,focal:720/(2*Math.tan(58*Math.PI/360))};
 const gridSize={width:100,height:80};
@@ -88,7 +88,7 @@ test('V7 globe forms a legible hollow sphere with circumferential card silhouett
  }
 });
 
-test('three separate 26-sheet decks follow the globe after the longer reference pacing',()=>{
+test('three separate 26-sheet decks follow the globe after the accelerated reference pacing',()=>{
  const piles=cards.map(card=>({card,position:pose(card,13.60).position}));
  const groups=[0,1,2].map(i=>piles.filter(x=>x.card.orbitSlot%3===i));
  assert.deepEqual(groups.map(a=>a.length),[26,26,26]);
@@ -115,11 +115,12 @@ test('reference sequence stays continuous and all 78 entities finish the same ca
  assert.equal(RITUAL_BEATS.at(-1).end,RITUAL_DURATION);
  for(const beat of RITUAL_BEATS.slice(0,-1)){
   const delta=Math.max(...cards.map(card=>dist(
-   pose(card,beat.end-.002).position,pose(card,beat.end+.002).position)));
+   samplePhysicalShuffle(card,{style:'auto',age:beat.end-.002,landingAt:7,worldTime:24.5}).position,
+   samplePhysicalShuffle(card,{style:'auto',age:beat.end+.002,landingAt:7,worldTime:24.5}).position)));
   assert.ok(delta<.8,beat.id+' has a teleport beyond intentional high-speed camera whip '+delta);
  }
  for(const card of cards){
-  assert.deepEqual(pose(card,RITUAL_DURATION),deckPose(card,24.5));
+  assert.deepEqual(pose(card,CANONICAL_RITUAL_DURATION),deckPose(card,24.5));
  }
  assert.equal(assertShuffleGeometry(cards,{style:'auto',landingAt:7,worldTime:24.5}),true);
 });
