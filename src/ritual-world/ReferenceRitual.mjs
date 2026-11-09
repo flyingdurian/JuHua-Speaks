@@ -50,7 +50,7 @@ const CANONICAL_BEATS=Object.freeze([
  ['pile_shuffle',14.00,15.30],['consolidation',15.30,16.55]
 ]);
 export const RITUAL_BEATS=Object.freeze(CANONICAL_BEATS.map(([id,start,end])=>Object.freeze({
- id,start:start/RITUAL_TIME_SCALE,end:end/RITUAL_TIME_SCALE
+ id,start:start/RITUAL_TIME_SCALE,end:end===CANONICAL_RITUAL_DURATION?RITUAL_DURATION:end/RITUAL_TIME_SCALE
 })));
 
 function orientedFrom(normal,rightHint=[1,0,0]){
@@ -306,7 +306,7 @@ export function sampleReferenceRitual(card,{age=0,landingAt=0,worldTime=0,entran
  if(t<13.20)return splitPose(card,t);
  if(t<14.00)return subdeckPose(card,t);
  if(t<15.30)return transferPose(card,t);
- if(t<RITUAL_DURATION)return settlePose(card,t,deckPose,worldTime);
+ if(t<CANONICAL_RITUAL_DURATION)return settlePose(card,t,deckPose,worldTime);
  return deckPose(card,worldTime);
 }
 export function referenceBeat(age){
