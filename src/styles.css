@@ -367,3 +367,43 @@
 .artemis-reading-card .card-face{aspect-ratio:1100/1920;border:2px solid #caaa74;border-radius:5px;box-shadow:0 10px 25px #0009}
 @media(max-width:650px){.artemis-scene{min-height:400px}.artemis-tabletop{height:110px}.artemis-table-card{width:clamp(55px,19vw,90px)}.physical-card-meter{flex-direction:column}.artemis-reading-table header small{display:block}}
 @media(prefers-reduced-motion:reduce){.artemis-table-smoke{animation:none}}
+
+
+/* Gate B visual delta: the user looks out from the centre of a complete
+   spherical shell. HUD is foreground glass; it is not a card wall. */
+.site.ritual-focused .sphere-page{max-width:none;width:100%;padding:22px clamp(14px,4vw,70px) 72px;position:relative;isolation:isolate}
+.site.ritual-focused .sphere-page>h1,.site.ritual-focused .sphere-page>.intro,.site.ritual-focused .sphere-page>.eyebrow{position:relative;z-index:4}
+.site.ritual-focused .sphere-scene.inside-dome{
+ width:min(100%,1460px);max-width:none;height:clamp(520px,68vh,980px);
+ min-height:520px;margin:0 auto;overflow:hidden;border-radius:50% / 44%;
+ border:1px solid #cbb8ee2b;
+ background:radial-gradient(ellipse at 50% 48%,#1d214a99 0%,#15152e 49%,#060711 80%,#010106 100%);
+ box-shadow:inset 0 0 140px 50px #01020fe6,inset 0 0 36px #e5d5ff18,0 0 110px #554a8b17;
+}
+.sphere-scene.inside-dome:after{
+ content:"";position:absolute;inset:1%;pointer-events:none;z-index:6;
+ border-radius:50%;border:1px solid #f3ddfc1a;
+ box-shadow:inset 0 0 75px 28px #08071678;
+ background:radial-gradient(ellipse 70% 65% at 50% 50%,transparent 50%,#0707196e 85%,#0000139e 100%);
+}
+.inside-dome .dome-horizon{border-radius:50%;border-color:#e3d2fe1c;width:89%;height:92%;box-shadow:0 0 0 70px #d9b6ff05,0 0 0 160px #a698ee03}
+.inside-dome .dome-nebula{left:8%;top:6%;width:85%;height:85%;filter:blur(40px)}
+.inside-dome .sphere-webgl{z-index:5}
+.sphere-page .hand-label,.sphere-page .slots,.sphere-page .sphere-auto-lock,.sphere-page .cta-row,.sphere-page .sphere-tools,.sphere-page .sphere-renderer-choice{position:relative;z-index:8}
+.sphere-page .slots{display:flex;justify-content:center;gap:clamp(20px,5vw,86px);width:min(100%,830px);margin:-42px auto 10px;padding:25px 22px 10px;overflow:visible;border-radius:18px;background:linear-gradient(180deg,#11122ed9,#070b1abe);border:1px solid #bea7d94a;box-shadow:0 21px 55px #0009;backdrop-filter:blur(14px)}
+.sphere-page .slot{position:relative;min-width:0;display:flex;flex-direction:column;align-items:center}
+.sphere-page .slot-image{width:clamp(78px,10vw,132px);height:clamp(126px,16vw,205px);border:1px solid #bba1be7e;border-radius:7px;box-shadow:0 9px 24px #000b,inset 0 0 20px #a493e227}
+.sphere-page .slot-image.is-filled{transform:translateY(-14px) scale(1.04);border-color:#f1d393;box-shadow:0 0 0 1px #f7dcaa,0 0 24px #efcf8999,0 0 65px #a48ff089,0 16px 35px #000a;filter:brightness(1.16)}
+.sphere-page .slot-image.is-filled .card-back{height:100%;width:100%;box-shadow:inset 0 0 24px #ffdca85c,0 8px 18px #0007}
+.sphere-page .slot:has(.is-filled){filter:drop-shadow(0 0 12px #f6cd8880)}
+.sphere-page .slot-remove{position:relative;z-index:2}
+.sphere-page .hand-label{color:#f9dda6;text-shadow:0 0 18px #000;font-weight:700}
+.sphere-page .card-flight{filter:drop-shadow(0 0 25px #ffecc4) drop-shadow(0 0 50px #c8a8ff)}
+@media(max-width:700px){
+ .site.ritual-focused .sphere-page{padding:22px 10px 38px}
+ .site.ritual-focused .sphere-scene.inside-dome{height:min(66vh,650px);min-height:360px;border-radius:50% / 39%}
+ .sphere-page .slots{gap:14px;margin:-18px auto 10px;padding:14px 9px 6px}
+ .sphere-page .slot-image{width:clamp(65px,20vw,99px);height:clamp(108px,32vw,164px)}
+ .sphere-page .slot-image.is-filled{transform:translateY(-7px) scale(1.03)}
+}
+@media(prefers-reduced-motion:reduce){.sphere-page .slot-image.is-filled{transition:none}}
