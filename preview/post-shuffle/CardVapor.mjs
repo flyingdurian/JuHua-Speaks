@@ -1,5 +1,5 @@
 /**
- * Two independent, animated, translucent curl-noise smoke fields for the
+ * Two independent, animated, translucent curl-noise ethereal mist fields for the
  * unrevealed celestial card backs. No sprite-sheet GIF, animated radial
  * gradient, or third-party dependency. Reuses one low-res noise buffer per
  * depth layer for all three physical cards to limit mobile GPU uploads.
@@ -34,18 +34,21 @@ export function sampleVapor(u,v,time,layer=0){
  const ribbons=valueNoise2(flowX*1.94+phase*.7,flowY*1.65-t*.13);
  const wisps=valueNoise2(flowX*3.7+phase*.33,flowY*3.27+t*.07);
  const density=.52*broad+.36*ribbons+.12*wisps;
- // Smoke is gossamer, with a few identifiable brighter swirling ridges.
+ // A thin vaporous veil: layered eddies intermittently cross the engraving.
+ // Suppress heavy cloud masses so intricate navy/gold back art stays legible.
  const feather=Math.pow(Math.max(0,Math.sin(Math.PI*u)),.47);
  const heightFade=.46+.54*Math.sin(Math.PI*(.08+v*.84));
- return Math.max(0,Math.min(1,(density-.275)*2.05*feather*heightFade));
+ const mist=Math.max(0,(density-.37)*1.26)*feather*heightFade;
+ const eddy=.16*Math.pow(Math.max(0,ribbons-.47),1.7)*feather;
+ return Math.max(0,Math.min(.68,mist+eddy));
 }
 function noisePlane(layer,time,canvas,ctx){
  const data=ctx.createImageData(WIDTH,HEIGHT),p=data.data;
  for(let y=0;y<HEIGHT;y++)for(let x=0;x<WIDTH;x++){
   const u=(x+.5)/WIDTH,v=(y+.5)/HEIGHT;
   const d=sampleVapor(u,v,time,layer),i=(y*WIDTH+x)*4;
-  p[i]=layer?216:198;p[i+1]=layer?219:207;p[i+2]=layer?225:219;
-  p[i+3]=Math.round(Math.pow(d,.82)*232);
+  p[i]=layer?214:194;p[i+1]=layer?222:209;p[i+2]=layer?241:230;
+  p[i+3]=Math.round(Math.pow(d,1.15)*174);
  }
  ctx.putImageData(data,0,0);
  return canvas;
