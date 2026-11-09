@@ -7,6 +7,7 @@
 import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,landingAttitude,landingVisible,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
 export {makeLandingCardEntities,sampleLandingPose} from './OrbitalField.mjs';
 import {appendPremiumCard} from './CardSurface.mjs';
+import {createInstancedDeck} from './InstancedDeck.mjs';
 import {PHYSICAL_CARD,samplePhysicalShuffle,deckPose,shuffleDuration,shuffleBeat,SHUFFLE_CHOICES,assertShuffleGeometry} from './ShuffleChoreography.mjs';
 import {CARD_ECHO_HISTORY,sequenceOneEchoEnvelope,projectedCardSpeed,cardEchoOpacity,shouldEchoCard} from './TemporalEcho.mjs';
 const TAU = Math.PI * 2;
@@ -109,12 +110,13 @@ export class RitualWorld{
   const anisotropy=gl.getExtension('EXT_texture_filter_anisotropic')||gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
   if(anisotropy)gl.texParameterf(gl.TEXTURE_2D,anisotropy.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(8,gl.getParameter(anisotropy.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
   this.uploadAtlas();gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.depthMask(true);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);
+  this.instancedDeck=createInstancedDeck(gl,{atlasTexture:this.texture});this.deckFormedAt=0;
   this.locProj=gl.getUniformLocation(this.program,'projection');this.locAtlas=gl.getUniformLocation(this.program,'atlas');this.locPassAlpha=gl.getUniformLocation(this.program,'passAlpha');this.locEchoTone=gl.getUniformLocation(this.program,'echoTone');
   this.canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();this.contextLost=true;this.pause=true;onStatus({state:'context-lost'})},{once:true});
   this.setPhase('landing');this.loadCardFaces();this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(mount);
   this.tick=this.tick.bind(this);this.frame=requestAnimationFrame(this.tick);
  }
- setPhase(phase){if(!['landing','question_submitted','shuffle_ritual','deck_formed','sphere_selection','three_reveal'].includes(phase))throw Error('Unsupported world phase');this.phase=phase;this.onStatus({state:phase,cards:this.cards.length})}
+ setPhase(phase){if(!['landing','question_submitted','shuffle_ritual','deck_formed','sphere_selection','three_reveal'].includes(phase))throw Error('Unsupported world phase');if(phase==='deck_formed'&&this.phase!=='deck_formed')this.deckFormedAt=this.elapsed;this.phase=phase;this.onStatus({state:phase,cards:this.cards.length})}
  beginAutoShuffle(){
   if(this.phase!=='landing')throw Error('Auto shuffle requires landing');
   assertShuffleGeometry(this.cards,{style:'auto',landingAt:this.elapsed,worldTime:this.elapsed,entranceMode:this.entranceMode});
@@ -157,7 +159,16 @@ export class RitualWorld{
   const dt=Math.min(70,now-this.last||0);this.last=now;this.elapsed+=dt/1000;
   if(this.phase==='shuffle_ritual'&&this.elapsed-this.shuffleStartedAt>=shuffleDuration(this.shuffleStyle))this.setPhase('deck_formed');
   if(now-this.lastRendered<28)return;this.lastRendered=now;
-  this.resize();const gl=this.gl;gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(this.program);gl.bindVertexArray(this.vao);
+  this.resize();const gl=this.gl;gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  if(this.phase==='deck_formed'){
+   // The finished deck is a dynamic 78-instance GPU draw, never a combined
+   // slab. Shadow-map depth pass casts real inter-sheet occlusion.
+   const closeup=Math.max(0,Math.min(1,(this.elapsed-this.deckFormedAt)/1.25));
+   this.instancedDeck.render(this.cards,this.elapsed,closeup,this.canvas.width,this.canvas.height);
+   this.onStatus({state:this.phase,rendered:78,instances:78,elapsed:this.elapsed,loaded:this.loadedCount,failed:this.failedAssets.length});
+   return;
+  }
+  gl.useProgram(this.program);gl.bindVertexArray(this.vao);
   gl.uniformMatrix4fv(this.locProj,false,perspective(this.canvas.width/this.canvas.height));gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.uniform1i(this.locAtlas,0);
   const age=this.elapsed-this.shuffleStartedAt;
   // Actual temporal copies of the SAME 78 textured meshes. Alpha blending
@@ -214,14 +225,14 @@ export class RitualWorld{
     const sample=this.phase==='shuffle_ritual'
      ?samplePhysicalShuffle(card,{style:this.shuffleStyle,age,landingAt:this.shuffleLandingAt,worldTime:this.elapsed,entranceMode:this.entranceMode})
      :deckPose(card,this.elapsed);
-    appendPremiumCard(vertices,{...card,...PHYSICAL_CARD},sample.position,sample.attitude,sample.scale,card.light,slotUv,{backSlot:this.phase==='deck_formed'&&card.orbitSlot===0?card.index:BACK_SLOT,edgeSlot:EDGE_SLOT});
+    appendPremiumCard(vertices,{...card,...PHYSICAL_CARD},sample.position,sample.attitude,sample.scale,card.light,slotUv,{backSlot:BACK_SLOT,edgeSlot:EDGE_SLOT});
    }
   }
   gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.DYNAMIC_DRAW);
   gl.drawArrays(gl.TRIANGLES,0,vertices.length/6);
   this.onStatus({state:this.phase,rendered:78,elapsed:this.elapsed,loaded:this.loadedCount,failed:this.failedAssets.length});
  }
- getDiagnostics(){return {phase:this.phase,cards:this.cards.length,loaded:this.loadedCount,failed:this.failedAssets.length,elapsed:this.elapsed,visualSeed:this.visualSeed,entranceMode:this.entranceMode,opaqueCards:true,shuffle:this.getShuffleState(),stackedCards:this.phase==='deck_formed'?78:0,...orbitDiagnostics(this.cards,this.elapsed),webgl:this.gl.getParameter(this.gl.VERSION),textureTile:[TILE_W,TILE_H],cardGeometry:'rounded-beveled-thin',canvasWidth:this.canvas.width,canvasHeight:this.canvas.height}}
+ getDiagnostics(){return {phase:this.phase,cards:this.cards.length,loaded:this.loadedCount,failed:this.failedAssets.length,elapsed:this.elapsed,visualSeed:this.visualSeed,entranceMode:this.entranceMode,opaqueCards:true,shuffle:this.getShuffleState(),stackedCards:this.phase==='deck_formed'?78:0,...orbitDiagnostics(this.cards,this.elapsed),webgl:this.gl.getParameter(this.gl.VERSION),textureTile:[TILE_W,TILE_H],cardGeometry:'78 separated WebGL2 instanced thin cards',deckShadowMap:this.instancedDeck.shadowMapped,deckInstances:78,canvasWidth:this.canvas.width,canvasHeight:this.canvas.height}}
  dispose(){if(this.disposed)return;this.disposed=true;cancelAnimationFrame(this.frame);this.resizeObserver?.disconnect();for(const img of this.images){img.onload=null;img.onerror=null}
-  const gl=this.gl;if(!gl.isContextLost()){gl.deleteTexture(this.texture);gl.deleteBuffer(this.buffer);gl.deleteVertexArray(this.vao);gl.deleteProgram(this.program)}this.canvas.remove();}
+  const gl=this.gl;if(!gl.isContextLost()){gl.deleteTexture(this.texture);gl.deleteBuffer(this.buffer);gl.deleteVertexArray(this.vao);gl.deleteProgram(this.program);this.instancedDeck.dispose()}this.canvas.remove();}
 }
