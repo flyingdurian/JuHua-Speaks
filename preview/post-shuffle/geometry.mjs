@@ -20,10 +20,15 @@ export function gateBToGateCInstance(instance,{cameraZ=HANDOFF_CAMERA_Z}={}){
  const ratio=perspectiveFocal(GATE_B_VERTICAL_FOV_DEG)/perspectiveFocal();
  return {
   id:instance.id,rank:instance.rank,
-  position:[instance.position[0]*ratio,instance.position[1]*ratio,cameraZ+instance.position[2]*ratio],
-  right:[...instance.right],up:[...instance.up],normal:[...instance.normal],
-  halfWidth:1.28*.5*instance.scale*ratio,
-  halfHeight:2.12*.5*instance.scale*ratio
+  // Convert the *view plane* with the FOV ratio while keeping depth in
+  // camera space unchanged. The earlier uniform xyz scaling cancelled the
+  // ratio on perspective division and jumped the deck on the first frame.
+  position:[instance.position[0]*ratio,instance.position[1]*ratio,cameraZ+instance.position[2]],
+  right:[instance.right[0]*ratio,instance.right[1]*ratio,instance.right[2]],
+  up:[instance.up[0]*ratio,instance.up[1]*ratio,instance.up[2]],
+  normal:[...instance.normal],
+  halfWidth:1.28*.5*instance.scale,
+  halfHeight:2.12*.5*instance.scale
  };
 }
 
