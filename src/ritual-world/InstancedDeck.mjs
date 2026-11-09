@@ -9,9 +9,9 @@
  */
 import {CARD_PERIMETER} from './CardSurface.mjs';
 import {deckPose,PHYSICAL_CARD} from './ShuffleChoreography.mjs';
-import {packetOf} from './OrganicDeck.mjs';
+import {packetOf,packetCount} from './OrganicDeck.mjs';
 
-const COUNT=78,STRIDE=9*4,INSTANCE_STRIDE=15*4,SHADOW_SIZE=1024;
+const COUNT=78,STRIDE=9*4,INSTANCE_STRIDE=16*4,SHADOW_SIZE=1024;
 export const DECK_SHEET_STEP=.0170;
 export const DECK_SHEET_THICKNESS=.0092;
 export const DECK_AIR_GAP=DECK_SHEET_STEP-DECK_SHEET_THICKNESS;
@@ -37,6 +37,7 @@ layout(location=7) in vec3 iNormal;
 layout(location=8) in float iScale;
 layout(location=9) in float iFaceSlot;
 layout(location=10) in float iEdgeTone;
+layout(location=11) in float iThickness;
 uniform mat4 uCamera;
 uniform mat4 uLightMatrix;
 out vec2 vUV;
@@ -49,7 +50,7 @@ vec3 position(){
  return iCenter+
  iRight*(aPos.x*1.28*.5*iScale)+
  iUp*(aPos.y*2.12*.5*iScale)+
- iNormal*(aPos.z*.0092);
+ iNormal*(aPos.z*iThickness);
 }
 void main(){
  vec3 world=position();
@@ -108,10 +109,11 @@ layout(location=5) in vec3 iRight;
 layout(location=6) in vec3 iUp;
 layout(location=7) in vec3 iNormal;
 layout(location=8) in float iScale;
+layout(location=11) in float iThickness;
 uniform mat4 uLightMatrix;
 void main(){
  vec3 world=iCenter+iRight*(aPos.x*1.28*.5*iScale)+
- iUp*(aPos.y*2.12*.5*iScale)+iNormal*(aPos.z*.0092);
+ iUp*(aPos.y*2.12*.5*iScale)+iNormal*(aPos.z*iThickness);
  gl_Position=uLightMatrix*vec4(world,1.);
 }`;
 const DEPTH_FRAG=String.raw`#version 300 es
@@ -119,7 +121,7 @@ precision mediump float;
 void main(){}
 `;
 
-function mesh(){
+function mesh({faces=true,edges=false}={}){
  const vertices=[];
  const push=(p,n,surface)=>vertices.push(p[0],p[1],p[2],(p[0]+1)/2,(1-p[1])/2,...n,surface);
  const tri=(a,b,c,n,part)=>{push(a,n,part);push(b,n,part);push(c,n,part)};
@@ -128,10 +130,14 @@ function mesh(){
   const a=points[i],b=points[(i+1)%points.length];
   const A=[a[0],a[1],.5],B=[b[0],b[1],.5];
   const C=[a[0],a[1],-.5],D=[b[0],b[1],-.5];
-  tri([0,0,.5],A,B,[0,0,1],0);
-  tri([0,0,-.5],D,C,[0,0,-1],1);
-  const edgeN=norm([a[0]+b[0],a[1]+b[1],0]);
-  tri(A,C,D,edgeN,2);tri(A,D,B,edgeN,2);
+  if(faces){
+   tri([0,0,.5],A,B,[0,0,1],0);
+   tri([0,0,-.5],D,C,[0,0,-1],1);
+  }
+  if(edges){
+   const edgeN=norm([a[0]+b[0],a[1]+b[1],0]);
+   tri(A,C,D,edgeN,2);tri(A,D,B,edgeN,2);
+  }
  }
  return new Float32Array(vertices);
 }
@@ -176,23 +182,54 @@ export function deckInstanceLayout(cards,worldTime=0,closeup=1){
    id:card.id,rank,position:[p[0]*zoom,p[1]*zoom,p[2]+moveZ],
    right:pose.attitude.right,up:pose.attitude.up,normal,
    scale:pose.scale*zoom,frontSlot:card.index,
-   edgeTone:.32+((Math.imul(packet+31,2654435761)>>>0)%100)/500
+   edgeTone:.32+((Math.imul(packet+31,2654435761)>>>0)%100)/500,
+   thickness:DECK_SHEET_THICKNESS
   };
  });
  return instances;
 }
+/** Seven smooth matte packet sleeves cover subpixel individual card edges.
+ * All 78 original individual fronts/backs retain their identity and gap. */
+export function deckPacketLayout(layout){
+ if(!Array.isArray(layout)||layout.length!==COUNT)throw Error('Expected 78 physical card instances');
+ return Array.from({length:packetCount(COUNT)},(_,packet)=>{
+  const members=layout.filter(c=>packetOf(c.rank,COUNT)===packet);
+  if(!members.length)throw Error('Empty paper packet '+packet);
+  const {right,up,normal}=members[0];
+  const depths=members.map(c=>vecDot(c.position,normal));
+  const low=Math.min(...depths),high=Math.max(...depths);
+  const avg=members[0].position.map((_,j)=>members.reduce((sum,c)=>sum+c.position[j],0)/members.length);
+  const shift=(low+high)*.5-vecDot(avg,normal);
+  return {
+   id:'paper-packet-'+packet,packet,sheets:members.length,
+   position:avg.map((v,j)=>v+normal[j]*shift),
+   right,up,normal,scale:members[0].scale*1.035,
+   frontSlot:78,edgeTone:.5,thickness:high-low+DECK_SHEET_THICKNESS
+  };
+ });
+}
 export function createInstancedDeck(gl,{atlasTexture}){
  const main=makeProgram(gl,VERTEX,FRAGMENT),depth=makeProgram(gl,DEPTH_VERT,DEPTH_FRAG);
  const vao=gl.createVertexArray(),geometry=gl.createBuffer(),instances=gl.createBuffer();
- const vertices=mesh();gl.bindVertexArray(vao);
- gl.bindBuffer(gl.ARRAY_BUFFER,geometry);gl.bufferData(gl.ARRAY_BUFFER,vertices,gl.STATIC_DRAW);
- for(const [loc,size,offset] of [[0,3,0],[1,2,12],[2,3,20],[3,1,32]]){
-  gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,STRIDE,offset);
+ const packetVao=gl.createVertexArray(),packetGeometry=gl.createBuffer();
+ const vertices=mesh({faces:true,edges:false}); // 78 artwork-bearing individual sheets
+ const packetVertices=mesh({faces:false,edges:true}); // 7 smooth side sleeves
+ gl.bindBuffer(gl.ARRAY_BUFFER,instances);
+ gl.bufferData(gl.ARRAY_BUFFER,COUNT*INSTANCE_STRIDE,gl.DYNAMIC_DRAW);
+ function configure(vao,geom,verts){
+  gl.bindVertexArray(vao);
+  gl.bindBuffer(gl.ARRAY_BUFFER,geom);gl.bufferData(gl.ARRAY_BUFFER,verts,gl.STATIC_DRAW);
+  for(const [loc,size,offset] of [[0,3,0],[1,2,12],[2,3,20],[3,1,32]]){
+   gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,STRIDE,offset);
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER,instances);
+  for(const [loc,size,offset] of [[4,3,0],[5,3,12],[6,3,24],[7,3,36],[8,1,48],[9,1,52],[10,1,56],[11,1,60]]){
+   gl.enableVertexAttribArray(loc);
+   gl.vertexAttribPointer(loc,size,gl.FLOAT,false,INSTANCE_STRIDE,offset);
+   gl.vertexAttribDivisor(loc,1);
+  }
  }
- gl.bindBuffer(gl.ARRAY_BUFFER,instances);gl.bufferData(gl.ARRAY_BUFFER,COUNT*INSTANCE_STRIDE,gl.DYNAMIC_DRAW);
- for(const [loc,size,offset] of [[4,3,0],[5,3,12],[6,3,24],[7,3,36],[8,1,48],[9,1,52],[10,1,56]]){
-  gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,INSTANCE_STRIDE,offset);gl.vertexAttribDivisor(loc,1);
- }
+ configure(vao,geometry,vertices);configure(packetVao,packetGeometry,packetVertices);
  gl.bindVertexArray(null);
 
  let shadowTexture=null,shadowFramebuffer=null,shadows=true;
@@ -214,11 +251,10 @@ export function createInstancedDeck(gl,{atlasTexture}){
  const uDepth=gl.getUniformLocation(depth,'uLightMatrix');
  function render(cards,worldTime,closeup,width,height){
   const layout=deckInstanceLayout(cards,worldTime,closeup);
-  const packed=new Float32Array(COUNT*15);
-  for(let i=0;i<COUNT;i++){
-   const c=layout[i],off=i*15;
-   packed.set([...c.position,...c.right,...c.up,...c.normal,c.scale,c.frontSlot,c.edgeTone],off);
-  }
+  const pack=entries=>Float32Array.from(entries.flatMap(c=>[
+   ...c.position,...c.right,...c.up,...c.normal,c.scale,c.frontSlot,c.edgeTone,c.thickness
+  ]));
+  const packed=pack(layout);
   gl.bindVertexArray(vao);gl.bindBuffer(gl.ARRAY_BUFFER,instances);gl.bufferSubData(gl.ARRAY_BUFFER,0,packed);
   const centerZ=layout.reduce((n,c)=>n+c.position[2],0)/COUNT;
   const target=[0,-.17,centerZ];
@@ -242,13 +278,19 @@ export function createInstancedDeck(gl,{atlasTexture}){
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlasTexture);gl.uniform1i(uMain.atlas,0);
   gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,shadows?shadowTexture:null);gl.uniform1i(uMain.shadow,1);
   gl.drawArraysInstanced(gl.TRIANGLES,0,vertices.length/9,COUNT);
+  // Only these 7 side surfaces are visible as clean matte cardstock.
+  const packets=deckPacketLayout(layout);
+  gl.bindBuffer(gl.ARRAY_BUFFER,instances);gl.bufferSubData(gl.ARRAY_BUFFER,0,pack(packets));
+  gl.bindVertexArray(packetVao);
+  gl.drawArraysInstanced(gl.TRIANGLES,0,packetVertices.length/9,packets.length);
   gl.activeTexture(gl.TEXTURE0);gl.bindVertexArray(null);
  }
  function dispose(){
-  gl.deleteVertexArray(vao);gl.deleteBuffer(geometry);gl.deleteBuffer(instances);
+  gl.deleteVertexArray(vao);gl.deleteVertexArray(packetVao);
+  gl.deleteBuffer(geometry);gl.deleteBuffer(packetGeometry);gl.deleteBuffer(instances);
   gl.deleteProgram(main);gl.deleteProgram(depth);
   if(shadowTexture)gl.deleteTexture(shadowTexture);
   if(shadowFramebuffer)gl.deleteFramebuffer(shadowFramebuffer);
  }
- return {render,dispose,get shadowMapped(){return shadows},instanceCount:COUNT};
+ return {render,dispose,get shadowMapped(){return shadows},instanceCount:COUNT,packetCount:packetCount(COUNT)};
 }
