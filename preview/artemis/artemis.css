@@ -1,0 +1,131 @@
+/* Artemis v1 — fullscreen, Japanese-inspired celestially lit reading space.
+ * Art is an editable portrait rig, RWS cards are loaded from original sources.
+ * Scoped completely outside approved Gate A and isolated Gate B choreography. */
+.artemis-stage-v1{
+ position:absolute;inset:0;z-index:45;isolation:isolate;
+ overflow-y:auto;overscroll-behavior:contain;color:#f7eedf;
+ background:
+  radial-gradient(ellipse at 21% 29%,rgba(95,40,139,.40),transparent 40%),
+  radial-gradient(ellipse at 78% 69%,rgba(24,43,93,.41),transparent 54%),
+  linear-gradient(135deg,rgba(10,8,23,.97),rgba(3,5,17,.98));
+ animation:ar-entrance 1150ms cubic-bezier(.2,.77,.23,1) both;
+ font-family:Arial,Helvetica,sans-serif;
+}
+.artemis-stage-v1,.artemis-stage-v1 *{box-sizing:border-box}
+.artemis-stage-v1 button,.artemis-stage-v1 textarea{font:inherit}
+.artemis-stage-v1 .ar-atmosphere{
+ position:fixed;inset:0;pointer-events:none;opacity:.65;z-index:-1;
+ background:
+  repeating-conic-gradient(from 0deg at 24% 42%,rgba(213,169,93,.025) 0deg 1deg,transparent 1deg 20deg),
+  radial-gradient(circle at 17% 48%,rgba(220,182,113,.14),transparent 20%),
+  radial-gradient(circle at 78% 23%,rgba(140,74,206,.16),transparent 32%);
+ animation:ar-starglow 24s ease-in-out infinite alternate;
+}
+.artemis-stage-v1 .ar-header{max-width:1420px;margin:auto;padding:21px clamp(18px,3vw,55px) 0;
+ display:flex;justify-content:space-between;gap:12px;
+ color:#e8cca0;font:11px/1.5 Georgia,serif;letter-spacing:.17em}
+.artemis-stage-v1 .ar-header span:last-child{color:#b5a9bf;font:10px Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase}
+.artemis-stage-v1 .ar-layout{max-width:1420px;margin:0 auto;padding:12px clamp(16px,3.5vw,65px) 46px;
+ display:grid;grid-template-columns:minmax(240px,.8fr) minmax(390px,1.3fr);gap:clamp(18px,4vw,65px);
+ min-height:calc(100dvh - 50px);align-items:center;}
+.artemis-stage-v1 .ar-reader{text-align:center;align-self:center;position:sticky;top:26px;max-width:450px;margin:auto;width:100%}
+.artemis-stage-v1 .ar-portrait-frame{
+ position:relative;isolation:isolate;width:min(100%,410px);margin:auto;
+ aspect-ratio:380/480;
+ filter:drop-shadow(0 12px 28px rgba(0,0,0,.68));
+}
+.artemis-stage-v1 .ar-portrait-frame::after{
+ content:"";position:absolute;inset:10% 3% 0;z-index:-1;pointer-events:none;border-radius:50%;
+ background:radial-gradient(circle,rgba(220,163,91,.15),transparent 73%);
+ filter:blur(21px);animation:ar-halo 8s ease-in-out infinite alternate;
+}
+.artemis-stage-v1 .artemis-portrait-svg{display:block;width:100%;height:100%;overflow:visible;
+ transform:translateY(0);transition:transform .8s cubic-bezier(.2,.7,.3,1),filter .8s;}
+.artemis-stage-v1 .ar-pose-invocation .artemis-portrait-svg,
+.artemis-stage-v1 .ar-pose-focused .artemis-portrait-svg{filter:drop-shadow(0 0 16px rgba(169,121,237,.45))}
+.artemis-stage-v1 .ar-pose-welcoming .artemis-portrait-svg,
+.artemis-stage-v1 .ar-pose-presenting .artemis-portrait-svg{transform:translateY(-5px) rotate(-1.5deg)}
+.artemis-stage-v1 .ar-reader-caption{display:block;margin-top:-16px;position:relative;
+ font:11px Georgia,serif;letter-spacing:.20em;color:#ddc494;text-shadow:0 3px 18px #000}
+.artemis-stage-v1 .ar-dialogue{margin:24px auto 0;max-width:410px;min-height:96px;
+ background:linear-gradient(145deg,rgba(32,23,51,.9),rgba(9,13,32,.83));
+ border:1px solid rgba(216,169,103,.48);border-radius:16px 16px 20px 20px;
+ padding:19px 24px;box-shadow:0 12px 48px rgba(0,0,0,.33),inset 0 1px rgba(255,237,203,.12)}
+.artemis-stage-v1 .ar-dialogue p{margin:0;color:#f3e3d5;font:clamp(15px,1.45vw,18px)/1.65 Georgia,serif}
+.artemis-stage-v1 .ar-content{align-self:center;min-width:0}
+.artemis-stage-v1 .ar-eyebrow{color:#dcc49b;font:11px Georgia,serif;text-transform:uppercase;letter-spacing:.18em;text-align:center;margin-bottom:16px}
+.artemis-stage-v1 .ar-original-spread{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:start;gap:clamp(7px,1.4vw,24px)}
+.artemis-stage-v1 .ar-spread-slot{text-align:center;min-width:0}
+.artemis-stage-v1 .ar-spread-slot>span{display:block;margin:0 0 10px;color:#e9d7b9;letter-spacing:.12em;text-transform:uppercase;font:12px Georgia,serif}
+.artemis-stage-v1 .ar-card{margin:0 auto;max-width:166px}
+.artemis-stage-v1 .ar-card-image-wrap{position:relative;border:2px solid #c5a36a;
+ border-radius:7px;background:#101c35;overflow:hidden;aspect-ratio:256/448;
+ box-shadow:0 7px 25px rgba(0,0,0,.63),0 0 17px rgba(209,159,92,.16)}
+.artemis-stage-v1 .ar-card img{display:block;width:100%;height:100%;object-fit:fill}
+.artemis-stage-v1 .ar-card figcaption{color:#e5d7c9;font:11px/1.6 Georgia,serif;margin-top:9px;min-height:34px}
+.artemis-stage-v1 .ar-card figcaption small{display:block;color:#a99da4;font-size:10px}
+.artemis-stage-v1 .ar-card-asset-error[hidden]{display:none!important}
+.artemis-stage-v1 .ar-card-asset-error{display:grid;place-items:center;position:absolute;inset:8px;
+ padding:9px;color:#dfd0c6;font-size:12px;background:#141d2e}
+.artemis-stage-v1 .ar-reading-summary{margin:25px 0 12px;padding:18px 23px;
+ border-top:1px solid rgba(213,178,115,.40);
+ background:linear-gradient(165deg,rgba(19,23,47,.55),transparent)}
+.artemis-stage-v1 h2,.artemis-stage-v1 h3{font:normal 21px/1.35 Georgia,serif;color:#f0d9af;margin:0 0 10px}
+.artemis-stage-v1 h3{font-size:15px;margin:20px 0 6px}
+.artemis-stage-v1 .ar-reading-summary p,.artemis-stage-v1 .ar-reading-summary li{
+ color:#d9d1d5;font:13px/1.68 Arial,sans-serif;margin:0 0 8px}
+.artemis-stage-v1 .ar-reading-meanings{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:22px}
+.artemis-stage-v1 .ar-reading-meanings article{background:rgba(26,30,53,.55);
+ padding:11px;border:1px solid rgba(196,163,116,.20);border-radius:7px}
+.artemis-stage-v1 .ar-reading-meanings span{display:block;color:#caa96c;font-size:11px;letter-spacing:.09em}
+.artemis-stage-v1 .ar-reading-meanings strong{display:block;color:#f0e4d8;font:13px/1.4 Georgia,serif;margin:7px 0}
+.artemis-stage-v1 .ar-reading-meanings article p{font-size:11px;line-height:1.53}
+.artemis-stage-v1 .ar-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:13px;margin:25px 0 12px}
+.artemis-stage-v1 .ar-button{
+ appearance:none;border:1px solid rgba(216,186,132,.74);border-radius:28px;
+ min-height:43px;padding:11px 23px;background:rgba(16,22,41,.7);
+ color:#efdfc0;letter-spacing:.05em;font-size:12px;
+ transition:background .22s,transform .22s,border-color .22s}
+.artemis-stage-v1 .ar-button:hover{background:#38304c;transform:translateY(-2px)}
+.artemis-stage-v1 .ar-button:focus-visible{outline:2px solid #f2cc90;outline-offset:3px}
+.artemis-stage-v1 .ar-primary{background:linear-gradient(115deg,#d3b27b,#a98149);color:#1a1623;font-weight:700}
+.artemis-stage-v1 .ar-primary:hover{background:#e2c79d}
+.artemis-stage-v1 .ar-demo-label{margin:12px 0 0;color:#aaa4b6;text-align:center;font:10px Arial,sans-serif;letter-spacing:.06em}
+.artemis-stage-v1 .ar-loading{font:13px Georgia,serif;color:#e5c994;animation:ar-loading 1.8s ease-in-out infinite alternate}
+.artemis-stage-v1 .ar-guidance-reveal{display:grid;place-items:center;margin:20px auto;
+ border:1px solid rgba(211,168,101,.40);border-radius:12px;padding:16px;max-width:250px;
+ background:rgba(31,27,53,.65)}
+.artemis-stage-v1 .ar-guidance-reveal>div>span{display:block;text-align:center;color:#ddc59f;margin-bottom:11px}
+.artemis-stage-v1 .ar-guidance-reveal .ar-card{max-width:108px}
+.artemis-stage-v1 .ar-guidance-reveal>p{font:13px Georgia,serif;color:#e7d2b2}
+.artemis-stage-v1 .ar-followup-form{display:grid;gap:10px;max-width:530px;margin:25px auto}
+.artemis-stage-v1 .ar-followup-form label{font:14px Georgia,serif;color:#f0d9af}
+.artemis-stage-v1 .ar-followup-form textarea{resize:vertical;width:100%;border:1px solid #7e6e82;
+ border-radius:8px;background:#161b31;color:#f5ede6;padding:12px;font:14px Arial,sans-serif}
+.artemis-stage-v1 .ar-followup-form button{justify-self:end}
+.artemis-stage-v1 .ar-followup-reply{margin:20px auto;padding:20px;max-width:580px;
+ border:1px solid #8b7295;border-radius:12px;background:rgba(38,25,52,.64)}
+.artemis-stage-v1 .ar-followup-reply p{color:#bfb5c9;font-size:12px}
+.artemis-stage-v1 .ar-followup-reply blockquote{margin:8px 0;color:#f1e4dd;line-height:1.6}
+@keyframes ar-entrance{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ar-halo{from{opacity:.5;transform:scale(.97)}to{opacity:1;transform:scale(1.06)}}
+@keyframes ar-starglow{from{transform:translate(-2%,1%) scale(1)}to{transform:translate(2%,-2%) scale(1.05)}}
+@keyframes ar-loading{from{opacity:.35}to{opacity:1}}
+@media(max-width:890px){
+ .artemis-stage-v1 .ar-layout{grid-template-columns:1fr;gap:12px;justify-content:center}
+ .artemis-stage-v1 .ar-reader{position:static;max-width:560px}
+ .artemis-stage-v1 .ar-portrait-frame{width:min(100%,280px)}
+ .artemis-stage-v1 .ar-dialogue{margin-top:4px;min-height:auto}
+ .artemis-stage-v1 .ar-content{max-width:660px;width:100%;margin:auto}
+}
+@media(max-width:490px){
+ .artemis-stage-v1 .ar-header{font-size:8px;letter-spacing:.05em}
+ .artemis-stage-v1 .ar-reading-meanings{grid-template-columns:1fr}
+ .artemis-stage-v1 .ar-card{max-width:120px}
+ .artemis-stage-v1 .ar-reader-caption{font-size:9px}
+ .artemis-stage-v1 .ar-layout{padding:10px 12px 30px}
+}
+@media(prefers-reduced-motion:reduce){
+ .artemis-stage-v1,.artemis-stage-v1 .ar-atmosphere,.artemis-stage-v1 .ar-portrait-frame::after,
+ .artemis-stage-v1 .ar-loading{animation:none!important;transition:none!important}
+}

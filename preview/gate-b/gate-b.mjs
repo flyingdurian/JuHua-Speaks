@@ -140,7 +140,10 @@ document.getElementById('finish-shuffle').addEventListener('click',()=>{
   const readyAt=Number(world.deckFormedAt)||elapsed;
   const eased=Math.max(0,Math.min(1,(elapsed-readyAt)/1.8));
   const handoffDeck=deckInstanceLayout(world.cards,elapsed,eased);
-  postShuffle=mountPostShuffle({mount,deckIds:selectionOrder,handoffDeck});
+  postShuffle=mountPostShuffle({
+   mount,deckIds:selectionOrder,handoffDeck,question,
+   locale:reviewParams.get('lang')==='zh'?'zh':'en'
+  });
   window.__POST_SHUFFLE__=postShuffle;
   world.setPaused(true);
   notice.textContent='';
