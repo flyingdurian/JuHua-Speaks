@@ -3,6 +3,7 @@ import {GATE_B_HANDOFF_KEY,createGateBHandoff} from '../../src/gate-b-handoff.mj
 import {createVisualSeed} from '../../src/ritual-world/OrbitalField.mjs';
 import {RitualWorld} from '../../src/ritual-world/RitualWorld.mjs';
 import {CanvasOrbit} from '../../src/ritual-world/CanvasOrbit.mjs';
+import {mountPostShuffle} from '../post-shuffle/scene.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
 import {initFlowMist} from './FlowMist.mjs';
 
@@ -31,7 +32,7 @@ const sky=initCelestialSky({
 });
 const faceAssetForId=id=>new URL('../../assets/rws/'+id+'.jpg',import.meta.url).href;
 let world=null,loadCount=0,failedAssets=0,lastStatus='',renderError='';
-let selectionOrder=null,handingOff=false;
+let selectionOrder=null,handingOff=false,postShuffle=null;
 const onStatus=evt=>{
  if(evt.state==='context-lost'){status.textContent='GRAPHICS CONTEXT LOST';return}
  if(Number.isInteger(evt.loaded))loadCount=evt.loaded;
@@ -125,9 +126,20 @@ document.getElementById('finish-shuffle').addEventListener('click',()=>{
  }
  handingOff=true;
  const button=document.getElementById('finish-shuffle');button.disabled=true;
- root.classList.add('gate-b-entering-selection');
- notice.textContent='Entering the 78-card celestial sphere…';
- window.setTimeout(()=>window.location.assign(new URL('../../ritual.html',import.meta.url).href),650);
+ const mount=document.createElement('section');mount.id='post-shuffle-mount';mount.className='ps-mount';
+ document.body.append(mount);
+ try{
+  // Restore the audited Gate C: one continuous fullscreen camera journey.
+  // Never iframe, redirect, resample, auto-collapse or enter a fake cube gate.
+  postShuffle=mountPostShuffle({mount,deckIds:selectionOrder});
+  window.__POST_SHUFFLE__=postShuffle;
+  world.setPaused(true);
+  notice.textContent='';
+ }catch(error){
+  mount.remove();handingOff=false;button.disabled=false;
+  notice.textContent='3D transition could not start. Please retry.';
+  console.error('Post-shuffle continuous camera failed',error);
+ }
 });
 buttonPause.addEventListener('click',()=>{
  if(!world)return;
@@ -147,6 +159,6 @@ window.__ritualGateB={
  world,diagnostics:()=>world?{...world.getDiagnostics(),sky:sky.diagnostics(),vortex:flowMist.diagnostics()}:null,
  get phase(){return world?.phase||'unavailable'},
  get shuffle(){return world?.getShuffleState()||null},
- version:'Gate B v10.7 · 45-degree cyclone / selective accents',
+ version:'Gate B v12 recovery · physical instanced stack / continuous sphere camera',
 };
-window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();flowMist.dispose();world?.dispose()},{once:true});
+window.addEventListener('pagehide',()=>{clearInterval(statusTimer);sky.dispose();flowMist.dispose();world?.dispose();postShuffle?.dispose()},{once:true});
