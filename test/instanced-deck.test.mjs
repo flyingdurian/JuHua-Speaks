@@ -8,7 +8,7 @@ const cards=makeLandingCardEntities(DECK,2165840022);
 const dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0);
 test('78 separate thin instances with positive air-gaps, correct back orientation',()=>{
  assert.equal(DECK_INSTANCE_COUNT,78);
- assert.ok(DECK_AIR_GAP>.007&&DECK_AIR_GAP<.009);
+ assert.ok(DECK_AIR_GAP>.001&&DECK_AIR_GAP<.002,'micro air gaps, not packet-sized voids');
  for(const zoom of [0,.3,1]){
   const instances=deckInstanceLayout(cards,32.5,zoom).sort((a,b)=>a.rank-b.rank);
   assert.equal(new Set(instances.map(v=>v.id)).size,78);
@@ -73,26 +73,27 @@ test('canonical early deck, three mini-decks and final suspended stack all share
  assert.match(instancing,/const p=pose\.position/);
 });
 
-test('v3.2: clean matte packet side sleeves replace aliased individual edge ribbons',()=>{
+test('v3.3: one compressed 78-sheet side, never seven concrete slabs',()=>{
  const scene=deckInstanceLayout(cards,32.5,1);
- const packets=deckPacketLayout(scene);
- assert.equal(packets.length,7);
- assert.equal(packets.reduce((n,p)=>n+p.sheets,0),78);
- assert.ok(packets.every(p=>p.thickness>.12&&p.thickness<.3));
- assert.ok(packets.every(p=>p.position.every(Number.isFinite)));
- for(let i=1;i<packets.length;i++){
-  const axis=packets[i-1].normal;
-  const a=dot(packets[i-1].position,axis)+packets[i-1].thickness*.5;
-  const b=dot(packets[i].position,axis)-packets[i].thickness*.5;
-  assert.ok(b-a>.007,'separate matte packets need visible free space');
- }
+ const side=deckPacketLayout(scene);
+ assert.equal(side.length,1,'exactly one unbroken cardstock edge envelope');
+ assert.equal(side[0].sheets,78);
+ assert.equal(side[0].id,'continuous-pressed-cardstock');
+ assert.ok(side[0].thickness>.72&&side[0].thickness<1.05,'realistic cohesive compressed paper thickness');
+ assert.ok(side[0].position.every(Number.isFinite));
+ const layers=scene.toSorted((a,b)=>a.rank-b.rank).map(c=>dot(c.position,scene[0].normal));
+ assert.ok(layers.every((x,i)=>i===0||x>layers[i-1]+DECK_SHEET_THICKNESS),
+  'all distinct card sheets preserve positive micro air gaps');
 });
-test('v3.2: side materials have no texture, normal noise or shadow-map dither',async()=>{
+test('v3.3: no fake zebra texture, seven sleeves or dark spaces',async()=>{
  const code=await readFile(new URL('../src/ritual-world/InstancedDeck.mjs',import.meta.url),'utf8');
+ const organic=await readFile(new URL('../src/ritual-world/OrganicDeck.mjs',import.meta.url),'utf8');
  assert.match(code,/mesh\(\{faces:true,edges:false\}\)/);
  assert.match(code,/mesh\(\{faces:false,edges:true\}\)/);
- assert.match(code,/packetVao/);
- assert.match(code,/iThickness/);
- assert.match(code,/color=vec4\(\.866,\.870,\.864,1\.\);return;/);
+ assert.match(code,/continuous-pressed-cardstock/);
+ assert.match(code,/float hairline=smoothstep/);
+ assert.doesNotMatch(code,/color=vec4\(\.866,\.870,\.864,1\.\);return;/);
  assert.doesNotMatch(code,/float ink=smoothstep/);
+ assert.match(organic,/PACKET_SEAM_EXTRA=\.0007/);
+ assert.doesNotMatch(organic,/PACKET_SEAM_EXTRA=\.023/);
 });
