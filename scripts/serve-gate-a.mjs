@@ -15,7 +15,7 @@ const server=createServer(async(req,res)=>{
   const pathname=path==='/'?'/preview/gate-'+gate+'/index.html':path.endsWith('/')?path+'index.html':path;
   // Gate B preview may continue into the isolated Phase 8.2 ritual app.
   // Gate A still exposes only its original restricted asset set.
-  const allowedRoot=pathname.startsWith('/preview/gate-a/')||pathname.startsWith('/preview/gate-b/')||pathname.startsWith('/preview/post-shuffle/')||pathname==='/src/deck.mjs'||pathname.startsWith('/src/ritual-world/')||pathname.startsWith('/assets/rws/')||(gate==='b'&&(pathname==='/ritual.html'||pathname.startsWith('/src/')));
+  const allowedRoot=pathname.startsWith('/preview/gate-a/')||pathname.startsWith('/preview/gate-b/')||pathname.startsWith('/preview/post-shuffle/')||(gate==='b'&&pathname.startsWith('/preview/artemis/'))||pathname==='/src/deck.mjs'||pathname.startsWith('/src/ritual-world/')||pathname.startsWith('/assets/rws/')||(gate==='b'&&(pathname==='/ritual.html'||pathname.startsWith('/src/')));
   const resolved=resolve(root,'.'+pathname),extension=extname(resolved);
   if(!allowedRoot||!allowed.has(extension)||!resolved.startsWith(root+sep)){res.writeHead(404);res.end('Not found');return}
   const info=await stat(resolved);if(!info.isFile())throw Error('not a file');
