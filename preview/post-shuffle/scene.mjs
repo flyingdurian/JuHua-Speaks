@@ -8,6 +8,7 @@
  */
 import {DECK,commonsThumbnailUrl,drawOrientation} from '../../src/deck.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
+import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
 import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,selectCard,getStage,perspectiveFocal,CAMERA_CLIP_NEAR,CAMERA_NEAR,clipCardNearPlane} from './geometry.mjs';
 
 const W=174,H=288,COLS=10,ROWS=8,ATLAS_W=W*COLS,ATLAS_H=H*ROWS;
@@ -56,16 +57,7 @@ void main(){
 function compile(gl,type,source){const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw Error('Shader error '+gl.getShaderInfoLog(shader));return shader;}
 function makeProgram(gl){const p=gl.createProgram(),v=compile(gl,gl.VERTEX_SHADER,vs),f=compile(gl,gl.FRAGMENT_SHADER,fs);gl.attachShader(p,v);gl.attachShader(p,f);gl.linkProgram(p);gl.deleteShader(v);gl.deleteShader(f);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error('Program error '+gl.getProgramInfoLog(p));return p;}
 function backArt(ctx,x,y){
- ctx.save();ctx.translate(x,y);
- const grad=ctx.createLinearGradient(0,0,W,H);grad.addColorStop(0,'#0c2447');grad.addColorStop(.45,'#071328');grad.addColorStop(1,'#142543');ctx.fillStyle='#c4c3c1';ctx.fillRect(0,0,W,H);ctx.fillStyle=grad;ctx.fillRect(3,3,W-6,H-6);
- ctx.strokeStyle='#8293ab';ctx.lineWidth=1;ctx.strokeRect(7,7,W-14,H-14);ctx.strokeStyle='#b9b9bf';ctx.strokeRect(12,12,W-24,H-24);
- for(let i=0;i<38;i++){const a=i*2.4,r=18+(i*17%80);ctx.fillStyle=i%5?'#627b9a':'#d3c5ba';ctx.fillRect(W/2+Math.cos(a)*r, H/2+Math.sin(a)*r*1.39,1.1,1.1)}
- ctx.translate(W/2,H/2);ctx.strokeStyle='#c0babc';ctx.lineWidth=1;
- for(const r of [25,37,45]){ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.stroke()}
- for(let j=0;j<12;j++){const a=j*Math.PI/6;ctx.beginPath();ctx.moveTo(Math.cos(a)*37,Math.sin(a)*37);ctx.lineTo(Math.cos(a)*52,Math.sin(a)*52);ctx.stroke()}
- ctx.beginPath();ctx.moveTo(0,-39);ctx.lineTo(8,-8);ctx.lineTo(39,0);ctx.lineTo(8,8);ctx.lineTo(0,39);ctx.lineTo(-8,8);ctx.lineTo(-39,0);ctx.lineTo(-8,-8);ctx.closePath();ctx.strokeStyle='#dfd6cf';ctx.stroke();
- ctx.fillStyle='#d8d0c8';ctx.font='25px Georgia,serif';ctx.textAlign='center';ctx.fillText('☾',0,10);
- ctx.restore();
+ paintCelestialBack(ctx,x,y,W,H);
 }
 function fallbackFace(ctx,x,y,card){
  // Never substitute invented Tarot illustrations for missing historical RWS art.
