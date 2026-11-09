@@ -66,7 +66,10 @@ export function cameraDistance(time){
  // Deck first drops AWAY into deep space. Only after it is very small do
  // all 78 sheets scatter toward the viewer as the camera crosses the shell.
  if(time<1.2)return mix(9.5,12.6,smooth(time/1.2));
- return 12.6*(1-smooth((time-4.1)/2.7));
+ // No 2.9s idle plateau: physical sphere approaches every frame from
+ // first dispersion, with strictly positive speed through entry.
+ const u=clamp((time-1.2)/5.7);
+ return 12.6*(1-(.29*u+.71*smooth(u)));
 }
 export function orbitAngle(time){
  const t=Math.max(0,time);if(t<1.2)return t*.4;
@@ -74,6 +77,18 @@ export function orbitAngle(time){
  const fade=Math.min(t-4.1,2.8);
  const angle=.48+4.7*2.9+4.7*fade+(0.065-4.7)*(fade*fade)/(2*2.8);
  return angle+Math.max(0,t-6.9)*.065;
+}
+/**
+ * Tangential inertial rotation during the exterior sequence. Two secondary
+ * axes evolve continuously and decay gently into a comfortable inner orbit.
+ * Returned angles are used for BOTH card position and normals.
+ */
+export function gyroAttitude(time){
+ const t=Math.max(0,time),fade=1-smooth((t-5.8)/1.6);
+ return {
+  pitch:(.13*Math.sin(t*1.39)+.11*Math.sin(t*.57+.4))*fade,
+  roll:(.17*Math.sin(t*.94+.7)-.045*Math.cos(t*1.62))*fade
+ };
 }
 export function assemblyProgress(time){return smooth((time-1.05)/2.05);}
 export function cardWorld(point,time,selected=false){
