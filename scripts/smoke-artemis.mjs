@@ -1,0 +1,54 @@
+/** Artemis visual acceptance is isolated from Gate B production. */
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+import {mkdir,writeFile} from 'node:fs/promises';
+const dir='artifacts/artemis-v01';await mkdir(dir,{recursive:true});
+const browser=await chromium.launch({headless:true,args:['--no-sandbox','--enable-webgl','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+const errors=[],steps=[];let page;
+try{
+ page=await browser.newPage({viewport:{width:1280,height:800},deviceScaleFactor:1});
+ page.on('pageerror',e=>errors.push(String(e)));
+ await page.goto('http://127.0.0.1:4184/preview/artemis/',{waitUntil:'domcontentloaded'});
+ await page.locator('.artemis-stage-v1[data-phase="intro"]').waitFor();
+ await page.screenshot({path:dir+'/01-intro.png'});
+ assert.equal(await page.locator('.ar-original-spread .ar-card').count(),3);
+ assert.equal(await page.locator('#portrait-review option').count(),16);
+ await page.locator('#portrait-review').selectOption('invocation');
+ assert.equal(await page.locator('.artemis-stage-v1').getAttribute('data-portrait'),'invocation');
+ steps.push('Sixteen consistent portrait states render; intro shows exactly three original RWS card IDs');
+ await page.locator('[data-artemis-action="welcome"]').click();
+ await page.locator('[data-artemis-action="prepare"]').click();
+ await page.locator('[data-artemis-action="read"]').click();
+ await page.waitForFunction(()=>document.querySelector('.artemis-stage-v1')?.dataset.phase==='reading_present',{timeout:12000});
+ assert.equal(await page.locator('.ar-reading-meanings article').count(),3);
+ assert.match(await page.locator('.ar-demo-label').innerText(),/No AI request sent/);
+ await page.screenshot({path:dir+'/02-reading.png'});
+ steps.push('Reading preparation, loading state and three-card local interpretation');
+ await page.locator('[data-artemis-action="guidance_offer"]').click();
+ await page.locator('[data-artemis-action="draw"]').click();
+ await page.waitForFunction(()=>document.querySelector('.artemis-stage-v1')?.dataset.phase==='guidance_result',{timeout:12000});
+ const ids=await page.evaluate(()=>window.__ARTEMIS_STAGE__.state);
+ assert.equal(ids.picks.length,3);
+ assert.ok(!ids.picks.some(p=>p.id===ids.guidance?.id));
+ await page.screenshot({path:dir+'/03-guidance.png'});
+ steps.push('One genuinely different guidance card sampled from the 75 remaining cards');
+ await page.locator('[data-artemis-action="followup_idle"]').click();
+ await page.locator('#ar-followup-input').fill('What should I verify before deciding?');
+ await page.locator('.ar-followup-form button').click();
+ await page.locator('.artemis-stage-v1[data-phase="followup_response"]').waitFor();
+ assert.equal(await page.evaluate(()=>window.__ARTEMIS_STAGE__.state.followups.length),1);
+ await page.screenshot({path:dir+'/04-followup.png'});
+ steps.push('Deterministic local-only follow-up and readable reflective response');
+ await page.goto('http://127.0.0.1:4184/preview/artemis/?lang=zh',{waitUntil:'domcontentloaded'});
+ await page.locator('.artemis-stage-v1[data-phase="intro"]').waitFor();
+ assert.match(await page.locator('.ar-dialogue').innerText(),/三张牌/);
+ await page.screenshot({path:dir+'/05-chinese.png'});
+ steps.push('Chinese ritual UI and original RWS cards');
+ assert.deepEqual(errors,[],'No uncaught browser errors');
+ await writeFile(dir+'/review.json',JSON.stringify({passed:true,steps,errors},null,2));
+ console.log('Artemis standalone Chromium review PASS',steps);
+}catch(error){
+ await page?.screenshot({path:dir+'/failure.png'}).catch(()=>{});
+ await writeFile(dir+'/review.json',JSON.stringify({passed:false,steps,errors,error:String(error)},null,2));
+ throw error;
+}finally{await browser.close();}
