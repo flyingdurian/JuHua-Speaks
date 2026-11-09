@@ -1,0 +1,51 @@
+name: Artemis reading stage review (no deploy)
+on:
+  push:
+    branches: [feat/artemis-reading-stage-v01]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: |
+          node --check preview/artemis/ArtemisMachine.mjs
+          node --check preview/artemis/ArtemisPortrait.mjs
+          node --check preview/artemis/ArtemisStage.mjs
+          node --check preview/artemis/demo.mjs
+          node --check preview/post-shuffle/scene.mjs
+      - run: npm test
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright
+      - run: npx playwright install chromium --only-shell
+      - run: npm run assets:sync
+      - name: Start isolated review server
+        run: |
+          npm run preview:gate-b > /tmp/artemis-preview.log 2>&1 &
+          for i in $(seq 1 35); do
+            if curl -fsS http://127.0.0.1:4184/preview/artemis/ >/dev/null; then break; fi
+            sleep 2
+          done
+      - run: node scripts/smoke-artemis.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: artemis-stage-shots-and-review
+          path: |
+            artifacts/artemis-v01
+            /tmp/artemis-preview.log
+          retention-days: 14
