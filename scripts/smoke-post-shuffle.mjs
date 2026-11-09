@@ -32,6 +32,19 @@ try{
   assert.ok(newlySelected,'A real screen click must select card '+(i+1));
   const choices=await page.evaluate(()=>window.__POST_SHUFFLE__.selected());
   assert.equal(choices.length,i+1);selected.push(choices.at(-1).id);
+  if(i===2){
+   // A real intermediate frame must exist: three chosen back surfaces are
+   // still travelling from sphere coordinates into the prepared tableau.
+   const handoff=await page.evaluate(()=>({
+    ghosts:document.querySelectorAll('.ps-handoff-card').length,
+    prepared:document.querySelector('.ps-tableau')?.classList.contains('ps-handoff-prepared'),
+    settled:document.querySelector('.ps-tableau')?.classList.contains('ps-handoff-settled')
+   }));
+   assert.equal(handoff.ghosts,3,'third pick must create three physical-card transition surfaces');
+   assert.equal(handoff.prepared,true,'reveal destinations must exist before stage handoff');
+   assert.equal(handoff.settled,false,'reveal must not blink open during the third click');
+   await page.screenshot({path:dir+'/06-seamless-three-card-handoff.png'});
+  }
   await page.screenshot({path:dir+'/05-selected-'+(i+1)+'.png'});
  }
  assert.deepEqual(await page.evaluate(()=>window.__POST_SHUFFLE__.selected().map(c=>c.id)),selected);
