@@ -5,6 +5,7 @@
  */
 import {BY_ID,commonsThumbnailUrl,secureRandomInt} from '../../src/deck.mjs';
 import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
+import {createCardVapor} from './CardVapor.mjs';
 
 export const FOIL_FINISHES=Object.freeze([
  'celestial-holographic-wash','chroma-shifting-metallic-sheen',
@@ -36,6 +37,7 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
  if(!mount||!Array.isArray(picks)||picks.length!==3||new Set(picks.map(p=>p.id)).size!==3)throw new Error('Exactly three unique cards required');
  if(!FOIL_FINISHES.includes(foil))throw new Error('Invalid session foil');
  const backUrl=paintBackDataUrl();
+ const vapor=createCardVapor({reduceMotion:window.matchMedia?.('(prefers-reduced-motion:reduce)').matches??false});
  let revealed=0,disposed=false;
  const section=node('section','ps-tableau ps-foil-'+foil);
  section.setAttribute('aria-label','Your three Tarot cards: Past, Present, Future');
@@ -52,11 +54,14 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
   const item=node('article','ps-tableau-item');
   const role=node('h3','ps-tableau-role',String(i+1).padStart(2,'0')+'. '+SPREAD_ROLES[i]);
   const button=node('button','ps-flip-button');
-  button.type='button';
+  button.type='button';button.disabled=true; // Never reveal unloaded artwork
   button.setAttribute('aria-label','Reveal '+SPREAD_ROLES[i]+' card');
   const flip=node('div','ps-flip-inner');
   const back=node('div','ps-card-side ps-card-back');
   back.style.backgroundImage='url("'+backUrl+'")';
+  vapor.attach(back);
+  const backWarning=node('span','ps-back-asset-warning','Original RWS artwork unavailable — run npm run assets:sync');
+  backWarning.hidden=true;back.append(backWarning);
   const face=node('div','ps-card-side ps-card-front');
   const image=node('img','ps-card-art');
   image.alt=card.name+' Rider–Waite–Smith illustration';
@@ -66,11 +71,21 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
   foilLayer.setAttribute('aria-hidden','true');
   const artifactNote=node('div','ps-card-art-unavailable','RWS artwork unavailable');
   artifactNote.hidden=true;
+  image.onload=()=>{
+   if(disposed)return;
+   if(image.naturalWidth>0&&image.naturalHeight>0){
+    image.hidden=false;artifactNote.hidden=true;backWarning.hidden=true;
+    button.disabled=false;button.dataset.artLoaded='true';
+   }
+  };
   image.onerror=()=>{
+   if(disposed)return;
    if(!image.dataset.triedCommons){
     image.dataset.triedCommons='true';image.src=commonsThumbnailUrl(card);
    }else{
     artifactNote.hidden=false;image.hidden=true;
+    backWarning.hidden=false;button.disabled=true;
+    button.dataset.artLoaded='false';
    }
   };
   image.src=new URL('../../assets/rws/'+pick.id+'.jpg',import.meta.url).href;
@@ -92,6 +107,7 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
    const settle=()=>{
     if(disposed||settled)return;
     settled=true;detail.hidden=false;item.classList.add('ps-landed');revealed++;
+    if(revealed===3)vapor.stop();
     onRevealed({index:i,id:pick.id,allRevealed:revealed===3,foil});
    };
    // Disabled buttons do not reliably bubble animationend in Chromium.
@@ -109,10 +125,11 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
  mount.append(section);
  return {
   foil,element:section,picks:picks.map(p=>({...p})),
-  show(){if(disposed)return;section.hidden=false;requestAnimationFrame(()=>section.classList.add('ps-tableau-visible'));},
-  hide(){section.classList.remove('ps-tableau-visible');section.hidden=true},
+  show(){if(disposed)return;section.hidden=false;vapor.start();requestAnimationFrame(()=>section.classList.add('ps-tableau-visible'));},
+  hide(){vapor.stop();section.classList.remove('ps-tableau-visible');section.hidden=true},
   get revealed(){return revealed},
   controls,
-  dispose(){disposed=true;for(const img of faceImages){img.onerror=null;img.src='';}section.remove();}
+  get vaporFrames(){return vapor.frames},
+  dispose(){disposed=true;vapor.dispose();for(const img of faceImages){img.onload=null;img.onerror=null;img.src='';}section.remove();}
  };
 }
