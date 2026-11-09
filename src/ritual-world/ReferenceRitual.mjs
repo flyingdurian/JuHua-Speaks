@@ -41,11 +41,11 @@ export const RITUAL_BEATS=Object.freeze([
  Object.freeze({id:'implosion',start:5.45,end:6.30}),
  Object.freeze({id:'suspension',start:6.30,end:7.10}),
  Object.freeze({id:'detonation',start:7.10,end:8.15}),
- Object.freeze({id:'globe',start:8.15,end:12.35}),
- Object.freeze({id:'dispersal',start:12.35,end:13.20}),
- Object.freeze({id:'three_piles',start:13.20,end:14.00}),
- Object.freeze({id:'pile_shuffle',start:14.00,end:15.30}),
- Object.freeze({id:'consolidation',start:15.30,end:RITUAL_DURATION})
+ Object.freeze({id:'globe',start:8.15,end:10.70}),
+ Object.freeze({id:'dispersal',start:10.70,end:12.20}),
+ Object.freeze({id:'three_piles',start:12.20,end:13.95}),
+ Object.freeze({id:'pile_shuffle',start:13.95,end:15.65}),
+ Object.freeze({id:'consolidation',start:15.65,end:RITUAL_DURATION})
 ]);
 
 function orientedFrom(normal,rightHint=[1,0,0]){
@@ -249,39 +249,40 @@ function detonationPose(card,t){
 }
 function subdeckPose(card,t){
  const k=card.orbitSlot,g=k%3,slot=Math.floor(k/3);
- const centerX=[-3.65,0,3.65][g],centerZ=[-14.2,-14.0,-14.5][g];
- const orientation=facing(.49+(g-1)*.10,-.10,.026*(g-1));
- const layer=(slot-12.5)*.0145;
+ const centerX=[-3.78,0,3.78][g],centerZ=[-13.8,-13.35,-13.8][g];
+ // Showcase 26 individually layered pages per pile, angled nearly edge-on.
+ const orientation=facing(1.13+(g-1)*.07,-.07,.028*(g-1));
+ const layer=(slot-12.5)*.052;
  return pose([
-  centerX+orientation.normal[0]*layer,
-  -.08+orientation.normal[1]*layer,
+  centerX+orientation.normal[0]*layer+.011*Math.sin(slot*.81+g),
+  -.08+orientation.normal[1]*layer+.014*Math.cos(slot*.74+g),
   centerZ+orientation.normal[2]*layer
- ],orientation,1.04);
+ ],orientation,1.16);
 }
 function splitPose(card,t){
  const delay=(card.orbitSlot%7)*.012;
- const p=clamp((t-12.35-delay)/(.85-delay));
- const from=chaoticGlobePose(card,t),to=subdeckPose(card,t);
+ const p=clamp((t-10.70-delay)/(1.50-delay));
+ const from=directGlobe(chaoticGlobePose(card,t),t),to=subdeckPose(card,t);
  const result=blend(from,to,p);
  result.position[1]+=.36*Math.sin(Math.PI*ease(p));
  return result;
 }
 function fannedDeckPose(card,t){
  const k=card.orbitSlot,ang=k*GOLDEN;
- const orientation=facing(.98+.02*Math.sin(t*.3),-.11,.012*Math.cos(t*.8));
- const layer=(k-38.5)*.0158;
+ const orientation=facing(.82+.025*Math.sin(t*.3),-.11,.018*Math.cos(t*.8));
+ const layer=(k-38.5)*.0188;
  return pose([
-  orientation.normal[0]*layer+.054*Math.sin(ang),
-  -.08+orientation.normal[1]*layer+.034*Math.cos(ang),
-  -16.25+orientation.normal[2]*layer+.063*Math.cos(ang)
- ],orientation,1.06);
+  orientation.normal[0]*layer+.036*Math.sin(ang),
+  -.08+orientation.normal[1]*layer+.024*Math.cos(ang),
+  -16.25+orientation.normal[2]*layer+.039*Math.cos(ang)
+ ],orientation,1.12);
 }
 function transferPose(card,t){
  const k=card.orbitSlot,g=k%3,slot=Math.floor(k/3),from=subdeckPose(card,t);
  const to=fannedDeckPose(card,t);
- const delay=(g===1?0:.020)+slot/25*.64+(g===2?.035:0);
- const dur=g===1?.42:.40;
- const p=clamp((t-14.00-delay)/dur);
+ const delay=(g===1?0:.10)+slot/25*1.04+(g===2?.045:0);
+ const dur=g===1?.45:.43;
+ const p=clamp((t-13.95-delay)/dur);
  const result=blend(from,to,p);
  const arch=Math.sin(Math.PI*ease(p));
  result.position[1]+=arch*(g===1?.10:.55);
@@ -289,7 +290,7 @@ function transferPose(card,t){
  return result;
 }
 function settlePose(card,t,deckPose,worldTime){
- return blend(fannedDeckPose(card,t),deckPose(card,worldTime),(t-15.30)/(RITUAL_DURATION-15.30));
+ return blend(fannedDeckPose(card,t),deckPose(card,worldTime),(t-15.65)/(RITUAL_DURATION-15.65));
 }
 export function sampleReferenceRitual(card,{age=0,landingAt=0,worldTime=0,entranceMode='inside-out',deckPose}={}){
  if(typeof deckPose!=='function')throw Error('Reference ritual requires a physical canonical deckPose');
@@ -299,10 +300,10 @@ export function sampleReferenceRitual(card,{age=0,landingAt=0,worldTime=0,entran
  if(t<6.30)return implosionPose(card,t);
  if(t<7.10)return pocketPose(card,t);
  if(t<8.15)return directGlobe(detonationPose(card,t),t);
- if(t<12.35)return directGlobe(chaoticGlobePose(card,t),t);
- if(t<13.20)return splitPose(card,t);
- if(t<14.00)return subdeckPose(card,t);
- if(t<15.30)return transferPose(card,t);
+ if(t<10.70)return directGlobe(chaoticGlobePose(card,t),t);
+ if(t<12.20)return splitPose(card,t);
+ if(t<13.95)return subdeckPose(card,t);
+ if(t<15.65)return transferPose(card,t);
  if(t<RITUAL_DURATION)return settlePose(card,t,deckPose,worldTime);
  return deckPose(card,worldTime);
 }
