@@ -587,7 +587,8 @@ try{
  const kept=await page.locator('.reading-art-card').evaluateAll(ns=>ns.map(n=>n.dataset.originalCardId));
  assert.deepEqual(kept,beforeIDs,'Synthesis animation must not shuffle or replace the original three');
  assert.equal(await page.locator('.synthesis-question p').innerText(),
-  'How can I find clarity in the decision ahead?');
+  'What can these cards help me reflect on?',
+  'Synthesis must pin the exact active original question, not invent another');
  await page.screenshot({path:dir+'/16-mobile-synthesis-generating-390x844.png'});
  await page.waitForFunction(()=>document.querySelector('.reading-chat-hud')?.dataset.chatState==='ready',
   undefined,{timeout:12000});
