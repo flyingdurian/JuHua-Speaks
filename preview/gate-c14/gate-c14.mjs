@@ -9,6 +9,8 @@ import {DECK,BY_ID,shuffleDeck,drawOrientation} from '../../src/deck.mjs';
 import {GATE_B_HANDOFF_KEY,parseGateBHandoff} from '../../src/gate-b-handoff.mjs';
 import {sphereLayout,projectCard,validateDeck,addChoice,removeChoice,assertSelection,entryProjection,entryProgress} from './geometry.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
+import {buildDemoReading} from '../../src/demo-reading.mjs';
+import {canBeginReading,handoffDuration,renderReadingStage,READING_CHAPTERS} from './reading-stage.mjs';
 
 const root=document.getElementById('ritual'),params=new URLSearchParams(location.search);
 const roles=['Past','Present','Future'];
@@ -28,7 +30,9 @@ if(params.get('from')==='gate-b'&&!handoff){
 const deck=validateDeck(handoff?.cardIds?.every(id=>validIds.has(id))?handoff.cardIds:shuffleDeck().map(c=>c.id));
 const layout=sphereLayout(),coordinates=new Map(deck.map((id,i)=>[id,layout[i]])),buttons=new Map();
 let stage='sphere',choices=[],yaw=-14,pitch=-9,paused=false,press=null,frame=0,previous=0,enteredAt=0,sky=null,transitionTimer=null;
-let peeking=null,ignoreClickUntil=0;
+let peeking=null,ignoreClickUntil=0,readingChapter=-1,readingTransitionToken=0;
+const readingQuestion=handoff?.question||'What can these three cards help me reflect on?';
+function demoReading(){return buildDemoReading({question:readingQuestion,picks:choices.map(c=>({card:BY_ID.get(c.id),orientation:c.orientation})),options:['',''],lang:'en',spread:'insight',lens:'western'});}
 const peel=Array.from({length:3},()=>({mode:'right',progress:0}));
 const back=()=>'<img src="'+backArt+'" alt="" draggable="false">';
 function sceneSky(){return '<div class="deep-sky" id="deep-sky" aria-hidden="true"><canvas class="deep-star-canvas" id="deep-star-canvas"></canvas></div>'}
@@ -116,7 +120,7 @@ function trioMarkup(){
     '<strong>'+escapeHtml(card.name)+'</strong><span> · '+(choice.orientation==='reversed'?'Reversed':'Upright')+'</span>'+
     '<p>'+escapeHtml(meaning)+'</p></div>'+
   '</article>';
- }).join('')+'</div></section>';
+ }).join('')+'</div><div class="reading-entry" id="reading-entry" aria-live="polite"><p class="reading-entry-complete" id="reading-entry-complete" hidden>All three cards have been revealed. Take a moment with your spread.</p><button type="button" id="begin-reading" data-action="begin-reading" disabled>BEGIN READING <span aria-hidden="true">✧</span></button></div></section>';
 }
 function showTrio(){
  if(choices.length!==3)return;
@@ -164,7 +168,38 @@ function paintPeel(i){
  el.setAttribute('aria-valuenow',String(Math.round(p*100)));
  el.setAttribute('aria-valuetext',p>=.985?'Card fully revealed':Math.round(p*100)+' percent revealed from '+progressLabel(mode));
  meta.classList.toggle('is-visible',p>=.985);
+ const ready=canBeginReading(choices,peel);
+ const begin=root.querySelector('#begin-reading'),message=root.querySelector('#reading-entry-complete');
+ if(begin){begin.disabled=!ready;begin.classList.toggle('is-ready',ready);begin.setAttribute('aria-describedby',ready?'reading-entry-complete':'');}
+ if(message)message.hidden=!ready;
 }
+function beginReading(){
+ if(stage!=='reveal'||!canBeginReading(choices,peel))return false;
+ stage='reading-transition';root.dataset.stage=stage;
+ const token=++readingTransitionToken;
+ const veil=document.createElement('div');veil.className='reading-handoff-veil';veil.setAttribute('role','status');veil.setAttribute('aria-live','polite');
+ veil.innerHTML='<div class="reading-handoff-aura" aria-hidden="true"><span>✧</span></div><p>THE CARDS ARE READY TO SPEAK</p>';
+ root.append(veil);
+ transitionTimer=setTimeout(()=>{
+  if(token!==readingTransitionToken||stage!=='reading-transition')return;
+  transitionTimer=null;showReading();
+ },handoffDuration(reduced()));
+ return true;
+}
+function showReading(){
+ if(!canBeginReading(choices,peel))return false;
+ stage='reading';root.dataset.stage=stage;
+ if(transitionTimer){clearTimeout(transitionTimer);transitionTimer=null;}
+ sky?.dispose();sky=null;
+ root.innerHTML=renderReadingStage({choices,cardsById:BY_ID,demo:demoReading(),chapter:readingChapter,question:readingQuestion});
+ root.querySelector('#artemis-reading-title')?.focus({preventScroll:true});
+ return true;
+}
+function selectReadingChapter(chapter){
+ if(stage!=='reading'||!READING_CHAPTERS.includes(chapter))return false;
+ readingChapter=chapter;showReading();root.querySelector('#artemis-chapter-title')?.focus({preventScroll:true});return true;
+}
+
 function setPeel(i,p,mode=peel[i]?.mode||'right'){
  if(!peel[i]||!['left','right','bottom','corner'].includes(mode))return;
  peel[i]={mode,progress:clamp(p)};
@@ -182,10 +217,14 @@ root.addEventListener('click',event=>{
  const button=event.target.closest('button');
  if(button?.dataset.cardId){if(Date.now()>=ignoreClickUntil)choose(button.dataset.cardId);return}
  if(button?.dataset.action){
+   if(button.dataset.action==='begin-reading'){beginReading();return;}
+   if(button.dataset.action==='reading-next'){selectReadingChapter(readingChapter===3?0:readingChapter+1);return;}
+   if(button.dataset.action==='reading-prev'){selectReadingChapter(Math.max(-1,readingChapter-1));return;}
   if(button.dataset.action==='left'){yaw-=18;paint()}
   if(button.dataset.action==='right'){yaw+=18;paint()}
   if(button.dataset.action==='pause'){paused=!paused;button.textContent=paused?'▶':'Ⅱ';button.setAttribute('aria-label',paused?'Resume orbit':'Pause orbit')}
  }
+ if(button?.hasAttribute('data-reading-chapter')){selectReadingChapter(Number(button.dataset.readingChapter));return;}
  const hit=event.target.closest('[data-peek-index]');
  if(hit&&stage==='reveal'&&Date.now()>=ignoreClickUntil){
   const i=Number(hit.dataset.peekIndex);
@@ -248,11 +287,12 @@ function tick(time){
  }
  frame=requestAnimationFrame(tick);
 }
-window.addEventListener('pagehide',()=>{if(transitionTimer)clearTimeout(transitionTimer);sky?.dispose();cancelAnimationFrame(frame)});
+window.addEventListener('pagehide',()=>{readingTransitionToken++;if(transitionTimer)clearTimeout(transitionTimer);sky?.dispose();cancelAnimationFrame(frame)});
 window.__JUHUA_C14__={
  stage:()=>stage,selected:()=>choices.map(x=>({...x})),deck:()=>[...deck],
  visible:()=>[...buttons].filter(([,b])=>!b.hidden).map(([id])=>id),
  choose,undo,enterScene:showSphere,showTrio,
- peek:(i,p,mode)=>setPeel(i,p,mode),peekStates:()=>peel.map(x=>({...x}))
+ peek:(i,p,mode)=>setPeel(i,p,mode),peekStates:()=>peel.map(x=>({...x})),
+ canBeginReading:()=>canBeginReading(choices,peel),beginReading,readingChapter:()=>readingChapter,selectReadingChapter
 };
 showSphere();frame=requestAnimationFrame(tick);
