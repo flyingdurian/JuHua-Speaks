@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 const host='http://127.0.0.1:'+(process.env.GATE_B_PORT||4184);
 const dir='artifacts/post-shuffle';await mkdir(dir,{recursive:true});
@@ -231,6 +231,34 @@ try{
  assert.ok(phone.panel.width<=phone.screen+2,'The Artemis panel must fit phone width');
  assert.ok(phone.nextLabel?.trim().length>2,'Mobile panel must preserve the primary Next control');
  await page.screenshot({path:dir+'/11-artemis-phone-390x844.png',fullPage:true});
+ // Approved 458×553 reading-stage concept is the spatial authority. Record
+ // normalized anatomy even when the real 31 source assets are pending import.
+ await page.setViewportSize({width:458,height:553});
+ await page.waitForTimeout(600);
+ const fidelity=await page.evaluate(()=>{
+  const box=selector=>{const r=document.querySelector(selector)?.getBoundingClientRect();
+   return r?{x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom}:null};
+  const cards=[...document.querySelectorAll('.reading-art-card-frame')].map(n=>{
+   const b=n.getBoundingClientRect(),m=new DOMMatrixReadOnly(getComputedStyle(n).transform);
+   return {x:b.x,y:b.y,width:b.width,height:b.height,bottom:b.bottom,
+    tiltDeg:Math.abs(Math.atan2(m.m23,m.m22)*180/Math.PI)};
+  });
+  return {viewport:{width:innerWidth,height:innerHeight},
+   header:box('.reading-art-header'),portrait:box('.reading-art-portrait'),
+   table:box('.reading-art-table-surface'),panel:box('.reading-art-panel'),
+   hero:box('.reading-art-hero'),cards,
+   backgroundReady:document.querySelector('.reading-art-atmosphere')?.dataset.artStatus==='ready'};
+ });
+ await writeFile(dir+'/12-artemis-fidelity-458x553.json',JSON.stringify(fidelity,null,2));
+ await page.screenshot({path:dir+'/12-artemis-fidelity-458x553.png',fullPage:true});
+ assert.ok(Math.abs(fidelity.header.bottom-61)/61<=.15,'Reference header boundary must be within 15%');
+ assert.ok(Math.abs(fidelity.panel.y-405)/405<=.15,'Reference HUD start must be within 15%');
+ assert.equal(fidelity.cards.length,3);
+ assert.ok(fidelity.cards.every(c=>c.x>=-1&&c.x+c.width<=459&&c.bottom<fidelity.panel.y),
+  'Every slanted card must stay on the tabletop above the framed dialogue');
+ assert.ok(fidelity.cards.every(c=>c.tiltDeg>=35&&c.tiltDeg<=45),
+  'Actual CSS transform must project backward at 35–45 degrees');
+ assert.ok(fidelity.portrait.y>=fidelity.header.bottom-8,'Portrait cannot overdraw the chapter heading');
  assert.deepEqual(errors,[]);
  console.log('Post-shuffle browser PASS: v3.4 sphere, 3 selections, RWS reveals, opt-in Begin Reading, four Artemis portraits and preserved identities');
 }finally{await browser.close()}
