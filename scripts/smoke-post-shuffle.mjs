@@ -188,6 +188,7 @@ try{
   'Artemis illustration must not overlap the title');
  assert.ok(welcomeLayout.panelTop-welcomeLayout.cardsBottom>10,
   'Card meanings need space above the narrative frame');
+ await page.waitForTimeout(1100); // Capture after the 900ms authored chamber arrival, not its deliberately black first frame.
  await page.screenshot({path:dir+'/09-artemis-warm-welcome.png'});
  await page.locator('[data-action="reading-next"]').click();
  assert.equal(await page.locator('.reading-art-panel-skin').count(),1,'Narrative update must not remove art skin');
