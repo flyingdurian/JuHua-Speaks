@@ -193,11 +193,11 @@ try{
  await page.locator('[data-action="reading-next"]').click();
  assert.equal(await page.locator('.reading-art-panel-skin').count(),1,'Narrative update must not remove art skin');
  assert.equal(await page.locator('.reading-art-panel-corners').count(),1,'Narrative update must not remove corners');
- await expectPortrait('artemis_welcoming_gesture.webp');
+ await expectPortrait('artemis_explaining.webp');
  await page.locator('[data-action="reading-next"]').click();
  await expectPortrait('artemis_thinking.webp');
  await page.locator('[data-action="reading-next"]').click();
- await expectPortrait('artemis_reflective.webp');
+ await expectPortrait('artemis_reading.webp');
  await page.waitForTimeout(510); // End of the deliberately short portrait crossfade.
  const finalLayout=await readingGeometry();
  assert.ok(Math.abs(finalLayout.heroTop-welcomeLayout.heroTop)<1,
@@ -260,6 +260,17 @@ try{
  assert.ok(fidelity.cards.every(c=>c.tiltDeg>=35&&c.tiltDeg<=45),
   'Actual CSS transform must project backward at 35–45 degrees');
  assert.ok(fidelity.portrait.y>=fidelity.header.bottom-8,'Portrait cannot overdraw the chapter heading');
+ assert.equal(fidelity.backgroundReady,true,'31-pack chamber background must be registered');
+ const actualArtwork=await page.evaluate(()=>{
+  const selectors=['.reading-art-atmosphere img','.reading-art-portrait img',
+   '.reading-art-panel-skin img','.reading-art-panel-corners img',
+   '.reading-art-halo img','.reading-art-reading-glow img'];
+  return selectors.map(selector=>{
+   const image=document.querySelector(selector);
+   return {selector,ok:!!image&&image.complete&&image.naturalWidth>200&&image.naturalHeight>100};
+  });
+ });
+ assert.ok(actualArtwork.every(item=>item.ok),'All six full-resolution chamber layers must decode from the installed 31-pack: '+JSON.stringify(actualArtwork));
  assert.deepEqual(errors,[]);
  console.log('Post-shuffle browser PASS: v3.4 sphere, 3 selections, RWS reveals, opt-in Begin Reading, four Artemis portraits and preserved identities');
 }finally{await browser.close()}
