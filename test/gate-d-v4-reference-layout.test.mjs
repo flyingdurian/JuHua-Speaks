@@ -94,7 +94,8 @@ test('Reveal sandbox has four styles, intensity slider, live texture updates and
  const tableau=await source('../preview/post-shuffle/TarotTableau.mjs');
  const css=await source('../preview/post-shuffle/reading-polish-v4.css');
  assert.match(tableau,/ps-foil-sandbox/);
- assert.match(tableau,/for\(const style of ART_OVERLAY_STYLES\)/);
+ assert.match(tableau,/for\(const style of SANDBOX_FOIL_STYLES\)/);
+ assert.match(tableau,/FOIL_ANIM_V1,\.\.\.ART_OVERLAY_STYLES/);
  assert.match(tableau,/setFoilIntensity/);
  assert.match(tableau,/data-foil-intensity|dataset\.foilIntensity/);
  assert.match(tableau,/juhua-foil-config\.json/);
