@@ -181,7 +181,7 @@ try{
    cardFrames:cards.map(rect=>({top:rect.top,bottom:rect.bottom,left:rect.left,right:rect.right}))};
  });
  const welcomeLayout=await readingGeometry();
- assert.equal(welcomeLayout.cardTilt,40,'DOM records the 40° authoring target; CSS renders 42° for perspective');
+ assert.equal(welcomeLayout.cardTilt,42,'Cards must use the approved 42° tabletop perspective');
  assert.ok(welcomeLayout.cardFrames.every(rect=>rect.top>0&&rect.bottom<welcomeLayout.panelTop),
   'Every physical RWS frame must sit fully above the dialogue HUD');
  assert.ok(welcomeLayout.portraitTop>=welcomeLayout.headerBottom-8,
