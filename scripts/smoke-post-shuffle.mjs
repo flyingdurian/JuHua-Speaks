@@ -422,7 +422,16 @@ try{
    textScrolls:getComputedStyle(document.querySelector('.reading-art-narration-text')).overflowY==='auto',
    cardFrames:[...document.querySelectorAll('.reading-art-card-frame')].map(el=>{const r=el.getBoundingClientRect();return {width:r.width,top:r.top,bottom:r.bottom}}),
    nextLabel:document.querySelector('[data-action="reading-next"]')?.textContent,
-   nextButtonBottom:document.querySelector('[data-action="reading-next"]')?.getBoundingClientRect().bottom};
+   nextButtonBottom:document.querySelector('[data-action="reading-next"]')?.getBoundingClientRect().bottom,
+   nextButtonTop:document.querySelector('[data-action="reading-next"]')?.getBoundingClientRect().top,
+   previousButtonTop:document.querySelector('[data-action="reading-prev"]')?.getBoundingClientRect().top,
+   cueOverlap:(()=>{
+    const cue=document.querySelector('.reading-art-scroll-cue');
+    const btn=document.querySelector('[data-action="reading-next"]');
+    if(!cue||getComputedStyle(cue).display==='none')return false;
+    const c=cue.getBoundingClientRect(),b=btn.getBoundingClientRect();
+    return c.left<b.right&&c.right>b.left&&c.top<b.bottom&&c.bottom>b.top;
+   })()};
  });
  assert.equal(phone.cards.length,3);
  assert.ok(phone.cards.every(c=>c.left>=-2&&c.right<=phone.screen+2),
@@ -431,6 +440,10 @@ try{
  assert.ok(phone.nextLabel?.trim().length>2,'Mobile panel must preserve the primary Next control');
  assert.ok(phone.nextButtonBottom<=phone.scene.bottom-3,
   'On a 390x844 phone the complete interpretation and Next control must be visible without initially scrolling the stage: '+JSON.stringify({button:phone.nextButtonBottom,viewport:phone.scene.bottom}));
+ assert.ok(Math.abs(phone.nextButtonTop-phone.previousButtonTop)<=3,
+  'Premium mobile Previous and Next controls must share one horizontal row: '+
+  JSON.stringify({previousTop:phone.previousButtonTop,nextTop:phone.nextButtonTop}));
+ assert.equal(phone.cueOverlap,false,'Scroll hint may never cover the primary CTA');
  assert.ok(phone.hero.height>=350&&phone.hero.height<=phone.scene.height*.80,
   'Tall mobile scene must reserve space for a complete reading HUD without a huge empty region');
  assert.ok(phone.panel.width>=phone.screen-22,
@@ -517,6 +530,9 @@ try{
  assert.ok(fidelity.cards.every(c=>c.tiltDeg>=35&&c.tiltDeg<=45),
   'Actual CSS transform must project backward at 35–45 degrees');
  assert.ok(fidelity.portrait.y>=fidelity.header.bottom-8,'Artemis must be anchored below the question header');
+ assert.ok(fidelity.cards[1].y>=fidelity.portrait.y+fidelity.portrait.height*.54,
+  'At 458x553 the centre card must begin BELOW Artemis face, around her lower chest: '+
+  JSON.stringify({cardTop:fidelity.cards[1].y,portraitTop:fidelity.portrait.y,portraitHeight:fidelity.portrait.height}));
  assert.equal(fidelity.backgroundReady,true,'31-pack chamber background must be registered');
  const actualArtwork=await page.evaluate(()=>{
   const selectors=['.reading-art-atmosphere img','.reading-art-portrait img',
