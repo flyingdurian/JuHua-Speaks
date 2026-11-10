@@ -737,3 +737,10 @@
  .scene-artemis-reading .reading-art-control{transition:none!important}
  .scene-artemis-reading .reading-art-control.is-primary::before{transition:none!important}
 }
+
+/* The inherited chamber-settle keyframes animate Artemis from opacity zero
+ * despite a solid image. This is physically incorrect during the entrance.
+ * Keep only the image-state crossfade; the portrait stage itself is opaque. */
+.scene-artemis-reading .reading-art-portrait{
+ animation:none!important;opacity:1!important;
+}
