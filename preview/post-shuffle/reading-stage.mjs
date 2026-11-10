@@ -119,6 +119,7 @@ export function renderReadingPanel(demo,chapter){
   '<p class="reading-art-kicker">'+esc(current.eyebrow)+'</p>'+
   '<h2 class="reading-art-narration-title" id="artemis-chapter-title" tabindex="-1">'+esc(current.title)+'</h2>'+
   '<p class="reading-art-narration-text" tabindex="0" aria-label="Full reading interpretation">'+esc(current.text)+'</p>'+
+  '<span class="reading-art-scroll-cue" aria-hidden="true">SCROLL FOR MORE ↓</span>'+
   '<div class="reading-art-controls">'+
   '<button type="button" class="reading-art-control is-secondary" data-action="reading-prev" '+
    (chapter===-1?'disabled':'')+' aria-label="Previous chapter">← Previous</button>'+
