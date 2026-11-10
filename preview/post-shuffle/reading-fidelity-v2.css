@@ -661,7 +661,7 @@
   grid-template-rows:clamp(56px,7.3dvh,68px) 318px min-content min-content;
  }
  .scene-artemis-reading .reading-art-footer{
-  margin-top:6px;padding-bottom:6px;
+  min-height:24px;margin-top:6px;padding:2px 6px 3px;
   font-size:clamp(10px,2.4vw,11px);
  }
 }
