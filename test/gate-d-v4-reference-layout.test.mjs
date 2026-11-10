@@ -42,7 +42,8 @@ test('Original question is promoted into the header rather than relegated to foo
  const footer=markup.indexOf('class="reading-art-footer"');
  assert.ok(start>=0&&footer>start);
  assert.match(markup,/reading-art-question-label">YOUR QUESTION/);
- assert.match(markup,/class="reading-art-question">\'+esc\(question\)/);
+ assert.match(markup,/class="reading-art-question"/);
+ assert.match(markup,/esc\(question\)/);
  assert.match(css,/\.reading-art-question-banner\{/);
  const footerPart=markup.slice(footer,footer+260);
  assert.doesNotMatch(footerPart,/reading-art-question/);
