@@ -135,7 +135,10 @@ try{
  assert.equal(await page.locator('.ps-begin-reading:visible').count(),1,'Explicit Begin Reading appears after third original card reveal');
  assert.equal(await page.locator('.ps-begin-reading').isEnabled(),true);
  assert.equal(await page.evaluate(()=>window.__POST_SHUFFLE__.stage()),'tableau');
- await page.evaluate(()=>{window.__revealedOriginalFaces=[...document.querySelectorAll('.ps-tableau .ps-card-art')]});
+ await page.evaluate(()=>{
+  window.__revealedOriginalFaces=[...document.querySelectorAll('.ps-tableau .ps-card-art')];
+  window.__revealedOriginalFoils=[...document.querySelectorAll('.ps-tableau .ps-card-art-overlay')];
+ });
  await page.locator('.ps-begin-reading').click();
  await page.waitForFunction(()=>window.__POST_SHUFFLE__?.stage()==='reading',undefined,{timeout:7000});
  assert.equal(page.url(),host+'/preview/post-shuffle/','No navigation during reader handoff');
@@ -146,6 +149,28 @@ try{
   return now.length===3&&now.every((img,i)=>img===window.__revealedOriginalFaces[i]
    &&img.dataset.carryover==='original-rws');
  }),true,'Reading stage must reuse the exact three revealed RWS DOM image nodes');
+ const foilHandoff=await page.evaluate(()=>{
+  const originals=window.__revealedOriginalFoils;
+  const layers=[...document.querySelectorAll('.reading-art-card-frame .reading-art-card-foil')];
+  const frames=[...document.querySelectorAll('.reading-art-card-frame')];
+  const details=layers.map((layer,i)=>{
+   const style=getComputedStyle(layer),glint=getComputedStyle(layer,'::after');
+   const l=layer.getBoundingClientRect(),f=frames[i].getBoundingClientRect();
+   return {sameNode:layer===originals[i],carryover:layer.dataset.carryover,
+    finish:layer.dataset.foilFinish,hasTexture:style.backgroundImage.includes('data:image'),
+    opacity:Number(style.opacity),blend:style.mixBlendMode,z:Number(style.zIndex),
+    glint:glint.animationName,insideFrame:Math.abs(l.left-f.left)<3&&Math.abs(l.top-f.top)<3
+     &&Math.abs(l.width-f.width)<5&&Math.abs(l.height-f.height)<5};
+  });
+  return {count:layers.length,details,reduced:matchMedia('(prefers-reduced-motion:reduce)').matches};
+ });
+ assert.equal(foilHandoff.count,3,'Artemis requires three in-frame foil layers');
+ assert.ok(foilHandoff.details.every(s=>s.sameNode&&s.carryover==='original-foil'&&s.finish&&s.hasTexture),
+  'Handoff must preserve the exact three textured, session-selected foil nodes');
+ assert.ok(foilHandoff.details.every(s=>s.opacity>.15&&s.blend==='screen'&&s.z>1&&s.insideFrame),
+  'Foil must visibly composite above authentic RWS art and remain attached to the face');
+ if(!foilHandoff.reduced)assert.ok(foilHandoff.details.every(s=>s.glint.includes('artemis-foil-drift')),
+  'Reading foil needs active slow specular movement');
  assert.equal(await page.locator('.reading-art-panel-skin').count(),1);
  assert.equal(await page.locator('.reading-art-panel-corners').count(),1);
  assert.equal(await page.locator('[data-action="reading-next"]').count(),1);
@@ -222,8 +247,12 @@ try{
  const phone=await page.evaluate(()=>{
   const rect=selector=>document.querySelector(selector).getBoundingClientRect();
   const cards=[...document.querySelectorAll('.reading-art-card')].map(n=>n.getBoundingClientRect());
+  const scene=document.querySelector('.scene-artemis-reading');
   return {scene:rect('.scene-artemis-reading'),panel:rect('.reading-art-panel'),
    cards:cards.map(r=>({left:r.left,right:r.right})),screen:innerWidth,
+   hero:rect('.reading-art-hero'),portrait:rect('.reading-art-portrait'),
+   table:rect('.reading-art-table-surface'),footer:rect('.reading-art-footer'),
+   scrollHeight:scene.scrollHeight,
    nextLabel:document.querySelector('[data-action="reading-next"]')?.textContent};
  });
  assert.equal(phone.cards.length,3);
@@ -231,6 +260,11 @@ try{
   'All three selected Tarot cards must remain visible within a 390px phone viewport');
  assert.ok(phone.panel.width<=phone.screen+2,'The Artemis panel must fit phone width');
  assert.ok(phone.nextLabel?.trim().length>2,'Mobile panel must preserve the primary Next control');
+ assert.ok(phone.hero.height<=426,'Tall mobile must not introduce a giant portrait/table dead gap');
+ assert.ok(phone.table.top>phone.portrait.top&&phone.table.top<phone.panel.top,
+  'Mobile table must belong to the portrait/chamber region above the HUD');
+ assert.ok(phone.footer.bottom-phone.scene.top<=phone.scrollHeight+2,
+  'Question/footer must remain reachable inside the scrollable safe-area layout');
  await page.screenshot({path:dir+'/11-artemis-phone-390x844.png',fullPage:true});
  // Approved 458×553 reading-stage concept is the spatial authority. Record
  // normalized anatomy even when the real 31 source assets are pending import.
