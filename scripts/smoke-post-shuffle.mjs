@@ -135,7 +135,20 @@ try{
  // Owner-directed reveal-only tuning sandbox: four direct styles, live
  // intensity, JSON export, and no remounting/re-dealing of any RWS card.
  await page.locator('.ps-foil-sandbox-toggle').click();
- assert.equal(await page.locator('.ps-foil-style-option').count(),4);
+ assert.equal(await page.locator('.ps-foil-style-option').count(),5,
+  'V1 particle drift is first, followed by four retained Canvas engravings');
+ assert.equal(await page.locator('.ps-foil-style-option').first().getAttribute('data-foil-style'),'foil-anim-style-v1');
+ await page.locator('.ps-foil-style-option[data-foil-style="foil-anim-style-v1"]').click();
+ const v1=await page.locator('.ps-tableau .ps-card-art-overlay').evaluateAll(nodes=>
+  nodes.map(layer=>({texture:layer.style.backgroundImage,
+   finish:layer.dataset.foilFinish,
+   drift:getComputedStyle(layer,'::before').animationName,
+   speed:getComputedStyle(layer,'::before').animationDuration})));
+ assert.ok(v1.every(x=>x.finish==='foil-anim-style-v1'
+  &&x.texture.includes('data:image/svg+xml')
+  &&x.drift.includes('foilDriftV1')&&x.speed==='10s'),
+  'User-supplied V1 particles and 10-second animation must be active: '+JSON.stringify(v1));
+ await page.screenshot({path:dir+'/08c-foil-v1-particle-drift-desktop.png'});
  const variants=['celestial-lattice','constellation-map','alchemical-glyphs','scroll-texture'];
  const patterns=new Set();
  for(const style of variants){
@@ -220,6 +233,18 @@ try{
  if(!foilHandoff.reduced)assert.ok(foilHandoff.details.every(s=>s.glint.includes('ps-moving-foil-sheen')),
   'Reading foil needs active slow specular movement');
  assert.equal(await page.locator('.reading-art-panel-skin').count(),1);
+ assert.equal(await page.locator('.reading-art-kicker').count(),0,
+  'Artemis welcome must not repeat the WELCOME TO YOUR READING eyebrow');
+ const cta=await page.evaluate(()=>{
+  const primary=document.querySelector('.reading-art-control.is-primary');
+  const secondary=document.querySelector('.reading-art-control.is-secondary');
+  const one=getComputedStyle(primary),two=getComputedStyle(secondary);
+  return {primaryHeight:primary.getBoundingClientRect().height,
+   primaryBorder:one.borderTopColor,primaryBg:one.backgroundImage,
+   secondaryBg:two.backgroundImage,secondaryBorder:two.borderTopColor};
+ });
+ assert.ok(cta.primaryHeight>=35&&cta.primaryBg.includes('linear-gradient')
+  &&cta.secondaryBg.includes('linear-gradient'),'Buttons must have premium gold game-UI treatment');
  assert.equal(await page.locator('.reading-art-panel-corners').count(),1);
  assert.equal(await page.locator('[data-action="reading-next"]').count(),1);
  assert.equal(await page.locator('nav.reading-art-progress button').count(),0);
@@ -275,7 +300,32 @@ try{
  });
  assert.ok(correctedStage.tableHidden&&correctedStage.backgroundReady,
   'One real room-painted table must remain; synthetic nested table must not render');
- assert.equal(correctedStage.portraitFit,'cover','Portrait should be intentionally cropped chest-up');
+ const physical=await page.evaluate(()=>{
+  const hero=document.querySelector('.reading-art-hero');
+  const portrait=document.querySelector('.reading-art-portrait');
+  const image=portrait.querySelector('img');
+  const card=document.querySelectorAll('.reading-art-card-frame')[1];
+  const p=getComputedStyle(portrait),i=getComputedStyle(image);
+  const fg=getComputedStyle(hero,'::after');
+  const hb=hero.getBoundingClientRect(),pb=portrait.getBoundingClientRect(),
+   cb=card.getBoundingClientRect();
+  return {mask:p.maskImage,webkitMask:p.webkitMaskImage,opacity:p.opacity,
+   filter:p.filter,imgMask:i.maskImage,imageOpacity:i.opacity,
+   portraitZ:p.zIndex,foregroundZ:fg.zIndex,
+   foregroundImage:fg.backgroundImage,foregroundSize:fg.backgroundSize,
+   synced:hero.dataset.roomOcclusionSynced==='true',
+   cardTop:cb.top,portraitTop:pb.top,portraitBottom:pb.bottom,
+   heroHeight:hb.height};
+ });
+ assert.ok(physical.mask==='none'&&physical.webkitMask==='none'&&physical.imgMask==='none',
+  'Artemis must not have ANY gradient mask on her source illustration: '+JSON.stringify(physical));
+ assert.equal(physical.opacity,'1','Artemis is opaque, not a dissolving genie');
+ assert.ok(Number(physical.foregroundZ)>Number(physical.portraitZ)
+   &&physical.foregroundImage.includes('bg_artemis_reading_stage_main.webp')
+   &&physical.synced,'The SAME illustrated room table must physically occlude Artemis');
+ assert.ok(physical.cardTop>=physical.portraitTop&&physical.cardTop<physical.portraitBottom,
+  'The centre card top must overlap Artemis at chest/upper-abdomen height: '+JSON.stringify(physical));
+  assert.equal(correctedStage.portraitFit,'cover','Portrait should be intentionally cropped chest-up');
  assert.ok(correctedStage.portraitClipped&&correctedStage.portraitHeight<=320,
   'Desktop crop must end at the upper chest/mid-rib instead of the waist');
  assert.ok(correctedStage.questionInHeader&&correctedStage.questionText.includes('What can these cards'),
@@ -379,7 +429,24 @@ try{
   'Question footer must occupy the lower viewport region: no massive dark gap below');
  assert.ok(phone.cardFrames.every(card=>card.width>=94),
   'Mobile cards should be scaled up while preserving their 42-degree pitch');
- assert.ok(phone.singleTableHidden&&phone.questionNearTitle&&phone.textScrolls,
+ const phoneOpaque=await page.evaluate(()=>{
+  const portrait=document.querySelector('.reading-art-portrait');
+  const hero=document.querySelector('.reading-art-hero');
+  const img=portrait.querySelector('img');
+  const cards=document.querySelectorAll('.reading-art-card-frame');
+  const middle=cards[1].getBoundingClientRect(),p=portrait.getBoundingClientRect();
+  return {mask:getComputedStyle(portrait).maskImage,
+   webkitMask:getComputedStyle(portrait).webkitMaskImage,
+   imgMask:getComputedStyle(img).maskImage,
+   foregroundImage:getComputedStyle(hero,'::after').backgroundImage,
+   synced:hero.dataset.roomOcclusionSynced==='true',
+   cardTop:middle.top,portraitTop:p.top,portraitBottom:p.bottom};
+ });
+ assert.ok(phoneOpaque.mask==='none'&&phoneOpaque.webkitMask==='none'&&phoneOpaque.imgMask==='none'
+  &&phoneOpaque.synced&&phoneOpaque.foregroundImage.includes('bg_artemis_reading_stage_main.webp')
+  &&phoneOpaque.cardTop>phoneOpaque.portraitTop&&phoneOpaque.cardTop<phoneOpaque.portraitBottom,
+  'Mobile physical opacity/occlusion should survive resize: '+JSON.stringify(phoneOpaque));
+  assert.ok(phone.singleTableHidden&&phone.questionNearTitle&&phone.textScrolls,
   'Mobile must show one painted table, the original question by the header, and all interpretation text');
  const scrollAffordance=await page.evaluate(()=>{
   const p=document.querySelector('.reading-art-narration-text');
@@ -396,6 +463,8 @@ try{
  assert.ok(phone.footer.bottom-phone.scene.top<=phone.scrollHeight+2,
   'Question/footer must remain reachable inside the scrollable safe-area layout');
  await page.screenshot({path:dir+'/11-artemis-phone-390x844.png',fullPage:true});
+ await page.locator('.reading-art-control.is-primary').hover();
+ await page.screenshot({path:dir+'/11a-artemis-mobile-cta-hover-390x844.png',fullPage:true});
  // Approved 458×553 reading-stage concept is the spatial authority. Record
  // normalized anatomy even when the real 31 source assets are pending import.
  await page.setViewportSize({width:458,height:553});
