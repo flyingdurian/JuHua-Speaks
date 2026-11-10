@@ -465,3 +465,24 @@
   line-height:1.4;
  }
 }
+
+/* Mobile portrait-stage fidelity: reclaim hanging lanterns and sakura from the
+ * approved 16:9 chamber illustration rather than inventing new graphic motifs.
+ * Both edge crops are alpha-feathered derivatives of the already registered
+ * bg_artemis_reading_stage_main.webp, kept separate so the main art remains
+ * full-resolution and unchanged. The base room still renders behind them. */
+@media(max-width:720px){
+ .scene-artemis-reading .reading-art-atmosphere::before,
+ .scene-artemis-reading .reading-art-atmosphere::after{
+  content:"";position:absolute;top:11.4%;z-index:2;
+  width:34%;height:min(65.8vw,380px);pointer-events:none;
+  background-repeat:no-repeat;background-size:100% 100%;
+  background-position:center;opacity:1;
+ }
+ .scene-artemis-reading .reading-art-atmosphere::before{
+  left:0;background-image:url('../../assets/artemis/bg_artemis_mobile_lantern_left.webp');
+ }
+ .scene-artemis-reading .reading-art-atmosphere::after{
+  right:0;background-image:url('../../assets/artemis/bg_artemis_mobile_lantern_right.webp');
+ }
+}
