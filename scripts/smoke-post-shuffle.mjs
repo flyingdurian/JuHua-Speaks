@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
-import {mkdir,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 const host='http://127.0.0.1:'+(process.env.GATE_B_PORT||4184);
 const dir='artifacts/post-shuffle';await mkdir(dir,{recursive:true});
 const browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader']});
-const page=await browser.newPage({viewport:{width:860,height:720},deviceScaleFactor:1});
+const page=await browser.newPage({viewport:{width:860,height:720},deviceScaleFactor:1,acceptDownloads:true});
 const errors=[];page.on('pageerror',e=>errors.push(String(e)));
 try{
  await page.goto(host+'/preview/post-shuffle/',{waitUntil:'domcontentloaded'});
@@ -132,6 +132,49 @@ try{
  assert.equal(await page.evaluate(()=>window.__POST_SHUFFLE__.tableau().revealed),3);
  assert.equal(await page.locator('.ps-card-art').count(),3,'RWS front images must stay in the reveal');
  await page.screenshot({path:dir+'/08-three-art-overlay-reveals.png',timeout:60000});
+ // Owner-directed reveal-only tuning sandbox: four direct styles, live
+ // intensity, JSON export, and no remounting/re-dealing of any RWS card.
+ await page.locator('.ps-foil-sandbox-toggle').click();
+ assert.equal(await page.locator('.ps-foil-style-option').count(),4);
+ const variants=['celestial-lattice','constellation-map','alchemical-glyphs','scroll-texture'];
+ const patterns=new Set();
+ for(const style of variants){
+  await page.locator('.ps-foil-style-option[data-foil-style="'+style+'"]').click();
+  const state=await page.locator('.ps-tableau .ps-card-art-overlay').evaluateAll(nodes=>
+   nodes.map(x=>({finish:x.dataset.foilFinish,texture:x.style.backgroundImage})));
+  assert.ok(state.every(x=>x.finish===style),'All three foils must update the selected variation: '+style);
+  patterns.add(state[0].texture);
+ }
+ assert.equal(patterns.size,4,'Four finishes must render distinct actual Canvas textures');
+ await page.locator('.ps-foil-style-option[data-foil-style="alchemical-glyphs"]').click();
+ await page.locator('.ps-foil-intensity').evaluate(el=>{
+  el.value='85';el.dispatchEvent(new Event('input',{bubbles:true}));
+ });
+ const tuned=await page.locator('.ps-tableau .ps-card-art-overlay').evaluateAll(nodes=>
+  nodes.map(x=>({intensity:x.dataset.foilIntensity,
+   opacity:getComputedStyle(x).opacity,
+   animation:getComputedStyle(x).animationName,
+   sheen:getComputedStyle(x,'::after').animationName})));
+ assert.ok(tuned.every(x=>x.intensity==='0.85'&&Math.abs(Number(x.opacity)-.85)<.04
+  &&x.animation.includes('ps-moving-foil-lines')
+  &&x.sheen.includes('ps-moving-foil-sheen')),
+  'All three revealed cards need live animated, intensity-controlled foil: '+JSON.stringify(tuned));
+ const downloadPromise=page.waitForEvent('download');
+ await page.locator('.ps-foil-export').click();
+ const foilDownload=await downloadPromise;
+ assert.equal(foilDownload.suggestedFilename(),'juhua-foil-config.json');
+ const exported=JSON.parse(await readFile(await foilDownload.path(),'utf8'));
+ assert.deepEqual(exported,{version:1,style:'alchemical-glyphs',intensity:.85,animation:'moving-gold-foil'});
+ await writeFile(dir+'/08a-foil-sandbox-export.json',JSON.stringify(exported,null,2));
+ await page.screenshot({path:dir+'/08a-foil-sandbox-desktop.png'});
+ await page.setViewportSize({width:390,height:844});
+ await page.waitForTimeout(220);
+ assert.equal(await page.locator('.ps-foil-export').isVisible(),true,
+  'Foil tuner controls must remain usable on phone viewports');
+ await page.screenshot({path:dir+'/08b-foil-sandbox-mobile-390x844.png'});
+ await page.locator('.ps-foil-sandbox-toggle').click();
+ await page.setViewportSize({width:860,height:720});
+ await page.waitForTimeout(220);
  assert.equal(await page.locator('.ps-begin-reading:visible').count(),1,'Explicit Begin Reading appears after third original card reveal');
  assert.equal(await page.locator('.ps-begin-reading').isEnabled(),true);
  assert.equal(await page.evaluate(()=>window.__POST_SHUFFLE__.stage()),'tableau');
@@ -159,7 +202,9 @@ try{
    return {sameNode:layer===originals[i],carryover:layer.dataset.carryover,
     finish:layer.dataset.foilFinish,hasTexture:style.backgroundImage.includes('data:image'),
     opacity:Number(style.opacity),blend:style.mixBlendMode,z:Number(style.zIndex),
-    visibleFilter:style.filter.includes('drop-shadow')&&style.animationName==='none',
+    intensity:layer.dataset.foilIntensity,
+    motion:style.animationName,
+    visibleFilter:style.filter.includes('drop-shadow')&&style.animationName.includes('ps-moving-foil-lines'),
     computedFilter:style.filter,computedAnimation:style.animationName,
     repeatPass:getComputedStyle(layer,'::before').backgroundImage.includes('data:image'),
     glint:glint.animationName,insideFrame:Math.abs(l.left-f.left)<3&&Math.abs(l.top-f.top)<3
@@ -170,9 +215,9 @@ try{
  assert.equal(foilHandoff.count,3,'Artemis requires three in-frame foil layers');
  assert.ok(foilHandoff.details.every(s=>s.sameNode&&s.carryover==='original-foil'&&s.finish&&s.hasTexture),
   'Handoff must preserve the exact three textured, session-selected foil nodes');
- assert.ok(foilHandoff.details.every(s=>s.opacity>=.95&&s.blend==='screen'&&s.z>1&&s.insideFrame&&s.repeatPass&&s.visibleFilter),
+ assert.ok(foilHandoff.details.every(s=>s.intensity==='0.85'&&Math.abs(s.opacity-.85)<.04&&s.blend==='screen'&&s.z>1&&s.insideFrame&&s.repeatPass&&s.visibleFilter),
   'All three foils must render a high-visibility second pass of their original selected texture inside each card'+': '+JSON.stringify(foilHandoff.details));
- if(!foilHandoff.reduced)assert.ok(foilHandoff.details.every(s=>s.glint.includes('artemis-foil-drift')),
+ if(!foilHandoff.reduced)assert.ok(foilHandoff.details.every(s=>s.glint.includes('ps-moving-foil-sheen')),
   'Reading foil needs active slow specular movement');
  assert.equal(await page.locator('.reading-art-panel-skin').count(),1);
  assert.equal(await page.locator('.reading-art-panel-corners').count(),1);
@@ -223,8 +268,10 @@ try{
    portraitClipped:getComputedStyle(portrait).overflow==='hidden',
    questionInHeader:!!question?.closest('.reading-art-header'),
    questionText:question?.textContent.trim(),
-   textUnclipped:getComputedStyle(narration).overflowY==='visible'
-    &&narration.scrollHeight<=narration.clientHeight+2};
+   narrativeScroll:getComputedStyle(narration).overflowY,
+   panelShadow:getComputedStyle(document.querySelector('.reading-art-panel')).boxShadow,
+   titleVisuallyHidden:getComputedStyle(document.querySelector('#artemis-reading-title')).width==='1px',
+   cardLabels:[...document.querySelectorAll('.reading-art-card-role')].map(el=>el.textContent.trim())};
  });
  assert.ok(correctedStage.tableHidden&&correctedStage.backgroundReady,
   'One real room-painted table must remain; synthetic nested table must not render');
@@ -233,7 +280,11 @@ try{
   'Desktop crop must end at the upper chest/mid-rib instead of the waist');
  assert.ok(correctedStage.questionInHeader&&correctedStage.questionText.includes('What can these cards'),
   'The actual original question must be prominent near the title');
- assert.ok(correctedStage.textUnclipped,'The full narrative must fit in a non-scrolling text block');
+ assert.equal(correctedStage.titleVisuallyHidden,true,'The three-line visible title block must be gone');
+ assert.deepEqual(correctedStage.cardLabels,['01. Past','02. Present','03. Future']);
+ assert.equal(correctedStage.panelShadow,'none','Ornamental HUD cannot have a rectangular CSS shadow box');
+ assert.ok(['auto','visible'].includes(correctedStage.narrativeScroll),
+  'Long readings must be scrollable inside the artwork-backed dialogue');
  console.log('Corrected desktop geometry:',JSON.stringify({cardWidths:welcomeLayout.cssCardWidths,
   projected:welcomeLayout.cardFrames.map(r=>r.width),stage:correctedStage}));
  assert.ok(welcomeLayout.cssCardWidths.every(width=>width>=108)&&welcomeLayout.cardFrames.every(rect=>rect.width>=88),
@@ -274,8 +325,13 @@ try{
   return {scrollHeight:p.scrollHeight,clientHeight:p.clientHeight,
    overflow:getComputedStyle(p).overflowY};
  });
- assert.ok(fullNarration.scrollHeight<=fullNarration.clientHeight+2&&fullNarration.overflow==='visible',
-  'Even the combined reading must display its full text without an internal scrollbar');
+ assert.ok(['auto','visible'].includes(fullNarration.overflow),
+  'A long reading must allow internal scrolling instead of overflowing the ornate frame');
+ if(fullNarration.scrollHeight>fullNarration.clientHeight+2){
+  await page.locator('.reading-art-narration-text').evaluate(el=>{el.scrollTop=el.scrollHeight;});
+  assert.ok(await page.locator('.reading-art-narration-text').evaluate(el=>el.scrollTop>0),
+   'Long interpretations must be reachable by scrolling the narrative itself');
+ }
  await page.screenshot({path:dir+'/10-artemis-reflective.png'});
  assert.equal(await page.locator('.reading-art-card').count(),3);
  assert.match(await page.locator('.reading-art-panel').innerText(),/ARTEMIS/);
@@ -294,8 +350,7 @@ try{
    scrollHeight:scene.scrollHeight,
    singleTableHidden:getComputedStyle(document.querySelector('.reading-art-table-surface')).display==='none',
    questionNearTitle:!!document.querySelector('.reading-art-question-banner')?.closest('.reading-art-header'),
-   textUnclipped:(()=>{const p=document.querySelector('.reading-art-narration-text');
-     return getComputedStyle(p).overflowY==='visible'&&p.scrollHeight<=p.clientHeight+2;})(),
+   textScrolls:getComputedStyle(document.querySelector('.reading-art-narration-text')).overflowY==='auto',
    cardFrames:[...document.querySelectorAll('.reading-art-card-frame')].map(el=>{const r=el.getBoundingClientRect();return {width:r.width,top:r.top,bottom:r.bottom}}),
    nextLabel:document.querySelector('[data-action="reading-next"]')?.textContent,
    nextButtonBottom:document.querySelector('[data-action="reading-next"]')?.getBoundingClientRect().bottom};
@@ -315,7 +370,7 @@ try{
   'Question footer must occupy the lower viewport region: no massive dark gap below');
  assert.ok(phone.cardFrames.every(card=>card.width>=94),
   'Mobile cards should be scaled up while preserving their 42-degree pitch');
- assert.ok(phone.singleTableHidden&&phone.questionNearTitle&&phone.textUnclipped,
+ assert.ok(phone.singleTableHidden&&phone.questionNearTitle&&phone.textScrolls,
   'Mobile must show one painted table, the original question by the header, and all interpretation text');
  assert.ok(phone.footer.bottom-phone.scene.top<=phone.scrollHeight+2,
   'Question/footer must remain reachable inside the scrollable safe-area layout');
@@ -361,7 +416,7 @@ try{
   'Every slanted card must stay on the tabletop above the framed dialogue');
  assert.ok(fidelity.cards.every(c=>c.tiltDeg>=35&&c.tiltDeg<=45),
   'Actual CSS transform must project backward at 35–45 degrees');
- assert.ok(fidelity.portrait.y>=fidelity.header.bottom-8,'Portrait cannot overdraw the chapter heading');
+ assert.ok(fidelity.portrait.y>=fidelity.header.bottom-8,'Artemis must be anchored below the question header');
  assert.equal(fidelity.backgroundReady,true,'31-pack chamber background must be registered');
  const actualArtwork=await page.evaluate(()=>{
   const selectors=['.reading-art-atmosphere img','.reading-art-portrait img',
