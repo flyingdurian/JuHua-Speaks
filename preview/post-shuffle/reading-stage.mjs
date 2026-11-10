@@ -97,12 +97,15 @@ function chapterText(demo,chapter){
   title:part.name,text:part.text};
 }
 export function renderReadingHandoff(){
- return '<div class="reading-handoff-veil" role="status" aria-live="polite">'+
+ // Full-bleed celestial summon, never an intermediary text card or vector glyph.
+ // The real three revealed cards remain visible under the initial bloom.
+ return '<div class="reading-handoff-veil" role="status" aria-label="Entering Artemis’s reading chamber">'+
   artSlot('transition','reading-handoff-backdrop')+
   artSlot('sigils','reading-handoff-sigils')+
   artSlot('goldParticles','reading-handoff-gold')+
-  '<div class="reading-handoff-aura" aria-hidden="true"><span>✧</span></div>'+
-  '<p>THE CARDS ARE READY TO SPEAK</p></div>';
+  artSlot('violetParticles','reading-handoff-violet')+
+  '<div class="reading-handoff-card-lights" aria-hidden="true"><span></span><span></span><span></span></div>'+
+  '<div class="reading-handoff-portal" aria-hidden="true"></div></div>';
 }
 export function renderReadingPanel(demo,chapter){
  if(!demo||!Array.isArray(demo.cards)||demo.cards.length!==3)throw new Error('Reading panel needs three interpretations');
@@ -164,7 +167,7 @@ export function renderReadingStage({choices,cardsById,demo,chapter=-1,question='
     return '<button type="button" class="reading-art-card '+(chapter===i?'is-focused':'')+
       '" data-reading-chapter="'+i+'" aria-label="'+roles[i]+': '+esc(card.name)+', '+choice.orientation+
       '" aria-pressed="'+(chapter===i)+'" data-original-card-id="'+esc(choice.id)+'" data-orientation="'+esc(choice.orientation)+'">'+
-      '<span class="reading-art-card-frame">'+face(choice,cardsById)+'</span>'+
+      '<span class="reading-art-card-visual" data-tabletop-tilt-deg="40"><span class="reading-art-card-frame">'+face(choice,cardsById)+'</span></span>'+
       '<span class="reading-art-connector" aria-hidden="true"></span>'+
       '<span class="reading-art-card-role">'+String(i+1).padStart(2,'0')+' · '+roles[i]+'</span>'+
       '<span class="reading-art-card-meaning">'+orientation+' · '+esc(cardBrief(demo,card,choice,i))+'</span></button>';
