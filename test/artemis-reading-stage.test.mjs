@@ -86,6 +86,6 @@ test('actual Gate C reveal owns the CTA and physically gated transition, not old
  assert.match(js,/handoffDuration\(reduced\(\)\)/);
  assert.match(html,/reading-stage\.css/);
  assert.match(css,/prefers-reduced-motion:reduce/);
- assert.match(css,/data-stage="reading"/);
+ assert.match(css,/\.scene-artemis-reading/);
  assert.doesNotMatch(js,/window\.location\.assign/);
 });
