@@ -80,7 +80,7 @@
 }
 .reading-handoff-card-lights{
  position:absolute;inset:0;z-index:3;pointer-events:none;
- display:flex;justify-content:center;align-items:55%;gap:clamp(14px,5vw,70px);
+ display:flex;justify-content:center;align-items:center;gap:clamp(14px,5vw,70px);
  filter:blur(19px);animation:artemis-summon-lights 1.85s ease-in-out both;
 }
 .reading-handoff-card-lights span{
