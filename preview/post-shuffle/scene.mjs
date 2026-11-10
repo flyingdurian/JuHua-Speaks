@@ -8,7 +8,7 @@
  */
 import {DECK,commonsThumbnailUrl,drawOrientation,BY_ID} from '../../src/deck.mjs';
 import {buildDemoReading} from '../../src/demo-reading.mjs';
-import {renderReadingStage,handoffDuration,READING_CHAPTERS} from './reading-stage.mjs';
+import {renderReadingStage,renderReadingPanel,handoffDuration,READING_CHAPTERS,portraitSlotForChapter,assetUrl,ARTEMIS_ART_DIRECTOR_FILES,ARTEMIS_PROVISIONAL_READY_SLOTS} from './reading-stage.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
 import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
 import {SPHERE_VERTEX_STRIDE,extrudedCardVertices} from './PhysicalSphereMesh.mjs';
@@ -138,7 +138,18 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
  let choices=[],selectedAt=new Map(),lastPointer=null,yaw=0,pitch=0,raf=0,dead=false,ready=false,lastDraw=0,step='launch';
 
  let lockAt=null,tableau=null,tableauShown=false,handoff=null;const pickAnchors=new Map();
- let readingStarted=false,readingTimer=null,readingChapter=-1,resourcesDisposed=false;
+ let readingStarted=false,readingTimer=null,readingChapter=-1,resourcesDisposed=false,portraitRevision=0;
+ // Decode four already-shipped illustrated portraits in advance. A chapter
+ // change must never replace the entire reading DOM or flash an unloaded image.
+ const portraitCache=new Map();
+ for(const slot of ARTEMIS_PROVISIONAL_READY_SLOTS){
+  const uri=assetUrl(slot);
+  if(!uri)continue;
+  const image=new Image();
+  image.decoding='async';image.src=uri;
+  portraitCache.set(slot,image);
+  image.decode().catch(()=>{}); // Keep prior portrait if a specific asset fails.
+ }
  const readingQuestion=typeof question==='string'&&question.trim().length>=3&&question.length<=600
   ?question.trim():'What can these cards help me reflect on?';
  function readingDemo(){
@@ -175,8 +186,46 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
  }
  function updateReadingChapter(next){
   if(!readingStarted||!READING_CHAPTERS.includes(next))return false;
-  readingChapter=next;renderReading();
-  world.querySelector('#artemis-chapter-title')?.focus({preventScroll:true});return true;
+  if(readingChapter===next)return true;
+  readingChapter=next;
+  // Keep title, three original RWS faces, background and portal stage mounted.
+  // Only replace interpretation content and active-card highlighting.
+  const panel=world.querySelector('.reading-art-panel');
+  if(panel)panel.innerHTML=renderReadingPanel(readingDemo(),next);
+  for(const button of world.querySelectorAll('.reading-art-card[data-reading-chapter]')){
+   const active=Number(button.dataset.readingChapter)===next;
+   button.classList.toggle('is-focused',active);
+   button.setAttribute('aria-pressed',String(active));
+  }
+  const portrait=world.querySelector('.reading-art-portrait');
+  const slot=portraitSlotForChapter(next),url=assetUrl(slot),cached=portraitCache.get(slot);
+  const request=++portraitRevision;
+  if(portrait&&url&&cached){
+   portrait.dataset.artSlot=slot;
+   portrait.dataset.artFilename=ARTEMIS_ART_DIRECTOR_FILES[slot];
+   const display=()=>{
+    if(dead||!readingStarted||request!==portraitRevision||!portrait.isConnected)return;
+    const existing=[...portrait.querySelectorAll('img')];
+    if(existing.some(el=>el.getAttribute('src')===url&&el.style.opacity!=='0'))return;
+    const incoming=document.createElement('img');
+    incoming.src=url;incoming.alt='';incoming.decoding='async';
+    incoming.setAttribute('aria-hidden','true');
+    incoming.style.opacity='0';incoming.className='reading-portrait-layer';
+    portrait.append(incoming);
+    requestAnimationFrame(()=>{
+     if(dead||request!==portraitRevision||!portrait.isConnected){incoming.remove();return;}
+     incoming.style.opacity='1';
+     for(const old of existing)old.style.opacity='0';
+    });
+    setTimeout(()=>{
+     if(!portrait.isConnected||request!==portraitRevision)return;
+     for(const old of portrait.querySelectorAll('img'))if(old!==incoming)old.remove();
+    },500);
+   };
+   cached.decode().then(display).catch(()=>{if(request===portraitRevision)portrait.dataset.artStatus='unavailable';});
+  }
+  world.querySelector('#artemis-chapter-title')?.focus({preventScroll:true});
+  return true;
  }
  const handleReadingControls=event=>{
   if(!readingStarted||dead)return;
@@ -337,7 +386,7 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   time:()=>t,tap,togglePause:changePause,orbitYaw:()=>yaw,artOverlay:()=>tableau?.artOverlay??sessionFoil,hologram:()=>tableau?.hologram??sessionFoil,
   foil:()=>tableau?.artOverlay??sessionFoil,readingChapter:()=>readingChapter,readingReady:()=>tableauShown&&tableau?.revealed===3,beginReading,tableau:()=>({active:tableauShown,revealed:tableau?.revealed||0,artOverlay:tableau?.artOverlay??sessionFoil}),
   dispose(){
-   dead=true;cancelAnimationFrame(raf);if(readingTimer!==null)clearTimeout(readingTimer);
+   dead=true;portraitRevision++;cancelAnimationFrame(raf);if(readingTimer!==null)clearTimeout(readingTimer);
    mount.removeEventListener('click',handleReadingControls);disposeSphereResources();world.remove();
   }
  };
