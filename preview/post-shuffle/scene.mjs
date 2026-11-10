@@ -139,10 +139,10 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
 
  let lockAt=null,tableau=null,tableauShown=false,handoff=null;const pickAnchors=new Map();
  let readingStarted=false,readingTimer=null,readingChapter=-1,resourcesDisposed=false,portraitRevision=0;
- // Predecode all genuinely shipped portraits. The four existing WebP versions
- // remain useful until the full owner-approved source pack is imported.
+ // Predecode ONLY chapter-visible portraits; 16 source states exist but we
+ // avoid eager-loading 16 large PNGs while the visitor is still in Gate C.
  const portraitCache=new Map();
- for(const slot of ARTEMIS_READY_PORTRAIT_SLOTS){
+ for(const slot of new Set(READING_CHAPTERS.map(portraitSlotForChapter))){
   const uri=assetUrl(slot);
   if(!uri)continue;
   const image=new Image();
