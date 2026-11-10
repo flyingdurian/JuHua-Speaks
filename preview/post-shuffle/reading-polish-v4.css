@@ -744,3 +744,64 @@
 .scene-artemis-reading .reading-art-portrait{
  animation:none!important;opacity:1!important;
 }
+
+
+/* Visual acceptance: keep navigation on ONE line at 390px, inside the
+ * ornate frame, and never park an overflow hint on top of a CTA. */
+.scene-artemis-reading .reading-art-scroll-cue{
+ position:relative;right:auto;bottom:auto;left:auto;top:auto;
+ flex:none;align-self:center;margin:0 auto 3px;
+ padding:0;border:0;box-shadow:none;
+ background:transparent;color:#d9b981;
+ font-size:8px;line-height:1.15;letter-spacing:.12em;
+}
+@media(max-width:720px){
+ .scene-artemis-reading .reading-art-controls{
+  width:100%;display:flex;flex-wrap:nowrap;gap:7px;
+  justify-content:center;align-items:center;
+ }
+ .scene-artemis-reading .reading-art-control.is-primary{
+  min-width:0;min-height:38px;max-width:100%;flex:none;
+  padding:6px 9px 6px 12px;
+  white-space:nowrap;font-size:11px;gap:6px;
+ }
+ .scene-artemis-reading .reading-art-control.is-secondary{
+  min-width:0;min-height:38px;max-width:100%;flex:none;
+  padding:7px 9px;white-space:nowrap;font-size:10px;
+ }
+ .scene-artemis-reading .reading-art-control-arrow{
+  width:21px;height:21px;
+ }
+ .scene-artemis-reading .reading-art-scroll-cue{
+  bottom:auto;right:auto;flex:none;min-height:9px;
+ }
+}
+@media(max-width:380px){
+ .scene-artemis-reading .reading-art-controls{gap:5px}
+ .scene-artemis-reading .reading-art-control.is-primary{
+  min-height:36px;padding:6px 7px;font-size:10px;gap:4px;
+ }
+ .scene-artemis-reading .reading-art-control.is-secondary{
+  min-height:36px;padding:6px 7px;font-size:10px;
+ }
+ .scene-artemis-reading .reading-art-control-arrow{
+  width:19px;height:19px;
+ }
+}
+/* Short phone screens must SCROLL instead of compressing the centre card
+ * over Artemis's face. Preserve the bust/card spatial anchor at 458×553. */
+@media(max-width:720px) and (max-height:680px){
+ .scene-artemis-reading .reading-art-layout{
+  height:auto;min-height:100dvh;
+  grid-template-rows:auto minmax(380px,1fr) auto auto;
+  align-content:start;
+ }
+ .scene-artemis-reading .reading-art-hero{
+  min-height:380px;--table-occlusion-line:78%;
+ }
+ .scene-artemis-reading .reading-art-portrait{
+  top:clamp(29px,7dvh,48px);
+  width:min(68vw,290px);
+  height:clamp(270px,50dvh,310px);
+ }
+}
