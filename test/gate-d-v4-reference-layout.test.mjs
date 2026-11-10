@@ -102,3 +102,15 @@ test('Reveal sandbox has four styles, intensity slider, live texture updates and
  assert.match(css,/ps-foil-sandbox-body/);
  assert.match(css,/prefers-reduced-motion:reduce/);
 });
+
+test('Reading scroll indicator only appears when interpretation has hidden text',async()=>{
+ const markup=await source('../preview/post-shuffle/reading-stage.mjs');
+ const scene=await source('../preview/post-shuffle/scene.mjs');
+ const css=await source('../preview/post-shuffle/reading-polish-v4.css');
+ assert.match(markup,/class="reading-art-scroll-cue"/);
+ assert.match(scene,/function updateReadingOverflowCue\(\)/);
+ assert.match(scene,/panel\.dataset\.textOverflow=String\(more\)/);
+ assert.match(scene,/mount\.addEventListener\('scroll',onReadingTextScroll,true\)/);
+ assert.match(scene,/mount\.removeEventListener\('scroll',onReadingTextScroll,true\)/);
+ assert.match(css,/\.reading-art-panel\[data-text-overflow="true"\] \.reading-art-scroll-cue/);
+});
