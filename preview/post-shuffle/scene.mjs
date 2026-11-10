@@ -131,7 +131,7 @@ function project(p,camZ,viewport){const z=camZ-p[2],f=viewport.h*.5*perspectiveF
 function insideTriangle(x,y,a,b,c){const v0=[c.x-a.x,c.y-a.y],v1=[b.x-a.x,b.y-a.y],v2=[x-a.x,y-a.y];const d00=dot(v0,v0),d01=dot(v0,v1),d02=dot(v0,v2),d11=dot(v1,v1),d12=dot(v1,v2),den=d00*d11-d01*d01;if(Math.abs(den)<.001)return false;const v=(d11*d02-d01*d12)/den,w=(d00*d12-d01*d02)/den;return v>=0&&w>=0&&v+w<=1;}
 function hitsQuad(x,y,c){return insideTriangle(x,y,c[0],c[1],c[2])||insideTriangle(x,y,c[0],c[2],c[3]);}
 
-export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},demo=false}={}){
+export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},demo=false,skipToSelection=false}={}){
  if(!mount||!Array.isArray(deckIds)||deckIds.length!==78||new Set(deckIds).size!==78)throw new Error('A unique 78-card ordered handoff is required');
  const cardMap=new Map(DECK.map(c=>[c.id,c]));if(deckIds.some(id=>!cardMap.has(id)))throw new Error('Unrecognized card identities');
  const cards=deckIds.map(id=>cardMap.get(id)),points=sphereLayout();
@@ -273,7 +273,7 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
  }catch(e){sky.dispose();gl.deleteVertexArray(vao);gl.deleteBuffer(vertexBuffer);gl.deleteProgram(program);throw e}
  const uniform={focal:gl.getUniformLocation(program,'u_focal'),aspect:gl.getUniformLocation(program,'u_aspect'),near:gl.getUniformLocation(program,'u_near'),far:gl.getUniformLocation(program,'u_far'),atlas:gl.getUniformLocation(program,'u_atlas'),time:gl.getUniformLocation(program,'u_time')};
  const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
- const start=performance.now(),roles=['Past','Present','Future'];
+ const start=performance.now()-(skipToSelection?Math.max(BEATS.interactive,7.15)*1000:0),roles=['Past','Present','Future'];
  let clock=0,clockFreeze=0,paused=false,camZ=12.6,rendered=[],viewport={w:1,h:1};
  const selectedPct=id=>{const at=selectedAt.get(id);return at===undefined?0:smooth((performance.now()-at)/780)};
  function syncSlots(){
