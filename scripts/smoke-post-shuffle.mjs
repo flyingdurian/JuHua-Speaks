@@ -169,7 +169,7 @@ try{
  assert.ok(foilHandoff.details.every(s=>s.sameNode&&s.carryover==='original-foil'&&s.finish&&s.hasTexture),
   'Handoff must preserve the exact three textured, session-selected foil nodes');
  assert.ok(foilHandoff.details.every(s=>s.opacity>=.95&&s.blend==='screen'&&s.z>1&&s.insideFrame&&s.repeatPass),
-  'All three foils must render a high-visibility second pass of their original selected texture inside each card');
+  'All three foils must render a high-visibility second pass of their original selected texture inside each card'+': '+JSON.stringify(foilHandoff.details));
  if(!foilHandoff.reduced)assert.ok(foilHandoff.details.every(s=>s.glint.includes('artemis-foil-drift')),
   'Reading foil needs active slow specular movement');
  assert.equal(await page.locator('.reading-art-panel-skin').count(),1);
