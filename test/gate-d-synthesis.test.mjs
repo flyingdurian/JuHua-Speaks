@@ -69,3 +69,12 @@ test('The final interpretation CTA triggers a real synthesis phase, never anothe
  assert.match(server,/origin/);
  assert.match(server,/1200/);
 });
+
+test('Original question stays outside scrolling chat log after guidance is drawn',()=>{
+ const html=renderSynthesisChat({question,status:'guidance',response:'Sufficient response',
+  guidance:{id:DECK[4].id,name:DECK[4].name,orientation:'upright',meaning:DECK[4].upright}});
+ const questionPos=html.indexOf('class="synthesis-question"');
+ const scrollPos=html.indexOf('class="synthesis-chat-scroll"');
+ assert.ok(questionPos>=0&&scrollPos>questionPos);
+ assert.match(html,/guidance-followup-form/);
+});
