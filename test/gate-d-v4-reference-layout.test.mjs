@@ -31,6 +31,8 @@ test('Chest-up Artemis crop and readable full-height interpretation are explicit
  assert.match(css,/\.reading-art-portrait\{[\s\S]*?overflow:hidden/);
  assert.match(css,/height:clamp\(230px,32dvh,280px\)/);
  assert.match(css,/max-height:none!important/);
+ assert.match(css,/overflow-y:auto!important/);
+ assert.match(css,/reading-art-panel\{[\s\S]*?background:transparent!important/);
  assert.match(css,/overflow:visible!important/);
  assert.match(css,/\.reading-art-panel\{[\s\S]*?height:auto;min-height:202px/);
 });
@@ -58,7 +60,9 @@ test('Foil has a visible in-card second pass of the SAME selected background-ima
  assert.match(css,/background-image:inherit/);
  const markup=await source('../preview/post-shuffle/reading-stage.mjs');
  assert.doesNotMatch(markup,/<svg/i,'No shape-built/vector artwork in the reading stage');
- assert.match(css,/animation:none!important;/);
+ assert.match(css,/ps-moving-foil-lines/);
+ assert.match(css,/ps-moving-foil-sheen/);
+ assert.match(css,/ps-moving-foil-underlay/);
  assert.match(css,/filter:brightness\(2.1\) contrast\(1.18\)/);
  assert.match(css,/drop-shadow/);
  for(const finish of ['celestial-lattice','constellation-map','alchemical-glyphs','scroll-texture'])
@@ -68,10 +72,33 @@ test('Foil has a visible in-card second pass of the SAME selected background-ima
 
 test('Mobile preserves safe area, card geometry and short-viewport document scrolling',async()=>{
  const css=await source('../preview/post-shuffle/reading-polish-v4.css');
- assert.match(css,/grid-template-rows:auto minmax\(425px,1fr\) auto auto/);
+ assert.match(css,/grid-template-rows:auto minmax\(390px,1fr\) auto auto/);
  assert.match(css,/overflow-y:auto/);
- assert.match(css,/height:auto;min-height:285px;margin:7px 0 0/);
+ assert.match(css,/height:clamp\(260px,35dvh,302px\)/);
  assert.match(css,/env\(safe-area-inset-bottom,0px\)/);
  assert.match(css,/@media\(max-width:720px\) and \(max-height:680px\)/);
  assert.match(css,/grid-template-rows:auto minmax\(270px,1fr\) auto auto/);
+});
+
+test('Visible title removed while question and accessible reading heading remain',async()=>{
+ const markup=await source('../preview/post-shuffle/reading-stage.mjs');
+ const css=await source('../preview/post-shuffle/reading-polish-v4.css');
+ assert.doesNotMatch(markup,/artSlot\('title','reading-art-title-art'\)/);
+ assert.doesNotMatch(markup,/reading-art-subtitle">THREE CARDS/);
+ assert.match(markup,/reading-art-screenreader-title/);
+ assert.match(css,/clip:rect\(0,0,0,0\)/);
+ assert.match(markup,/String\(i\+1\).padStart\(2,'0'\)\+'\. '\+roles\[i\]/);
+});
+
+test('Reveal sandbox has four styles, intensity slider, live texture updates and JSON export',async()=>{
+ const tableau=await source('../preview/post-shuffle/TarotTableau.mjs');
+ const css=await source('../preview/post-shuffle/reading-polish-v4.css');
+ assert.match(tableau,/ps-foil-sandbox/);
+ assert.match(tableau,/for\(const style of ART_OVERLAY_STYLES\)/);
+ assert.match(tableau,/setFoilIntensity/);
+ assert.match(tableau,/data-foil-intensity|dataset\.foilIntensity/);
+ assert.match(tableau,/juhua-foil-config\.json/);
+ assert.match(tableau,/JSON\.stringify\(foilConfig\(\)/);
+ assert.match(css,/ps-foil-sandbox-body/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
 });
