@@ -893,7 +893,7 @@
   min-height:370px;
  }
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
-  top:14px;width:min(68vw,290px);height:290px;
+  top:24px;width:min(68vw,290px);height:290px;
  }
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread{
   bottom:5%;
