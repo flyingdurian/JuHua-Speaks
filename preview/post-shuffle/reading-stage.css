@@ -1,152 +1,311 @@
 /*
- * Gate D — Reading Stage shell. NO vector human / improvised Artemis drawing.
- * Asset art slots use data-art-filename + data-art-status="pending".
- * The Art Director's PNGs can replace the reserved layers without reflow.
+ * Artemis Reading Stage — Art Integration V1
+ * 31 original illustration slots; 4 existing portraits are the minimum preview.
+ * Real RWS fronts persist as identical DOM image elements from the reveal gate.
+ * No procedural vector character artwork or fabricated Rider–Waite faces.
  */
 .ps-tableau .ps-reading-entry{
- position:absolute;bottom:clamp(10px,3vh,32px);left:50%;transform:translateX(-50%);z-index:60;
- display:grid;justify-items:center;gap:10px;width:min(590px,95vw);
+ position:absolute;bottom:clamp(8px,2.2vh,22px);left:50%;transform:translateX(-50%);
+ z-index:40;display:grid;justify-items:center;gap:7px;width:min(590px,96%);
 }
-.ps-reading-entry-complete{margin:0;color:#f4dfb9;font:12px/1.5 Georgia,serif;letter-spacing:.05em;text-align:center;text-shadow:0 2px 10px #000}
-.ps-reading-entry-complete[hidden]{display:none}
-.ps-reading-entry button{background:linear-gradient(130deg,#362c44,#18223f);border:1px solid #b3986a;border-radius:28px;color:#f6e1b5;
- font:700 12px Georgia,serif;letter-spacing:.2em;padding:15px 38px;box-shadow:0 9px 24px #0009,inset 0 1px 0 #ead7a252;
- transition:opacity .25s,box-shadow .35s,transform .35s;cursor:pointer}
+.ps-tableau .ps-reading-entry[hidden],.ps-reading-entry-complete[hidden]{display:none!important}
+.ps-reading-entry-complete{margin:0;color:#f5dfb9;font:12px/1.5 Georgia,serif;text-align:center;text-shadow:0 2px 11px #000}
+.ps-reading-entry button{
+ color:#f6e3be;background:linear-gradient(135deg,#403044,#18223b);
+ border:1px solid #c1a472;box-shadow:0 0 20px #cda56429,0 10px 25px #000a;
+ font:700 12px Georgia,serif;letter-spacing:.16em;border-radius:29px;padding:13px 36px;
+ cursor:pointer;transition:filter .35s,transform .35s,box-shadow .35s;
+}
 .ps-reading-entry button:disabled{display:none}
-.ps-reading-entry button.is-ready{animation:reading-cta-arrival .7s ease-out both;box-shadow:0 0 28px #f6ce7655,0 12px 35px #000b}
-.ps-reading-entry button:not(:disabled):hover{transform:translateY(-3px);box-shadow:0 0 40px #f5d49a8c,0 12px 35px #000b}
-@keyframes reading-cta-arrival{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
-/* The ritual gate overlays the existing revealed tableau; never swaps in a different card set. */
-.ps-world[data-beat="reading-transition"] .ps-tableau{filter:brightness(.58) saturate(.75);transition:filter 1.4s ease}
-.reading-handoff-veil{position:fixed;inset:0;z-index:180;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:38px;
- background:radial-gradient(ellipse 37% 45% at 50% 49%,#272448b5 0%,#0b1023e8 54%,#02030bf7 100%);
- animation:reading-handoff-appear 1.8s ease both;pointer-events:auto}
-.reading-handoff-veil:before,.reading-handoff-veil:after{content:"";position:absolute;inset:-30%;pointer-events:none;
- background:radial-gradient(1px 1px at 24% 21%,#efd3a1 99%,transparent),radial-gradient(2px 2px at 67% 56%,#dfc5f0 99%,transparent),radial-gradient(1px 1px at 82% 70%,#e9d7a4 99%,transparent);
- background-size:237px 311px,401px 367px,319px 433px;animation:reading-handoff-stars 1.8s ease-out both}
-.reading-handoff-veil:after{transform:rotate(34deg);opacity:.42}
-.reading-handoff-aura{position:relative;width:min(40vw,300px);aspect-ratio:1;border-radius:50%;border:1px solid #f6d99aaa;
- box-shadow:0 0 35px #f0c7855c,inset 0 0 60px #a392d95e;display:grid;place-items:center;
- background:radial-gradient(circle,#d4c3eb22,transparent 65%);animation:reading-handoff-orbit 1.8s ease-out both}
-.reading-handoff-aura:before,.reading-handoff-aura:after{content:"";position:absolute;inset:10%;border-radius:50%;border:1px solid #e9c79770;transform:scaleY(.63) rotate(50deg)}
-.reading-handoff-aura:after{inset:18%;transform:scaleX(.5) rotate(-52deg)}
-.reading-handoff-aura span{font:78px Georgia,serif;color:#f8deb0;text-shadow:0 0 43px #e7bc69}
-.reading-handoff-veil>p{font:11px Georgia,serif;letter-spacing:.33em;text-align:center;color:#f5e3c0;text-shadow:0 0 18px #eac88e99;z-index:1}
-@keyframes reading-handoff-appear{0%{opacity:0}17%{opacity:1}83%{opacity:1}100%{opacity:1}}
-@keyframes reading-handoff-orbit{from{opacity:0;transform:scale(.2) rotate(-120deg)}55%{opacity:1;transform:scale(1.12) rotate(30deg)}to{transform:scale(1.05) rotate(130deg)}}
-@keyframes reading-handoff-stars{from{opacity:0;transform:scale(.7) rotate(-15deg)}to{opacity:.8;transform:scale(1.25) rotate(9deg)}}
-/* Fullscreen illustration-ready composition. CSS atmospherics are not a replacement illustration. */
-.scene-artemis-reading{position:relative;width:100%;overflow:auto;min-height:100dvh;height:100dvh;color:#f8e9d3;background:#080a1a;scrollbar-color:#a78a71 #11172b}
-.scene-artemis-reading:after{position:fixed;box-shadow:inset 0 0 125px #03030aa9;pointer-events:none}
-.reading-art-atmosphere,.reading-art-stars{position:absolute;inset:0;min-height:100%;pointer-events:none;z-index:0}
-.reading-art-atmosphere{background:radial-gradient(ellipse 38% 47% at 51% 28%,#70619b47,transparent 100%),
- radial-gradient(ellipse 52% 48% at 50% 93%,#2b294fb0,transparent 90%),
- linear-gradient(180deg,#0c132b 0%,#14172b 49%,#070914 100%);background-position:center;background-size:cover}
-.reading-art-stars{background-image:radial-gradient(1px 1px at 14% 21%,#ead3a5 98%,transparent),
- radial-gradient(1.5px 1.5px at 62% 43%,#f5e5c3 98%,transparent),radial-gradient(1px 1px at 86% 69%,#d5c9ef 98%,transparent);
- background-size:170px 203px,270px 311px,313px 227px;opacity:.4}
-.reading-art-layout{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
- width:min(1500px,100%);min-height:100%;margin:auto;padding:clamp(20px,3vh,46px) clamp(17px,4vw,68px) 26px}
-.reading-art-header{position:relative;text-align:center;z-index:5;width:100%;min-height:105px}
-.reading-art-eyebrow{display:block;font:700 10px Arial,sans-serif;letter-spacing:.32em;color:#c8ab7f}
-.reading-art-header h1{font:normal clamp(38px,4.2vw,72px)/1.08 Georgia,serif;margin:10px 0 2px;
- text-shadow:0 0 22px #f1d09d4d;color:#ffe9ca}
-.reading-art-subtitle{font:10px Arial,sans-serif;letter-spacing:.22em;color:#d7bd97;margin:7px}
-.reading-art-title-art{position:absolute;inset:-11px 0 auto;min-height:75px;pointer-events:none;opacity:.65}
-.reading-art-title-art img{height:100%;max-height:90px;max-width:90%;object-fit:contain}
-.reading-art-hero{position:relative;width:100%;flex:1;min-height:340px;max-height:565px;display:grid;place-items:center}
-.reading-art-halo{position:absolute;top:3%;left:50%;transform:translateX(-50%);width:min(560px,72vw);height:380px;pointer-events:none;
- border-radius:50%;background:radial-gradient(ellipse at 50% 44%,#af9ec321,transparent 68%);filter:drop-shadow(0 0 30px #ad8bcb43)}
+.ps-reading-entry button.is-ready{animation:artemis-cta-rise .7s ease-out both}
+.ps-reading-entry button:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 0 35px #eccb7b73}
+@keyframes artemis-cta-rise{from{opacity:0;transform:translateY(13px)}to{opacity:1;transform:none}}
+.ps-world[data-beat="reading-transition"] .ps-tableau{
+ pointer-events:none;filter:brightness(.48) saturate(.67);transition:filter 1.2s ease;
+}
+
+/* Ritual transition is painted *over* the existing three revealed RWS cards. */
+.reading-handoff-veil{
+ position:fixed;inset:0;z-index:180;isolation:isolate;overflow:hidden;
+ display:grid;place-content:center;justify-items:center;gap:20px;
+ background:radial-gradient(ellipse at 50% 45%,#241d3a,#0a0e22 63%,#01020a 100%);
+ pointer-events:auto;animation:artemis-handoff-in 1.85s ease both;
+}
+.reading-handoff-backdrop{position:absolute;inset:0;z-index:-2;opacity:.9}
+.reading-handoff-backdrop img{width:100%;height:100%;object-fit:cover}
+.reading-handoff-sigils,.reading-handoff-gold{position:absolute;inset:0;z-index:-1;pointer-events:none}
+.reading-handoff-sigils img,.reading-handoff-gold img{width:100%;height:100%;object-fit:cover}
+.reading-handoff-sigils{opacity:.48;mix-blend-mode:screen}
+.reading-handoff-gold{opacity:.63;mix-blend-mode:screen}
+.reading-handoff-aura{
+ position:relative;width:clamp(145px,25vw,280px);aspect-ratio:1;border-radius:50%;
+ border:1px solid #e8ce967f;box-shadow:0 0 55px #c7a2c35c,inset 0 0 38px #e1bf793e;
+ background:radial-gradient(circle,#c6add433,transparent 65%);
+ display:grid;place-items:center;animation:artemis-handoff-orbit 1.8s ease-out both;
+}
+.reading-handoff-aura::before,.reading-handoff-aura::after{
+ content:"";position:absolute;inset:18%;border:1px solid #f1dca17c;border-radius:50%;
+ transform:scaleY(.64) rotate(52deg);
+}
+.reading-handoff-aura::after{transform:scaleX(.58) rotate(-50deg)}
+.reading-handoff-aura span{font:76px Georgia,serif;color:#f8e5bc;text-shadow:0 0 28px #dbb373}
+.reading-handoff-veil>p{
+ margin:0;color:#fae4ba;letter-spacing:.25em;text-align:center;text-shadow:0 3px 15px #000;
+ font:clamp(10px,1.3vw,14px) Georgia,serif;z-index:1;
+}
+@keyframes artemis-handoff-in{
+ 0%{opacity:0}18%{opacity:1}81%{opacity:1}100%{opacity:1}
+}
+@keyframes artemis-handoff-orbit{
+ from{transform:scale(.7) rotate(-50deg);opacity:.4}
+ to{transform:scale(1.05) rotate(75deg);opacity:1}
+}
+
+/* The entire reading is one tableau; no independent floating panels. */
+.ps-world .scene-artemis-reading{
+ position:relative;z-index:30;isolation:isolate;
+ display:block;min-height:100dvh;height:100dvh;width:100%;overflow-y:auto;
+ color:#f8ebd3;background:#0a0814;scrollbar-color:#aa8e67 #111429;
+}
+.scene-artemis-reading::after{
+ content:"";position:fixed;inset:0;pointer-events:none;z-index:7;
+ box-shadow:inset 0 0 110px #04040e99;
+}
+.reading-art-atmosphere,.reading-art-stars,.reading-art-fx{
+ position:absolute;inset:0;pointer-events:none;z-index:0;
+}
+.reading-art-atmosphere{
+ background:
+  radial-gradient(ellipse 44% 48% at 51% 23%,#7560a15e,transparent),
+  radial-gradient(ellipse 53% 35% at 54% 83%,#5e45746b,transparent),
+  linear-gradient(180deg,#100e27 0%,#181b35 52%,#060612 100%);
+}
+.reading-art-atmosphere img{width:100%;height:100%;object-fit:cover;object-position:center 48%;display:block}
+.reading-art-stars{
+ opacity:.38;background-image:
+ radial-gradient(1px 1px at 14% 21%,#f2d5a2 98%,transparent),
+ radial-gradient(1.5px 1.5px at 68% 43%,#e9dcfa 98%,transparent),
+ radial-gradient(1px 1px at 85% 74%,#ddc7aa 98%,transparent);
+ background-size:174px 207px,281px 317px,325px 243px;
+}
+.reading-art-fx{z-index:1;mix-blend-mode:screen;opacity:.34;overflow:hidden}
+.reading-art-fx img{display:block;width:100%;height:100%;object-fit:cover;animation:artemis-mist 22s ease-in-out infinite alternate}
+.reading-art-fx-sigils{opacity:.29}
+.reading-art-fx-violet{opacity:.35}
+.reading-art-fx-gold{opacity:.46}
+@keyframes artemis-mist{
+ from{transform:scale(1.01) translate(-.5%,.4%)}
+ to{transform:scale(1.06) translate(1%,-.7%)}
+}
+.reading-art-layout{
+ width:min(1480px,100%);margin:0 auto;position:relative;z-index:3;
+ min-height:100%;display:grid;grid-template-rows:auto minmax(330px,1fr) auto auto;
+ align-items:start;justify-items:center;
+ padding:clamp(12px,2.3vh,28px) clamp(16px,4vw,66px) 12px;
+}
+.reading-art-header{position:relative;text-align:center;z-index:6;width:100%;min-height:103px}
+.reading-art-title-art{
+ position:absolute;inset:-15px 0 auto;min-height:80px;opacity:.52;pointer-events:none;z-index:-1;
+}
+.reading-art-title-art img{height:100px;max-width:min(620px,88%);width:100%;object-fit:contain}
+.reading-art-eyebrow{display:block;letter-spacing:.32em;color:#d6b783;font:700 10px Arial,sans-serif}
+.reading-art-header h1{
+ margin:8px 0 2px;color:#ffebcb;text-shadow:0 2px 19px #151021,0 0 25px #e4c49b58;
+ font:normal clamp(40px,4.5vw,67px)/1.1 Georgia,serif;
+}
+.reading-art-subtitle{margin:5px 0 0;color:#d4bd99;font:10px Arial,sans-serif;letter-spacing:.20em}
+.reading-art-hero{
+ position:relative;width:100%;min-height:330px;height:100%;
+ display:grid;place-items:center;isolation:isolate;
+}
+.reading-art-halo{
+ position:absolute;z-index:0;top:-17%;left:50%;transform:translateX(-50%);
+ width:min(520px,59vw);height:92%;pointer-events:none;opacity:.7;
+ background:radial-gradient(ellipse,#bba6b71f,transparent 70%);
+}
 .reading-art-halo img{width:100%;height:100%;object-fit:contain}
-.reading-art-portrait{position:absolute;z-index:2;top:0;left:50%;transform:translateX(-50%);width:min(460px,52vw);height:94%;display:grid;place-items:center;pointer-events:none}
-.reading-art-portrait img{width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 0 25px #bd9be477)}
-.reading-portrait-pending{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:min(270px,100%);height:65%;
- border:1px dashed #d4b78a88;border-radius:42% 42% 9px 9px;background:#0c10218c;color:#f4e0ba;text-align:center}
-.reading-portrait-pending strong{font:normal clamp(18px,2.4vw,33px) Georgia,serif;letter-spacing:.24em}
-.reading-portrait-pending span{font:9px Arial,sans-serif;letter-spacing:.16em}
-.reading-portrait-pending small{font:9px ui-monospace,monospace;color:#a9acc5}
-.reading-art-spread{position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);z-index:4;
- display:flex;justify-content:center;align-items:flex-start;gap:clamp(12px,3.5vw,46px);width:min(840px,95%)}
-.reading-art-card{position:relative;min-width:0;width:clamp(95px,13.7vw,160px);padding:0;border:0;background:transparent;
- text-align:center;color:#f6e5c8;cursor:pointer;transition:transform .5s ease,filter .45s ease;filter:drop-shadow(0 12px 15px #000b)}
-.reading-art-card:nth-child(1){transform:translateY(12px) rotate(-7deg)}
-.reading-art-card:nth-child(3){transform:translateY(12px) rotate(7deg)}
-.reading-art-card.is-focused{z-index:7;transform:translateY(-18px) scale(1.12);filter:drop-shadow(0 0 19px #f3cf94a8) drop-shadow(0 12px 18px #000c)}
-.reading-art-card-frame{display:block;width:100%;aspect-ratio:1100/1920;border:2px solid #d6bc89;border-radius:6px;
- overflow:hidden;background:#101629;box-shadow:0 0 0 1px #f6dfb858,0 12px 34px #0009}
-.reading-actual-card-face{width:100%;height:100%;object-fit:fill;display:block}
-.reading-actual-card-face.is-reversed{transform:rotate(180deg)}
-.reading-art-card-role{display:block;font:10px Georgia,serif;letter-spacing:.14em;margin-top:10px;color:#f4d8a8}
-.reading-art-panel{position:relative;z-index:5;width:min(1020px,100%);background:#11162be5;border:1px solid #bda57a;
- border-radius:15px;box-shadow:0 16px 48px #0009,0 0 30px #9d79c42a;padding:19px clamp(16px,3vw,38px);
- text-align:center;flex:none;margin-top:20px}
-.reading-art-panel:before,.reading-art-panel:after{content:"✦";position:absolute;font:21px Georgia,serif;color:#d6b77f;top:9px;left:12px}
-.reading-art-panel:after{left:auto;right:12px}
-.reading-art-nameplate{display:inline-block;position:relative;margin:-33px auto 14px;background:#1a1c33;border:1px solid #d4b57c;
- border-radius:25px;padding:7px 27px;box-shadow:0 4px 20px #0008;font:13px Georgia,serif;letter-spacing:.2em;color:#f4daa9}
-.reading-art-nameplate span{font:9px Arial,sans-serif;letter-spacing:.13em;color:#bcb0bb}
-.reading-art-kicker{margin:0 0 8px;font:700 10px Arial,sans-serif;letter-spacing:.24em;color:#d5af71}
-.reading-art-narration-title{font:normal clamp(19px,2.3vw,29px) Georgia,serif;margin:0 0 8px;color:#faedd6}
-.reading-art-narration-text{font:clamp(12px,1.25vw,15px)/1.65 Georgia,serif;color:#ddd0d7;margin:0 auto 16px;max-width:820px}
-.reading-art-controls{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
-.reading-art-control{border:1px solid #d3b482;border-radius:24px;background:#46354e;color:#f6e2b6;
- font:12px Georgia,serif;letter-spacing:.06em;padding:10px 21px;cursor:pointer}
-.reading-art-control.is-secondary{background:#181d35;border-color:#ae9a81;color:#d3c4bb}
-.reading-art-control:disabled{opacity:.4;cursor:not-allowed}
-.reading-art-progress{display:flex;justify-content:center;gap:6px;margin-top:14px}
-.reading-art-progress button{border:1px solid #856b58;border-radius:50%;width:25px;height:25px;background:#20263d;
- font:9px ui-monospace,monospace;color:#c9b698;cursor:pointer}
-.reading-art-progress button.is-active{background:#b99b69;border-color:#edd9b9;color:#1a1624}
-.reading-art-footer{width:min(1020px,100%);display:flex;justify-content:space-between;gap:10px;margin-top:15px;font:10px Arial,sans-serif;letter-spacing:.12em;color:#a9a2b6}
-.reading-art-question{margin:0;max-width:70%;overflow-wrap:anywhere}.reading-art-demo{margin:0;white-space:nowrap}
-@media(max-height:750px) and (min-width:721px){.reading-art-hero{min-height:260px;max-height:370px}.reading-art-layout{padding-top:15px}.reading-art-header{min-height:90px}.reading-art-card{width:clamp(80px,10vw,124px)}}
-@media(max-width:720px){
- .ps-tableau .ps-reading-entry{bottom:5px;gap:3px}
- .ps-reading-entry-complete{font-size:10px}
- .ps-reading-entry button{padding:12px 30px;font-size:11px}
- .reading-art-layout{padding:16px 13px 26px}
- .reading-art-header{min-height:103px}
- .reading-art-header h1{font-size:40px}
- .reading-art-hero{min-height:340px;max-height:420px}
- .reading-art-portrait{width:min(71vw,320px)}
- .reading-art-spread{gap:clamp(8px,2.4vw,20px);width:100%;bottom:0}
- .reading-art-card{width:clamp(79px,24vw,130px)}
- .reading-art-panel{padding:22px 13px 17px;margin-top:30px}
- .reading-art-nameplate{margin:-30px auto 12px;padding:6px 18px}
- .reading-art-footer{display:block;text-align:center;line-height:1.6}
- .reading-art-question{max-width:none}
- .reading-art-demo{white-space:normal}
+.reading-art-reading-glow{
+ position:absolute;z-index:0;inset:15% 17% 0;pointer-events:none;opacity:.52;
 }
-@media(max-width:390px){.reading-art-card{width:25vw}.reading-art-portrait{width:70vw}.reading-art-hero{min-height:310px}}
-@media(prefers-reduced-motion:reduce){
- .reading-handoff-veil,.reading-handoff-aura,.reading-handoff-veil:before,.reading-handoff-veil:after,.ps-reading-entry button{animation:none!important}
- .reading-art-card,.ps-world[data-beat="reading-transition"] .ps-tableau{transition:none!important}
-}
-
-/* Gate BC v3.4 tableau: opt-in reading entry occupies its own row under the existing revealed cards. */
-.ps-tableau .ps-reading-entry{position:absolute;bottom:clamp(7px,1.8vh,20px);left:50%;transform:translateX(-50%);z-index:40;gap:5px;margin:0;width:min(590px,96%)}
-.ps-tableau .ps-reading-entry button{min-height:41px;touch-action:manipulation}
-.ps-tableau .ps-reading-entry[hidden]{display:none!important}
-.ps-world[data-beat="reading-transition"] .ps-tableau{pointer-events:none}
-.ps-world .scene-artemis-reading{isolation:isolate;z-index:30}
-@media(max-width:680px){.ps-tableau .ps-reading-entry{gap:3px;margin-top:8px}.ps-tableau .ps-reading-entry button{padding:9px 23px;font-size:10px;min-height:38px}}
-
-/* Stage D visual audit: keep Artemis's face ABOVE the Past/Present/Future spread.
- * The 860x720 GPU capture previously placed all three physical RWS faces
- * directly over her eyes. Raise and slightly reduce the portrait independently
- * from the layered table, without altering the authentic card artwork. */
+.reading-art-reading-glow img{width:100%;height:100%;object-fit:contain;mix-blend-mode:screen}
 .reading-art-portrait{
- transform:translate(-50%,-16%) scale(.93);
- transform-origin:50% 0;
+ position:absolute;z-index:1;top:-12%;left:50%;width:min(430px,42vw);height:107%;
+ transform:translate(-50%,-15%) scale(.91);transform-origin:50% 10%;
+ display:grid;place-items:center;pointer-events:none;filter:drop-shadow(0 0 25px #ac8ad84c);
 }
 .reading-art-portrait img{
- position:absolute;inset:0;width:100%;height:100%;
- opacity:1;transition:opacity .42s ease;
- will-change:opacity;
+ position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center 26%;
+ opacity:1;transition:opacity .42s ease;will-change:opacity;
+}
+.reading-portrait-pending{
+ display:grid;place-items:center;gap:8px;height:60%;width:80%;border:1px dashed #d4b78a8a;
+ background:#0d112385;color:#f4e0ba;text-align:center;border-radius:50% 50% 6px 6px;
+}
+.reading-portrait-pending strong{font:24px Georgia,serif;letter-spacing:.22em}
+.reading-portrait-pending span{font:9px Arial,sans-serif}
+.reading-art-table-surface{
+ position:absolute;z-index:2;left:13%;right:13%;bottom:8px;height:73px;
+ border-radius:50%;transform:perspective(500px) rotateX(64deg);
+ background:radial-gradient(ellipse at 50% 48%,#c9a37c4f,#3d325b87 45%,#090b1c00 79%);
+ box-shadow:0 4px 60px #a38cad3a;pointer-events:none;
+}
+.reading-art-card-glow{
+ position:absolute;z-index:2;left:14%;right:14%;bottom:-16px;height:195px;opacity:.65;pointer-events:none;
+}
+.reading-art-card-glow img{width:100%;height:100%;object-fit:contain;mix-blend-mode:screen}
+.reading-art-spread{
+ position:absolute;z-index:4;bottom:-13px;left:50%;transform:translateX(-50%);
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:clamp(13px,3.1vw,44px);align-items:end;justify-items:center;
+ width:min(720px,96%);pointer-events:auto;
+}
+.reading-art-card{
+ position:relative;display:flex;flex-direction:column;align-items:center;
+ width:clamp(90px,13.7vw,145px);max-width:100%;padding:0;background:none;border:0;
+ text-align:center;color:#f5e2c4;cursor:pointer;filter:drop-shadow(0 8px 15px #000a);
+ transition:transform .44s ease,filter .44s ease;
+}
+.reading-art-card:nth-child(1){transform:translateY(8px) rotate(-3.5deg)}
+.reading-art-card:nth-child(3){transform:translateY(8px) rotate(3.5deg)}
+.reading-art-card.is-focused{
+ z-index:6;transform:translateY(-10px) scale(1.065);
+ filter:drop-shadow(0 0 12px #f4d1967f) drop-shadow(0 8px 14px #000b);
+}
+.reading-art-card-frame{
+ display:block;position:relative;width:100%;aspect-ratio:1100 / 1920;overflow:hidden;
+ border:2px solid #d7bb83;border-radius:6px;background:#111b36;
+ box-shadow:0 0 0 1px #f6e2af6e,0 0 18px #a58c9738,0 15px 25px #000b;
+}
+.reading-art-card-frame::after{
+ content:"";position:absolute;inset:3px;border:1px solid #fff8e567;
+ pointer-events:none;box-shadow:inset 0 0 10px #ebd8ad25;
+}
+.reading-actual-card-face{width:100%;height:100%;display:block;object-fit:fill}
+.reading-actual-card-face.is-reversed{transform:rotate(180deg)}
+.reading-art-connector{display:block;width:1px;height:12px;background:linear-gradient(#f1d5a3,#e3c28b39);margin-top:7px}
+.reading-art-card-role{font:12px/1.3 Georgia,serif;color:#f9e4ba;letter-spacing:.07em;text-shadow:0 2px 5px #000}
+.reading-art-card-meaning{
+ display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;
+ overflow:hidden;margin:4px -12px 0;max-width:195px;min-height:28px;
+ color:#e0d3ca;font:10px/1.34 Arial,sans-serif;letter-spacing:0;
+}
+.reading-art-card:focus-visible{outline:2px solid #f5dcab;outline-offset:6px;border-radius:3px}
+.reading-art-panel{
+ position:relative;z-index:5;align-self:end;width:min(1050px,100%);
+ margin:22px 0 0;min-height:195px;padding:18px clamp(20px,3vw,45px) 11px;
+ text-align:center;background:linear-gradient(180deg,#171a32ee,#101328f5);
+ border:1px solid #bba078;border-radius:17px;
+ box-shadow:0 0 0 1px #e7cd9540,inset 0 1px 0 #ffebc21f,0 16px 40px #000b;
+}
+.reading-art-panel::before,.reading-art-panel::after{
+ content:"✦";position:absolute;top:11px;left:14px;color:#ddc088;font:18px Georgia,serif;
+}
+.reading-art-panel::after{left:auto;right:14px}
+.reading-art-panel-skin,.reading-art-panel-corners{
+ position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:inherit;
+}
+.reading-art-panel-skin{opacity:.42}
+.reading-art-panel-skin img{width:100%;height:100%;object-fit:fill}
+.reading-art-panel-corners{opacity:.57;mix-blend-mode:screen}
+.reading-art-panel-corners img{width:100%;height:100%;object-fit:contain}
+.reading-art-panel-inner{position:relative;z-index:2;display:grid;justify-items:center}
+.reading-art-nameplate-art{
+ position:absolute;top:-30px;left:50%;transform:translateX(-50%);
+ width:min(250px,60%);height:54px;opacity:.7;pointer-events:none;
+}
+.reading-art-nameplate-art img{height:100%;width:100%;object-fit:contain}
+.reading-art-nameplate{
+ position:relative;display:inline-block;margin:-27px auto 15px;padding:6px 27px;
+ border:1px solid #c4a77a;border-radius:99px;background:#171c35ed;
+ box-shadow:0 3px 15px #0009;color:#f7dfaf;
+ font:13px Georgia,serif;letter-spacing:.17em;
+}
+.reading-art-nameplate span{font:9px Arial,sans-serif;color:#bcadbc;letter-spacing:.09em}
+.reading-art-kicker{margin:0 0 7px;color:#deb77e;font:700 10px Arial,sans-serif;letter-spacing:.2em}
+.reading-art-narration-title{
+ margin:0 0 8px;color:#f9e8cb;
+ font:normal clamp(19px,2.1vw,29px)/1.2 Georgia,serif;
+}
+.reading-art-narration-text{
+ max-width:870px;margin:0 auto 10px;color:#e1d5d8;
+ font:clamp(12px,1.15vw,14px)/1.55 Georgia,serif;text-wrap:pretty;
+}
+.reading-art-controls{display:flex;align-items:center;justify-content:center;gap:11px;flex-wrap:wrap}
+.reading-art-control{font:12px Georgia,serif;cursor:pointer;touch-action:manipulation}
+.reading-art-control.is-secondary{
+ padding:7px 15px;border:1px solid #897c7e5c;border-radius:22px;
+ color:#c8bcc2;background:#1a1f364d;
+}
+.reading-art-control.is-secondary:disabled{opacity:.24;cursor:default}
+.reading-art-control.is-primary{
+ display:flex;align-items:center;gap:10px;border:1px solid #c8a675;
+ border-radius:99px;padding:7px 16px 7px 22px;
+ background:linear-gradient(135deg,#453350,#282039);
+ box-shadow:0 3px 14px #0008,inset 0 1px 0 #e9d8ad35;color:#f7deaf;
+ font-size:13px;transition:background .3s,box-shadow .3s;
+}
+.reading-art-control.is-primary:hover{box-shadow:0 0 17px #e5c18468,0 3px 12px #0009}
+.reading-art-control.is-primary:focus-visible{outline:2px solid #fff0c8;outline-offset:3px}
+.reading-art-control-arrow{width:25px;height:25px;border-radius:50%}
+.reading-art-control-arrow img{width:100%;height:100%;object-fit:contain}
+.reading-art-control-arrow-fallback{font-size:20px;line-height:22px;color:#eccc90}
+.reading-art-control-arrow[data-art-status="ready"]+.reading-art-control-arrow-fallback{display:none}
+.reading-art-progress{
+ margin:8px 0 0;color:#b8a88d;font:10px ui-monospace,monospace;letter-spacing:.16em;
+}
+.reading-art-progress span{color:#756a7d}
+.reading-art-footer{
+ width:min(1050px,100%);margin:9px auto 0;display:flex;justify-content:space-between;
+ gap:15px;color:#b5a6bd;font:9px/1.45 Arial,sans-serif;letter-spacing:.06em;
+}
+.reading-art-footer p{margin:0}
+.reading-art-question{max-width:66%;overflow-wrap:anywhere}
+.reading-art-demo{white-space:nowrap}
+@media(max-height:750px) and (min-width:721px){
+ .reading-art-layout{grid-template-rows:auto minmax(260px,1fr) auto auto;padding-top:9px}
+ .reading-art-header{min-height:86px}
+ .reading-art-header h1{font-size:43px;margin:5px 0}
+ .reading-art-portrait{width:min(355px,39vw);transform:translate(-50%,-17%) scale(.89)}
+ .reading-art-card{width:clamp(82px,11vw,118px)}
+ .reading-art-panel{padding-top:13px;min-height:155px}
+ .reading-art-narration-text{font-size:12px;line-height:1.42}
+ .reading-art-card-meaning{font-size:9px}
 }
 @media(max-width:720px){
- .reading-art-portrait{transform:translate(-50%,-11%) scale(.94)}
+ .reading-art-layout{grid-template-rows:auto minmax(315px,1fr) auto auto;padding:13px 11px 17px}
+ .reading-art-header{min-height:90px}
+ .reading-art-header h1{font-size:39px}
+ .reading-art-eyebrow{font-size:8px;letter-spacing:.19em}
+ .reading-art-subtitle{font-size:8px}
+ .reading-art-portrait{width:min(350px,76vw);top:-10%;transform:translate(-50%,-14%) scale(.92)}
+ .reading-art-halo{width:min(440px,86vw)}
+ .reading-art-spread{width:100%;gap:clamp(6px,2vw,16px);bottom:-15px}
+ .reading-art-card{width:clamp(73px,22.6vw,116px)}
+ .reading-art-card-role{font-size:11px}
+ .reading-art-card-meaning{font-size:9px;max-width:106px}
+ .reading-art-panel{width:100%;margin-top:20px;padding:15px 11px 11px}
+ .reading-art-nameplate{font-size:11px;padding:5px 15px;margin:-24px auto 14px}
+ .reading-art-kicker{font-size:8px}
+ .reading-art-narration-title{font-size:21px}
+ .reading-art-narration-text{font-size:12px}
+ .reading-art-control.is-primary{font-size:11px;padding:6px 11px 6px 15px}
+ .reading-art-control.is-secondary{font-size:11px}
+ .reading-art-footer{display:block;text-align:center}
+ .reading-art-question{max-width:100%;margin:0 auto 4px!important}
+ .reading-art-demo{white-space:normal}
+ .ps-tableau .ps-reading-entry{bottom:5px;gap:4px}
+ .ps-reading-entry button{padding:10px 22px;font-size:10px}
+ .ps-reading-entry-complete{font-size:10px}
+}
+@media(max-width:390px){
+ .reading-art-layout{grid-template-rows:auto minmax(285px,1fr) auto auto}
+ .reading-art-card{width:24vw}
+ .reading-art-portrait{width:76vw}
+ .reading-art-card-meaning{font-size:8px}
+ .reading-art-narration-text{font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){
- .reading-art-portrait img{transition:none!important}
+ .ps-reading-entry button,.reading-handoff-veil,.reading-handoff-aura,
+ .reading-art-fx img{animation:none!important}
+ .reading-art-card,.reading-art-portrait img,.ps-world[data-beat="reading-transition"] .ps-tableau{transition:none!important}
 }
