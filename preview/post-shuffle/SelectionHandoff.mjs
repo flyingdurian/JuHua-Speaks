@@ -65,10 +65,14 @@ export function createSelectionHandoff({world,picks,anchors,buttons,backUrl,redu
   // An offscreen pick has no authentic projected source. The real card
   // settles in its tableau slot; do not fabricate an entering ghost.
   if(from.skipFlyby)continue;
+  const frames=handoffFrames(from,to);
   const el=document.createElement('div');el.className='ps-handoff-card';
   el.setAttribute('aria-hidden','true');el.style.backgroundImage='url("'+backUrl+'")';
+  // Set a valid initial matrix BEFORE insertion. An untransformed 256×448
+  // card would otherwise flash at CSS left:0/top:0 before WAAPI's first tick.
+  el.style.transform=frames[0].transform;
+  el.style.opacity='1';
   world.append(el);ghosts.push(el);
-  const frames=handoffFrames(from,to);
   if(reducedMotion||typeof el.animate!=='function'){
    el.style.transform=frames.at(-1).transform;el.style.opacity='0';
    continue;
