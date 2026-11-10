@@ -205,8 +205,10 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   readingChapter=next;
   // Keep title, three original RWS faces, background and portal stage mounted.
   // Only replace interpretation content and active-card highlighting.
-  const panel=world.querySelector('.reading-art-panel');
-  if(panel)panel.innerHTML=renderReadingPanel(readingDemo(),next);
+  // Patch only the narration layer; preserve the real ornamental PNG skin,
+  // live three-card DOM nodes and backdrop/FX across all five chapters.
+  const panelInner=world.querySelector('.reading-art-panel-inner');
+  if(panelInner)panelInner.outerHTML=renderReadingPanel(readingDemo(),next);
   for(const button of world.querySelectorAll('.reading-art-card[data-reading-chapter]')){
    const active=Number(button.dataset.readingChapter)===next;
    button.classList.toggle('is-focused',active);
