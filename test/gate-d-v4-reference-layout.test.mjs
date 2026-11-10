@@ -58,7 +58,7 @@ test('Foil has a visible in-card second pass of the SAME selected background-ima
  assert.match(css,/background-image:inherit/);
  const markup=await source('../preview/post-shuffle/reading-stage.mjs');
  assert.doesNotMatch(markup,/<svg/i,'No shape-built/vector artwork in the reading stage');
- assert.match(css,/animation:none;/);
+ assert.match(css,/animation:none!important;/);
  assert.match(css,/filter:brightness\(2.1\) contrast\(1.18\)/);
  assert.match(css,/drop-shadow/);
  for(const finish of ['celestial-lattice','constellation-map','alchemical-glyphs','scroll-texture'])
