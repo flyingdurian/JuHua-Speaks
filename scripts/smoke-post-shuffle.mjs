@@ -160,6 +160,7 @@ try{
     finish:layer.dataset.foilFinish,hasTexture:style.backgroundImage.includes('data:image'),
     opacity:Number(style.opacity),blend:style.mixBlendMode,z:Number(style.zIndex),
     visibleFilter:style.filter.includes('drop-shadow')&&style.animationName==='none',
+    computedFilter:style.filter,computedAnimation:style.animationName,
     repeatPass:getComputedStyle(layer,'::before').backgroundImage.includes('data:image'),
     glint:glint.animationName,insideFrame:Math.abs(l.left-f.left)<3&&Math.abs(l.top-f.top)<3
      &&Math.abs(l.width-f.width)<5&&Math.abs(l.height-f.height)<5};
