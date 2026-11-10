@@ -162,10 +162,19 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   sky.dispose();handoff?.dispose();tableau?.dispose();atlas.dispose();
   gl.deleteBuffer(vertexBuffer);gl.deleteVertexArray(vao);gl.deleteProgram(program);
  }
+ function updateReadingOverflowCue(){
+  const panel=world.querySelector('.reading-art-panel');
+  const body=panel?.querySelector('.reading-art-narration-text');
+  if(!panel||!body)return;
+  const more=body.scrollHeight>body.clientHeight+3&&
+   body.scrollTop<body.scrollHeight-body.clientHeight-3;
+  panel.dataset.textOverflow=String(more);
+ }
  function renderReading(){
   if(!readingStarted)return;
   world.innerHTML=renderReadingStage({choices,cardsById:BY_ID,demo:readingDemo(),
    chapter:readingChapter,question:readingQuestion});
+  requestAnimationFrame(updateReadingOverflowCue);
  }
  function goReading(){
   if(dead||lockAt===null||tableau?.revealed!==3||readingStarted)return false;
@@ -252,6 +261,7 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
    cached.decode().then(display).catch(()=>{if(request===portraitRevision)portrait.dataset.artStatus='unavailable';});
   }
   world.querySelector('#artemis-chapter-title')?.focus({preventScroll:true});
+  requestAnimationFrame(updateReadingOverflowCue);
   return true;
  }
  const handleReadingControls=event=>{
@@ -262,6 +272,12 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   if(button.dataset.action==='reading-next'){updateReadingChapter(readingChapter===3?0:readingChapter+1);return;}
  };
  mount.addEventListener('click',handleReadingControls);
+ const onReadingTextScroll=event=>{
+  if(readingStarted&&event.target?.classList?.contains('reading-art-narration-text'))
+   updateReadingOverflowCue();
+ };
+ mount.addEventListener('scroll',onReadingTextScroll,true);
+ window.addEventListener('resize',updateReadingOverflowCue);
  const sessionFoil=chooseFoilFinish();
  mount.innerHTML='<div class="ps-world" role="region" aria-label="Continuous post-shuffle Tarot sphere" id="ps-world">'+
   '<div class="ps-sky" id="ps-sky"><canvas class="ps-stars" id="ps-stars"></canvas></div>'+
@@ -431,7 +447,10 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   foil:()=>tableau?.artOverlay??sessionFoil,readingChapter:()=>readingChapter,readingReady:()=>tableauShown&&tableau?.revealed===3,beginReading,tableau:()=>({active:tableauShown,revealed:tableau?.revealed||0,artOverlay:tableau?.artOverlay??sessionFoil}),
   dispose(){
    dead=true;portraitRevision++;cancelAnimationFrame(raf);if(readingTimer!==null)clearTimeout(readingTimer);
-   mount.removeEventListener('click',handleReadingControls);disposeSphereResources();world.remove();
+   mount.removeEventListener('click',handleReadingControls);
+   mount.removeEventListener('scroll',onReadingTextScroll,true);
+   window.removeEventListener('resize',updateReadingOverflowCue);
+   disposeSphereResources();world.remove();
   }
  };
 }
