@@ -12,11 +12,16 @@ export function handoffAnchor(projected,viewport,index=0){
   x:viewport.width*(.35+.15*index),y:viewport.height*.42,
   width:clamp(viewport.width*.10,48,96),height:clamp(viewport.height*.17,76,156)
  };
- if(!projected||!Array.isArray(projected.corners)||projected.corners.length!==4)return fallback;
+ if(!projected||!Array.isArray(projected.corners)||projected.corners.length!==4)return {...fallback,skipFlyby:true};
  const c=projected.corners;
- if(c.some(p=>!Number.isFinite(p?.x)||!Number.isFinite(p?.y)))return fallback;
+ if(c.some(p=>!Number.isFinite(p?.x)||!Number.isFinite(p?.y)))return {...fallback,skipFlyby:true};
  const xs=c.map(p=>p.x),ys=c.map(p=>p.y);
  const left=Math.min(...xs),right=Math.max(...xs),top=Math.min(...ys),bottom=Math.max(...ys);
+ // A selection captured earlier may have rotated fully outside the viewport.
+ // It must NEVER re-enter as an unrelated corner flash on third pick.
+ const onScreen=right>16&&left<viewport.width-16&&bottom>16&&top<viewport.height-16;
+ const mostlyVisible=left>=-24&&right<=viewport.width+24&&top>=-24&&bottom<=viewport.height+24;
+ if(!onScreen||!mostlyVisible)return {...fallback,skipFlyby:true};
  const width=clamp(right-left,48,Math.min(240,viewport.width*.38));
  const height=clamp(bottom-top,76,Math.min(360,viewport.height*.49));
  // On a panned-out-of-view earlier pick, originate at the visible edge
@@ -57,10 +62,17 @@ export function createSelectionHandoff({world,picks,anchors,buttons,backUrl,redu
  for(let i=0;i<3;i++){
   const projected=anchors?.get(picks[i].id);
   const from=handoffAnchor(projected,viewport,i),to=dest[i];
+  // An offscreen pick has no authentic projected source. The real card
+  // settles in its tableau slot; do not fabricate an entering ghost.
+  if(from.skipFlyby)continue;
+  const frames=handoffFrames(from,to);
   const el=document.createElement('div');el.className='ps-handoff-card';
   el.setAttribute('aria-hidden','true');el.style.backgroundImage='url("'+backUrl+'")';
+  // Set a valid initial matrix BEFORE insertion. An untransformed 256×448
+  // card would otherwise flash at CSS left:0/top:0 before WAAPI's first tick.
+  el.style.transform=frames[0].transform;
+  el.style.opacity='1';
   world.append(el);ghosts.push(el);
-  const frames=handoffFrames(from,to);
   if(reducedMotion||typeof el.animate!=='function'){
    el.style.transform=frames.at(-1).transform;el.style.opacity='0';
    continue;

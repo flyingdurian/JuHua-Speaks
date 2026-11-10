@@ -496,3 +496,7 @@ body.gate-b-post-shuffle-live #post-shuffle-mount.ps-mount{position:fixed;inset:
  .ps-card-art-overlay{animation:none!important}
  .ps-handoff-card{transition:none!important;animation:none!important}
 }
+
+/* Independent Gate C review route shortcut. */
+.ps-demo{gap:12px;flex-direction:column}
+.ps-demo #skip-to-selection{transform:translateY(60px);padding:10px 15px;border:1px solid #a18c70;background:#121727;color:#ecd6aa;font-size:10px;letter-spacing:.12em;border-radius:4px}

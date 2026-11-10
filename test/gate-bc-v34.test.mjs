@@ -45,7 +45,9 @@ test('v3.4: no stage blink or second-deck resampling in three-pick transition',a
  const css=await readFile(new URL('../preview/post-shuffle/post-shuffle.css',import.meta.url),'utf8');
  const art=await readFile(new URL('../preview/post-shuffle/ArtOverlays.mjs',import.meta.url),'utf8');
  assert.match(scene,/pickAnchors\.set\(candidate\.id/);
- assert.match(scene,/createSelectionHandoff\(\{world,picks:choices/);
+ assert.match(scene,/createSelectionHandoff\(\{world,picks:lockFrame\.picks/);
+ assert.match(scene,/lockFrame=\{time:t,yaw,pitch,picks:choices\.map/);
+ assert.match(scene,/pickAnchors\.clear\(\)/);
  assert.match(scene,/tableau\.prepareHandoff\(\)/);
  assert.match(scene,/tableau\?\.finishHandoff\(\)/);
  assert.match(scene,/performance\.now\(\)-lockAt>=HANDOFF_SETTLE_MS/);

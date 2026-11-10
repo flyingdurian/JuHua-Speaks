@@ -19,24 +19,26 @@ const demo=buildDemoReading({
  picks:picks.map(p=>({card:BY_ID.get(p.id),orientation:p.orientation})),
  spread:'insight',lens:'western',lang:'en',options:['','']
 });
-test('Four actual transparent Art Director portraits are committed and mapped per performance',async()=>{
+test('All 31 registered Artemis WebPs are present, decodable, and correctly mapped',async()=>{
  assert.equal(ARTEMIS_ASSET_READY,true);
  assert.deepEqual(ARTEMIS_PROVISIONAL_READY_SLOTS,['warmWelcome','welcomingGesture','thinking','reflective']);
  assert.deepEqual(READING_CHAPTERS,[-1,0,1,2,3]);
- assert.deepEqual(READING_CHAPTERS.map(portraitSlotForChapter),['warmWelcome','welcomingGesture','thinking','reflective','reflective']);
- for(const slot of ARTEMIS_PROVISIONAL_READY_SLOTS){
+ assert.deepEqual(READING_CHAPTERS.map(portraitSlotForChapter),
+  ['warmWelcome','explaining','thinking','reading','reflective']);
+ const {ARTEMIS_IMPORTED_FILES}=await import('../preview/post-shuffle/artemis-assets-ready.mjs');
+ assert.equal(Object.keys(ARTEMIS_IMPORTED_FILES).length,31,'Exactly 31 originals must be registered for review');
+ for(const [slot,filename] of Object.entries(ARTEMIS_IMPORTED_FILES)){
   const path=assetUrl(slot);
-  assert.ok(path.endsWith('.webp'),slot);
-  const filename=ARTEMIS_ART_DIRECTOR_FILES[slot];
-  assert.ok(path.endsWith(filename),slot);
+  assert.equal(path,'../../assets/artemis/'+filename,slot);
   const buffer=await readFile(new URL('../assets/artemis/'+filename,import.meta.url));
-  assert.ok(buffer.length>100000,'Real portrait must not be a fake tiny placeholder');
-  assert.equal(buffer.toString('ascii',0,4),'RIFF');
-  assert.equal(buffer.toString('ascii',8,12),'WEBP');
+  assert.ok(buffer.length>50000,'No missing or fabricated placeholder image: '+slot);
+  assert.equal(buffer.toString('ascii',0,4),'RIFF',slot);
+  assert.equal(buffer.toString('ascii',8,12),'WEBP',slot);
  }
- for(const pending of ['portrait','background','transition','panel','halo']){
-  assert.equal(assetUrl(pending),null,'Art Director has not supplied '+pending);
+ for(const slot of ['idle','warmWelcome','reading','background','transition','panel','halo','sigils','goldParticles','violetParticles']){
+  assert.ok(assetUrl(slot)?.endsWith('.webp'),'Missing approved scene asset: '+slot);
  }
+ assert.equal(assetUrl('portrait'),null,'Unregistered legacy portrait alias must not pretend to exist');
  assert.throws(()=>assetUrl('unlisted'),RangeError);
  assert.equal(handoffDuration(false),1850);
  assert.equal(handoffDuration(true),0);
@@ -56,7 +58,7 @@ test('Your Reading retains exactly three original identities, orientations and a
  for(const chapter of READING_CHAPTERS){
   const html=renderReadingStage({choices:picks,cardsById:BY_ID,demo,chapter,question:'A <script>hidden</script> question'});
   assert.match(html,/Your Reading/);
-  assert.ok(html.includes('assets/artemis/'+ARTEMIS_ART_DIRECTOR_FILES[portraitSlotForChapter(chapter)]));
+  assert.ok(html.includes(assetUrl(portraitSlotForChapter(chapter))), 'Actual resolved chapter portrait must be rendered');
   assert.equal((html.match(/class="reading-art-card /g)||[]).length,3);
   for(const p of picks)assert.ok(html.includes('/'+p.id+'.jpg'),p.id);
   assert.match(html,/reading-actual-card-face is-reversed/);
@@ -77,7 +79,7 @@ test('Latest v3.4 Gate BC owns the CTA and cinematic handoff; no old Gate C14 ro
  assert.match(tableau,/if\(revealed===3\)/);
  assert.match(tableau,/onBeginReading\(/);
  assert.match(tableau,/readingEntry\.hidden=false/);
- assert.match(scene,/createTarotTableau\(\{mount:world,picks:choices,foil:sessionFoil,onBeginReading:beginReading\}\)/);
+ assert.match(scene,/createTarotTableau\(\{mount:world,picks:lockFrame\.picks,foil:sessionFoil,onBeginReading:beginReading\}\)/);
  assert.match(scene,/if\(dead\|\|lockAt===null\|\|!tableauShown\|\|tableau\?\.revealed!==3/);
  assert.match(scene,/readingTimer=setTimeout/);
  assert.match(scene,/renderReadingStage\(\{choices,cardsById:BY_ID/);

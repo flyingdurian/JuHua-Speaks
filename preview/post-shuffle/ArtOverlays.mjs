@@ -8,10 +8,10 @@ export const ART_OVERLAY_STYLES=Object.freeze([
  'celestial-lattice','constellation-map','alchemical-glyphs','scroll-texture'
 ]);
 export const ART_OVERLAY_LABELS=Object.freeze({
- 'celestial-lattice':'Celestial Lattice',
- 'constellation-map':'Constellation Map',
- 'alchemical-glyphs':'Alchemical Glyphs',
- 'scroll-texture':'Scroll Texture'
+ 'celestial-lattice':'Celestial Filigree',
+ 'constellation-map':'Constellation Foil',
+ 'alchemical-glyphs':'Arcane Lattice',
+ 'scroll-texture':'Starlight Engraving'
 });
 const TAU=Math.PI*2;
 function stroke(ctx,a,b,alpha=.24,width=.65){
@@ -102,6 +102,16 @@ export function paintArtOverlay(ctx,style,width=256,height=448){
  else if(style==='constellation-map')constellation(ctx);
  else if(style==='alchemical-glyphs')glyphs(ctx);
  else scroll(ctx);
+ // Tiny irregular foil points catch a travelling specular sweep. Keep the
+ // underlying historical art legible: alpha-only strokes, no opaque paint.
+ for(let k=0;k<15;k++){
+  const x=22+(k*79+k*k*13)%211,y=25+(k*89+k*k*7)%396;
+  if(k%5===0){
+   stroke(ctx,[x-3,y],[x+3,y],.22,.55);
+   stroke(ctx,[x,y-3],[x,y+3],.22,.55);
+  }
+  dot(ctx,x,y,k%4===0?1.2:.6,k%4===0?.46:.25);
+ }
  ctx.restore();
 }
 export function artOverlayDataUrls(){

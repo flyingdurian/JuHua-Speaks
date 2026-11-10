@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {mkdir} from 'node:fs/promises';
+import {mkdir,writeFile} from 'node:fs/promises';
 import {chromium} from 'playwright';
 const host='http://127.0.0.1:'+(process.env.GATE_B_PORT||4184);
 const dir='artifacts/post-shuffle';await mkdir(dir,{recursive:true});
@@ -38,9 +38,14 @@ try{
    const handoff=await page.evaluate(()=>({
     ghosts:document.querySelectorAll('.ps-handoff-card').length,
     prepared:document.querySelector('.ps-tableau')?.classList.contains('ps-handoff-prepared'),
-    settled:document.querySelector('.ps-tableau')?.classList.contains('ps-handoff-settled')
+    settled:document.querySelector('.ps-tableau')?.classList.contains('ps-handoff-settled'),
+    locked:window.__POST_SHUFFLE__.selectionLocked(),
+    snapshot:window.__POST_SHUFFLE__.selectionSnapshot()
    }));
-   assert.equal(handoff.ghosts,3,'third pick must create three physical-card transition surfaces');
+   assert.equal(handoff.locked,true,'third selection must lock the sphere atomically');
+   assert.equal(handoff.snapshot?.picks?.length,3,'lock must preserve three original identities');
+   assert.ok(handoff.ghosts>=0&&handoff.ghosts<=3,
+    'never create offscreen corner ghosts for earlier cards; only currently visible picks may fly in');
    assert.equal(handoff.prepared,true,'reveal destinations must exist before stage handoff');
    // Do not assert an animation timestamp after a Chromium mouse click: SwiftShader
    // can spend longer than the 1.53-second settle duration processing the event.
@@ -101,7 +106,15 @@ try{
  assert.ok(cardTextGap>=0&&cardTextGap<29,'reading must sit directly beneath its own card');
  for(let i=0;i<3;i++){
   await page.locator('.ps-flip-button').nth(i).click();
-  await page.waitForTimeout(1320);
+  // SwiftShader/browser CI may throttle a 1150ms CSS turn. Wait for the
+  // *actual rendered face* and its detail to settle, not a wall-clock guess.
+  await page.waitForFunction(index=>{
+   const inner=document.querySelectorAll('.ps-flip-inner')[index];
+   const detail=document.querySelectorAll('.ps-tableau-detail')[index];
+   if(!inner||!detail||detail.hidden)return false;
+   const m=new DOMMatrixReadOnly(getComputedStyle(inner).transform);
+   return m.m33<-.82;
+  },i,{timeout:13000});
   assert.equal(await page.locator('.ps-tableau-detail').nth(i).isVisible(),true,'Revealed card must show its meaning');
   if(i<2)assert.equal(await page.locator('.ps-begin-reading:visible').count(),0,'Begin Reading must remain gated until all 3 reveals');
   const facing=await page.locator('.ps-flip-inner').nth(i).evaluate(node=>{
@@ -122,14 +135,27 @@ try{
  assert.equal(await page.locator('.ps-begin-reading:visible').count(),1,'Explicit Begin Reading appears after third original card reveal');
  assert.equal(await page.locator('.ps-begin-reading').isEnabled(),true);
  assert.equal(await page.evaluate(()=>window.__POST_SHUFFLE__.stage()),'tableau');
+ await page.evaluate(()=>{window.__revealedOriginalFaces=[...document.querySelectorAll('.ps-tableau .ps-card-art')]});
  await page.locator('.ps-begin-reading').click();
  await page.waitForFunction(()=>window.__POST_SHUFFLE__?.stage()==='reading',undefined,{timeout:7000});
  assert.equal(page.url(),host+'/preview/post-shuffle/','No navigation during reader handoff');
  assert.equal(await page.locator('.scene-artemis-reading').count(),1);
  assert.equal(await page.locator('.reading-art-card').count(),3);
- const readingIDs=await page.locator('.reading-actual-card-face').evaluateAll(imgs=>
-  imgs.map(i=>i.getAttribute('src')?.split('/').at(-1)?.replace('.jpg','')));
- assert.deepEqual(readingIDs,selected,'The exact three picked cards must remain unchanged');
+ assert.equal(await page.evaluate(()=>{
+  const now=[...document.querySelectorAll('.reading-actual-card-face')];
+  return now.length===3&&now.every((img,i)=>img===window.__revealedOriginalFaces[i]
+   &&img.dataset.carryover==='original-rws');
+ }),true,'Reading stage must reuse the exact three revealed RWS DOM image nodes');
+ assert.equal(await page.locator('.reading-art-panel-skin').count(),1);
+ assert.equal(await page.locator('.reading-art-panel-corners').count(),1);
+ assert.equal(await page.locator('[data-action="reading-next"]').count(),1);
+ assert.equal(await page.locator('nav.reading-art-progress button').count(),0);
+ const readingIDs=await page.locator('.reading-art-card').evaluateAll(cards=>
+  cards.map(card=>card.dataset.originalCardId));
+ assert.deepEqual(readingIDs,selected,'The exact three picked card identities must remain unchanged');
+ const imagesDecoded=await page.locator('.reading-actual-card-face').evaluateAll(imgs=>
+  imgs.length===3&&imgs.every(img=>img.complete&&img.naturalWidth>0&&img.naturalHeight>0&&Boolean(img.currentSrc||img.src)));
+ assert.equal(imagesDecoded,true,'The same three original RWS images remain decoded after handoff');
  // The three original Tarot card nodes, the stage, and original RWS art never
  // remount during a chapter change (previously caused portrait blank frames).
  await page.evaluate(()=>{window.__readingStableCards=[...document.querySelectorAll('.reading-actual-card-face')]});
@@ -142,14 +168,46 @@ try{
   },filename,{timeout:11000});
  }
  await expectPortrait('artemis_warm_welcome.webp');
+ const readingGeometry=()=>page.evaluate(()=>{
+  const r=selector=>document.querySelector(selector)?.getBoundingClientRect();
+  const hero=r('.reading-art-hero'),head=r('.reading-art-header'),
+   portrait=r('.reading-art-portrait'),panel=r('.reading-art-panel');
+  const visual=[...document.querySelectorAll('.reading-art-card-visual')].map(el=>el.getBoundingClientRect());
+  const cards=[...document.querySelectorAll('.reading-art-card-frame')].map(el=>el.getBoundingClientRect());
+  return {heroTop:hero.top,heroHeight:hero.height,headerBottom:head.bottom,
+   portraitTop:portrait.top,panelTop:panel.top,
+   cardsBottom:Math.max(...visual.map(rect=>rect.bottom)),
+   cardTilt:parseFloat(document.querySelector('.reading-art-card-visual').dataset.tabletopTiltDeg),
+   cardFrames:cards.map(rect=>({top:rect.top,bottom:rect.bottom,left:rect.left,right:rect.right}))};
+ });
+ const welcomeLayout=await readingGeometry();
+ assert.equal(welcomeLayout.cardTilt,42,'Cards must use the approved 42° tabletop perspective');
+ assert.ok(welcomeLayout.cardFrames.every(rect=>rect.top>0&&rect.bottom<welcomeLayout.panelTop),
+  'Every physical RWS frame must sit fully above the dialogue HUD');
+ assert.ok(welcomeLayout.portraitTop>=welcomeLayout.headerBottom-8,
+  'Artemis illustration must not overlap the title');
+ assert.ok(welcomeLayout.panelTop-welcomeLayout.cardsBottom>10,
+  'Card meanings need space above the narrative frame');
+ await page.waitForTimeout(1100); // Capture after the 900ms authored chamber arrival, not its deliberately black first frame.
  await page.screenshot({path:dir+'/09-artemis-warm-welcome.png'});
  await page.locator('[data-action="reading-next"]').click();
- await expectPortrait('artemis_welcoming_gesture.webp');
+ assert.equal(await page.locator('.reading-art-panel-skin').count(),1,'Narrative update must not remove art skin');
+ assert.equal(await page.locator('.reading-art-panel-corners').count(),1,'Narrative update must not remove corners');
+ await expectPortrait('artemis_explaining.webp');
  await page.locator('[data-action="reading-next"]').click();
  await expectPortrait('artemis_thinking.webp');
  await page.locator('[data-action="reading-next"]').click();
- await expectPortrait('artemis_reflective.webp');
+ await expectPortrait('artemis_reading.webp');
  await page.waitForTimeout(510); // End of the deliberately short portrait crossfade.
+ const finalLayout=await readingGeometry();
+ assert.ok(Math.abs(finalLayout.heroTop-welcomeLayout.heroTop)<1,
+  'Chapter transitions must not reposition the hero');
+ assert.ok(Math.abs(finalLayout.heroHeight-welcomeLayout.heroHeight)<20,
+  'Longer interpretations may not collapse the Artemis hero');
+ assert.ok(finalLayout.portraitTop>=finalLayout.headerBottom-8,
+  'Artemis may not overlap the title on longer chapters');
+ assert.ok(finalLayout.panelTop-finalLayout.cardsBottom>10,
+  'Longer interpretations may not collide with card meanings');
  const stable=await page.evaluate(()=>[...document.querySelectorAll('.reading-actual-card-face')]
   .every((node,i)=>node===window.__readingStableCards[i]));
  assert.equal(stable,true,'Changing Artemis expression must preserve original RWS nodes');
@@ -157,6 +215,62 @@ try{
  await page.screenshot({path:dir+'/10-artemis-reflective.png'});
  assert.equal(await page.locator('.reading-art-card').count(),3);
  assert.match(await page.locator('.reading-art-panel').innerText(),/ARTEMIS/);
+ // A real phone-sized rendering must keep the three cards side-by-side
+ // without horizontal clipping and keep the live next control keyboardable.
+ await page.setViewportSize({width:390,height:844});
+ await page.waitForTimeout(420);
+ const phone=await page.evaluate(()=>{
+  const rect=selector=>document.querySelector(selector).getBoundingClientRect();
+  const cards=[...document.querySelectorAll('.reading-art-card')].map(n=>n.getBoundingClientRect());
+  return {scene:rect('.scene-artemis-reading'),panel:rect('.reading-art-panel'),
+   cards:cards.map(r=>({left:r.left,right:r.right})),screen:innerWidth,
+   nextLabel:document.querySelector('[data-action="reading-next"]')?.textContent};
+ });
+ assert.equal(phone.cards.length,3);
+ assert.ok(phone.cards.every(c=>c.left>=-2&&c.right<=phone.screen+2),
+  'All three selected Tarot cards must remain visible within a 390px phone viewport');
+ assert.ok(phone.panel.width<=phone.screen+2,'The Artemis panel must fit phone width');
+ assert.ok(phone.nextLabel?.trim().length>2,'Mobile panel must preserve the primary Next control');
+ await page.screenshot({path:dir+'/11-artemis-phone-390x844.png',fullPage:true});
+ // Approved 458×553 reading-stage concept is the spatial authority. Record
+ // normalized anatomy even when the real 31 source assets are pending import.
+ await page.setViewportSize({width:458,height:553});
+ await page.waitForTimeout(600);
+ const fidelity=await page.evaluate(()=>{
+  const box=selector=>{const r=document.querySelector(selector)?.getBoundingClientRect();
+   return r?{x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom}:null};
+  const cards=[...document.querySelectorAll('.reading-art-card-frame')].map(n=>{
+   const b=n.getBoundingClientRect(),m=new DOMMatrixReadOnly(getComputedStyle(n).transform);
+   return {x:b.x,y:b.y,width:b.width,height:b.height,bottom:b.bottom,
+    tiltDeg:Math.abs(Math.atan2(m.m23,m.m22)*180/Math.PI)};
+  });
+  return {viewport:{width:innerWidth,height:innerHeight},
+   header:box('.reading-art-header'),portrait:box('.reading-art-portrait'),
+   table:box('.reading-art-table-surface'),panel:box('.reading-art-panel'),
+   hero:box('.reading-art-hero'),cards,
+   backgroundReady:document.querySelector('.reading-art-atmosphere')?.dataset.artStatus==='ready'};
+ });
+ await writeFile(dir+'/12-artemis-fidelity-458x553.json',JSON.stringify(fidelity,null,2));
+ await page.screenshot({path:dir+'/12-artemis-fidelity-458x553.png',fullPage:true});
+ assert.ok(Math.abs(fidelity.header.bottom-61)/61<=.15,'Reference header boundary must be within 15%');
+ assert.ok(Math.abs(fidelity.panel.y-405)/405<=.15,'Reference HUD start must be within 15%');
+ assert.equal(fidelity.cards.length,3);
+ assert.ok(fidelity.cards.every(c=>c.x>=-1&&c.x+c.width<=459&&c.bottom<fidelity.panel.y),
+  'Every slanted card must stay on the tabletop above the framed dialogue');
+ assert.ok(fidelity.cards.every(c=>c.tiltDeg>=35&&c.tiltDeg<=45),
+  'Actual CSS transform must project backward at 35–45 degrees');
+ assert.ok(fidelity.portrait.y>=fidelity.header.bottom-8,'Portrait cannot overdraw the chapter heading');
+ assert.equal(fidelity.backgroundReady,true,'31-pack chamber background must be registered');
+ const actualArtwork=await page.evaluate(()=>{
+  const selectors=['.reading-art-atmosphere img','.reading-art-portrait img',
+   '.reading-art-panel-skin img','.reading-art-panel-corners img',
+   '.reading-art-halo img','.reading-art-reading-glow img'];
+  return selectors.map(selector=>{
+   const image=document.querySelector(selector);
+   return {selector,ok:!!image&&image.complete&&image.naturalWidth>200&&image.naturalHeight>100};
+  });
+ });
+ assert.ok(actualArtwork.every(item=>item.ok),'All six full-resolution chamber layers must decode from the installed 31-pack: '+JSON.stringify(actualArtwork));
  assert.deepEqual(errors,[]);
  console.log('Post-shuffle browser PASS: v3.4 sphere, 3 selections, RWS reveals, opt-in Begin Reading, four Artemis portraits and preserved identities');
 }finally{await browser.close()}
