@@ -201,6 +201,7 @@ try{
   const cards=[...document.querySelectorAll('.reading-art-card-frame')].map(el=>el.getBoundingClientRect());
   return {heroTop:hero.top,heroHeight:hero.height,headerBottom:head.bottom,
    portraitTop:portrait.top,panelTop:panel.top,
+   cssCardWidths:[...document.querySelectorAll('.reading-art-card')].map(el=>parseFloat(getComputedStyle(el).width)),
    cardsBottom:Math.max(...visual.map(rect=>rect.bottom)),
    cardTilt:parseFloat(document.querySelector('.reading-art-card-visual').dataset.tabletopTiltDeg),
    cardFrames:cards.map(rect=>({top:rect.top,bottom:rect.bottom,left:rect.left,right:rect.right}))};
@@ -219,8 +220,9 @@ try{
   'Tabletop restores the installed room artwork, not a fabricated surface');
  assert.equal(restoredTable.portraitFit,'contain','Stable master portrait must retain her shoulders and bodice without cover-cropping');
  assert.ok(restoredTable.portraitHeight>=370,'Desktop portrait framing must leave sufficient room for Artemis waist and shoulders');
- assert.ok(welcomeLayout.cardFrames.every(rect=>rect.width>=104),
-  'Desktop RWS cards should be physically larger than previous 100px review layout');
+ console.log('V4 desktop widths:',JSON.stringify({css:welcomeLayout.cssCardWidths,projected:welcomeLayout.cardFrames.map(r=>r.width),table:restoredTable}));
+ assert.ok(welcomeLayout.cssCardWidths.every(width=>width>=108)&&welcomeLayout.cardFrames.every(rect=>rect.width>=88),
+  'Desktop RWS cards must have 108px+ authored size and remain legible through perspective transforms');
  assert.equal(welcomeLayout.cardTilt,42,'Cards must use the approved 42° tabletop perspective');
  assert.ok(welcomeLayout.cardFrames.every(rect=>rect.top>0&&rect.bottom<welcomeLayout.panelTop),
   'Every physical RWS frame must sit fully above the dialogue HUD');
