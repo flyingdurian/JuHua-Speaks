@@ -271,10 +271,10 @@
  * last few pixels tuck under the foreground cards rather than fade into mist. */
 .scene-artemis-reading .reading-art-portrait{
  top:clamp(22px,6%,39px);left:50%;z-index:2;
- width:min(440px,51vw);height:clamp(225px,34dvh,282px);
+ width:min(440px,51vw);height:clamp(267px,41dvh,320px);
  overflow:hidden;transform:translateX(-50%);
- -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 95%,transparent 100%);
- mask-image:linear-gradient(to bottom,#000 0%,#000 95%,transparent 100%);
+ -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 96%,transparent 100%);
+ mask-image:linear-gradient(to bottom,#000 0%,#000 96%,transparent 100%);
  filter:drop-shadow(0 9px 15px rgba(13,8,37,.24));
 }
 .scene-artemis-reading .reading-art-portrait img{
@@ -298,7 +298,7 @@
  width:min(1100px,100%);height:clamp(214px,31dvh,260px);
  min-height:214px;max-height:none;
  margin:6px auto 0;
- padding:24px clamp(32px,6.4vw,76px) 13px;
+ padding:24px clamp(58px,8.5vw,94px) 13px;
  align-self:start;overflow:visible;
 }
 .scene-artemis-reading .reading-art-panel::before,
@@ -319,7 +319,7 @@
 }
 .scene-artemis-reading .reading-art-narration-text{
  box-sizing:border-box;display:block;flex:1 1 auto;min-height:0;
- width:100%;max-width:700px;max-height:none!important;
+ width:100%;max-width:620px;max-height:none!important;
  padding:0 6px 2px;margin:0 auto 6px;
  overflow-x:hidden!important;overflow-y:auto!important;
  scrollbar-width:thin;scrollbar-color:rgba(221,178,112,.65) transparent;
@@ -338,7 +338,7 @@
 @media(min-width:721px) and (max-height:760px){
  .scene-artemis-reading .reading-art-portrait{
   top:clamp(13px,4%,26px);width:min(410px,50vw);
-  height:clamp(219px,36dvh,265px);
+  height:clamp(260px,40dvh,305px);
  }
  .scene-artemis-reading .reading-art-panel{
   min-height:205px;height:clamp(205px,30dvh,230px);
@@ -362,7 +362,7 @@
  }
  .scene-artemis-reading .reading-art-portrait{
   top:clamp(23px,7%,46px);
-  width:min(82vw,332px);height:clamp(200px,27dvh,242px);
+  width:min(80vw,320px);height:clamp(255px,35dvh,300px);
   z-index:2;overflow:hidden;transform:translateX(-50%);
   -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 95%,transparent 100%);
   mask-image:linear-gradient(to bottom,#000 0%,#000 95%,transparent 100%);
@@ -380,7 +380,7 @@
  .scene-artemis-reading .reading-art-panel{
   box-sizing:border-box;height:clamp(260px,35dvh,302px);
   min-height:260px;max-height:none;margin-top:6px;
-  padding:23px clamp(30px,7vw,45px) 12px;
+  padding:23px clamp(48px,13vw,62px) 12px;
  }
  .scene-artemis-reading .reading-art-nameplate{
   margin:-23px auto 7px;
@@ -398,11 +398,11 @@
  .scene-artemis-reading .reading-art-hero{min-height:260px}
  .scene-artemis-reading .reading-art-portrait{
   top:12px;width:min(68vw,278px);
-  height:clamp(158px,33dvh,196px);
+  height:clamp(176px,35dvh,216px);
  }
  .scene-artemis-reading .reading-art-panel{
   min-height:230px;height:230px;
-  padding:23px clamp(27px,6vw,38px) 11px;
+  padding:23px clamp(38px,10vw,46px) 11px;
  }
  .scene-artemis-reading .reading-art-narration-text{
   font-size:clamp(11px,2.7vw,13px);
