@@ -203,6 +203,23 @@ try{
  await page.screenshot({path:dir+'/10-artemis-reflective.png'});
  assert.equal(await page.locator('.reading-art-card').count(),3);
  assert.match(await page.locator('.reading-art-panel').innerText(),/ARTEMIS/);
+ // A real phone-sized rendering must keep the three cards side-by-side
+ // without horizontal clipping and keep the live next control keyboardable.
+ await page.setViewportSize({width:390,height:844});
+ await page.waitForTimeout(420);
+ const phone=await page.evaluate(()=>{
+  const rect=selector=>document.querySelector(selector).getBoundingClientRect();
+  const cards=[...document.querySelectorAll('.reading-art-card')].map(n=>n.getBoundingClientRect());
+  return {scene:rect('.scene-artemis-reading'),panel:rect('.reading-art-panel'),
+   cards:cards.map(r=>({left:r.left,right:r.right})),screen:innerWidth,
+   nextLabel:document.querySelector('[data-action="reading-next"]')?.textContent};
+ });
+ assert.equal(phone.cards.length,3);
+ assert.ok(phone.cards.every(c=>c.left>=-2&&c.right<=phone.screen+2),
+  'All three selected Tarot cards must remain visible within a 390px phone viewport');
+ assert.ok(phone.panel.width<=phone.screen+2,'The Artemis panel must fit phone width');
+ assert.ok(phone.nextLabel?.trim().length>2,'Mobile panel must preserve the primary Next control');
+ await page.screenshot({path:dir+'/11-artemis-phone-390x844.png',fullPage:true});
  assert.deepEqual(errors,[]);
  console.log('Post-shuffle browser PASS: v3.4 sphere, 3 selections, RWS reveals, opt-in Begin Reading, four Artemis portraits and preserved identities');
 }finally{await browser.close()}
