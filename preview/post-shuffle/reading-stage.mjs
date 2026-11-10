@@ -30,11 +30,16 @@ export const ARTEMIS_ART_DIRECTOR_FILES=Object.freeze({
  ...Object.fromEntries(Object.entries(ARTEMIS_SOURCE_FILES).map(([slot,path])=>[slot,path.split('/').pop()])),
  ...PROVISIONAL_FILES
 });
+const validImportedFile=(slot)=> {
+ const original=ARTEMIS_SOURCE_FILES[slot]?.split('/').pop();
+ const installed=ARTEMIS_IMPORTED_FILES[slot];
+ if(!original||!installed)return null;
+ // Both verified source PNG and alpha-preserving review WebP derivatives can
+ // be published. Never permit an arbitrary manifest path or a URL override.
+ return [original,original.replace(/\.png$/,'.webp')].includes(installed)?installed:null;
+};
 export const ARTEMIS_READY_PORTRAIT_SLOTS=Object.freeze(
- ARTEMIS_PORTRAIT_SLOTS.filter(slot=>{
-  const src=ARTEMIS_SOURCE_FILES[slot]?.split('/').pop();
-  return (src&&ARTEMIS_IMPORTED_FILES[slot]===src)||Object.hasOwn(PROVISIONAL_FILES,slot);
- })
+ ARTEMIS_PORTRAIT_SLOTS.filter(slot=>Boolean(validImportedFile(slot)||Object.hasOwn(PROVISIONAL_FILES,slot)))
 );
 const clamp=n=>Math.max(0,Math.min(1,Number.isFinite(n)?n:0));
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
@@ -48,10 +53,9 @@ export function canBeginReading(choices,peel){
 export function handoffDuration(reducedMotion=false){return reducedMotion?0:1850;}
 export function assetUrl(slot){
  if(!Object.hasOwn(ARTEMIS_ART_DIRECTOR_FILES,slot))throw new RangeError('Unknown Artemis art slot: '+slot);
- const original=ARTEMIS_SOURCE_FILES[slot]?.split('/').pop();
- // The generated registration and the actual filename must agree. This is
- // also a path traversal guard: never concatenate an arbitrary manifest path.
- if(original&&ARTEMIS_IMPORTED_FILES[slot]===original)return ARTEMIS_ASSET_ROOT+original;
+ const imported=validImportedFile(slot);
+ // The installed filename must agree with the immutable source catalogue.
+ if(imported)return ARTEMIS_ASSET_ROOT+imported;
  const fallback=PROVISIONAL_FILES[slot];
  return fallback?ARTEMIS_ASSET_ROOT+fallback:null;
 }
