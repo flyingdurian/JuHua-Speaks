@@ -101,7 +101,15 @@ try{
  assert.ok(cardTextGap>=0&&cardTextGap<29,'reading must sit directly beneath its own card');
  for(let i=0;i<3;i++){
   await page.locator('.ps-flip-button').nth(i).click();
-  await page.waitForTimeout(1320);
+  // SwiftShader/browser CI may throttle a 1150ms CSS turn. Wait for the
+  // *actual rendered face* and its detail to settle, not a wall-clock guess.
+  await page.waitForFunction(index=>{
+   const inner=document.querySelectorAll('.ps-flip-inner')[index];
+   const detail=document.querySelectorAll('.ps-tableau-detail')[index];
+   if(!inner||!detail||detail.hidden)return false;
+   const m=new DOMMatrixReadOnly(getComputedStyle(inner).transform);
+   return m.m33<-.82;
+  },i,{timeout:13000});
   assert.equal(await page.locator('.ps-tableau-detail').nth(i).isVisible(),true,'Revealed card must show its meaning');
   if(i<2)assert.equal(await page.locator('.ps-begin-reading:visible').count(),0,'Begin Reading must remain gated until all 3 reveals');
   const facing=await page.locator('.ps-flip-inner').nth(i).evaluate(node=>{
