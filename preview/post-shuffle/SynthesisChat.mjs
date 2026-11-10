@@ -51,9 +51,11 @@ export function renderSynthesisChat({question,mode='scripted-demo',status='gener
  return '<section class="reading-chat-hud" aria-label="Unified Tarot reading chat" data-chat-state="'+h(status)+'">'+
   '<header class="synthesis-chat-heading"><span>✦</span><div><h2 tabindex="-1" id="synthesis-title">Unified Reading</h2>'+
   '<small>SYNTHESIZED INTERPRETATION · '+(demo?'SCRIPTED PREVIEW':'LOCAL AI')+'</small></div></header>'+
-  '<div class="synthesis-chat-scroll" role="log" aria-live="polite" aria-relevant="additions text">'+
+  // Question is a PINNED chat header; it must not scroll out of view when
+  // the reader adds a new guidance card or subsequent follow-up messages.
   '<div class="synthesis-question"><span class="synthesis-question-title">✧ Your Question</span>'+
   '<p>'+h(question)+'</p></div>'+
+  '<div class="synthesis-chat-scroll" role="log" aria-live="polite" aria-relevant="additions text">'+
   '<div class="synthesis-reader-head">'+(avatar?'<img src="'+h(avatar)+'" alt="" />':'<span>✧</span>')+
   '<span>Artemis</span></div>'+
   (response?message(response):'')+
