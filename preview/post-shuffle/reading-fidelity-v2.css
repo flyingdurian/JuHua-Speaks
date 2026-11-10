@@ -371,3 +371,33 @@
  .scene-artemis-reading .reading-art-spread,
  .scene-artemis-reading .reading-art-panel{animation:none!important;transition:none!important}
 }
+
+/* Chapter-stable panel geometry: text may change, the 3D stage must not jump. */
+.scene-artemis-reading .reading-art-panel{
+ height:clamp(166px,24vh,188px);
+ overflow:visible;
+}
+.scene-artemis-reading .reading-art-narration-text{
+ max-height:3.1em;overflow-y:auto;overscroll-behavior:contain;
+ scrollbar-width:thin;scrollbar-color:#af9277 transparent;
+}
+@media(max-height:760px) and (min-width:721px){
+ .scene-artemis-reading .reading-art-panel{height:166px;min-height:166px}
+ .scene-artemis-reading .reading-art-narration-text{max-height:2.9em}
+}
+@media(max-width:720px){
+ .scene-artemis-reading .reading-art-panel{height:136px;min-height:136px}
+ .scene-artemis-reading .reading-art-narration-text{max-height:2.75em}
+}
+@media(max-width:720px) and (min-height:750px){
+ .scene-artemis-reading .reading-art-layout{
+  grid-template-rows:68px minmax(430px,1fr) 164px 20px;
+ }
+ .scene-artemis-reading .reading-art-portrait{
+  height:clamp(290px,44vh,380px);width:min(370px,82vw)
+ }
+ .scene-artemis-reading .reading-art-card-visual{height:clamp(145px,20vh,174px)}
+ .scene-artemis-reading .reading-art-card{width:clamp(91px,25vw,116px)}
+ .scene-artemis-reading .reading-art-panel{height:164px;min-height:164px}
+ .scene-artemis-reading .reading-art-narration-text{max-height:3.9em}
+}
