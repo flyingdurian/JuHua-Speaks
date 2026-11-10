@@ -130,3 +130,23 @@
 .ps-world[data-beat="reading-transition"] .ps-tableau{pointer-events:none}
 .ps-world .scene-artemis-reading{isolation:isolate;z-index:30}
 @media(max-width:680px){.ps-tableau .ps-reading-entry{gap:3px;margin-top:8px}.ps-tableau .ps-reading-entry button{padding:9px 23px;font-size:10px;min-height:38px}}
+
+/* Stage D visual audit: keep Artemis's face ABOVE the Past/Present/Future spread.
+ * The 860x720 GPU capture previously placed all three physical RWS faces
+ * directly over her eyes. Raise and slightly reduce the portrait independently
+ * from the layered table, without altering the authentic card artwork. */
+.reading-art-portrait{
+ transform:translate(-50%,-16%) scale(.93);
+ transform-origin:50% 0;
+}
+.reading-art-portrait img{
+ position:absolute;inset:0;width:100%;height:100%;
+ opacity:1;transition:opacity .42s ease;
+ will-change:opacity;
+}
+@media(max-width:720px){
+ .reading-art-portrait{transform:translate(-50%,-11%) scale(.94)}
+}
+@media(prefers-reduced-motion:reduce){
+ .reading-art-portrait img{transition:none!important}
+}
