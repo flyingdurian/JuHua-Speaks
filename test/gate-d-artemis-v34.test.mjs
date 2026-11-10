@@ -77,7 +77,7 @@ test('Latest v3.4 Gate BC owns the CTA and cinematic handoff; no old Gate C14 ro
  assert.match(tableau,/if\(revealed===3\)/);
  assert.match(tableau,/onBeginReading\(/);
  assert.match(tableau,/readingEntry\.hidden=false/);
- assert.match(scene,/createTarotTableau\(\{mount:world,picks:choices,foil:sessionFoil,onBeginReading:beginReading\}\)/);
+ assert.match(scene,/createTarotTableau\(\{mount:world,picks:lockFrame\.picks,foil:sessionFoil,onBeginReading:beginReading\}\)/);
  assert.match(scene,/if\(dead\|\|lockAt===null\|\|!tableauShown\|\|tableau\?\.revealed!==3/);
  assert.match(scene,/readingTimer=setTimeout/);
  assert.match(scene,/renderReadingStage\(\{choices,cardsById:BY_ID/);
