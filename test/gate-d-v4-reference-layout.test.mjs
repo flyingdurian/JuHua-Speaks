@@ -56,6 +56,10 @@ test('Foil has a visible in-card second pass of the SAME selected background-ima
  assert.match(css,/mix-blend-mode:screen/);
  assert.match(css,/\.reading-art-card-foil::before\{/);
  assert.match(css,/background-image:inherit/);
+ const markup=await source('../preview/post-shuffle/reading-stage.mjs');
+ assert.match(markup,/id="reading-foil-alpha-boost"/);
+ assert.match(markup,/feFuncA type="linear" slope="3.0"/);
+ assert.match(css,/filter:url\(#reading-foil-alpha-boost\)/);
  for(const finish of ['celestial-lattice','constellation-map','alchemical-glyphs','scroll-texture'])
   assert.ok(css.includes('data-foil-finish="'+finish+'"'));
  assert.match(css,/rotateX\(42deg\)/);
