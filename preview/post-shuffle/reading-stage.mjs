@@ -6,17 +6,19 @@
  * All cards are immutable original RWS images chosen in Gate C.
  */
 export const ARTEMIS_ASSET_ROOT='../../assets/artemis/';
-export const ARTEMIS_ASSET_READY=false; // Four artworks approved for provisional use; PNG bytes are NOT in GitHub yet.
-// Flip only after the corresponding verified art package is present on this branch.
+// Four optimized transparent illustrations are already committed to this branch.
+ // Other Stage D background/FX/UI assets remain explicitly unready.
+export const ARTEMIS_ASSET_READY=true;
+export const ARTEMIS_PROVISIONAL_READY_SLOTS=Object.freeze(['warmWelcome','welcomingGesture','thinking','reflective']);
 export const ARTEMIS_ART_DIRECTOR_FILES=Object.freeze({
  background:'bg_artemis_reading_stage_main.png',
  transition:'bg_artemis_transition_gate.png',
  portrait:'artemis_idle.png',
- warmWelcome:'artemis_warm_welcome.png',
- welcomingGesture:'artemis_welcoming_gesture.png',
- thinking:'artemis_thinking.png',
+ warmWelcome:'artemis_warm_welcome.webp',
+ welcomingGesture:'artemis_welcoming_gesture.webp',
+ thinking:'artemis_thinking.webp',
  explaining:'artemis_explaining.png',
- reflective:'artemis_reflective.png',
+ reflective:'artemis_reflective.webp',
  focused:'artemis_focused.png',
  halo:'fx_artemis_halo_ring.png',
  sigils:'fx_artemis_sigils_soft.png',
@@ -42,7 +44,8 @@ export function canBeginReading(choices,peel){
 export function handoffDuration(reducedMotion=false){return reducedMotion?0:1850;}
 export function assetUrl(slot){
  if(!Object.hasOwn(ARTEMIS_ART_DIRECTOR_FILES,slot))throw new RangeError('Unknown Artemis art slot: '+slot);
- return ARTEMIS_ASSET_READY?ARTEMIS_ASSET_ROOT+ARTEMIS_ART_DIRECTOR_FILES[slot]:null;
+ return ARTEMIS_ASSET_READY&&ARTEMIS_PROVISIONAL_READY_SLOTS.includes(slot)
+  ?ARTEMIS_ASSET_ROOT+ARTEMIS_ART_DIRECTOR_FILES[slot]:null;
 }
 export function portraitSlotForChapter(chapter){
  if(!READING_CHAPTERS.includes(chapter))throw new RangeError('Invalid Artemis reading chapter');
@@ -109,7 +112,7 @@ export function renderReadingStage({choices,cardsById,demo,chapter=-1,question='
  '</header>'+
  '<div class="reading-art-hero" aria-label="Artemis illustration and your three selected cards">'+
  artSlot('halo','reading-art-halo')+
- artSlot(portraitSlotForChapter(chapter),'reading-art-portrait','<div class="reading-portrait-pending"><strong>ARTEMIS</strong><span>ILLUSTRATED ART INTEGRATION PENDING</span><small>Four provisional portraits ready for review · art package not yet committed</small></div>')+
+ artSlot(portraitSlotForChapter(chapter),'reading-art-portrait','<div class="reading-portrait-pending"><strong>ARTEMIS</strong><span>PROVISIONAL PORTRAIT UNAVAILABLE</span><small>Art Director preview asset · loading failed</small></div>')+
  '<div class="reading-art-spread" role="group" aria-label="Your three selected Tarot cards">'+
  choices.map((c,i)=>{
   const card=cardsById.get(c.id);
@@ -119,7 +122,7 @@ export function renderReadingStage({choices,cardsById,demo,chapter=-1,question='
   '<span class="reading-art-card-role">'+roles[i]+'</span></button>';
  }).join('')+
  '</div></div>'+
- '<div class="reading-art-panel" data-art-slot="panel" data-art-filename="ui_reading_frame_panel.png" data-art-status="'+(ARTEMIS_ASSET_READY?'ready':'pending')+'">'+renderReadingPanel(demo,chapter)+'</div>'+
+ '<div class="reading-art-panel" data-art-slot="panel" data-art-filename="ui_reading_frame_panel.png" data-art-status="pending">'+renderReadingPanel(demo,chapter)+'</div>'+
  '<footer class="reading-art-footer"><p class="reading-art-question">'+(question?'YOUR QUESTION · '+esc(question):'PAST · PRESENT · FUTURE')+'</p>'+
  '<p class="reading-art-demo">SCRIPTED DEMONSTRATION · NO LIVE AI REQUEST</p></footer>'+
  '</div></section>';
