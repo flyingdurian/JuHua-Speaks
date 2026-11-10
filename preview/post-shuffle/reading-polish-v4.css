@@ -1,0 +1,228 @@
+/*
+ * Gate D V4 — Reading Stage Final corrective layout recovery.
+ * Separate final-loaded file: overrides V3 without touching the
+ * original Artemis portrait files, real RWS scan nodes, session foil,
+ * Gate B/C choreography or approved scene background.
+ *
+ * The table image is a crop of the SAME installed room illustration.
+ * No newly invented character art or substitute table asset.
+ */
+
+/* Avoid duplicate "cover" crops of Artemis's head and the black fade that
+ * erased her shoulders/bodice. Display the whole transparent master asset;
+ * let the existing authored table naturally occlude her lower edge. */
+@media (min-width:721px){
+ .scene-artemis-reading .reading-art-portrait{
+  top:-1%;width:min(535px,57vw);
+  height:min(460px,calc(100% + 28px));
+  overflow:visible;
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 87%,transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 0%,#000 87%,transparent 100%);
+ }
+ .scene-artemis-reading .reading-art-portrait img{
+  object-fit:contain;object-position:center top;
+ }
+}
+
+/* Restore the background's entire violet/gilded tabletop as a distinct
+ * compositional plane. A gentle masked duplicate of the EXISTING authored
+ * room asset provides actual tabletop art, not a plain oval CSS placeholder.
+ * Constrain it to the stage: no copy of the room's lanterns/portrait. */
+.scene-artemis-reading .reading-art-table-surface{
+ display:block!important;visibility:visible!important;opacity:1!important;
+ position:absolute;z-index:3;
+ left:3%;right:3%;bottom:4%;height:38%;
+ transform:perspective(940px) rotateX(52deg);
+ transform-origin:center bottom;
+ border-radius:45% 45% 9% 9% / 26% 26% 9% 9%;
+ overflow:visible;
+ background:
+  radial-gradient(ellipse at 50% 57%,rgba(134,91,147,.27),rgba(34,26,62,.34) 58%,rgba(4,6,22,.14) 90%),
+  linear-gradient(180deg,rgba(84,54,103,.36) 3%,rgba(45,30,80,.49) 70%,rgba(21,12,40,.72));
+ border:1px solid rgba(229,183,111,.36);
+ border-bottom:3px solid rgba(238,187,113,.76);
+ box-shadow:inset 0 1px 13px rgba(240,202,146,.13),
+  inset 0 -9px 20px rgba(5,4,20,.48),
+  0 7px 9px rgba(12,9,31,.65),0 18px 42px rgba(8,6,23,.35);
+ pointer-events:none;
+}
+.scene-artemis-reading .reading-art-table-surface::before{
+ content:"";position:absolute;inset:0;z-index:0;
+ border-radius:inherit;opacity:.57;
+ background-image:url('../../assets/artemis/bg_artemis_reading_stage_main.webp');
+ background-repeat:no-repeat;background-size:100% 265%;
+ background-position:center bottom;
+ -webkit-mask-image:linear-gradient(to bottom,transparent 1%,#000 20%,#000 78%,transparent 100%);
+ mask-image:linear-gradient(to bottom,transparent 1%,#000 20%,#000 78%,transparent 100%);
+ pointer-events:none;
+}
+.scene-artemis-reading .reading-art-table-surface::after{
+ content:"";position:absolute;left:5%;right:5%;bottom:-3px;height:5px;
+ border-radius:50%;
+ background:linear-gradient(90deg,transparent,rgba(234,190,117,.62) 18%,
+  rgba(255,225,162,.82) 50%,rgba(234,190,117,.62) 82%,transparent);
+ box-shadow:0 0 12px rgba(223,177,107,.25);
+ pointer-events:none;
+}
+
+/* Actual 42° card planes step forward to lightly bridge the table's near
+ * gilded rim. The spread and the table share one hero-coordinate frame. */
+@media (min-width:721px){
+ .scene-artemis-reading .reading-art-spread{
+  bottom:3.5%;
+  width:min(1040px,97%);
+  gap:clamp(22px,4.5vw,76px);
+  transform:translateX(-50%) perspective(1200px) rotateX(2deg);
+ }
+ .scene-artemis-reading .reading-art-card{
+  width:clamp(110px,9.6vw,163px);max-width:100%;
+ }
+ .scene-artemis-reading .reading-art-card-glow{
+  bottom:5%;left:5%;right:5%;height:43%;opacity:.5;
+ }
+ .scene-artemis-reading .reading-art-card:nth-child(1){
+  transform:translateY(9px) rotate(-3.7deg) rotateY(6deg) scale(.99);
+ }
+ .scene-artemis-reading .reading-art-card:nth-child(2){
+  transform:translateY(-2px) scale(1.01);
+ }
+ .scene-artemis-reading .reading-art-card:nth-child(3){
+  transform:translateY(9px) rotate(3.7deg) rotateY(-6deg) scale(.99);
+ }
+ .scene-artemis-reading .reading-art-card.is-focused{
+  transform:translateY(-8px) scale(1.045);
+ }
+}
+/* Propped pitch is a physical pose rather than a screenshot-only data label. */
+.scene-artemis-reading .reading-art-card-frame{
+ transform:perspective(750px) rotateX(42deg);
+ transform-origin:center bottom;
+}
+
+/* Phones: genuinely fill the viewport height rather than capping the hero
+ * at 425px and showing 180px of empty indigo below the question.
+ * Keep the title, chamber, HUD and footer in one flow. */
+@media(max-width:720px){
+ .ps-world .scene-artemis-reading{
+  width:100%;height:100dvh;min-height:100dvh;
+  overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;
+ }
+ .scene-artemis-reading .reading-art-layout{
+  box-sizing:border-box;
+  width:100%;height:100%;min-height:100dvh;
+  grid-template-rows:clamp(56px,7.3dvh,68px) minmax(0,1fr) min-content min-content;
+  align-content:stretch;justify-items:stretch;
+  padding:6px 8px max(14px,env(safe-area-inset-bottom,0px));
+ }
+ .scene-artemis-reading .reading-art-header{
+  min-height:0;height:100%;width:100%;
+ }
+ .scene-artemis-reading .reading-art-hero{
+  min-height:0;height:100%;width:100%;position:relative;
+ }
+ .scene-artemis-reading .reading-art-portrait{
+  z-index:2;top:clamp(0px,calc((100dvh - 600px)*.23),70px);
+  width:min(88vw,410px);height:clamp(310px,56dvh,455px);
+  transform:translateX(-50%);
+  overflow:visible;
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 88%,transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 0%,#000 88%,transparent 100%);
+ }
+ .scene-artemis-reading .reading-art-portrait img{
+  object-fit:contain;object-position:center top;
+ }
+ .scene-artemis-reading .reading-art-table-surface{
+  left:0;right:0;bottom:4%;height:37%;
+  transform:perspective(700px) rotateX(54deg);
+  border-bottom-width:2px;
+ }
+ .scene-artemis-reading .reading-art-spread{
+  width:min(100%,490px);left:50%;bottom:3%;
+  gap:clamp(7px,2.3vw,17px);
+  transform:translateX(-50%) perspective(980px) rotateX(1deg);
+  justify-items:center;
+ }
+ .scene-artemis-reading .reading-art-card{
+  width:clamp(88px,26.5vw,123px);max-width:100%;
+ }
+ .scene-artemis-reading .reading-art-card-visual{
+  height:clamp(139px,20dvh,176px);
+ }
+ .scene-artemis-reading .reading-art-card-frame{
+  transform:perspective(620px) rotateX(42deg);
+ }
+ .scene-artemis-reading .reading-art-card:nth-child(1){
+  transform:translateY(7px) rotate(-3.4deg) scale(.98);
+ }
+ .scene-artemis-reading .reading-art-card:nth-child(2){
+  transform:translateY(-2px) scale(1.01);
+ }
+ .scene-artemis-reading .reading-art-card:nth-child(3){
+  transform:translateY(7px) rotate(3.4deg) scale(.98);
+ }
+ .scene-artemis-reading .reading-art-card.is-focused{
+  transform:translateY(-8px) scale(1.04);
+ }
+ .scene-artemis-reading .reading-art-card-glow{
+  left:0;right:0;bottom:5%;height:42%;
+ }
+ /* The ornate dialogue image itself is unchanged; only restore width
+  * and comfortable text column. Keep footer in view above safe area. */
+ .scene-artemis-reading .reading-art-panel{
+  box-sizing:border-box;width:100%;min-width:0;max-width:none;
+  height:clamp(150px,19dvh,172px);min-height:150px;
+  margin:0;align-self:end;
+  padding:15px clamp(12px,3.2vw,18px) 9px;
+ }
+ .scene-artemis-reading .reading-art-panel-inner{
+  width:100%;max-width:100%;
+ }
+ .scene-artemis-reading .reading-art-narration-text{
+  width:100%;max-width:100%;
+  font-size:clamp(11px,2.8vw,13px);line-height:1.38;
+ }
+ .scene-artemis-reading .reading-art-footer{
+  box-sizing:border-box;width:100%;max-width:100%;min-height:28px;
+  margin:4px 0 0;padding:3px 4px 2px;
+  line-height:1.45;font-size:clamp(9px,2.25vw,11px);
+  text-align:center;align-self:end;
+  overflow-wrap:anywhere;
+ }
+ .scene-artemis-reading .reading-art-question{
+  display:block;max-width:100%;white-space:normal;overflow-wrap:anywhere;
+ }
+}
+
+/* Keep the compact 458×553 visual baseline: here a fixed portrait/table
+ * chamber is necessary to fit full dialogue text and footer above the fold.
+ * This only affects short screens; tall phones use flexible viewport rows. */
+@media(max-width:720px) and (max-height:680px){
+ .scene-artemis-reading .reading-art-layout{
+  height:auto;min-height:100dvh;
+  grid-template-rows:clamp(56px,7.3dvh,68px) 318px min-content min-content;
+  align-content:start;padding:6px 8px max(8px,env(safe-area-inset-bottom,0px));
+ }
+ .scene-artemis-reading .reading-art-portrait{
+  top:0;width:min(82vw,330px);height:clamp(285px,56dvh,335px);
+ }
+ .scene-artemis-reading .reading-art-panel{
+  height:136px;min-height:136px;padding:12px 11px 5px;
+ }
+ .scene-artemis-reading .reading-art-card{
+  width:clamp(86px,25.5vw,116px);
+ }
+ .scene-artemis-reading .reading-art-card-visual{height:clamp(128px,23dvh,143px)}
+ .scene-artemis-reading .reading-art-footer{
+  min-height:23px;margin-top:4px;padding:2px 4px 3px;
+ }
+}
+@media(max-width:390px){
+ .scene-artemis-reading .reading-art-card{
+  width:clamp(83px,26vw,107px);
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .scene-artemis-reading .reading-art-table-surface,
+ .scene-artemis-reading .reading-art-portrait img,
+ .scene-artemis-reading .reading-art-card{transition:none!important;animation:none!important}
+}
