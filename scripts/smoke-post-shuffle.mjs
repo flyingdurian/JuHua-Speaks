@@ -381,6 +381,18 @@ try{
   'Mobile cards should be scaled up while preserving their 42-degree pitch');
  assert.ok(phone.singleTableHidden&&phone.questionNearTitle&&phone.textScrolls,
   'Mobile must show one painted table, the original question by the header, and all interpretation text');
+ const scrollAffordance=await page.evaluate(()=>{
+  const p=document.querySelector('.reading-art-narration-text');
+  const panel=document.querySelector('.reading-art-panel');
+  const cue=panel.querySelector('.reading-art-scroll-cue');
+  return {needed:p.scrollHeight>p.clientHeight+3,
+   marked:panel.dataset.textOverflow==='true',
+   visible:getComputedStyle(cue).display!=='none'};
+ });
+ if(scrollAffordance.needed)assert.ok(scrollAffordance.marked&&scrollAffordance.visible,
+  'A long mobile interpretation must visibly indicate that more text can be scrolled');
+ else assert.equal(scrollAffordance.visible,false,
+  'Short interpretations must not display an inert scroll hint');
  assert.ok(phone.footer.bottom-phone.scene.top<=phone.scrollHeight+2,
   'Question/footer must remain reachable inside the scrollable safe-area layout');
  await page.screenshot({path:dir+'/11-artemis-phone-390x844.png',fullPage:true});
