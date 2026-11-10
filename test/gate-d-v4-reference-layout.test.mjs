@@ -77,7 +77,7 @@ test('Mobile preserves safe area, card geometry and short-viewport document scro
  assert.match(css,/height:clamp\(260px,35dvh,302px\)/);
  assert.match(css,/env\(safe-area-inset-bottom,0px\)/);
  assert.match(css,/@media\(max-width:720px\) and \(max-height:680px\)/);
- assert.match(css,/grid-template-rows:auto minmax\(270px,1fr\) auto auto/);
+ assert.match(css,/grid-template-rows:auto minmax\(380px,1fr\) auto auto/);
 });
 
 test('Visible title removed while question and accessible reading heading remain',async()=>{
