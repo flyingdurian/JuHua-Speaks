@@ -151,7 +151,11 @@ export function renderReadingStage({choices,cardsById,demo,chapter=-1,question='
   '<header class="reading-art-header">'+artSlot('title','reading-art-title-art')+
   '<span class="reading-art-eyebrow">JUHUA SPEAKS · CELESTIAL TAROT</span>'+
   '<h1 tabindex="-1" id="artemis-reading-title">Your Reading</h1>'+
-  '<p class="reading-art-subtitle">THREE CARDS · ONE STORY</p></header>'+
+  '<p class="reading-art-subtitle">THREE CARDS · ONE STORY</p>'+ 
+  (question?'<div class="reading-art-question-banner" aria-label="Your question">'+
+   '<span class="reading-art-question-label">YOUR QUESTION</span>'+
+   '<p class="reading-art-question">'+esc(question)+'</p></div>':'')+
+  '</header>'+
   '<div class="reading-art-hero" aria-label="Artemis and the three cards chosen during the ritual">'+
    artSlot('halo','reading-art-halo')+
    artSlot('readingGlow','reading-art-reading-glow')+
@@ -179,8 +183,7 @@ export function renderReadingStage({choices,cardsById,demo,chapter=-1,question='
    artSlot('panel','reading-art-panel-skin')+
    artSlot('corners','reading-art-panel-corners')+
    renderReadingPanel(demo,chapter)+'</div>'+
-  '<footer class="reading-art-footer"><p class="reading-art-question">'+
-   (question?'YOUR QUESTION · '+esc(question):'PAST · PRESENT · FUTURE')+'</p>'+
+  '<footer class="reading-art-footer">'+
    '<p class="reading-art-demo">SCRIPTED DEMONSTRATION · NO LIVE AI REQUEST</p></footer>'+
   '</div></section>';
 }
