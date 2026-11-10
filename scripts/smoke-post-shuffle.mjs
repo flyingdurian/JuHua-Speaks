@@ -296,13 +296,16 @@ try{
    textUnclipped:(()=>{const p=document.querySelector('.reading-art-narration-text');
      return getComputedStyle(p).overflowY==='visible'&&p.scrollHeight<=p.clientHeight+2;})(),
    cardFrames:[...document.querySelectorAll('.reading-art-card-frame')].map(el=>{const r=el.getBoundingClientRect();return {width:r.width,top:r.top,bottom:r.bottom}}),
-   nextLabel:document.querySelector('[data-action="reading-next"]')?.textContent};
+   nextLabel:document.querySelector('[data-action="reading-next"]')?.textContent,
+   nextButtonBottom:document.querySelector('[data-action="reading-next"]')?.getBoundingClientRect().bottom};
  });
  assert.equal(phone.cards.length,3);
  assert.ok(phone.cards.every(c=>c.left>=-2&&c.right<=phone.screen+2),
   'All three selected Tarot cards must remain visible within a 390px phone viewport');
  assert.ok(phone.panel.width<=phone.screen+2,'The Artemis panel must fit phone width');
  assert.ok(phone.nextLabel?.trim().length>2,'Mobile panel must preserve the primary Next control');
+ assert.ok(phone.nextButtonBottom<=phone.scene.bottom-3,
+  'On a 390x844 phone the complete interpretation and Next control must be visible without initially scrolling the stage: '+JSON.stringify({button:phone.nextButtonBottom,viewport:phone.scene.bottom}));
  assert.ok(phone.hero.height>=350&&phone.hero.height<=phone.scene.height*.80,
   'Tall mobile scene must reserve space for a complete reading HUD without a huge empty region');
  assert.ok(phone.panel.width>=phone.screen-22,
@@ -338,6 +341,14 @@ try{
  });
  await writeFile(dir+'/12-artemis-fidelity-458x553.json',JSON.stringify(fidelity,null,2));
  await page.screenshot({path:dir+'/12-artemis-fidelity-458x553.png',fullPage:true});
+ // A 553px-tall viewport cannot display an accessible long interpretation
+ // alongside the complete portrait/card scene. Capture its reachable lower
+ // content explicitly; page.fullPage cannot expand a nested scrolling stage.
+ await page.evaluate(()=>{const scene=document.querySelector('.scene-artemis-reading');
+  scene.scrollTop=scene.scrollHeight;});
+ await page.waitForTimeout(140);
+ await page.screenshot({path:dir+'/13-artemis-compact-panel-bottom-458x553.png'});
+ await page.evaluate(()=>{document.querySelector('.scene-artemis-reading').scrollTop=0;});
  assert.ok(fidelity.question&&fidelity.question.y>=fidelity.header.y&&fidelity.question.bottom<=fidelity.header.bottom+2,
   'Question belongs inside the title/header on compact screens');
  assert.ok(fidelity.panel.y>=fidelity.hero.bottom-2,
