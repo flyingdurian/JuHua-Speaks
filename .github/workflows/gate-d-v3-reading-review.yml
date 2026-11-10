@@ -1,0 +1,55 @@
+name: Gate D V3 reading foil/table/mobile review (no deploy)
+on:
+  push:
+    branches: [fix/gate-d-v3-foil-table-responsive]
+  pull_request:
+    branches: [feat/gate-d-art-pack-v1-stage-redesign]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse reading stage, foil handoff, browser audit and regression suite
+        run: |
+          node --check preview/post-shuffle/reading-stage.mjs
+          node --check preview/post-shuffle/scene.mjs
+          node --check scripts/smoke-post-shuffle.mjs
+          node --check test/gate-d-v3-reading-corrections.test.mjs
+      - name: Execute all tarot and final reading fidelity source tests
+        run: npm test
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright
+      - run: npx playwright install chromium --only-shell
+      - name: Sync authentic historic RWS assets for verified card faces
+        run: npm run assets:sync
+      - name: Start isolated Gate BC / Artemis review (never production)
+        run: |
+          npm run preview:gate-b > /tmp/gate-d-v3.log 2>&1 &
+          for i in $(seq 1 35); do
+            if curl -fsS http://127.0.0.1:4184/preview/gate-b/ >/dev/null; then break; fi
+            sleep 2
+          done
+      - name: Browser audit including original foil handoff and mobile geometry
+        run: node scripts/smoke-post-shuffle.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gate-d-v3-foil-desktop-mobile-artifacts
+          path: |
+            artifacts/post-shuffle
+            /tmp/gate-d-v3.log
+          retention-days: 14

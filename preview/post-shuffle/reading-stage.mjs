@@ -167,7 +167,7 @@ export function renderReadingStage({choices,cardsById,demo,chapter=-1,question='
     return '<button type="button" class="reading-art-card '+(chapter===i?'is-focused':'')+
       '" data-reading-chapter="'+i+'" aria-label="'+roles[i]+': '+esc(card.name)+', '+choice.orientation+
       '" aria-pressed="'+(chapter===i)+'" data-original-card-id="'+esc(choice.id)+'" data-orientation="'+esc(choice.orientation)+'">'+
-      '<span class="reading-art-card-visual" data-tabletop-tilt-deg="42"><span class="reading-art-card-frame">'+face(choice,cardsById)+'</span></span>'+
+      '<span class="reading-art-card-visual" data-tabletop-tilt-deg="42"><span class="reading-art-card-frame">'+face(choice,cardsById)+'<span class="reading-art-card-foil ps-card-art-overlay" data-foil-finish="pending" aria-hidden="true"></span></span></span>'+
       '<span class="reading-art-connector" aria-hidden="true"></span>'+
       '<span class="reading-art-card-role">'+String(i+1).padStart(2,'0')+' · '+roles[i]+'</span>'+
       '<span class="reading-art-card-meaning">'+orientation+' · '+esc(cardBrief(demo,card,choice,i))+'</span></button>';

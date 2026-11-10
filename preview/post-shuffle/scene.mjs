@@ -172,12 +172,18 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   // Carry forward the EXACT three authentic RWS <img> nodes that the visitor
   // revealed. New stage frames are decorative wrappers, not new Tarot draws.
   const originalFaces=[...(tableau?.element?.querySelectorAll('.ps-card-art')||[])];
-  if(originalFaces.length!==3||originalFaces.some(img=>!img.complete||!img.naturalWidth))return false;
+  // Preserve the SAME foil texture nodes alongside their authentic RWS images.
+  // The previous reading transition transported images but discarded the foil.
+  const originalFoils=[...(tableau?.element?.querySelectorAll('.ps-card-art-overlay')||[])];
+  if(originalFaces.length!==3||originalFaces.some(img=>!img.complete||!img.naturalWidth)
+   ||originalFoils.length!==3||originalFoils.some(layer=>!layer.style.backgroundImage||!layer.dataset.foilFinish))return false;
   for(const img of originalFaces)img.remove(); // survive tableau.dispose()
+  for(const layer of originalFoils)layer.remove(); // keep their actual overlay textures
   readingStarted=true;ready=false;step='reading';world.dataset.beat='reading';
   cancelAnimationFrame(raf);disposeSphereResources();renderReading();
   const sockets=[...world.querySelectorAll('.reading-art-card-frame .reading-actual-card-face')];
-  if(sockets.length!==3)throw Error('Reading stage lost an original Tarot-card slot');
+  const foilSockets=[...world.querySelectorAll('.reading-art-card-frame .reading-art-card-foil')];
+  if(sockets.length!==3||foilSockets.length!==3)throw Error('Reading stage lost an original Tarot-card or foil slot');
   originalFaces.forEach((img,i)=>{
    img.onload=null;img.onerror=null;img.removeAttribute('hidden');
    img.style.transform='';
@@ -185,6 +191,10 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
    img.dataset.carryover='original-rws';
    img.alt=BY_ID.get(choices[i].id).name+' '+choices[i].orientation+' original Rider–Waite–Smith card art';
    sockets[i].replaceWith(img);
+   const layer=originalFoils[i];
+   layer.classList.add('reading-art-card-foil');
+   layer.dataset.carryover='original-foil';
+   foilSockets[i].replaceWith(layer);
   });
   world.querySelector('#artemis-reading-title')?.focus({preventScroll:true});
   return true;
