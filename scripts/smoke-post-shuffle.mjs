@@ -38,9 +38,14 @@ try{
    const handoff=await page.evaluate(()=>({
     ghosts:document.querySelectorAll('.ps-handoff-card').length,
     prepared:document.querySelector('.ps-tableau')?.classList.contains('ps-handoff-prepared'),
-    settled:document.querySelector('.ps-tableau')?.classList.contains('ps-handoff-settled')
+    settled:document.querySelector('.ps-tableau')?.classList.contains('ps-handoff-settled'),
+    locked:window.__POST_SHUFFLE__.selectionLocked(),
+    snapshot:window.__POST_SHUFFLE__.selectionSnapshot()
    }));
-   assert.equal(handoff.ghosts,3,'third pick must create three physical-card transition surfaces');
+   assert.equal(handoff.locked,true,'third selection must lock the sphere atomically');
+   assert.equal(handoff.snapshot?.picks?.length,3,'lock must preserve three original identities');
+   assert.ok(handoff.ghosts>=0&&handoff.ghosts<=3,
+    'never create offscreen corner ghosts for earlier cards; only currently visible picks may fly in');
    assert.equal(handoff.prepared,true,'reveal destinations must exist before stage handoff');
    // Do not assert an animation timestamp after a Chromium mouse click: SwiftShader
    // can spend longer than the 1.53-second settle duration processing the event.
@@ -167,15 +172,21 @@ try{
   const r=selector=>document.querySelector(selector)?.getBoundingClientRect();
   const hero=r('.reading-art-hero'),head=r('.reading-art-header'),
    portrait=r('.reading-art-portrait'),panel=r('.reading-art-panel');
-  const descriptions=[...document.querySelectorAll('.reading-art-card-meaning')].map(el=>el.getBoundingClientRect());
+  const visual=[...document.querySelectorAll('.reading-art-card-visual')].map(el=>el.getBoundingClientRect());
+  const cards=[...document.querySelectorAll('.reading-art-card-frame')].map(el=>el.getBoundingClientRect());
   return {heroTop:hero.top,heroHeight:hero.height,headerBottom:head.bottom,
    portraitTop:portrait.top,panelTop:panel.top,
-   descriptionsBottom:Math.max(...descriptions.map(rect=>rect.bottom))};
+   cardsBottom:Math.max(...visual.map(rect=>rect.bottom)),
+   cardTilt:parseFloat(document.querySelector('.reading-art-card-visual').dataset.tabletopTiltDeg),
+   cardFrames:cards.map(rect=>({top:rect.top,bottom:rect.bottom,left:rect.left,right:rect.right}))};
  });
  const welcomeLayout=await readingGeometry();
+ assert.equal(welcomeLayout.cardTilt,40,'DOM records the 40° authoring target; CSS renders 42° for perspective');
+ assert.ok(welcomeLayout.cardFrames.every(rect=>rect.top>0&&rect.bottom<welcomeLayout.panelTop),
+  'Every physical RWS frame must sit fully above the dialogue HUD');
  assert.ok(welcomeLayout.portraitTop>=welcomeLayout.headerBottom-8,
   'Artemis illustration must not overlap the title');
- assert.ok(welcomeLayout.panelTop-welcomeLayout.descriptionsBottom>10,
+ assert.ok(welcomeLayout.panelTop-welcomeLayout.cardsBottom>10,
   'Card meanings need space above the narrative frame');
  await page.screenshot({path:dir+'/09-artemis-warm-welcome.png'});
  await page.locator('[data-action="reading-next"]').click();
@@ -194,7 +205,7 @@ try{
   'Longer interpretations may not collapse the Artemis hero');
  assert.ok(finalLayout.portraitTop>=finalLayout.headerBottom-8,
   'Artemis may not overlap the title on longer chapters');
- assert.ok(finalLayout.panelTop-finalLayout.descriptionsBottom>10,
+ assert.ok(finalLayout.panelTop-finalLayout.cardsBottom>10,
   'Longer interpretations may not collide with card meanings');
  const stable=await page.evaluate(()=>[...document.querySelectorAll('.reading-actual-card-face')]
   .every((node,i)=>node===window.__readingStableCards[i]));
