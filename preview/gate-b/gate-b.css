@@ -231,3 +231,7 @@
 .gate-b-entering-selection .ritual-copy{opacity:0;transition:opacity .35s ease}
 .gate-b-entering-selection #gate-b-notice{color:#f7db9e;text-shadow:0 0 14px #dcb96e9c}
 @media(prefers-reduced-motion:reduce){.gate-b-entering-selection .world-root,.gate-b-entering-selection .ritual-copy{transition:none}}
+
+/* Review-only entry: bypass the previous gates without altering the ritual. */
+.review-selection-button{display:block;margin:12px auto 0;padding:9px 15px;border:1px solid rgba(215,188,136,.62);border-radius:20px;background:rgba(12,16,36,.72);color:#f2ddb4;font:600 10px Arial,sans-serif;letter-spacing:.12em;cursor:pointer}
+.review-selection-button:hover,.review-selection-button:focus-visible{background:#29213d;outline-offset:3px}
