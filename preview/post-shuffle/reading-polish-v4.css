@@ -113,6 +113,11 @@
  filter:drop-shadow(0 0 .8px rgba(255,215,155,.95));
  pointer-events:none;
 }
+/* V3 has more-specific per-finish opacity (.46-.67); override those
+ * selectors explicitly or the new foil treatment remains almost invisible. */
+.scene-artemis-reading .reading-art-card-frame .reading-art-card-foil[data-foil-finish]{
+ opacity:1;
+}
 .scene-artemis-reading .reading-art-card-frame .reading-art-card-foil::before{
  content:"";position:absolute;inset:0;display:block;pointer-events:none;
  background-image:inherit;background-size:100% 100%;
