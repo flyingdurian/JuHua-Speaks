@@ -96,6 +96,9 @@
  min-height:18px;margin:3px auto 0;padding:2px 6px;
  text-align:center;font-size:9px;letter-spacing:.07em;
 }
+.scene-artemis-reading .reading-foil-filter-defs{
+ position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;
+}
 /* Strengthen the ACTUAL selected foil texture, not a fake detached card glow.
  * Canvas source lines are only .5–.65px at 256px source width and have
  * alpha around .12–.24, making them subpixel specks after downscaling.
@@ -110,7 +113,9 @@
  opacity:1;visibility:visible;
  background-size:100% 100%;background-repeat:no-repeat;background-position:center;
  mix-blend-mode:screen;isolation:isolate;
- filter:drop-shadow(0 0 .8px rgba(255,215,155,.95));
+ /* Boost the alpha of faint ORIGINAL Canvas strokes in-place; the
+  * selected data: texture, finish ID, DOM node and card plane are unchanged. */
+ filter:url(#reading-foil-alpha-boost) drop-shadow(0 0 .8px rgba(255,215,155,.95));
  pointer-events:none;
 }
 /* V3 has more-specific per-finish opacity (.46-.67); override those
