@@ -129,8 +129,8 @@
 }
 .reading-art-reading-glow img{width:100%;height:100%;object-fit:contain;mix-blend-mode:screen}
 .reading-art-portrait{
- position:absolute;z-index:1;top:-12%;left:50%;width:min(430px,42vw);height:107%;
- transform:translate(-50%,-15%) scale(.91);transform-origin:50% 10%;
+ position:absolute;z-index:1;top:10%;left:50%;width:min(430px,42vw);height:97%;
+ transform:translate(-50%,-4%) scale(.90);transform-origin:50% 10%;
  display:grid;place-items:center;pointer-events:none;filter:drop-shadow(0 0 25px #ac8ad84c);
 }
 .reading-art-portrait img{
@@ -154,7 +154,7 @@
 }
 .reading-art-card-glow img{width:100%;height:100%;object-fit:contain;mix-blend-mode:screen}
 .reading-art-spread{
- position:absolute;z-index:4;bottom:-13px;left:50%;transform:translateX(-50%);
+ position:absolute;z-index:4;bottom:12px;left:50%;transform:translateX(-50%);
  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
  gap:clamp(13px,3.1vw,44px);align-items:end;justify-items:center;
  width:min(720px,96%);pointer-events:auto;
@@ -265,7 +265,7 @@
  .reading-art-layout{grid-template-rows:auto minmax(260px,1fr) auto auto;padding-top:9px}
  .reading-art-header{min-height:86px}
  .reading-art-header h1{font-size:43px;margin:5px 0}
- .reading-art-portrait{width:min(355px,39vw);transform:translate(-50%,-17%) scale(.89)}
+ .reading-art-portrait{top:12%;width:min(355px,39vw);height:97%;transform:translate(-50%,-3%) scale(.86)}
  .reading-art-card{width:clamp(82px,11vw,118px)}
  .reading-art-panel{padding-top:13px;min-height:155px}
  .reading-art-narration-text{font-size:12px;line-height:1.42}
@@ -277,9 +277,9 @@
  .reading-art-header h1{font-size:39px}
  .reading-art-eyebrow{font-size:8px;letter-spacing:.19em}
  .reading-art-subtitle{font-size:8px}
- .reading-art-portrait{width:min(350px,76vw);top:-10%;transform:translate(-50%,-14%) scale(.92)}
+ .reading-art-portrait{width:min(350px,76vw);top:8%;height:95%;transform:translate(-50%,-3%) scale(.90)}
  .reading-art-halo{width:min(440px,86vw)}
- .reading-art-spread{width:100%;gap:clamp(6px,2vw,16px);bottom:-15px}
+ .reading-art-spread{width:100%;gap:clamp(6px,2vw,16px);bottom:5px}
  .reading-art-card{width:clamp(73px,22.6vw,116px)}
  .reading-art-card-role{font-size:11px}
  .reading-art-card-meaning{font-size:9px;max-width:106px}
