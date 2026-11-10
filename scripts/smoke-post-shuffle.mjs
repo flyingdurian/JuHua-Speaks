@@ -159,6 +159,7 @@ try{
    return {sameNode:layer===originals[i],carryover:layer.dataset.carryover,
     finish:layer.dataset.foilFinish,hasTexture:style.backgroundImage.includes('data:image'),
     opacity:Number(style.opacity),blend:style.mixBlendMode,z:Number(style.zIndex),
+    repeatPass:getComputedStyle(layer,'::before').backgroundImage.includes('data:image'),
     glint:glint.animationName,insideFrame:Math.abs(l.left-f.left)<3&&Math.abs(l.top-f.top)<3
      &&Math.abs(l.width-f.width)<5&&Math.abs(l.height-f.height)<5};
   });
@@ -167,8 +168,8 @@ try{
  assert.equal(foilHandoff.count,3,'Artemis requires three in-frame foil layers');
  assert.ok(foilHandoff.details.every(s=>s.sameNode&&s.carryover==='original-foil'&&s.finish&&s.hasTexture),
   'Handoff must preserve the exact three textured, session-selected foil nodes');
- assert.ok(foilHandoff.details.every(s=>s.opacity>.15&&s.blend==='screen'&&s.z>1&&s.insideFrame),
-  'Foil must visibly composite above authentic RWS art and remain attached to the face');
+ assert.ok(foilHandoff.details.every(s=>s.opacity>=.95&&s.blend==='screen'&&s.z>1&&s.insideFrame&&s.repeatPass),
+  'All three foils must render a high-visibility second pass of their original selected texture inside each card');
  if(!foilHandoff.reduced)assert.ok(foilHandoff.details.every(s=>s.glint.includes('artemis-foil-drift')),
   'Reading foil needs active slow specular movement');
  assert.equal(await page.locator('.reading-art-panel-skin').count(),1);
@@ -207,20 +208,32 @@ try{
    cardFrames:cards.map(rect=>({top:rect.top,bottom:rect.bottom,left:rect.left,right:rect.right,width:rect.width,height:rect.height}))};
  });
  const welcomeLayout=await readingGeometry();
- const restoredTable=await page.evaluate(()=>{
+ const correctedStage=await page.evaluate(()=>{
   const table=document.querySelector('.reading-art-table-surface');
-  const style=getComputedStyle(table),art=getComputedStyle(table,'::before');
-  const rect=table.getBoundingClientRect(),p=getComputedStyle(document.querySelector('.reading-art-portrait img'));
-  return {width:rect.width,height:rect.height,opacity:Number(style.opacity),
-   art:art.backgroundImage,portraitFit:p.objectFit,portraitHeight:document.querySelector('.reading-art-portrait').getBoundingClientRect().height};
+  const backdrop=document.querySelector('.reading-art-atmosphere img');
+  const portrait=document.querySelector('.reading-art-portrait');
+  const p=getComputedStyle(portrait.querySelector('img'));
+  const question=document.querySelector('.reading-art-question-banner');
+  const narration=document.querySelector('.reading-art-narration-text');
+  return {tableHidden:getComputedStyle(table).display==='none',
+   backgroundReady:!!backdrop&&backdrop.complete&&backdrop.naturalWidth>200,
+   portraitFit:p.objectFit,portraitHeight:portrait.getBoundingClientRect().height,
+   portraitClipped:getComputedStyle(portrait).overflow==='hidden',
+   questionInHeader:!!question?.closest('.reading-art-header'),
+   questionText:question?.textContent.trim(),
+   textUnclipped:getComputedStyle(narration).overflowY==='visible'
+    &&narration.scrollHeight<=narration.clientHeight+2};
  });
- assert.ok(restoredTable.width>620&&restoredTable.height>65&&restoredTable.opacity>=.9,
-  'Desktop must show a substantial real tabletop graphic instead of a missing/flattened stage');
- assert.match(restoredTable.art,/bg_artemis_reading_stage_main\.webp/,
-  'Tabletop restores the installed room artwork, not a fabricated surface');
- assert.equal(restoredTable.portraitFit,'contain','Stable master portrait must retain her shoulders and bodice without cover-cropping');
- assert.ok(restoredTable.portraitHeight>=370,'Desktop portrait framing must leave sufficient room for Artemis waist and shoulders');
- console.log('V4 desktop widths:',JSON.stringify({css:welcomeLayout.cssCardWidths,projected:welcomeLayout.cardFrames.map(r=>r.width),table:restoredTable}));
+ assert.ok(correctedStage.tableHidden&&correctedStage.backgroundReady,
+  'One real room-painted table must remain; synthetic nested table must not render');
+ assert.equal(correctedStage.portraitFit,'cover','Portrait should be intentionally cropped chest-up');
+ assert.ok(correctedStage.portraitClipped&&correctedStage.portraitHeight<=320,
+  'Desktop crop must end at the upper chest/mid-rib instead of the waist');
+ assert.ok(correctedStage.questionInHeader&&correctedStage.questionText.includes('What can these cards'),
+  'The actual original question must be prominent near the title');
+ assert.ok(correctedStage.textUnclipped,'The full narrative must fit in a non-scrolling text block');
+ console.log('Corrected desktop geometry:',JSON.stringify({cardWidths:welcomeLayout.cssCardWidths,
+  projected:welcomeLayout.cardFrames.map(r=>r.width),stage:correctedStage}));
  assert.ok(welcomeLayout.cssCardWidths.every(width=>width>=108)&&welcomeLayout.cardFrames.every(rect=>rect.width>=88),
   'Desktop RWS cards must have 108px+ authored size and remain legible through perspective transforms');
  assert.equal(welcomeLayout.cardTilt,42,'Cards must use the approved 42° tabletop perspective');
@@ -254,6 +267,13 @@ try{
   .every((node,i)=>node===window.__readingStableCards[i]));
  assert.equal(stable,true,'Changing Artemis expression must preserve original RWS nodes');
  assert.equal(await page.locator('.reading-art-portrait img').count(),1,'Crossfade must retire the old image');
+ const fullNarration=await page.evaluate(()=>{
+  const p=document.querySelector('.reading-art-narration-text');
+  return {scrollHeight:p.scrollHeight,clientHeight:p.clientHeight,
+   overflow:getComputedStyle(p).overflowY};
+ });
+ assert.ok(fullNarration.scrollHeight<=fullNarration.clientHeight+2&&fullNarration.overflow==='visible',
+  'Even the combined reading must display its full text without an internal scrollbar');
  await page.screenshot({path:dir+'/10-artemis-reflective.png'});
  assert.equal(await page.locator('.reading-art-card').count(),3);
  assert.match(await page.locator('.reading-art-panel').innerText(),/ARTEMIS/);
@@ -269,7 +289,12 @@ try{
    cards:cards.map(r=>({left:r.left,right:r.right})),screen:innerWidth,
    hero:rect('.reading-art-hero'),portrait:rect('.reading-art-portrait'),
    table:rect('.reading-art-table-surface'),footer:rect('.reading-art-footer'),
-   scrollHeight:scene.scrollHeight,cardFrames:[...document.querySelectorAll('.reading-art-card-frame')].map(el=>{const r=el.getBoundingClientRect();return {width:r.width,top:r.top,bottom:r.bottom}}),
+   scrollHeight:scene.scrollHeight,
+   singleTableHidden:getComputedStyle(document.querySelector('.reading-art-table-surface')).display==='none',
+   questionNearTitle:!!document.querySelector('.reading-art-question-banner')?.closest('.reading-art-header'),
+   textUnclipped:(()=>{const p=document.querySelector('.reading-art-narration-text');
+     return getComputedStyle(p).overflowY==='visible'&&p.scrollHeight<=p.clientHeight+2;})(),
+   cardFrames:[...document.querySelectorAll('.reading-art-card-frame')].map(el=>{const r=el.getBoundingClientRect();return {width:r.width,top:r.top,bottom:r.bottom}}),
    nextLabel:document.querySelector('[data-action="reading-next"]')?.textContent};
  });
  assert.equal(phone.cards.length,3);
@@ -277,16 +302,16 @@ try{
   'All three selected Tarot cards must remain visible within a 390px phone viewport');
  assert.ok(phone.panel.width<=phone.screen+2,'The Artemis panel must fit phone width');
  assert.ok(phone.nextLabel?.trim().length>2,'Mobile panel must preserve the primary Next control');
- assert.ok(phone.hero.height>=510&&phone.hero.height<=phone.scene.height*.80,
-  'Tall mobile hero must grow to fill the middle of the viewport without an unbounded blank region');
+ assert.ok(phone.hero.height>=350&&phone.hero.height<=phone.scene.height*.80,
+  'Tall mobile scene must reserve space for a complete reading HUD without a huge empty region');
  assert.ok(phone.panel.width>=phone.screen-22,
   'Full-width mobile dialogue HUD must leave at most 11px on either side');
  assert.ok(phone.footer.bottom>=phone.scene.bottom-45,
   'Question footer must occupy the lower viewport region: no massive dark gap below');
  assert.ok(phone.cardFrames.every(card=>card.width>=94),
   'Mobile cards should be scaled up while preserving their 42-degree pitch');
- assert.ok(phone.table.top>phone.portrait.top&&phone.table.top<phone.panel.top,
-  'Mobile table must belong to the portrait/chamber region above the HUD');
+ assert.ok(phone.singleTableHidden&&phone.questionNearTitle&&phone.textUnclipped,
+  'Mobile must show one painted table, the original question by the header, and all interpretation text');
  assert.ok(phone.footer.bottom-phone.scene.top<=phone.scrollHeight+2,
   'Question/footer must remain reachable inside the scrollable safe-area layout');
  await page.screenshot({path:dir+'/11-artemis-phone-390x844.png',fullPage:true});
@@ -306,14 +331,18 @@ try{
    header:box('.reading-art-header'),portrait:box('.reading-art-portrait'),
    table:box('.reading-art-table-surface'),panel:box('.reading-art-panel'),
    footer:box('.reading-art-footer'),hero:box('.reading-art-hero'),cards,
+   sceneScrollHeight:document.querySelector('.scene-artemis-reading').scrollHeight,
+   question:box('.reading-art-question-banner'),
    backgroundReady:document.querySelector('.reading-art-atmosphere')?.dataset.artStatus==='ready'};
  });
  await writeFile(dir+'/12-artemis-fidelity-458x553.json',JSON.stringify(fidelity,null,2));
  await page.screenshot({path:dir+'/12-artemis-fidelity-458x553.png',fullPage:true});
- assert.ok(Math.abs(fidelity.header.bottom-61)/61<=.15,'Reference header boundary must be within 15%');
- assert.ok(Math.abs(fidelity.panel.y-405)/405<=.15,'Reference HUD start must be within 15%');
- assert.ok(fidelity.footer&&fidelity.footer.bottom<=fidelity.viewport.height-4,
-  'Compact 458x553 Artemis question/footer must not clip against the bottom safe area');
+ assert.ok(fidelity.question&&fidelity.question.y>=fidelity.header.y&&fidelity.question.bottom<=fidelity.header.bottom+2,
+  'Question belongs inside the title/header on compact screens');
+ assert.ok(fidelity.panel.y>=fidelity.hero.bottom-2,
+  'Full-height dialogue panel must remain below the three-card stage');
+ assert.ok(fidelity.footer&&fidelity.footer.bottom<=fidelity.sceneScrollHeight+10,
+  'Compact footer must remain reachable by normal page scrolling if the complete interpretation requires it');
  assert.equal(fidelity.cards.length,3);
  assert.ok(fidelity.cards.every(c=>c.x>=-1&&c.x+c.width<=459&&c.bottom<fidelity.panel.y),
   'Every slanted card must stay on the tabletop above the framed dialogue');
