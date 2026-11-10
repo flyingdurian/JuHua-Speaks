@@ -650,3 +650,18 @@
   animation:none!important;transition:none!important;
  }
 }
+
+
+/* V3 screenshot follow-up: on short portrait review windows (458x553), the
+ * original 330px minimum chamber pushed the question against the OS safe area.
+ * Recover 12px from the chamber only at short heights, leaving the full-size
+ * phone and desktop art intact and the panel completely readable. */
+@media(max-width:720px) and (max-height:600px){
+ .scene-artemis-reading .reading-art-layout{
+  grid-template-rows:clamp(56px,7.3dvh,68px) 318px min-content min-content;
+ }
+ .scene-artemis-reading .reading-art-footer{
+  margin-top:6px;padding-bottom:6px;
+  font-size:clamp(10px,2.4vw,11px);
+ }
+}
