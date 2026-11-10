@@ -163,6 +163,20 @@ try{
   },filename,{timeout:11000});
  }
  await expectPortrait('artemis_warm_welcome.webp');
+ const readingGeometry=()=>page.evaluate(()=>{
+  const r=selector=>document.querySelector(selector)?.getBoundingClientRect();
+  const hero=r('.reading-art-hero'),head=r('.reading-art-header'),
+   portrait=r('.reading-art-portrait'),panel=r('.reading-art-panel');
+  const descriptions=[...document.querySelectorAll('.reading-art-card-meaning')].map(el=>el.getBoundingClientRect());
+  return {heroTop:hero.top,heroHeight:hero.height,headerBottom:head.bottom,
+   portraitTop:portrait.top,panelTop:panel.top,
+   descriptionsBottom:Math.max(...descriptions.map(rect=>rect.bottom))};
+ });
+ const welcomeLayout=await readingGeometry();
+ assert.ok(welcomeLayout.portraitTop>=welcomeLayout.headerBottom-8,
+  'Artemis illustration must not overlap the title');
+ assert.ok(welcomeLayout.panelTop-welcomeLayout.descriptionsBottom>10,
+  'Card meanings need space above the narrative frame');
  await page.screenshot({path:dir+'/09-artemis-warm-welcome.png'});
  await page.locator('[data-action="reading-next"]').click();
  assert.equal(await page.locator('.reading-art-panel-skin').count(),1,'Narrative update must not remove art skin');
@@ -173,6 +187,15 @@ try{
  await page.locator('[data-action="reading-next"]').click();
  await expectPortrait('artemis_reflective.webp');
  await page.waitForTimeout(510); // End of the deliberately short portrait crossfade.
+ const finalLayout=await readingGeometry();
+ assert.ok(Math.abs(finalLayout.heroTop-welcomeLayout.heroTop)<1,
+  'Chapter transitions must not reposition the hero');
+ assert.ok(Math.abs(finalLayout.heroHeight-welcomeLayout.heroHeight)<20,
+  'Longer interpretations may not collapse the Artemis hero');
+ assert.ok(finalLayout.portraitTop>=finalLayout.headerBottom-8,
+  'Artemis may not overlap the title on longer chapters');
+ assert.ok(finalLayout.panelTop-finalLayout.descriptionsBottom>10,
+  'Longer interpretations may not collide with card meanings');
  const stable=await page.evaluate(()=>[...document.querySelectorAll('.reading-actual-card-face')]
   .every((node,i)=>node===window.__readingStableCards[i]));
  assert.equal(stable,true,'Changing Artemis expression must preserve original RWS nodes');
