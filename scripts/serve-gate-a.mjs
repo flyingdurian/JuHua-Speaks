@@ -18,8 +18,19 @@ const apiReply=(res,status,data)=>{
 };
 async function localApi(req,res,path){
  if(!adapter)return apiReply(res,404,{error:'Unavailable in Gate A'});
- if(path==='/api/local-exodia/status'&&req.method==='GET')
-  return apiReply(res,200,adapter.status());
+ if(path==='/api/local-exodia/status'&&req.method==='GET'){
+  let reachable=false;
+  try{
+   // Status must mean the local model service actually responds, not simply
+   // that a proxy adapter was instantiated. A 1.2s bounded probe keeps CI
+   // and offline review on the honestly labeled scripted path.
+   const url=new URL(process.env.EXODIA_URL||'http://127.0.0.1:8765');
+   const health=await fetch(url.origin+'/api/command/tasks',
+    {signal:AbortSignal.timeout(1200)});
+   reachable=health.ok;
+  }catch{}
+  return apiReply(res,200,{...adapter.status(),available:reachable});
+ }
  if(path!=='/api/local-exodia/reading'||req.method!=='POST')
   return apiReply(res,405,{error:'Method not allowed'});
  if(!req.headers.origin||!origins.has(req.headers.origin)||
