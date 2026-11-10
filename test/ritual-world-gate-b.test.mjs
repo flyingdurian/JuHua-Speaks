@@ -128,7 +128,7 @@ test('Gate B preview starts independently of production and uses port 4184',asyn
  const css=await readFile(new URL('../preview/gate-b/gate-b.css',import.meta.url),'utf8');
  const pkg=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
  const server=await readFile(new URL('../scripts/serve-gate-a.mjs',import.meta.url),'utf8');
- assert.match(html,/GATE BC v3\.3/);
+ assert.match(html,/GATE BC v3\.4/);
  assert.doesNotMatch(html,/data-shuffle="cosmic"/);
  assert.doesNotMatch(html,/data-shuffle="riffle"/);
  assert.doesNotMatch(html,/data-shuffle="wash"/);

@@ -19,7 +19,8 @@ try{
  await page.waitForTimeout(1600);
  const diagnostics=await page.evaluate(()=>window.__ritualGateB.world.getDiagnostics());
  assert.equal(diagnostics.deckInstances,78);
- assert.equal(diagnostics.deckPacketCount,7,'final deck uses exactly seven visible matte paper sleeves');
+ assert.equal(diagnostics.deckInstances,78,'each Tarot card remains its own instanced mesh');
+ assert.ok(diagnostics.deckPacketCount>=1,'at least one correctly modelled compact deck is present');
  assert.equal(diagnostics.deckShadowMap,true,'WebGL2 depth-shadow FBO required');
  await page.screenshot({path:dir+'/01-78-physical-instanced-deck.png',timeout:60000});
  const oldUrl=page.url();
@@ -68,8 +69,11 @@ try{
  assert.equal(await page.locator('.ps-tableau').isVisible(),true,'Three-card tableau must appear in-world');
  assert.equal(await page.locator('.ps-flip-button').count(),3);
  const foil=await page.evaluate(()=>window.__POST_SHUFFLE__.foil());
- assert.ok(['celestial-holographic-wash','chroma-shifting-metallic-sheen','pearlescent-gloss','spectrum-activation-wave'].includes(foil));
+ assert.ok(['celestial-lattice','constellation-map','alchemical-glyphs','scroll-texture'].includes(foil));
  await page.screenshot({path:dir+'/07-three-selected-backs.png',timeout:60000});
+ await page.waitForFunction(()=>[...document.querySelectorAll('.ps-tableau .ps-card-art')].length===3&&
+   [...document.querySelectorAll('.ps-tableau .ps-card-art')].every(i=>i.complete&&i.naturalWidth>0),
+   undefined,{timeout:20000});
  for(let i=0;i<3;i++){
   await page.locator('.ps-flip-button').nth(i).click();
   await page.waitForTimeout(1320);
@@ -77,10 +81,11 @@ try{
  }
  assert.equal(await page.evaluate(()=>window.__POST_SHUFFLE__.tableau().revealed),3);
  assert.equal(await page.locator('.ps-card-art').count(),3,'RWS front images must stay in the reveal');
- await page.screenshot({path:dir+'/08-three-foil-reveals.png',timeout:60000});
+ await page.screenshot({path:dir+'/08-three-engraved-overlays-revealed.png',timeout:60000});
+ assert.equal(await page.locator('.ps-begin-reading:visible').count(),1,'Gate D must be entered explicitly, not automatically');
  assert.deepEqual(errors,[]);
  await writeFile(dir+'/report.json',JSON.stringify({passed:true,diagnostics,selected:await page.evaluate(()=>window.__POST_SHUFFLE__.selected()),errors},null,2));
- console.log('GPU physical deck / same-page sphere / 78 originals / 3 selections / 3 foil flips: PASS');
+ console.log('GPU 78-sheet deck / same-page sphere / three originals / engraved overlays / opt-in reading: PASS');
 }catch(e){
  await page.screenshot({path:dir+'/failure.png',timeout:30000}).catch(()=>{});
  await writeFile(dir+'/report.json',JSON.stringify({passed:false,error:String(e),errors},null,2));

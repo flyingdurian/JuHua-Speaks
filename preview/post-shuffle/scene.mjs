@@ -6,7 +6,9 @@
  * Actual WebGL2 card surfaces, stable identity and deterministic world coordinates.
  * A selected card moves in its own world coordinate; transient halos are accents.
  */
-import {DECK,commonsThumbnailUrl,drawOrientation} from '../../src/deck.mjs';
+import {DECK,commonsThumbnailUrl,drawOrientation,BY_ID} from '../../src/deck.mjs';
+import {buildDemoReading} from '../../src/demo-reading.mjs';
+import {renderReadingStage,renderReadingPanel,handoffDuration,READING_CHAPTERS,portraitSlotForChapter,assetUrl,ARTEMIS_ART_DIRECTOR_FILES,ARTEMIS_PROVISIONAL_READY_SLOTS} from './reading-stage.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
 import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
 import {SPHERE_VERTEX_STRIDE,extrudedCardVertices} from './PhysicalSphereMesh.mjs';
@@ -129,12 +131,110 @@ function project(p,camZ,viewport){const z=camZ-p[2],f=viewport.h*.5*perspectiveF
 function insideTriangle(x,y,a,b,c){const v0=[c.x-a.x,c.y-a.y],v1=[b.x-a.x,b.y-a.y],v2=[x-a.x,y-a.y];const d00=dot(v0,v0),d01=dot(v0,v1),d02=dot(v0,v2),d11=dot(v1,v1),d12=dot(v1,v2),den=d00*d11-d01*d01;if(Math.abs(den)<.001)return false;const v=(d11*d02-d01*d12)/den,w=(d00*d12-d01*d02)/den;return v>=0&&w>=0&&v+w<=1;}
 function hitsQuad(x,y,c){return insideTriangle(x,y,c[0],c[1],c[2])||insideTriangle(x,y,c[0],c[2],c[3]);}
 
-export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}){
+export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},demo=false}={}){
  if(!mount||!Array.isArray(deckIds)||deckIds.length!==78||new Set(deckIds).size!==78)throw new Error('A unique 78-card ordered handoff is required');
  const cardMap=new Map(DECK.map(c=>[c.id,c]));if(deckIds.some(id=>!cardMap.has(id)))throw new Error('Unrecognized card identities');
  const cards=deckIds.map(id=>cardMap.get(id)),points=sphereLayout();
  let choices=[],selectedAt=new Map(),lastPointer=null,yaw=0,pitch=0,raf=0,dead=false,ready=false,lastDraw=0,step='launch';
+
  let lockAt=null,tableau=null,tableauShown=false,handoff=null;const pickAnchors=new Map();
+ let readingStarted=false,readingTimer=null,readingChapter=-1,resourcesDisposed=false,portraitRevision=0;
+ // Decode four already-shipped illustrated portraits in advance. A chapter
+ // change must never replace the entire reading DOM or flash an unloaded image.
+ const portraitCache=new Map();
+ for(const slot of ARTEMIS_PROVISIONAL_READY_SLOTS){
+  const uri=assetUrl(slot);
+  if(!uri)continue;
+  const image=new Image();
+  image.decoding='async';image.src=uri;
+  portraitCache.set(slot,image);
+  image.decode().catch(()=>{}); // Keep prior portrait if a specific asset fails.
+ }
+ const readingQuestion=typeof question==='string'&&question.trim().length>=3&&question.length<=600
+  ?question.trim():'What can these cards help me reflect on?';
+ function readingDemo(){
+  return buildDemoReading({question:readingQuestion,picks:choices.map(c=>({card:BY_ID.get(c.id),orientation:c.orientation})),
+   spread:'insight',lens:'western',lang:'en',options:['','']});
+ }
+ function disposeSphereResources(){
+  if(resourcesDisposed)return;
+  resourcesDisposed=true;
+  sky.dispose();handoff?.dispose();tableau?.dispose();atlas.dispose();
+  gl.deleteBuffer(vertexBuffer);gl.deleteVertexArray(vao);gl.deleteProgram(program);
+ }
+ function renderReading(){
+  if(!readingStarted)return;
+  world.innerHTML=renderReadingStage({choices,cardsById:BY_ID,demo:readingDemo(),
+   chapter:readingChapter,question:readingQuestion});
+ }
+ function goReading(){
+  if(dead||lockAt===null||tableau?.revealed!==3||readingStarted)return false;
+  readingStarted=true;ready=false;step='reading';world.dataset.beat='reading';
+  cancelAnimationFrame(raf);disposeSphereResources();renderReading();
+  world.querySelector('#artemis-reading-title')?.focus({preventScroll:true});
+  return true;
+ }
+ function beginReading(){
+  if(dead||lockAt===null||!tableauShown||tableau?.revealed!==3||readingStarted||readingTimer!==null)return false;
+  step='reading-transition';world.dataset.beat='reading-transition';ready=false;
+  const veil=document.createElement('div');veil.className='reading-handoff-veil';veil.setAttribute('role','status');
+  veil.setAttribute('aria-live','polite');
+  veil.innerHTML='<div class="reading-handoff-aura" aria-hidden="true"><span>✧</span></div><p>THE CARDS ARE READY TO SPEAK</p>';
+  world.append(veil);
+  readingTimer=setTimeout(()=>{readingTimer=null;if(!dead)goReading()},handoffDuration(reduced));
+  return true;
+ }
+ function updateReadingChapter(next){
+  if(!readingStarted||!READING_CHAPTERS.includes(next))return false;
+  if(readingChapter===next)return true;
+  readingChapter=next;
+  // Keep title, three original RWS faces, background and portal stage mounted.
+  // Only replace interpretation content and active-card highlighting.
+  const panel=world.querySelector('.reading-art-panel');
+  if(panel)panel.innerHTML=renderReadingPanel(readingDemo(),next);
+  for(const button of world.querySelectorAll('.reading-art-card[data-reading-chapter]')){
+   const active=Number(button.dataset.readingChapter)===next;
+   button.classList.toggle('is-focused',active);
+   button.setAttribute('aria-pressed',String(active));
+  }
+  const portrait=world.querySelector('.reading-art-portrait');
+  const slot=portraitSlotForChapter(next),url=assetUrl(slot),cached=portraitCache.get(slot);
+  const request=++portraitRevision;
+  if(portrait&&url&&cached){
+   portrait.dataset.artSlot=slot;
+   portrait.dataset.artFilename=ARTEMIS_ART_DIRECTOR_FILES[slot];
+   const display=()=>{
+    if(dead||!readingStarted||request!==portraitRevision||!portrait.isConnected)return;
+    const existing=[...portrait.querySelectorAll('img')];
+    if(existing.some(el=>el.getAttribute('src')===url&&el.style.opacity!=='0'))return;
+    const incoming=document.createElement('img');
+    incoming.src=url;incoming.alt='';incoming.decoding='async';
+    incoming.setAttribute('aria-hidden','true');
+    incoming.style.opacity='0';incoming.className='reading-portrait-layer';
+    portrait.append(incoming);
+    requestAnimationFrame(()=>{
+     if(dead||request!==portraitRevision||!portrait.isConnected){incoming.remove();return;}
+     incoming.style.opacity='1';
+     for(const old of existing)old.style.opacity='0';
+    });
+    setTimeout(()=>{
+     if(!portrait.isConnected||request!==portraitRevision)return;
+     for(const old of portrait.querySelectorAll('img'))if(old!==incoming)old.remove();
+    },500);
+   };
+   cached.decode().then(display).catch(()=>{if(request===portraitRevision)portrait.dataset.artStatus='unavailable';});
+  }
+  world.querySelector('#artemis-chapter-title')?.focus({preventScroll:true});
+  return true;
+ }
+ const handleReadingControls=event=>{
+  if(!readingStarted||dead)return;
+  const button=event.target.closest('button');if(!button)return;
+  if(button.hasAttribute('data-reading-chapter')){updateReadingChapter(Number(button.dataset.readingChapter));return;}
+  if(button.dataset.action==='reading-prev'){updateReadingChapter(Math.max(-1,readingChapter-1));return;}
+  if(button.dataset.action==='reading-next'){updateReadingChapter(readingChapter===3?0:readingChapter+1);return;}
+ };
+ mount.addEventListener('click',handleReadingControls);
  const sessionFoil=chooseFoilFinish();
  mount.innerHTML='<div class="ps-world" role="region" aria-label="Continuous post-shuffle Tarot sphere" id="ps-world">'+
   '<div class="ps-sky" id="ps-sky"><canvas class="ps-stars" id="ps-stars"></canvas></div>'+
@@ -171,7 +271,7 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   guidance.textContent='Please select 3 cards ('+choices.length+' cards selected)';
   if(choices.length===3&&!lockAt){
    lockAt=performance.now();
-   tableau=createTarotTableau({mount:world,picks:choices,foil:sessionFoil});
+   tableau=createTarotTableau({mount:world,picks:choices,foil:sessionFoil,onBeginReading:beginReading});
    // Render target rectangles while they are transparent. Ghosts animate
    // from the real 3D projected positions into these exact card positions.
    tableau.prepareHandoff();
@@ -237,14 +337,14 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   }
   return {vertices:new Float32Array(vertex),visible};
  }
- function draw(now){if(dead)return;raf=requestAnimationFrame(draw);const dt=Math.min(64,Math.max(0,now-lastDraw||0));lastDraw=now;
+ function draw(now){if(dead||readingStarted)return;raf=requestAnimationFrame(draw);const dt=Math.min(64,Math.max(0,now-lastDraw||0));lastDraw=now;
   if(paused){clockFreeze+=dt;return}
   const elapsed=(now-start-clockFreeze)/1000;t=reduced?Math.max(elapsed,7.05):elapsed;
   if(!reduced&&now-(draw.lastFrame||0)<23)return;draw.lastFrame=now;
   const rect=world.getBoundingClientRect();if(rect.width<10||rect.height<10)return;
   const dpr=Math.min(devicePixelRatio||1,1.5),w=Math.round(rect.width*dpr),h=Math.round(rect.height*dpr);
   viewport={w:rect.width,h:rect.height};if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h)}
-  const state=lockAt!==null?'tableau':getStage(t,choices.length);step=state;world.dataset.beat=state;
+  const state=readingTimer!==null?'reading-transition':lockAt!==null?'tableau':getStage(t,choices.length);step=state;world.dataset.beat=state;
   ready=t>=BEATS.interactive&&lockAt===null;
   if(lockAt!==null&&!tableauShown&&performance.now()-lockAt>=HANDOFF_SETTLE_MS){
    tableauShown=true;tableau?.finishHandoff();
@@ -284,7 +384,10 @@ export function mountPostShuffle({mount,deckIds,onComplete=()=>{},demo=false}={}
   stage:()=>step,selected:()=>choices.map(c=>({...c})),deck:()=>[...deckIds],assetStatus:()=>atlas.stats(),ready:()=>ready,
   visible:()=>rendered.map(p=>({id:p.id,side:p.side,selected:p.selected,x:p.center.x,y:p.center.y,depth:p.depth})),
   time:()=>t,tap,togglePause:changePause,orbitYaw:()=>yaw,artOverlay:()=>tableau?.artOverlay??sessionFoil,hologram:()=>tableau?.hologram??sessionFoil,
-  foil:()=>tableau?.artOverlay??sessionFoil,tableau:()=>({active:tableauShown,revealed:tableau?.revealed||0,artOverlay:tableau?.artOverlay??sessionFoil}),
-  dispose(){dead=true;cancelAnimationFrame(raf);sky.dispose();handoff?.dispose();tableau?.dispose();atlas.dispose();gl.deleteBuffer(vertexBuffer);gl.deleteVertexArray(vao);gl.deleteProgram(program);world.remove()}
+  foil:()=>tableau?.artOverlay??sessionFoil,readingChapter:()=>readingChapter,readingReady:()=>tableauShown&&tableau?.revealed===3,beginReading,tableau:()=>({active:tableauShown,revealed:tableau?.revealed||0,artOverlay:tableau?.artOverlay??sessionFoil}),
+  dispose(){
+   dead=true;portraitRevision++;cancelAnimationFrame(raf);if(readingTimer!==null)clearTimeout(readingTimer);
+   mount.removeEventListener('click',handleReadingControls);disposeSphereResources();world.remove();
+  }
  };
 }
