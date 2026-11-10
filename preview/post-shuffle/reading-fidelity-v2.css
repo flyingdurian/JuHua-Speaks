@@ -421,3 +421,47 @@
   object-fit:cover;object-position:center top;
  }
 }
+
+/* Full art-pack correction: the authored panel WebP ALREADY includes its
+ * gold corners, scrollwork and border. Do not draw a second CSS frame or
+ * squeeze the separate square corner illustration into the centre.
+ *
+ * The panel art contains transparent vertical margins (~15% above and ~23%
+ * below the painted frame). Crop those margins in CSS without editing source
+ * pixels so its single ornate border hugs all four edges of the HUD. */
+.scene-artemis-reading .reading-art-panel{
+ border:none;background:rgba(9,12,31,.88);
+ box-shadow:0 15px 40px rgba(0,0,0,.52);
+}
+.scene-artemis-reading .reading-art-panel::before,
+.scene-artemis-reading .reading-art-panel::after{display:none}
+.scene-artemis-reading .reading-art-panel-skin{
+ display:block;inset:0;z-index:0;opacity:1;
+ overflow:hidden;border-radius:13px;pointer-events:none;
+}
+.scene-artemis-reading .reading-art-panel-skin img{
+ position:absolute;left:0;top:-23.5%;
+ width:100%;height:160%;object-fit:fill;max-width:none;
+}
+.scene-artemis-reading .reading-art-panel-corners{
+ display:none; /* duplicate decorations exist in the full panel image */
+}
+.scene-artemis-reading .reading-art-nameplate-art{
+ display:none; /* use one clean readable ARTEMIS pill, not two stacked frames */
+}
+.scene-artemis-reading .reading-art-panel-inner{
+ position:relative;z-index:3;
+}
+/* The real illuminated border must never obscure the words, including on
+ * narrow phones and long interpretations; scroll only the text block. */
+.scene-artemis-reading .reading-art-narration-title,
+.scene-artemis-reading .reading-art-narration-text{
+ position:relative;text-shadow:0 2px 8px rgba(0,0,0,.58);
+}
+@media(max-width:720px){
+ .scene-artemis-reading .reading-art-panel-skin img{top:-23.5%;height:160%}
+ .scene-artemis-reading .reading-art-narration-text{
+  font-size:clamp(10px,2.35vw,12px);
+  line-height:1.4;
+ }
+}
