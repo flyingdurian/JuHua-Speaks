@@ -157,6 +157,11 @@ export function renderReadingStage({choices,cardsById,demo,chapter=-1,question='
    '<p class="reading-art-question">'+esc(question)+'</p></div>':'')+
   '</header>'+
   '<div class="reading-art-hero" aria-label="Artemis and the three cards chosen during the ritual">'+
+   // SVG is filter-only; no vector character art or substitute card texture.
+   '<svg class="reading-foil-filter-defs" width="0" height="0" aria-hidden="true" focusable="false">'+
+   '<filter id="reading-foil-alpha-boost" color-interpolation-filters="sRGB">'+
+   '<feComponentTransfer><feFuncA type="linear" slope="3.0" intercept="0"/></feComponentTransfer>'+
+   '</filter></svg>'+
    artSlot('halo','reading-art-halo')+
    artSlot('readingGlow','reading-art-reading-glow')+
    artSlot(portraitSlotForChapter(chapter),'reading-art-portrait',
