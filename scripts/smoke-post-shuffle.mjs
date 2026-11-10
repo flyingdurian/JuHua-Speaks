@@ -613,7 +613,14 @@ try{
  assert.ok(guidance&&beforeIDs.every(id=>!guidance.includes(id)),
   'One guidance card must be NEW and distinct from the original three');
  assert.equal(await page.locator('.synthesis-guidance-card').count(),1);
- await page.screenshot({path:dir+'/18-mobile-guidance-card-390x844.png'});
+ const pinned=await page.evaluate(()=>{
+  const question=document.querySelector('.reading-chat-hud>.synthesis-question').getBoundingClientRect();
+  const log=document.querySelector('.synthesis-chat-scroll').getBoundingClientRect();
+  return {questionVisible:question.bottom<=innerHeight&&question.top>=0,aboveLog:question.bottom<=log.top+2};
+ });
+ assert.ok(pinned.questionVisible&&pinned.aboveLog,
+  'Original question must remain pinned above the scrolling chat log after guidance: '+JSON.stringify(pinned));
+  await page.screenshot({path:dir+'/18-mobile-guidance-card-390x844.png'});
  await page.locator('#synthesis-followup-question').fill('What can I do next?');
  await page.locator('.synthesis-followup-send').click();
  await page.waitForFunction(()=>document.querySelector('.reading-chat-hud')?.dataset.chatState==='followup-ready',
