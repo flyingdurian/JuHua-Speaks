@@ -544,6 +544,84 @@ try{
   });
  });
  assert.ok(actualArtwork.every(item=>item.ok),'All six full-resolution chamber layers must decode from the installed 31-pack: '+JSON.stringify(actualArtwork));
+ // Mobile anatomy contract: the upper halo stays near the question,
+ // centre-card edge is at bust level, and narration stays inside the frame.
+ await page.setViewportSize({width:390,height:844});
+ await page.waitForTimeout(230);
+ const mobileReflow=await page.evaluate(()=>{
+  const rect=selector=>document.querySelector(selector)?.getBoundingClientRect();
+  const panel=rect('.reading-art-panel'),kicker=rect('.reading-art-kicker');
+  const title=rect('.reading-art-narration-title');
+  const body=rect('.reading-art-narration-text');
+  const p=rect('.reading-art-portrait');
+  const mid=rect('.reading-art-card-frame');
+  const card=document.querySelectorAll('.reading-art-card-frame')[1].getBoundingClientRect();
+  const halo=rect('.reading-art-halo'),header=rect('.reading-art-question-banner');
+  const text=document.querySelector('.reading-art-narration-text');
+  return {haloGap:halo.top-header.bottom,portraitTop:p.top,
+   cardTop:card.top,portraitHeight:p.height,
+   kickerInside:!kicker||kicker.top>=panel.top+7,
+   titleInside:title.left>=panel.left+27&&title.right<=panel.right-27,
+   bodyInside:body.left>=panel.left+28&&body.right<=panel.right-28,
+   bodyUnbroken:text.scrollWidth<=text.clientWidth+2,
+   cardBeforePanel:card.bottom<panel.top+4};
+ });
+ assert.ok(mobileReflow.haloGap<80,
+  'Mobile halo must begin directly below question, not after a blank sky block: '+JSON.stringify(mobileReflow));
+ assert.ok(mobileReflow.cardTop>mobileReflow.portraitTop+mobileReflow.portraitHeight*.48
+  &&mobileReflow.cardTop<mobileReflow.portraitTop+mobileReflow.portraitHeight*1.04,
+  'Middle card must meet Artemis near her lower chest: '+JSON.stringify(mobileReflow));
+ assert.ok(mobileReflow.kickerInside&&mobileReflow.titleInside&&mobileReflow.bodyInside
+  &&mobileReflow.bodyUnbroken&&mobileReflow.cardBeforePanel,
+  'Narration and chapter badge must stay inside ornamental safe bounds: '+JSON.stringify(mobileReflow));
+ await page.screenshot({path:dir+'/14-mobile-reading-reflow-390x844.png',fullPage:true});
+
+ // The real CTA leaves chapter 02 and starts a one-way card-sacrifice ritual.
+ const beforeIDs=await page.locator('.reading-art-card').evaluateAll(ns=>ns.map(n=>n.dataset.originalCardId));
+ await page.locator('[data-action="reading-next"]').click();
+ await page.waitForTimeout(190);
+ assert.equal(await page.locator('.scene-artemis-reading').getAttribute('data-phase'),'sacrificing');
+ assert.equal(await page.locator('.reading-synthesis-portal').count(),1);
+ await page.screenshot({path:dir+'/15-mobile-cards-sacrificing-390x844.png'});
+ await page.locator('.reading-chat-hud').waitFor({timeout:6000});
+ const kept=await page.locator('.reading-art-card').evaluateAll(ns=>ns.map(n=>n.dataset.originalCardId));
+ assert.deepEqual(kept,beforeIDs,'Synthesis animation must not shuffle or replace the original three');
+ assert.equal(await page.locator('.synthesis-question p').innerText(),
+  'How can I find clarity in the decision ahead?');
+ await page.screenshot({path:dir+'/16-mobile-synthesis-generating-390x844.png'});
+ await page.waitForFunction(()=>document.querySelector('.reading-chat-hud')?.dataset.chatState==='ready',
+  undefined,{timeout:12000});
+ const completeChat=await page.evaluate(()=>{
+  const hud=document.querySelector('.reading-chat-hud').getBoundingClientRect();
+  const screen=document.querySelector('.scene-artemis-reading').getBoundingClientRect();
+  const answer=document.querySelector('.synthesis-message-body p').textContent;
+  const source=document.querySelector('.synthesis-chat-heading small').textContent;
+  const cta=document.querySelector('.synthesis-guidance-cta').getBoundingClientRect();
+  return {hudTop:hud.top,hudHeight:hud.height,viewportHeight:screen.height,
+   answer,source,ctaBottom:cta.bottom};
+ });
+ assert.ok(completeChat.hudHeight>=345&&completeChat.hudHeight>=completeChat.viewportHeight*.43,
+  'Interactive chat must occupy lower viewport half: '+JSON.stringify(completeChat));
+ assert.ok(completeChat.answer.length>80&&completeChat.source.includes('SCRIPTED PREVIEW'),
+  'Offline screenshots must label deterministic preview instead of falsely claiming live AI');
+ assert.ok(completeChat.ctaBottom<=845,
+  'Guidance action must be visible on a normal phone screen');
+ await page.screenshot({path:dir+'/17-mobile-synthesis-chat-390x844.png'});
+ await page.locator('[data-action="draw-guidance"]').click();
+ const guidance=await page.locator('.synthesis-guidance-card img').getAttribute('src');
+ assert.ok(guidance&&beforeIDs.every(id=>!guidance.includes(id)),
+  'One guidance card must be NEW and distinct from the original three');
+ assert.equal(await page.locator('.synthesis-guidance-card').count(),1);
+ await page.screenshot({path:dir+'/18-mobile-guidance-card-390x844.png'});
+ await page.locator('#synthesis-followup-question').fill('What can I do next?');
+ await page.locator('.synthesis-followup-send').click();
+ await page.waitForFunction(()=>document.querySelector('.reading-chat-hud')?.dataset.chatState==='followup-ready',
+  undefined,{timeout:7000});
+ assert.equal(await page.locator('.synthesis-guidance-card').count(),1);
+ assert.equal(await page.locator('.synthesis-user-followup').count(),1);
+ assert.ok((await page.locator('.synthesis-message-body').count())>=2);
+ await page.screenshot({path:dir+'/19-mobile-followup-response-390x844.png'});
+
  assert.deepEqual(errors,[]);
- console.log('Post-shuffle browser PASS: v3.4 sphere, 3 selections, RWS reveals, opt-in Begin Reading, four Artemis portraits and preserved identities');
+ console.log('Post-shuffle browser PASS: mobile reflow, intact 3-card handoff, real synthesis chat, one distinct guidance card, follow-up');
 }finally{await browser.close()}
