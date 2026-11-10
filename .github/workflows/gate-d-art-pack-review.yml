@@ -1,0 +1,57 @@
+name: Artemis art-integrated Reading Stage review (no deploy)
+on:
+  push:
+    branches: [feat/gate-d-art-pack-v1-stage-redesign]
+  pull_request:
+    branches: [feat/gate-d-artemis-on-bc-v34]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify Artemis asset import and scene syntax
+        run: |
+          node --check scripts/install-artemis-assets.mjs
+          node --check preview/post-shuffle/artemis-art-catalog.mjs
+          node --check preview/post-shuffle/artemis-assets-ready.mjs
+          node --check preview/post-shuffle/reading-stage.mjs
+          node --check preview/post-shuffle/scene.mjs
+          node --check scripts/smoke-post-shuffle.mjs
+      - name: Test physical cards, actual art readiness and reading-state invariants
+        run: npm test
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright
+      - run: npx playwright install chromium --only-shell
+      - name: Fetch licensed historical RWS scans for real-card testing
+        run: npm run assets:sync
+      - name: Launch isolated Gate BC v3.4 → Gate D review page
+        run: |
+          npm run preview:gate-b > /tmp/artemis-art-v1.log 2>&1 &
+          for i in $(seq 1 35); do
+            if curl -fsS http://127.0.0.1:4184/preview/gate-b/ >/dev/null; then break; fi
+            sleep 2
+          done
+      - name: Verify 78 card sphere, three original reveals, Artemis chapter transitions and frame
+        run: node scripts/smoke-post-shuffle.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: artemis-art-v1-webgl2-stage-screenshots
+          path: |
+            artifacts/post-shuffle
+            /tmp/artemis-art-v1.log
+          retention-days: 14
