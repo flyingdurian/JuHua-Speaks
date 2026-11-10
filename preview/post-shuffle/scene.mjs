@@ -13,6 +13,7 @@ import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
 import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
 import {SPHERE_VERTEX_STRIDE,extrudedCardVertices} from './PhysicalSphereMesh.mjs';
 import {chooseFoilFinish,createTarotTableau} from './TarotTableau.mjs';
+import {createSynthesisController} from './SynthesisController.mjs';
 import {createSelectionHandoff,HANDOFF_SETTLE_MS} from './SelectionHandoff.mjs';
 import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,gyroAttitude,selectCard,getStage,perspectiveFocal,pickProjectedCard,orbitYaw,selectionRise,CAMERA_CLIP_NEAR,CAMERA_NEAR,clipCardNearPlane} from './geometry.mjs';
 
@@ -139,6 +140,7 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
 
  let lockAt=null,lockFrame=null,tableau=null,tableauShown=false,handoff=null;const pickAnchors=new Map();
  let readingStarted=false,readingTimer=null,readingChapter=-1,resourcesDisposed=false,portraitRevision=0;
+ let synthesis=null;
  // Predecode ONLY chapter-visible portraits; 16 source states exist but we
  // avoid eager-loading 16 large PNGs while the visitor is still in Gate C.
  const portraitCache=new Map();
@@ -240,6 +242,8 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
    layer.dataset.carryover='original-foil';
    foilSockets[i].replaceWith(layer);
   });
+  synthesis=createSynthesisController({world,question:readingQuestion,choices,
+   reading:readingDemo(),reducedMotion:reduced});
   world.querySelector('#artemis-reading-title')?.focus({preventScroll:true});
   return true;
  }
@@ -304,9 +308,24 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   const button=event.target.closest('button');if(!button)return;
   if(button.hasAttribute('data-reading-chapter')){updateReadingChapter(Number(button.dataset.readingChapter));return;}
   if(button.dataset.action==='reading-prev'){updateReadingChapter(Math.max(-1,readingChapter-1));return;}
-  if(button.dataset.action==='reading-next'){updateReadingChapter(readingChapter===3?0:readingChapter+1);return;}
+  if(synthesis?.handleClick(event))return;
+  if(synthesis?.state.started)return;
+  if(button.dataset.action==='reading-next'){
+   if(readingChapter===2){
+    if(synthesis?.start()){
+     step='synthesis';world.dataset.beat='synthesis';
+     requestAnimationFrame(updateArtemisTableOcclusion);
+     setTimeout(updateArtemisTableOcclusion,1050);
+    }
+   }else updateReadingChapter(readingChapter===3?0:readingChapter+1);
+   return;
+  }
  };
  mount.addEventListener('click',handleReadingControls);
+ const onSynthesisSubmit=event=>{
+  if(synthesis?.handleSubmit(event))return;
+ };
+ mount.addEventListener('submit',onSynthesisSubmit);
  const onReadingTextScroll=event=>{
   if(readingStarted&&event.target?.classList?.contains('reading-art-narration-text'))
    updateReadingOverflowCue();
@@ -482,10 +501,13 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   visible:()=>rendered.map(p=>({id:p.id,side:p.side,selected:p.selected,x:p.center.x,y:p.center.y,depth:p.depth})),
   selectionLocked:()=>lockAt!==null,selectionSnapshot:()=>lockFrame?{...lockFrame,picks:lockFrame.picks.map(p=>({...p}))}:null,
   time:()=>t,tap,togglePause:changePause,orbitYaw:()=>yaw,artOverlay:()=>tableau?.artOverlay??sessionFoil,hologram:()=>tableau?.hologram??sessionFoil,
-  foil:()=>tableau?.artOverlay??sessionFoil,readingChapter:()=>readingChapter,readingReady:()=>tableauShown&&tableau?.revealed===3,beginReading,tableau:()=>({active:tableauShown,revealed:tableau?.revealed||0,artOverlay:tableau?.artOverlay??sessionFoil}),
+  foil:()=>tableau?.artOverlay??sessionFoil,readingChapter:()=>readingChapter,synthesisState:()=>synthesis?.state||null,
+  readingReady:()=>tableauShown&&tableau?.revealed===3,beginReading,tableau:()=>({active:tableauShown,revealed:tableau?.revealed||0,artOverlay:tableau?.artOverlay??sessionFoil}),
   dispose(){
    dead=true;portraitRevision++;cancelAnimationFrame(raf);if(readingTimer!==null)clearTimeout(readingTimer);
    mount.removeEventListener('click',handleReadingControls);
+   mount.removeEventListener('submit',onSynthesisSubmit);
+   synthesis?.dispose();
    mount.removeEventListener('scroll',onReadingTextScroll,true);
    window.removeEventListener('resize',onReadingResize);
    disposeSphereResources();world.remove();
