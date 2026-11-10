@@ -137,9 +137,12 @@ try{
  assert.equal(await page.locator('.reading-art-panel-corners').count(),1);
  assert.equal(await page.locator('[data-action="reading-next"]').count(),1);
  assert.equal(await page.locator('nav.reading-art-progress button').count(),0);
- const readingIDs=await page.locator('.reading-actual-card-face').evaluateAll(imgs=>
-  imgs.map(i=>i.getAttribute('src')?.split('/').at(-1)?.replace('.jpg','')));
- assert.deepEqual(readingIDs,selected,'The exact three picked cards must remain unchanged');
+ const readingIDs=await page.locator('.reading-art-card').evaluateAll(cards=>
+  cards.map(card=>card.dataset.originalCardId));
+ assert.deepEqual(readingIDs,selected,'The exact three picked card identities must remain unchanged');
+ const imagesDecoded=await page.locator('.reading-actual-card-face').evaluateAll(imgs=>
+  imgs.length===3&&imgs.every(img=>img.complete&&img.naturalWidth>0&&img.naturalHeight>0&&Boolean(img.currentSrc||img.src)));
+ assert.equal(imagesDecoded,true,'The same three original RWS images remain decoded after handoff');
  // The three original Tarot card nodes, the stage, and original RWS art never
  // remount during a chapter change (previously caused portrait blank frames).
  await page.evaluate(()=>{window.__readingStableCards=[...document.querySelectorAll('.reading-actual-card-face')]});
