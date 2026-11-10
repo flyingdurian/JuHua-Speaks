@@ -46,7 +46,8 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
  const backUrl=paintBackDataUrl();
  const overlayTiles=artOverlayDataUrls(),overlayLayers=[];
  const vapor=createCardVapor({reduceMotion:window.matchMedia?.('(prefers-reduced-motion:reduce)').matches??false});
- let revealed=0,disposed=false,activeStyle=foil;
+ let revealed=0,disposed=false,activeStyle=foil,activeIntensity=.70;
+ const foilStyleButtons=[];
  const section=node('section','ps-tableau ps-overlay-'+activeStyle);
  section.setAttribute('aria-label','Your three Tarot cards: Past, Present, Future');
  section.setAttribute('aria-live','polite');
@@ -70,11 +71,66 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
    layer.dataset.foilFinish=activeStyle;
   }
   styleName.textContent='Art overlay · '+labelStyle(activeStyle);
+  for(const b of foilStyleButtons)b.setAttribute('aria-pressed',String(b.dataset.foilStyle===activeStyle));
   return activeStyle;
  }
  prevStyle.addEventListener('click',()=>setArtOverlayStyle(nextArtOverlayStyle(activeStyle,-1)));
  nextStyle.addEventListener('click',()=>setArtOverlayStyle(nextArtOverlayStyle(activeStyle,1)));
  styles.append(prevStyle,styleName,nextStyle);
+ // Owner-only review tool at Gate C. It never appears in the final reading.
+ // The visible foil is the same live Canvas texture subsequently carried to D.
+ const sandbox=node('details','ps-foil-sandbox');
+ sandbox.setAttribute('aria-label','Foil animation sandbox');
+ const toggle=node('summary','ps-foil-sandbox-toggle','FOIL SANDBOX · TUNE');
+ const sandboxBody=node('div','ps-foil-sandbox-body');
+ const sandboxHeading=node('p','ps-foil-sandbox-heading','LIVE FOIL TUNING · REVEAL STAGE');
+ const styleGrid=node('div','ps-foil-style-grid');
+ styleGrid.setAttribute('role','group');styleGrid.setAttribute('aria-label','Choose one of four animated foil finishes');
+ for(const style of ART_OVERLAY_STYLES){
+  const b=node('button','ps-foil-style-option',labelStyle(style));
+  b.type='button';b.dataset.foilStyle=style;
+  b.setAttribute('aria-pressed',String(style===activeStyle));
+  b.addEventListener('click',()=>setArtOverlayStyle(style));
+  foilStyleButtons.push(b);styleGrid.append(b);
+ }
+ const intensityRow=node('div','ps-foil-intensity-row');
+ const intensityLabel=node('label','ps-foil-intensity-label','Foil intensity');
+ intensityLabel.htmlFor='ps-foil-intensity';
+ const intensityValue=node('output','ps-foil-intensity-value','70%');
+ intensityValue.htmlFor='ps-foil-intensity';
+ const intensityInput=node('input','ps-foil-intensity');
+ intensityInput.id='ps-foil-intensity';intensityInput.type='range';
+ intensityInput.min='0';intensityInput.max='100';intensityInput.step='5';
+ intensityInput.value='70';intensityInput.setAttribute('aria-label','Foil intensity percentage');
+ function setFoilIntensity(value){
+  if(disposed||!Number.isFinite(value)||value<0||value>1)throw new RangeError('Invalid foil intensity');
+  activeIntensity=Math.round(value*100)/100;
+  for(const layer of overlayLayers){
+   layer.style.setProperty('--foil-intensity',String(activeIntensity));
+   layer.dataset.foilIntensity=String(activeIntensity);
+  }
+  intensityInput.value=String(Math.round(activeIntensity*100));
+  intensityValue.textContent=Math.round(activeIntensity*100)+'%';
+  return activeIntensity;
+ }
+ intensityInput.addEventListener('input',()=>setFoilIntensity(Number(intensityInput.value)/100));
+ intensityRow.append(intensityLabel,intensityInput,intensityValue);
+ const exportButton=node('button','ps-foil-export','EXPORT ACTIVE JSON');
+ exportButton.type='button';exportButton.setAttribute('aria-label','Export current foil style and intensity as JSON');
+ const exportStatus=node('p','ps-foil-export-status','');
+ exportStatus.setAttribute('role','status');exportStatus.setAttribute('aria-live','polite');
+ const foilConfig=()=>({version:1,style:activeStyle,intensity:activeIntensity,animation:'moving-gold-foil'});
+ exportButton.addEventListener('click',()=>{
+  if(disposed)return;
+  const json=JSON.stringify(foilConfig(),null,2)+'\n';
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(json);
+  a.download='juhua-foil-config.json';
+  section.append(a);a.click();a.remove();
+  exportStatus.textContent='Exported '+labelStyle(activeStyle)+' · '+Math.round(activeIntensity*100)+'%';
+ });
+ sandboxBody.append(sandboxHeading,styleGrid,intensityRow,exportButton,exportStatus);
+ sandbox.append(toggle,sandboxBody);
  const spread=node('div','ps-tableau-spread');
  // The reader is an opt-in ritual milestone. The three original cards remain
  // on the table after reveal until the visitor explicitly begins the reading.
@@ -85,10 +141,10 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
  begin.type='button';begin.dataset.action='begin-reading';begin.disabled=true;
  begin.addEventListener('click',()=>{
   if(disposed||revealed!==3||begin.disabled)return;
-  begin.disabled=true;onBeginReading({picks:picks.map(p=>({...p})),artOverlay:activeStyle});
+  begin.disabled=true;onBeginReading({picks:picks.map(p=>({...p})),artOverlay:activeStyle,foilConfiguration:foilConfig()});
  });
  readingEntry.append(readingComplete,begin);
- section.append(heading,help,styles,spread,readingEntry);
+ section.append(heading,help,styles,sandbox,spread,readingEntry);
  const faceImages=[];
  const controls=picks.map((pick,i)=>{
   const card=BY_ID.get(pick.id);
@@ -113,6 +169,8 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
   foilLayer.setAttribute('aria-hidden','true');
   foilLayer.style.backgroundImage='url("'+overlayTiles[activeStyle]+'")';
   foilLayer.dataset.foilFinish=activeStyle;
+  foilLayer.dataset.foilIntensity=String(activeIntensity);
+  foilLayer.style.setProperty('--foil-intensity',String(activeIntensity));
   overlayLayers.push(foilLayer);
   const artifactNote=node('div','ps-card-art-unavailable','RWS artwork unavailable');
   artifactNote.hidden=true;
@@ -173,11 +231,12 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
  mount.append(section);
  return {
   get foil(){return activeStyle},get artOverlay(){return activeStyle},get hologram(){return activeStyle},
+  get foilIntensity(){return activeIntensity},get foilConfiguration(){return foilConfig()},
   get backUrl(){return backUrl},
   get destinations(){return controls},
   prepareHandoff(){if(disposed)return;section.hidden=false;section.classList.add('ps-handoff-prepared');section.classList.add('ps-tableau-visible');},
   finishHandoff(){if(disposed)return;section.classList.add('ps-handoff-settled');vapor.start();},
-  setArtOverlayStyle,setHologramStyle:setArtOverlayStyle,
+  setArtOverlayStyle,setHologramStyle:setArtOverlayStyle,setFoilIntensity,
   cycleArtOverlay(direction=1){return setArtOverlayStyle(nextArtOverlayStyle(activeStyle,direction))},
   cycleHologram(direction=1){return setArtOverlayStyle(nextArtOverlayStyle(activeStyle,direction))},
   element:section,picks:picks.map(p=>({...p})),
