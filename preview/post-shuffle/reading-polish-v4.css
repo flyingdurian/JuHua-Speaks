@@ -412,3 +412,166 @@
  .scene-artemis-reading .reading-art-portrait,
  .scene-artemis-reading .reading-art-spread{transition:none!important}
 }
+
+
+/* Gate C reveal-stage foil sandbox — temporary QA control, not a production HUD.
+ * The selector, slider and downloadable JSON all operate on the same live foil
+ * nodes that are carried unchanged into Artemis's reading stage. */
+.ps-tableau .ps-foil-sandbox{
+ box-sizing:border-box;position:fixed;z-index:90;
+ top:clamp(58px,8dvh,86px);right:clamp(12px,2.7vw,32px);
+ width:min(310px,calc(100vw - 24px));max-width:100%;
+ color:#f8e9cf;font:12px/1.4 Arial,sans-serif;
+ pointer-events:auto;
+}
+.ps-tableau .ps-foil-sandbox-toggle{
+ display:block;width:fit-content;margin-left:auto;padding:9px 13px;
+ color:#e8c891;cursor:pointer;list-style:none;
+ font:700 10px/1.2 Arial,sans-serif;letter-spacing:.12em;
+ border:1px solid rgba(231,187,123,.55);border-radius:15px;
+ background:rgba(14,13,35,.91);box-shadow:0 3px 12px rgba(0,0,0,.35);
+}
+.ps-tableau .ps-foil-sandbox-toggle::-webkit-details-marker{display:none}
+.ps-tableau .ps-foil-sandbox-toggle::before{content:"✦ ";color:#f5d59f}
+.ps-tableau .ps-foil-sandbox[open] .ps-foil-sandbox-toggle{
+ border-bottom-left-radius:0;border-bottom-right-radius:0;
+}
+.ps-tableau .ps-foil-sandbox-body{
+ display:flex;flex-direction:column;gap:12px;
+ width:100%;max-height:min(65dvh,390px);overflow-y:auto;
+ padding:15px;border:1px solid rgba(222,180,119,.52);
+ border-radius:13px 0 13px 13px;
+ background:linear-gradient(170deg,rgba(23,18,46,.98),rgba(9,14,34,.98));
+ box-shadow:0 12px 35px rgba(0,0,0,.58);
+}
+.ps-tableau .ps-foil-sandbox-heading{
+ margin:0;color:#dcc39d;font:700 10px/1.4 Arial,sans-serif;
+ letter-spacing:.14em;text-align:center;
+}
+.ps-tableau .ps-foil-style-grid{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;
+}
+.ps-tableau .ps-foil-style-option,
+.ps-tableau .ps-foil-export{
+ appearance:none;cursor:pointer;min-height:36px;
+ border:1px solid rgba(194,166,118,.35);border-radius:9px;
+ background:rgba(55,37,79,.58);color:#f2e4c9;
+ font:11px/1.25 Georgia,serif;padding:6px;
+}
+.ps-tableau .ps-foil-style-option[aria-pressed="true"]{
+ border-color:#ffdc9b;background:rgba(107,74,110,.68);
+ box-shadow:inset 0 0 0 1px rgba(245,219,161,.32),0 0 11px rgba(209,175,122,.24);
+ color:#fff3d6;
+}
+.ps-tableau .ps-foil-intensity-row{
+ display:grid;grid-template-columns:1fr 54px;align-items:center;gap:5px 8px;
+}
+.ps-tableau .ps-foil-intensity-label{grid-column:1/-1;color:#ead4ad}
+.ps-tableau .ps-foil-intensity{
+ grid-column:1;display:block;width:100%;height:24px;
+ accent-color:#d4ae75;cursor:pointer;
+}
+.ps-tableau .ps-foil-intensity-value{
+ grid-column:2;text-align:right;font:700 12px Arial,sans-serif;color:#f6d79e;
+}
+.ps-tableau .ps-foil-export{
+ background:linear-gradient(120deg,#6c4c74,#2e284b);
+ border-color:#d8b67b;font-weight:bold;letter-spacing:.08em;
+}
+.ps-tableau .ps-foil-export-status{min-height:13px;margin:0;text-align:center;color:#cabda8;font-size:10px}
+.ps-tableau .ps-foil-sandbox button:focus-visible,
+.ps-tableau .ps-foil-sandbox summary:focus-visible,
+.ps-tableau .ps-foil-sandbox input:focus-visible{
+ outline:2px solid #ffdfaa;outline-offset:3px;
+}
+.ps-tableau.ps-handoff-prepared .ps-foil-sandbox{opacity:0;pointer-events:none}
+.ps-tableau.ps-handoff-settled .ps-foil-sandbox{opacity:1;pointer-events:auto}
+
+/* Four distinct continuously moving gold-engraving patterns. The Canvas art
+ * source is unchanged; only its plate travels and a gold specular band crosses
+ * its transparent grooves. Full-size original RWS faces remain legible. */
+@keyframes ps-moving-foil-lines{
+ 0%{background-position:-16% -9%}
+ 50%{background-position:23% 28%}
+ 100%{background-position:62% 58%}
+}
+@keyframes ps-moving-foil-underlay{
+ 0%{background-position:40% 25%}
+ 100%{background-position:-32% -27%}
+}
+@keyframes ps-moving-foil-sheen{
+ 0%,14%{transform:translateX(-95%) rotate(-2deg);opacity:.02}
+ 42%,58%{opacity:.8}
+ 82%,100%{transform:translateX(95%) rotate(2deg);opacity:.02}
+}
+.ps-tableau .ps-card-front .ps-card-art-overlay,
+.scene-artemis-reading .reading-art-card-frame .reading-art-card-foil{
+ --foil-period:11s;
+ --foil-glint-period:6.2s;
+ z-index:6;opacity:var(--foil-intensity,.70)!important;
+ visibility:visible;
+ background-repeat:repeat;background-size:126% 129%;
+ background-position:center center;
+ mix-blend-mode:screen;
+ animation:ps-moving-foil-lines var(--foil-period) linear infinite alternate!important;
+ will-change:background-position;
+ pointer-events:none;
+}
+.scene-artemis-reading .reading-art-card-frame .reading-art-card-foil{z-index:3}
+.ps-tableau .ps-card-front .ps-card-art-overlay::after,
+.scene-artemis-reading .reading-art-card-frame .reading-art-card-foil::after{
+ content:""!important;display:block!important;
+ position:absolute;top:-25%;bottom:-25%;left:-78%;right:-78%;
+ pointer-events:none;border-radius:inherit;
+ mix-blend-mode:screen;
+ background:linear-gradient(105deg,
+  transparent 28%,rgba(255,235,177,.02) 39%,
+  rgba(255,226,159,.20) 46%,
+  rgba(255,248,219,.59) 50%,
+  rgba(226,195,255,.20) 54%,
+  rgba(251,213,147,.18) 59%,transparent 71%);
+ animation:ps-moving-foil-sheen var(--foil-glint-period) ease-in-out infinite!important;
+ opacity:calc(var(--foil-intensity,.7) * .82);
+}
+.scene-artemis-reading .reading-art-card-frame .reading-art-card-foil::before{
+ background-size:132% 134%;background-repeat:repeat;
+ animation:ps-moving-foil-underlay calc(var(--foil-period) * 1.3) linear infinite alternate;
+}
+.ps-tableau .ps-card-front .ps-card-art-overlay[data-foil-finish="celestial-lattice"],
+.scene-artemis-reading .reading-art-card-foil[data-foil-finish="celestial-lattice"]{
+ --foil-period:12s;--foil-glint-period:6.4s;
+}
+.ps-tableau .ps-card-front .ps-card-art-overlay[data-foil-finish="constellation-map"],
+.scene-artemis-reading .reading-art-card-foil[data-foil-finish="constellation-map"]{
+ --foil-period:17s;--foil-glint-period:8.2s;
+}
+.ps-tableau .ps-card-front .ps-card-art-overlay[data-foil-finish="alchemical-glyphs"],
+.scene-artemis-reading .reading-art-card-foil[data-foil-finish="alchemical-glyphs"]{
+ --foil-period:14s;--foil-glint-period:5.3s;
+}
+.ps-tableau .ps-card-front .ps-card-art-overlay[data-foil-finish="scroll-texture"],
+.scene-artemis-reading .reading-art-card-foil[data-foil-finish="scroll-texture"]{
+ --foil-period:9.5s;--foil-glint-period:7.3s;
+}
+/* Critical: V2 and V3 applied opacity animation directly to the plate.
+ * Those keyframes must not override live sandbox intensity in either gate. */
+.scene-artemis-reading .reading-art-card-frame .reading-art-card-foil[data-foil-finish]{
+ opacity:var(--foil-intensity,.70)!important;
+}
+@media(max-width:720px){
+ .ps-tableau .ps-foil-sandbox{
+  top:max(48px,env(safe-area-inset-top,0px));right:9px;
+  width:min(285px,calc(100vw - 18px));
+ }
+ .ps-tableau .ps-foil-sandbox-toggle{font-size:9px;padding:7px 10px}
+ .ps-tableau .ps-foil-sandbox-body{max-height:65dvh;padding:11px;gap:8px}
+}
+@media(prefers-reduced-motion:reduce){
+ .ps-tableau .ps-card-front .ps-card-art-overlay,
+ .scene-artemis-reading .reading-art-card-frame .reading-art-card-foil,
+ .scene-artemis-reading .reading-art-card-frame .reading-art-card-foil::before,
+ .ps-tableau .ps-card-front .ps-card-art-overlay::after,
+ .scene-artemis-reading .reading-art-card-frame .reading-art-card-foil::after{
+  animation:none!important;
+ }
+}
