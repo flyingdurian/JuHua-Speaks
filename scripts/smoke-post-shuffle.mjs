@@ -122,11 +122,21 @@ try{
  assert.equal(await page.locator('.ps-begin-reading:visible').count(),1,'Explicit Begin Reading appears after third original card reveal');
  assert.equal(await page.locator('.ps-begin-reading').isEnabled(),true);
  assert.equal(await page.evaluate(()=>window.__POST_SHUFFLE__.stage()),'tableau');
+ await page.evaluate(()=>{window.__revealedOriginalFaces=[...document.querySelectorAll('.ps-tableau .ps-card-art')]});
  await page.locator('.ps-begin-reading').click();
  await page.waitForFunction(()=>window.__POST_SHUFFLE__?.stage()==='reading',undefined,{timeout:7000});
  assert.equal(page.url(),host+'/preview/post-shuffle/','No navigation during reader handoff');
  assert.equal(await page.locator('.scene-artemis-reading').count(),1);
  assert.equal(await page.locator('.reading-art-card').count(),3);
+ assert.equal(await page.evaluate(()=>{
+  const now=[...document.querySelectorAll('.reading-actual-card-face')];
+  return now.length===3&&now.every((img,i)=>img===window.__revealedOriginalFaces[i]
+   &&img.dataset.carryover==='original-rws');
+ }),true,'Reading stage must reuse the exact three revealed RWS DOM image nodes');
+ assert.equal(await page.locator('.reading-art-panel-skin').count(),1);
+ assert.equal(await page.locator('.reading-art-panel-corners').count(),1);
+ assert.equal(await page.locator('[data-action="reading-next"]').count(),1);
+ assert.equal(await page.locator('nav.reading-art-progress button').count(),0);
  const readingIDs=await page.locator('.reading-actual-card-face').evaluateAll(imgs=>
   imgs.map(i=>i.getAttribute('src')?.split('/').at(-1)?.replace('.jpg','')));
  assert.deepEqual(readingIDs,selected,'The exact three picked cards must remain unchanged');
@@ -144,6 +154,8 @@ try{
  await expectPortrait('artemis_warm_welcome.webp');
  await page.screenshot({path:dir+'/09-artemis-warm-welcome.png'});
  await page.locator('[data-action="reading-next"]').click();
+ assert.equal(await page.locator('.reading-art-panel-skin').count(),1,'Narrative update must not remove art skin');
+ assert.equal(await page.locator('.reading-art-panel-corners').count(),1,'Narrative update must not remove corners');
  await expectPortrait('artemis_welcoming_gesture.webp');
  await page.locator('[data-action="reading-next"]').click();
  await expectPortrait('artemis_thinking.webp');
