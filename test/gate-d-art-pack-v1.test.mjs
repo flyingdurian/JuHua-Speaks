@@ -111,6 +111,10 @@ test('reveal to reading reuses the three existing DOM image nodes, while chapter
  assert.match(source,/sockets\[i\]\.replaceWith\(img\)/);
  assert.match(source,/panelInner\.outerHTML=renderReadingPanel/);
  assert.doesNotMatch(source,/panel\.innerHTML=renderReadingPanel/);
+ const teardown=await import('node:fs/promises').then(m=>m.readFile(new URL('../preview/post-shuffle/TarotTableau.mjs',import.meta.url),'utf8'));
+ assert.match(teardown,/if\(section\.contains\(img\)\)img\.removeAttribute\('src'\)/,
+  'Old tableau must not clear RWS sources after their DOM nodes are adopted by Artemis');
+ assert.doesNotMatch(teardown,/img\.src=''/);
 });
 test('PNG importer detects wrong containers and malformed dimensions before touching repository',()=>{
  assert.throws(()=>inspectArtemisPng(Buffer.from('not a png'),'broken'));
