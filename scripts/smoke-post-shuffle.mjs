@@ -290,6 +290,12 @@ try{
   return {tableHidden:getComputedStyle(table).display==='none',
    backgroundReady:!!backdrop&&backdrop.complete&&backdrop.naturalWidth>200,
    portraitFit:p.objectFit,portraitHeight:portrait.getBoundingClientRect().height,
+   visiblePortraitHeight:(()=>{
+    const hero=document.querySelector('.reading-art-hero');
+    const hb=hero.getBoundingClientRect(),pb=portrait.getBoundingClientRect();
+    const pct=parseFloat(getComputedStyle(hero).getPropertyValue('--table-occlusion-line'))/100;
+    return Math.min(pb.bottom,hb.top+hb.height*pct)-pb.top;
+   })(),
    portraitClipped:getComputedStyle(portrait).overflow==='hidden',
    questionInHeader:!!question?.closest('.reading-art-header'),
    questionText:question?.textContent.trim(),
@@ -326,8 +332,10 @@ try{
  assert.ok(physical.cardTop>=physical.portraitTop&&physical.cardTop<physical.portraitBottom,
   'The centre card top must overlap Artemis at chest/upper-abdomen height: '+JSON.stringify(physical));
   assert.equal(correctedStage.portraitFit,'cover','Portrait should be intentionally cropped chest-up');
- assert.ok(correctedStage.portraitClipped&&correctedStage.portraitHeight<=320,
-  'Desktop crop must end at the upper chest/mid-rib instead of the waist');
+ assert.ok(correctedStage.portraitClipped&&correctedStage.visiblePortraitHeight>205
+  &&correctedStage.visiblePortraitHeight<=320,
+  'Opaque desktop bust must stop at the real table occlusion, not expose her waist: '+
+  JSON.stringify({painted:correctedStage.visiblePortraitHeight,source:correctedStage.portraitHeight}));
  assert.ok(correctedStage.questionInHeader&&correctedStage.questionText.includes('What can these cards'),
   'The actual original question must be prominent near the title');
  assert.equal(correctedStage.titleVisuallyHidden,true,'The three-line visible title block must be gone');
