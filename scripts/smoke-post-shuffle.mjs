@@ -258,7 +258,7 @@ try{
  assert.ok(Math.abs(finalLayout.heroTop-welcomeLayout.heroTop)<1,
   'Chapter transitions must not reposition the hero');
  assert.ok(Math.abs(finalLayout.heroHeight-welcomeLayout.heroHeight)<20,
-  'Longer interpretations may not collapse the Artemis hero');
+  'Longer interpretations may not collapse the Artemis hero'+': '+JSON.stringify({welcome:welcomeLayout.heroHeight,final:finalLayout.heroHeight}));
  assert.ok(finalLayout.portraitTop>=finalLayout.headerBottom-8,
   'Artemis may not overlap the title on longer chapters');
  assert.ok(finalLayout.panelTop-finalLayout.cardsBottom>10,
