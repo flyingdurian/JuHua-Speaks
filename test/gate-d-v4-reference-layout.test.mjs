@@ -3,54 +3,68 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 
 const source=path=>readFile(new URL(path,import.meta.url),'utf8');
-test('The V4 layout is an isolated final-loaded CSS layer on both review entries',async()=>{
+
+test('The V4 corrective layer remains isolated and last-loaded in both entries',async()=>{
  const css=await source('../preview/post-shuffle/reading-polish-v4.css');
  const gate=await source('../preview/gate-b/index.html');
  const solo=await source('../preview/post-shuffle/index.html');
  for(const html of [gate,solo]){
-  const old=html.indexOf('reading-fidelity-v2.css');
-  const next=html.indexOf('reading-polish-v4.css');
-  assert.ok(old>=0&&next>old,'The corrective sheet must override—not rewrite—V3 baseline CSS');
+  assert.ok(html.indexOf('reading-fidelity-v2.css')>=0);
+  assert.ok(html.indexOf('reading-polish-v4.css')>html.indexOf('reading-fidelity-v2.css'));
  }
  assert.match(css,/Gate D V4/);
  assert.doesNotMatch(css,/renderReadingStage|querySelector|addEventListener/);
 });
-test('Table stage uses the existing source-art background and a visible foreground rim',async()=>{
+
+test('One and only one tabletop: existing illustrated chamber, no nested synthetic plane',async()=>{
  const css=await source('../preview/post-shuffle/reading-polish-v4.css');
- assert.match(css,/\.reading-art-table-surface\{/);
- assert.match(css,/display:block!important;visibility:visible!important;opacity:1!important/);
- assert.match(css,/bg_artemis_reading_stage_main\.webp/);
- assert.match(css,/\.reading-art-table-surface::after\{/);
- assert.match(css,/border-bottom:3px solid rgba\(238,187,113,\.76\)/);
- assert.match(css,/transform-origin:center bottom/);
+ const markup=await source('../preview/post-shuffle/reading-stage.mjs');
+ assert.match(css,/\.reading-art-table-surface\{display:none!important\}/);
+ assert.match(markup,/artSlot\('background','reading-art-atmosphere'\)/);
+ assert.doesNotMatch(css,/\.reading-art-table-surface::before\s*\{/);
+ assert.doesNotMatch(css,/\.reading-art-table-surface::after\s*\{/);
 });
-test('Portrait reverts from cover-cropping to transparent master aspect framing',async()=>{
+
+test('Chest-up Artemis crop and readable full-height interpretation are explicit',async()=>{
  const css=await source('../preview/post-shuffle/reading-polish-v4.css');
- assert.match(css,/\.reading-art-portrait img\{\s*object-fit:contain/);
- assert.match(css,/\.reading-art-portrait\{\s*top:-1%;width:min\(535px,57vw\)/);
- assert.match(css,/height:min\(460px,calc\(100% \+ 28px\)\)/);
- assert.match(css,/height:clamp\(310px,56dvh,455px\)/);
- assert.doesNotMatch(css,/object-fit:cover/);
+ assert.match(css,/\.reading-art-portrait img\{[\s\S]*?object-fit:cover;object-position:center top;/);
+ assert.match(css,/\.reading-art-portrait\{[\s\S]*?overflow:hidden/);
+ assert.match(css,/height:clamp\(230px,32dvh,280px\)/);
+ assert.match(css,/max-height:none!important/);
+ assert.match(css,/overflow:visible!important/);
+ assert.match(css,/\.reading-art-panel\{[\s\S]*?height:auto;min-height:202px/);
 });
-test('Card scale/pitch/rim overlap recover the Final concept',async()=>{
+
+test('Original question is promoted into the header rather than relegated to footer',async()=>{
+ const markup=await source('../preview/post-shuffle/reading-stage.mjs');
  const css=await source('../preview/post-shuffle/reading-polish-v4.css');
- assert.match(css,/width:clamp\(110px,9\.6vw,163px\)/);
- assert.match(css,/width:clamp\(88px,26\.5vw,123px\)/);
- assert.match(css,/bottom:3\.5%/);
- assert.match(css,/bottom:3%;/);
+ const start=markup.indexOf('reading-art-question-banner');
+ const footer=markup.indexOf('class="reading-art-footer"');
+ assert.ok(start>=0&&footer>start);
+ assert.match(markup,/reading-art-question-label">YOUR QUESTION/);
+ assert.match(markup,/class="reading-art-question">\'+esc\(question\)/);
+ assert.match(css,/\.reading-art-question-banner\{/);
+ const footerPart=markup.slice(footer,footer+260);
+ assert.doesNotMatch(footerPart,/reading-art-question/);
+});
+
+test('Foil has a visible in-card second pass of the SAME selected background-image',async()=>{
+ const css=await source('../preview/post-shuffle/reading-polish-v4.css');
+ assert.match(css,/\.reading-art-card-frame \.reading-art-card-foil\{/);
+ assert.match(css,/opacity:1;visibility:visible/);
+ assert.match(css,/mix-blend-mode:screen/);
+ assert.match(css,/\.reading-art-card-foil::before\{/);
+ assert.match(css,/background-image:inherit/);
+ for(const finish of ['celestial-lattice','constellation-map','alchemical-glyphs','scroll-texture'])
+  assert.ok(css.includes('data-foil-finish="'+finish+'"'));
  assert.match(css,/rotateX\(42deg\)/);
- assert.match(css,/rotateY\(6deg\)/);
 });
-test('Tall mobile fills the viewport and restores full dialog HUD width with safe area',async()=>{
+
+test('Mobile preserves safe area, card geometry and short-viewport document scrolling',async()=>{
  const css=await source('../preview/post-shuffle/reading-polish-v4.css');
- assert.match(css,/height:100%;min-height:100dvh/);
- assert.match(css,/minmax\(0,1fr\) min-content min-content/);
- assert.match(css,/align-content:stretch;justify-items:stretch/);
- assert.match(css,/box-sizing:border-box;width:100%;min-width:0;max-width:none/);
- assert.match(css,/overflow-wrap:anywhere/);
+ assert.match(css,/grid-template-rows:auto minmax\(350px,1fr\) auto auto/);
+ assert.match(css,/overflow-y:auto/);
  assert.match(css,/env\(safe-area-inset-bottom,0px\)/);
  assert.match(css,/@media\(max-width:720px\) and \(max-height:680px\)/);
- const old=await source('../preview/post-shuffle/reading-fidelity-v2.css');
- assert.match(old,/grid-template-rows:clamp\(56px,7\.3dvh,68px\) clamp\(330px,51dvh,425px\) min-content min-content/);
- // V3 remains for reproducibility; V4 supersedes it only in the final cascade.
+ assert.match(css,/grid-template-rows:auto minmax\(270px,1fr\) auto auto/);
 });
