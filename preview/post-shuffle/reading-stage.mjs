@@ -118,7 +118,7 @@ export function renderReadingPanel(demo,chapter){
   '<span class="reading-art-nameplate">ARTEMIS <span>· YOUR READER</span></span>'+
   '<p class="reading-art-kicker">'+esc(current.eyebrow)+'</p>'+
   '<h2 class="reading-art-narration-title" id="artemis-chapter-title" tabindex="-1">'+esc(current.title)+'</h2>'+
-  '<p class="reading-art-narration-text">'+esc(current.text)+'</p>'+
+  '<p class="reading-art-narration-text" tabindex="0" aria-label="Full reading interpretation">'+esc(current.text)+'</p>'+
   '<div class="reading-art-controls">'+
   '<button type="button" class="reading-art-control is-secondary" data-action="reading-prev" '+
    (chapter===-1?'disabled':'')+' aria-label="Previous chapter">← Previous</button>'+
@@ -148,10 +148,10 @@ export function renderReadingStage({choices,cardsById,demo,chapter=-1,question='
   artSlot('violetParticles','reading-art-fx reading-art-fx-violet')+
   artSlot('goldParticles','reading-art-fx reading-art-fx-gold')+
   '<div class="reading-art-layout">'+
-  '<header class="reading-art-header">'+artSlot('title','reading-art-title-art')+
-  '<span class="reading-art-eyebrow">JUHUA SPEAKS · CELESTIAL TAROT</span>'+
-  '<h1 tabindex="-1" id="artemis-reading-title">Your Reading</h1>'+
-  '<p class="reading-art-subtitle">THREE CARDS · ONE STORY</p>'+ 
+  // The title block is visually removed. Keep a focusable landmark for
+  // assistive tech and the existing Gate C -> D focus handoff.
+  '<header class="reading-art-header">'+
+  '<h1 class="reading-art-screenreader-title" tabindex="-1" id="artemis-reading-title">Your Reading</h1>'+
   (question?'<div class="reading-art-question-banner" aria-label="Your question">'+
    '<span class="reading-art-question-label">YOUR QUESTION</span>'+
    '<p class="reading-art-question">'+esc(question)+'</p></div>':'')+
@@ -173,7 +173,7 @@ export function renderReadingStage({choices,cardsById,demo,chapter=-1,question='
       '" aria-pressed="'+(chapter===i)+'" data-original-card-id="'+esc(choice.id)+'" data-orientation="'+esc(choice.orientation)+'">'+
       '<span class="reading-art-card-visual" data-tabletop-tilt-deg="42"><span class="reading-art-card-frame">'+face(choice,cardsById)+'<span class="reading-art-card-foil ps-card-art-overlay" data-foil-finish="pending" aria-hidden="true"></span></span></span>'+
       '<span class="reading-art-connector" aria-hidden="true"></span>'+
-      '<span class="reading-art-card-role">'+String(i+1).padStart(2,'0')+' · '+roles[i]+'</span>'+
+      '<span class="reading-art-card-role">'+String(i+1).padStart(2,'0')+'. '+roles[i]+'</span>'+
       '<span class="reading-art-card-meaning">'+orientation+' · '+esc(cardBrief(demo,card,choice,i))+'</span></button>';
    }).join('')+
    '</div></div>'+
