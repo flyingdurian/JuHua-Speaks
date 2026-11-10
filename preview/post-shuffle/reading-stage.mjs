@@ -85,7 +85,7 @@ const face=(choice,cardsById)=>{
 function chapterText(demo,chapter){
  if(!READING_CHAPTERS.includes(chapter))throw new RangeError('Unknown reading chapter');
  if(chapter===-1)return {
-  eyebrow:'WELCOME TO YOUR READING',title:'The cards are ready to speak.',
+  eyebrow:'',title:'The cards are ready to speak.',
   text:'I am Artemis. These are your three chosen cards, each with a different place in your story. We can read them with curiosity, not as a fixed prediction.'
  };
  if(chapter===3)return {
@@ -116,7 +116,7 @@ export function renderReadingPanel(demo,chapter){
  return '<div class="reading-art-panel-inner">'+
   artSlot('nameplate','reading-art-nameplate-art')+
   '<span class="reading-art-nameplate">ARTEMIS <span>· YOUR READER</span></span>'+
-  '<p class="reading-art-kicker">'+esc(current.eyebrow)+'</p>'+
+  (current.eyebrow?'<p class="reading-art-kicker">'+esc(current.eyebrow)+'</p>':'')+
   '<h2 class="reading-art-narration-title" id="artemis-chapter-title" tabindex="-1">'+esc(current.title)+'</h2>'+
   '<p class="reading-art-narration-text" tabindex="0" aria-label="Full reading interpretation">'+esc(current.text)+'</p>'+
   '<span class="reading-art-scroll-cue" aria-hidden="true">SCROLL FOR MORE ↓</span>'+
