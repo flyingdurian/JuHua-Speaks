@@ -132,7 +132,7 @@ document.getElementById('finish-shuffle').addEventListener('click',()=>{
  try{
   // Restore the audited Gate C: one continuous fullscreen camera journey.
   // Never iframe, redirect, resample, auto-collapse or enter a fake cube gate.
-  postShuffle=mountPostShuffle({mount,deckIds:selectionOrder});
+  postShuffle=mountPostShuffle({mount,deckIds:selectionOrder,question});
   window.__POST_SHUFFLE__=postShuffle;
   world.setPaused(true);
   notice.textContent='';
