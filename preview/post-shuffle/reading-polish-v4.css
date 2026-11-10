@@ -575,3 +575,22 @@
   animation:none!important;
  }
 }
+
+
+/* A discreet scroll cue appears only when the narrative actually overflows,
+ * then disappears when the user scrolls to its end. No extra permanent HUD. */
+.scene-artemis-reading .reading-art-scroll-cue{
+ display:none;position:absolute;z-index:5;right:0;
+ bottom:36px;padding:3px 5px;border-radius:7px;
+ background:rgba(12,13,33,.82);border:1px solid rgba(215,174,109,.32);
+ color:#e5bf87;font:700 8px/1.2 Arial,sans-serif;
+ letter-spacing:.10em;pointer-events:none;
+}
+.scene-artemis-reading .reading-art-panel[data-text-overflow="true"] .reading-art-scroll-cue{
+ display:block;
+}
+@media(max-width:720px){
+ .scene-artemis-reading .reading-art-scroll-cue{
+  bottom:36px;right:-3px;font-size:8px;
+ }
+}
