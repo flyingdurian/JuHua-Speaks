@@ -182,6 +182,15 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
   get revealed(){return revealed},get beginReadingReady(){return revealed===3&&!disposed},
   controls,
   get vaporFrames(){return vapor.frames},
-  dispose(){disposed=true;vapor.dispose();for(const img of faceImages){img.onload=null;img.onerror=null;img.src='';}section.remove();}
+  dispose(){
+   disposed=true;vapor.dispose();
+   for(const img of faceImages){
+    img.onload=null;img.onerror=null;
+    // Only destroy decoded artwork still owned by this tableau. Three revealed
+    // physical-card image nodes may have been adopted by Artemis Reading.
+    if(section.contains(img))img.removeAttribute('src');
+   }
+   section.remove();
+  }
  };
 }
