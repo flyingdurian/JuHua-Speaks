@@ -204,7 +204,7 @@ try{
    cssCardWidths:[...document.querySelectorAll('.reading-art-card')].map(el=>parseFloat(getComputedStyle(el).width)),
    cardsBottom:Math.max(...visual.map(rect=>rect.bottom)),
    cardTilt:parseFloat(document.querySelector('.reading-art-card-visual').dataset.tabletopTiltDeg),
-   cardFrames:cards.map(rect=>({top:rect.top,bottom:rect.bottom,left:rect.left,right:rect.right}))};
+   cardFrames:cards.map(rect=>({top:rect.top,bottom:rect.bottom,left:rect.left,right:rect.right,width:rect.width,height:rect.height}))};
  });
  const welcomeLayout=await readingGeometry();
  const restoredTable=await page.evaluate(()=>{
