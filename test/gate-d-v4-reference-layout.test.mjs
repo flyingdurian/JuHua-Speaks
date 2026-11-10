@@ -114,3 +114,38 @@ test('Reading scroll indicator only appears when interpretation has hidden text'
  assert.match(scene,/mount\.removeEventListener\('scroll',onReadingTextScroll,true\)/);
  assert.match(css,/\.reading-art-panel\[data-text-overflow="true"\] \.reading-art-scroll-cue/);
 });
+
+test('Style-V1 particle overlay is available without replacing the four original finishes',async()=>{
+ const code=await source('../preview/post-shuffle/TarotTableau.mjs');
+ assert.match(code,/FOIL_ANIM_V1='foil-anim-style-v1'/);
+ assert.match(code,/SANDBOX_FOIL_STYLES=Object\.freeze\(\[FOIL_ANIM_V1,\.\.\.ART_OVERLAY_STYLES\]\)/);
+ assert.match(code,/style\.id='foil-anim-style-v1'/);
+ assert.match(code,/@keyframes foilDriftV1/);
+ assert.match(code,/background-position: 80px 100px; filter: brightness\(1\.5\)/);
+ assert.match(code,/background-position: 160px 200px; filter: brightness\(0\.7\)/);
+ assert.match(code,/animation:foilDriftV1 10s linear infinite!important/);
+ assert.match(code,/FOIL_V1_PARTICLES/);
+ assert.match(code,/data:image\/svg\+xml;utf8,/);
+ assert.match(code,/prefers-reduced-motion:reduce/);
+});
+test('Opaque Artemis has no artificial bottom fade and uses the real room artwork as foreground occlusion',async()=>{
+ const css=await source('../preview/post-shuffle/reading-polish-v4.css');
+ const scene=await source('../preview/post-shuffle/scene.mjs');
+ assert.match(css,/mask:none!important;-webkit-mask:none!important/);
+ assert.match(css,/reading-art-hero::after/);
+ assert.match(css,/--room-cover-size/);
+ assert.match(css,/bg_artemis_reading_stage_main\.webp/);
+ assert.match(css,/clip-path:inset\(var\(--table-occlusion-line\) 0 0 0\)/);
+ assert.match(scene,/function updateArtemisTableOcclusion\(\)/);
+ assert.match(scene,/image\.naturalWidth/);
+ assert.match(scene,/hero\.dataset\.roomOcclusionSynced='true'/);
+});
+test('Premium reading CTA and redundant welcome text removal',async()=>{
+ const css=await source('../preview/post-shuffle/reading-polish-v4.css');
+ const markup=await source('../preview/post-shuffle/reading-stage.mjs');
+ assert.doesNotMatch(markup,/eyebrow:'WELCOME TO YOUR READING'/);
+ assert.match(markup,/current\.eyebrow\?'<p class="reading-art-kicker">/);
+ assert.match(css,/reading-art-control\.is-primary:hover:not\(:disabled\)/);
+ assert.match(css,/reading-art-control\.is-secondary:hover:not\(:disabled\)/);
+ assert.match(css,/reading-art-control:focus-visible/);
+});
