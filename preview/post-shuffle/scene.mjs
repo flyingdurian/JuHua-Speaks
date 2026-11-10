@@ -295,7 +295,7 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   const rect=world.getBoundingClientRect();if(rect.width<10||rect.height<10)return;
   const dpr=Math.min(devicePixelRatio||1,1.5),w=Math.round(rect.width*dpr),h=Math.round(rect.height*dpr);
   viewport={w:rect.width,h:rect.height};if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h)}
-  const state=lockAt!==null?'tableau':getStage(t,choices.length);step=state;world.dataset.beat=state;
+  const state=readingTimer!==null?'reading-transition':lockAt!==null?'tableau':getStage(t,choices.length);step=state;world.dataset.beat=state;
   ready=t>=BEATS.interactive&&lockAt===null;
   if(lockAt!==null&&!tableauShown&&performance.now()-lockAt>=HANDOFF_SETTLE_MS){
    tableauShown=true;tableau?.finishHandoff();
