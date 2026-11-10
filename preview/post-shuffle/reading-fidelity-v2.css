@@ -486,3 +486,167 @@
   right:0;background-image:url('../../assets/artemis/bg_artemis_mobile_lantern_right.webp');
  }
 }
+
+
+/* Gate D V3 — 2026-11-09 owner-directed foil / tabletop / mobile correction.
+ * These are deliberately scoped to the FINAL reading stage. Gate BC's original
+ * reveal, authentic RWS images, and the Artemis art assets are left untouched.
+ */
+
+/* P1: rehome the actual reveal foil DOM into each image-bearing face frame.
+ * Frame clips the shimmer, not a screen-sized overlay detached from the card. */
+.scene-artemis-reading .reading-art-card-frame{isolation:isolate}
+.scene-artemis-reading .reading-art-card-frame .reading-actual-card-face{
+ position:relative;z-index:1;
+}
+.scene-artemis-reading .reading-art-card-frame .reading-art-card-foil{
+ position:absolute;inset:0;z-index:3;display:block;
+ border-radius:inherit;overflow:hidden;pointer-events:none;
+ background-repeat:no-repeat;background-size:102% 102%;
+ background-position:center;mix-blend-mode:screen;
+ opacity:.57;filter:none;
+ animation:artemis-foil-engraving-breathe 12s ease-in-out infinite alternate;
+}
+.scene-artemis-reading .reading-art-card-frame .reading-art-card-foil::after{
+ content:"";display:block;position:absolute;inset:-20% -45%;
+ pointer-events:none;border-radius:inherit;
+ background:linear-gradient(109deg,transparent 26%,
+  rgba(255,219,143,.025) 37%,rgba(250,228,174,.25) 48%,
+  rgba(203,174,240,.095) 53%,rgba(247,208,145,.12) 57%,transparent 70%);
+ mix-blend-mode:screen;
+ animation:artemis-foil-drift 15.2s ease-in-out infinite;
+}
+.scene-artemis-reading .reading-art-card-frame .reading-art-card-foil[data-foil-finish="celestial-lattice"]{opacity:.59}
+.scene-artemis-reading .reading-art-card-frame .reading-art-card-foil[data-foil-finish="constellation-map"]{opacity:.67}
+.scene-artemis-reading .reading-art-card-frame .reading-art-card-foil[data-foil-finish="alchemical-glyphs"]{opacity:.53}
+.scene-artemis-reading .reading-art-card-frame .reading-art-card-foil[data-foil-finish="scroll-texture"]{opacity:.46}
+.scene-artemis-reading .reading-art-card-frame::after{z-index:4}
+
+/* P2: the cards and tabletop move UP together; their bases cross the front
+ * tabletop rim by a few pixels, rather than floating on top of the HUD.
+ * A very slight arc converges toward the same table-plane vanishing point. */
+@media(min-width:721px){
+ .scene-artemis-reading .reading-art-table-surface{
+  left:8%;right:8%;bottom:13.2%;height:36%;
+  transform:perspective(860px) rotateX(61deg);
+  transform-origin:center bottom;
+ }
+ .scene-artemis-reading .reading-art-card-glow{
+  bottom:10%;left:9%;right:9%;height:38%;
+ }
+ .scene-artemis-reading .reading-art-spread{
+  width:min(990px,96%);bottom:10.9%;
+  gap:clamp(18px,4vw,70px);
+  transform:translateX(-50%) perspective(1200px) rotateX(2deg);
+ }
+ .scene-artemis-reading .reading-art-card:nth-child(1){
+  transform:translateY(11px) rotate(-4deg) rotateY(7deg) scale(.975);
+ }
+ .scene-artemis-reading .reading-art-card:nth-child(2){
+  transform:translateY(-3px) scale(1.015);
+ }
+ .scene-artemis-reading .reading-art-card:nth-child(3){
+  transform:translateY(11px) rotate(4deg) rotateY(-7deg) scale(.975);
+ }
+ .scene-artemis-reading .reading-art-card.is-focused{
+  transform:translateY(-9px) scale(1.04);
+ }
+}
+.scene-artemis-reading .reading-art-card-visual{isolation:isolate}
+.scene-artemis-reading .reading-art-card-visual::before{
+ z-index:-1;bottom:-1px;left:-1%;right:-1%;height:22px;
+ transform:translateY(6px) scaleX(1.15);
+ background:radial-gradient(ellipse at center,rgba(0,0,0,.95),rgba(8,5,18,.64) 52%,transparent 82%);
+ box-shadow:0 1px 7px rgba(0,0,0,.87),0 7px 18px rgba(13,7,30,.55);
+ filter:blur(4px);
+}
+.scene-artemis-reading .reading-art-card-visual::after{
+ content:"";z-index:-2;position:absolute;left:-24%;right:-24%;
+ bottom:-13px;height:31px;border-radius:50%;
+ background:radial-gradient(ellipse,rgba(9,5,22,.81),rgba(72,45,93,.32) 43%,transparent 76%);
+ filter:blur(9px);pointer-events:none;
+}
+
+/* P3: on a tall narrow phone the hero must not consume the entire remaining
+ * viewport height. Keep portrait, tabletop and cards together; place an
+ * accessible safe-area-aware question/footer below the complete HUD. */
+@media(max-width:720px){
+ .ps-world .scene-artemis-reading{
+  height:100dvh;min-height:100dvh;overflow-x:hidden;overflow-y:auto;
+  overscroll-behavior-y:contain;
+ }
+ .scene-artemis-reading .reading-art-layout{
+  width:100%;height:auto;min-height:100dvh;
+  grid-template-rows:clamp(56px,7.3dvh,68px) clamp(330px,51dvh,425px) min-content min-content;
+  align-content:start;
+  padding:6px 12px max(18px,env(safe-area-inset-bottom,0px));
+  padding-bottom:max(18px,calc(env(safe-area-inset-bottom,0px) + 12px));
+ }
+ .scene-artemis-reading .reading-art-header{
+  min-height:0;height:100%;
+ }
+ .scene-artemis-reading .reading-art-hero{
+  height:100%;min-height:0;
+ }
+ .scene-artemis-reading .reading-art-table-surface{
+  left:3%;right:3%;bottom:15.5%;height:35%;
+  transform:perspective(700px) rotateX(62deg);
+ }
+ .scene-artemis-reading .reading-art-card-glow{
+  left:2%;right:2%;bottom:11%;height:41%;
+ }
+ .scene-artemis-reading .reading-art-spread{
+  width:96%;bottom:13%;gap:clamp(8px,2.2vw,18px);
+  transform:translateX(-50%) perspective(1000px) rotateX(1deg);
+ }
+ .scene-artemis-reading .reading-art-card{
+  width:clamp(82px,23.5vw,112px);
+ }
+ .scene-artemis-reading .reading-art-card-visual{
+  height:clamp(126px,18dvh,155px);
+ }
+ .scene-artemis-reading .reading-art-card:nth-child(1){
+  transform:translateY(7px) rotate(-3.5deg) scale(.98);
+ }
+ .scene-artemis-reading .reading-art-card:nth-child(2){
+  transform:translateY(-2px) scale(1.01);
+ }
+ .scene-artemis-reading .reading-art-card:nth-child(3){
+  transform:translateY(7px) rotate(3.5deg) scale(.98);
+ }
+ .scene-artemis-reading .reading-art-card.is-focused{
+  transform:translateY(-8px) scale(1.04);
+ }
+ .scene-artemis-reading .reading-art-portrait{
+  top:0;transform:translateX(-50%);
+ }
+ .scene-artemis-reading .reading-art-panel{
+  position:relative;align-self:start;margin-top:0;
+  max-width:100%;box-sizing:border-box;
+ }
+ .scene-artemis-reading .reading-art-footer{
+  width:100%;min-height:28px;max-width:100%;
+  display:block;text-align:center;align-self:start;
+  margin:7px auto 0;padding:3px 6px 4px;
+  font-size:clamp(9px,2.3vw,11px);line-height:1.5;
+  letter-spacing:.025em;overflow-wrap:anywhere;
+ }
+ .scene-artemis-reading .reading-art-question{
+  display:block;max-width:100%;margin:0;
+  overflow-wrap:anywhere;white-space:normal;
+ }
+ .scene-artemis-reading .reading-art-demo{white-space:normal}
+}
+@media(max-width:390px){
+ .scene-artemis-reading .reading-art-layout{
+  min-height:100dvh;
+  grid-template-rows:clamp(56px,7.3dvh,68px) clamp(330px,51dvh,425px) min-content min-content;
+ }
+ .scene-artemis-reading .reading-art-card{width:clamp(78px,23.5vw,96px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .scene-artemis-reading .reading-art-card-frame .reading-art-card-foil,
+ .scene-artemis-reading .reading-art-card-frame .reading-art-card-foil::after{
+  animation:none!important;transition:none!important;
+ }
+}
