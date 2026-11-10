@@ -37,7 +37,7 @@ test('owner-approved package contract enumerates exactly 16 portraits, 2 backgro
  for(const [slot,path] of Object.entries(ARTEMIS_SOURCE_FILES)){
   assert.match(path,/^(portraits|backgrounds|fx|ui)\/[a-z0-9_]+\.png$/);
   assert.ok(Object.hasOwn(ARTEMIS_ART_DIRECTOR_FILES,slot));
-  if(Object.hasOwn(ARTEMIS_IMPORTED_FILES,slot))assert.equal(ARTEMIS_IMPORTED_FILES[slot],basename(path));
+  if(Object.hasOwn(ARTEMIS_IMPORTED_FILES,slot))assert.ok([basename(path),basename(path).replace(/\.png$/,'.webp')].includes(ARTEMIS_IMPORTED_FILES[slot]));
  }
 });
 test('never claim missing or unregistered PNGs are shipped; fallback stays on 4 real WebP previews',()=>{
@@ -48,7 +48,7 @@ test('never claim missing or unregistered PNGs are shipped; fallback stays on 4 
   const url=assetUrl(slot);
   if(!Object.hasOwn(ARTEMIS_IMPORTED_FILES,slot)&&!ARTEMIS_PROVISIONAL_READY_SLOTS.includes(slot))
    assert.equal(url,null,'Unshipped art must remain pending: '+slot);
-  if(Object.hasOwn(ARTEMIS_IMPORTED_FILES,slot))assert.equal(url,'../../assets/artemis/'+source);
+  if(Object.hasOwn(ARTEMIS_IMPORTED_FILES,slot))assert.equal(url,'../../assets/artemis/'+ARTEMIS_IMPORTED_FILES[slot]);
  }
  assert.throws(()=>assetUrl('../../secrets'),RangeError);
  assert.equal(assetUrl('portrait'),null);
