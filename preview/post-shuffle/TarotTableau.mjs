@@ -65,7 +65,10 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
   if(disposed||!ART_OVERLAY_STYLES.includes(next))throw new RangeError('Unknown art overlay style');
   section.classList.remove('ps-overlay-'+activeStyle);
   activeStyle=next;section.classList.add('ps-overlay-'+activeStyle);
-  for(const layer of overlayLayers)layer.style.backgroundImage='url("'+overlayTiles[activeStyle]+'")';
+  for(const layer of overlayLayers){
+   layer.style.backgroundImage='url("'+overlayTiles[activeStyle]+'")';
+   layer.dataset.foilFinish=activeStyle;
+  }
   styleName.textContent='Art overlay · '+labelStyle(activeStyle);
   return activeStyle;
  }
@@ -109,6 +112,7 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
   const foilLayer=node('div','ps-card-art-overlay');
   foilLayer.setAttribute('aria-hidden','true');
   foilLayer.style.backgroundImage='url("'+overlayTiles[activeStyle]+'")';
+  foilLayer.dataset.foilFinish=activeStyle;
   overlayLayers.push(foilLayer);
   const artifactNote=node('div','ps-card-art-unavailable','RWS artwork unavailable');
   artifactNote.hidden=true;
