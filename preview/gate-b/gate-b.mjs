@@ -7,6 +7,7 @@ import {CanvasOrbit} from '../../src/ritual-world/CanvasOrbit.mjs';
 import {mountPostShuffle} from '../post-shuffle/scene.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
 import {initFlowMist} from './FlowMist.mjs';
+import {reviewDeckOrder,selectionReviewRequested} from '../post-shuffle/ReviewEntry.mjs';
 
 const root=document.getElementById('gate-b');
 const scene=document.getElementById('world-root');
@@ -142,6 +143,27 @@ document.getElementById('finish-shuffle').addEventListener('click',()=>{
   console.error('Post-shuffle continuous camera failed',error);
  }
 });
+function enterSelectionReview(){
+ if(handingOff)return;
+ const question=document.getElementById('question').value.trim();
+ if(question.length<3||question.length>600){
+  notice.textContent='A valid question between 3 and 600 characters is required.';return;
+ }
+ const orderedCardIds=reviewDeckOrder(visualSeed);
+ handingOff=true;
+ const mount=document.createElement('section');mount.id='post-shuffle-mount';mount.className='ps-mount';
+ document.body.classList.add('gate-b-post-shuffle-live');document.body.append(mount);
+ try{
+  postShuffle=mountPostShuffle({mount,deckIds:orderedCardIds,question,skipToSelection:true,demo:true});
+  window.__POST_SHUFFLE__=postShuffle;
+  world?.setPaused(true);
+ }catch(error){
+  mount.remove();document.body.classList.remove('gate-b-post-shuffle-live');handingOff=false;
+  notice.textContent='Cannot open selection review: '+error.message;
+ }
+}
+document.getElementById('skip-to-selection').addEventListener('click',enterSelectionReview);
+if(selectionReviewRequested(location.search))enterSelectionReview();
 buttonPause.addEventListener('click',()=>{
  if(!world)return;
  const paused=!(world.pause??world.paused);
