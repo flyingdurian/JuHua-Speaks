@@ -281,13 +281,15 @@ try{
   return {viewport:{width:innerWidth,height:innerHeight},
    header:box('.reading-art-header'),portrait:box('.reading-art-portrait'),
    table:box('.reading-art-table-surface'),panel:box('.reading-art-panel'),
-   hero:box('.reading-art-hero'),cards,
+   footer:box('.reading-art-footer'),hero:box('.reading-art-hero'),cards,
    backgroundReady:document.querySelector('.reading-art-atmosphere')?.dataset.artStatus==='ready'};
  });
  await writeFile(dir+'/12-artemis-fidelity-458x553.json',JSON.stringify(fidelity,null,2));
  await page.screenshot({path:dir+'/12-artemis-fidelity-458x553.png',fullPage:true});
  assert.ok(Math.abs(fidelity.header.bottom-61)/61<=.15,'Reference header boundary must be within 15%');
  assert.ok(Math.abs(fidelity.panel.y-405)/405<=.15,'Reference HUD start must be within 15%');
+ assert.ok(fidelity.footer&&fidelity.footer.bottom<=fidelity.viewport.height-4,
+  'Compact 458x553 Artemis question/footer must not clip against the bottom safe area');
  assert.equal(fidelity.cards.length,3);
  assert.ok(fidelity.cards.every(c=>c.x>=-1&&c.x+c.width<=459&&c.bottom<fidelity.panel.y),
   'Every slanted card must stay on the tabletop above the framed dialogue');
