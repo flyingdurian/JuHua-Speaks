@@ -40,7 +40,7 @@ function node(tag,cls,text){
  const el=document.createElement(tag);if(cls)el.className=cls;
  if(text!==undefined)el.textContent=text;return el;
 }
-export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onRevealed=()=>{}}={}){
+export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onRevealed=()=>{},onBeginReading=()=>{}}={}){
  if(!mount||!Array.isArray(picks)||picks.length!==3||new Set(picks.map(p=>p.id)).size!==3)throw new Error('Exactly three unique cards required');
  if(!ART_OVERLAY_STYLES.includes(foil))throw new Error('Invalid art overlay style');
  const backUrl=paintBackDataUrl();
@@ -73,7 +73,19 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
  nextStyle.addEventListener('click',()=>setArtOverlayStyle(nextArtOverlayStyle(activeStyle,1)));
  styles.append(prevStyle,styleName,nextStyle);
  const spread=node('div','ps-tableau-spread');
- section.append(heading,help,styles,spread);
+ // The reader is an opt-in ritual milestone. The three original cards remain
+ // on the table after reveal until the visitor explicitly begins the reading.
+ const readingEntry=node('div','ps-reading-entry');
+ readingEntry.hidden=true;readingEntry.setAttribute('aria-live','polite');
+ const readingComplete=node('p','ps-reading-entry-complete','All three cards revealed · Your story is ready');
+ const begin=node('button','ps-begin-reading','BEGIN READING ✧');
+ begin.type='button';begin.dataset.action='begin-reading';begin.disabled=true;
+ begin.addEventListener('click',()=>{
+  if(disposed||revealed!==3||begin.disabled)return;
+  begin.disabled=true;onBeginReading({picks:picks.map(p=>({...p})),artOverlay:activeStyle});
+ });
+ readingEntry.append(readingComplete,begin);
+ section.append(heading,help,styles,spread,readingEntry);
  const faceImages=[];
  const controls=picks.map((pick,i)=>{
   const card=BY_ID.get(pick.id);
@@ -136,7 +148,10 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
    const settle=()=>{
     if(disposed||settled)return;
     settled=true;detail.hidden=false;item.classList.add('ps-landed');revealed++;
-    if(revealed===3)vapor.stop();
+    if(revealed===3){
+     vapor.stop();readingEntry.hidden=false;begin.disabled=false;
+     help.textContent='You may begin your reading whenever you are ready';
+    }
     onRevealed({index:i,id:pick.id,allRevealed:revealed===3,artOverlay:activeStyle});
    };
    // Disabled buttons do not reliably bubble animationend in Chromium.
@@ -164,7 +179,7 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
   element:section,picks:picks.map(p=>({...p})),
   show(){if(disposed)return;section.hidden=false;vapor.start();requestAnimationFrame(()=>section.classList.add('ps-tableau-visible'));},
   hide(){vapor.stop();section.classList.remove('ps-tableau-visible');section.hidden=true},
-  get revealed(){return revealed},
+  get revealed(){return revealed},get beginReadingReady(){return revealed===3&&!disposed},
   controls,
   get vaporFrames(){return vapor.frames},
   dispose(){disposed=true;vapor.dispose();for(const img of faceImages){img.onload=null;img.onerror=null;img.src='';}section.remove();}
