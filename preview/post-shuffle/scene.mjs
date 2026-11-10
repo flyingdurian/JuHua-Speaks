@@ -170,11 +170,46 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
    body.scrollTop<body.scrollHeight-body.clientHeight-3;
   panel.dataset.textOverflow=String(more);
  }
+ function updateArtemisTableOcclusion(){
+  if(dead||!readingStarted)return;
+  const room=world.querySelector('.scene-artemis-reading');
+  const hero=room?.querySelector('.reading-art-hero');
+  const image=room?.querySelector('.reading-art-atmosphere img');
+  if(!room||!hero||!image)return;
+  if(!image.complete||!image.naturalWidth||!image.naturalHeight){
+   if(!image.dataset.occlusionLoadBound){
+    image.dataset.occlusionLoadBound='true';
+    image.addEventListener('load',updateArtemisTableOcclusion,{once:true});
+   }
+   return;
+  }
+  // Exact bitmap alignment: the occluder reuses the painted table pixels from
+  // this SAME room artwork. It is a depth mask, not a second table graphic.
+  const r=room.getBoundingClientRect(),h=hero.getBoundingClientRect();
+  const scale=Math.max(r.width/image.naturalWidth,r.height/image.naturalHeight);
+  const w=image.naturalWidth*scale,ht=image.naturalHeight*scale;
+  const pos=getComputedStyle(image).objectPosition.trim().split(/\s+/);
+  const fraction=(v,defaultValue)=>{
+   if(!v)return defaultValue;
+   if(v==='center')return .5;
+   if(v==='left'||v==='top')return 0;
+   if(v==='right'||v==='bottom')return 1;
+   if(v.endsWith('%'))return Number.parseFloat(v)/100;
+   return defaultValue;
+  };
+  const ox=(r.width-w)*fraction(pos[0],.5)+r.left-h.left;
+  const oy=(r.height-ht)*fraction(pos[1],.48)+r.top-h.top;
+  hero.style.setProperty('--room-cover-size',w+'px '+ht+'px');
+  hero.style.setProperty('--room-cover-position',ox+'px '+oy+'px');
+  hero.dataset.roomOcclusionSynced='true';
+ }
  function renderReading(){
   if(!readingStarted)return;
   world.innerHTML=renderReadingStage({choices,cardsById:BY_ID,demo:readingDemo(),
    chapter:readingChapter,question:readingQuestion});
-  requestAnimationFrame(updateReadingOverflowCue);
+  requestAnimationFrame(()=>{
+   updateReadingOverflowCue();updateArtemisTableOcclusion();
+  });
  }
  function goReading(){
   if(dead||lockAt===null||tableau?.revealed!==3||readingStarted)return false;
@@ -277,7 +312,10 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
    updateReadingOverflowCue();
  };
  mount.addEventListener('scroll',onReadingTextScroll,true);
- window.addEventListener('resize',updateReadingOverflowCue);
+ const onReadingResize=()=>{
+  updateReadingOverflowCue();updateArtemisTableOcclusion();
+ };
+ window.addEventListener('resize',onReadingResize);
  const sessionFoil=chooseFoilFinish();
  mount.innerHTML='<div class="ps-world" role="region" aria-label="Continuous post-shuffle Tarot sphere" id="ps-world">'+
   '<div class="ps-sky" id="ps-sky"><canvas class="ps-stars" id="ps-stars"></canvas></div>'+
@@ -449,7 +487,7 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
    dead=true;portraitRevision++;cancelAnimationFrame(raf);if(readingTimer!==null)clearTimeout(readingTimer);
    mount.removeEventListener('click',handleReadingControls);
    mount.removeEventListener('scroll',onReadingTextScroll,true);
-   window.removeEventListener('resize',updateReadingOverflowCue);
+   window.removeEventListener('resize',onReadingResize);
    disposeSphereResources();world.remove();
   }
  };
