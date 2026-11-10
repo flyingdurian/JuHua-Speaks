@@ -60,3 +60,27 @@ npm run preview:gate-b
 - [ ] Owner visual approval
 
 **Never mark this build visually accepted, merge, or deploy while any required item is unchecked.**
+
+
+## Executed Chromium self-audit — 2026-11-10
+
+**Verified build:** commit 4ea25da9187cdd4d19aa71c01dd4d079473966ef. Both [workflow 42763515075](https://github.com/flyingdurian/JuHua-Speaks/actions/runs/42763515075) and [workflow 42763520994](https://github.com/flyingdurian/JuHua-Speaks/actions/runs/42763520994) finished **success**, including source regressions and real Chromium SwiftShader WebGL2 interaction smoke.
+
+A reproducible artifact for the review is at [run 42763515075, screenshots and geometry](https://github.com/flyingdurian/JuHua-Speaks/actions/runs/42763515075). It includes the 458×553 mobile screenshot and JSON, desktop panels, card selection, three-face reveals and handoff screenshots.
+
+At 458×553 with actual dynamic text/real RWS scans:
+
+| Audit | Measured result | Finding |
+|---|---|---|
+| Header bottom | y=66 px vs target ~61 px | **PASS** (~8.2% difference) |
+| Lower HUD top | y=402 px vs target ~405 px | **PASS** (~0.7% difference) |
+| Cards | All three distinct images, on-screen above HUD | **PASS** |
+| Backward tabletop rotation | 42.000° each, actual DOM matrix | **PASS** (range 35–45°) |
+| Reading chapter hero shift | Browser chapter regression passed | **PASS** |
+| Original card face identity | Same 3 decoded RWS DOM image nodes | **PASS** |
+| Third-pick corner ghost | Pre-insertion matrix, off-screen skips, selection-lock tested | **PASS in browser regression**, ongoing visual spot-check |
+| Full approved illustration fidelity | Comparison lacks the lantern chamber, table engraving and imported FX | **FAIL / BLOCKED** |
+
+The original 458×553 concept shows the sakura/lantern ceremonial chamber and an ornate gold reading frame. The branch still uses 4 provisional portraits and does not yet install the original 31 production images; the source shows a restrained dark fallback rather than the intended finished environment. The 458×553 side-by-side comparison **does not** satisfy a literal ±15% perceptual or image difference test, even though key placement measurements fall within that margin.
+
+**Result: functional engineering pass; visual fidelity FAIL pending actual 31-image art integration and final owner comparison. PR remains draft.**
