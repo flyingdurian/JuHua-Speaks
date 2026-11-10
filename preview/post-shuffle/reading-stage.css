@@ -124,7 +124,7 @@
 }
 
 /* Gate BC v3.4 tableau: opt-in reading entry occupies its own row under the existing revealed cards. */
-.ps-tableau .ps-reading-entry{position:relative;bottom:auto;left:auto;transform:none;z-index:40;flex:none;gap:5px;margin:clamp(5px,1vh,14px) auto 0;width:min(590px,96%)}
+.ps-tableau .ps-reading-entry{position:absolute;bottom:clamp(7px,1.8vh,20px);left:50%;transform:translateX(-50%);z-index:40;gap:5px;margin:0;width:min(590px,96%)}
 .ps-tableau .ps-reading-entry button{min-height:41px;touch-action:manipulation}
 .ps-tableau .ps-reading-entry[hidden]{display:none!important}
 .ps-world[data-beat="reading-transition"] .ps-tableau{pointer-events:none}
