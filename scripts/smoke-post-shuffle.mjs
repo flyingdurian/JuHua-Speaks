@@ -266,6 +266,8 @@ try{
   },filename,{timeout:11000});
  }
  await expectPortrait('artemis_warm_welcome.webp');
+ await page.waitForTimeout(1300);
+ await page.screenshot({path:dir+'/09a-artemis-solid-table-occlusion-desktop.png'});
  const readingGeometry=()=>page.evaluate(()=>{
   const r=selector=>document.querySelector(selector)?.getBoundingClientRect();
   const hero=r('.reading-art-hero'),head=r('.reading-art-header'),
