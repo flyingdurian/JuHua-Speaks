@@ -461,8 +461,8 @@
 @media(max-width:720px){
  .scene-artemis-reading .reading-art-panel-skin img{top:-23.5%;height:160%}
  .scene-artemis-reading .reading-art-narration-text{
-  font-size:clamp(10px,2.35vw,12px);
-  line-height:1.4;
+  font-size:clamp(11px,2.6vw,13px);
+  line-height:1.35;
  }
 }
 
