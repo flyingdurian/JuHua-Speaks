@@ -805,3 +805,333 @@
   height:clamp(270px,50dvh,310px);
  }
 }
+
+
+/* -------------------------------------------------------------------------
+ * Gate D V4 mobile structural reflow and Synthesis Chat (2026-11-10)
+ * Desktop reading composition approved: constrain all geometry changes to
+ * mobile. Chat is a NEW phase, not a modification of the approved desk view.
+ * ------------------------------------------------------------------------- */
+@media (max-width:720px){
+ .ps-world .scene-artemis-reading:not([data-phase="chat"]){
+  overflow-x:hidden;overflow-y:auto;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-layout{
+  height:auto;min-height:100dvh;
+  grid-template-rows:min-content minmax(408px,1fr) auto auto;
+  align-content:start;
+  padding-top:4px;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-header{
+  margin:0 0 -16px;height:auto;min-height:0;padding:0;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero{
+  box-sizing:border-box;min-height:408px;
+  margin-top:-12px;margin-bottom:-12px;
+  --table-occlusion-line:80%;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-halo{
+  top:-8%;height:75%;width:min(96vw,460px);
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
+  top:clamp(12px,2.4dvh,27px);
+  width:min(80vw,330px);height:clamp(282px,39dvh,345px);
+  mask:none!important;-webkit-mask:none!important;
+  opacity:1!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread{
+  bottom:12%;width:min(100%,490px);
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere img{
+  object-fit:cover;object-position:center 39%;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
+  box-sizing:border-box;height:clamp(275px,37dvh,328px);min-height:275px;
+  width:100%;max-width:100%;padding:34px clamp(39px,10.6vw,59px) 14px;
+  margin-top:0;overflow:hidden;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel-inner{
+  width:100%;max-width:100%;min-width:0;height:100%;overflow:hidden;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-nameplate{
+  flex:none;max-width:95%;margin:-22px auto 10px;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-kicker{
+  box-sizing:border-box;display:block;max-width:100%;min-height:0;
+  flex:none;margin:0 auto 5px;
+  font-size:clamp(9px,2.65vw,12px);line-height:1.3;
+  letter-spacing:.13em;overflow-wrap:break-word;white-space:normal;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-narration-title{
+  box-sizing:border-box;max-width:100%;min-width:0;
+  flex:none;margin:0 0 7px;font-size:clamp(17px,4.5vw,23px);
+  line-height:1.16;overflow-wrap:break-word;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-narration-text{
+  box-sizing:border-box;max-width:100%;min-width:0;width:100%;
+  flex:1 1 0%;min-height:0;
+  overflow-x:hidden!important;overflow-y:auto!important;
+  overflow-wrap:break-word;word-break:normal;
+  padding:0 4px 3px;margin:0 auto 3px;
+  line-height:1.47;font-size:clamp(12px,3.15vw,14px);
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-scroll-cue{
+  margin:0 auto 2px;font-size:8px;line-height:1.05;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-controls{
+  flex:none;width:100%;min-width:0;justify-content:center;flex-wrap:nowrap;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-progress{
+  flex:none;margin:3px auto 0;line-height:1.2;
+ }
+}
+@media (max-width:720px) and (max-height:680px){
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-layout{
+  grid-template-rows:min-content 370px auto auto;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero{
+  min-height:370px;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
+  top:14px;width:min(68vw,290px);height:290px;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread{
+  bottom:5%;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
+  height:245px;min-height:245px;
+  padding:29px clamp(36px,10vw,50px) 11px;
+ }
+}
+
+/* Card sacrifice: transform only the original three card BUTTONS. Original
+ * RWS <img> and foil nodes remain in place until the transition completes. */
+.reading-synthesis-portal{
+ position:absolute;z-index:6;left:50%;bottom:16%;
+ width:clamp(175px,46%,310px);height:clamp(54px,14%,96px);
+ transform:translateX(-50%) perspective(650px) rotateX(63deg);
+ border:2px solid rgba(250,209,144,.65);border-radius:50%;
+ background:radial-gradient(ellipse at 50% 50%,rgba(255,247,203,.97) 0%,
+  rgba(243,178,240,.72) 10%,rgba(145,110,227,.37) 29%,
+  rgba(19,16,70,.05) 70%,transparent 80%);
+ box-shadow:0 0 24px rgba(251,194,173,.84),0 0 60px rgba(188,119,249,.49),
+  inset 0 0 24px rgba(255,215,139,.78);
+ pointer-events:none;opacity:0;
+}
+.reading-synthesis-portal::after{
+ content:"";position:absolute;inset:-20%;border:1px solid rgba(243,197,150,.43);
+ border-radius:50%;filter:blur(2px);
+}
+@keyframes gateDPortalOpen{
+ 0%{opacity:0;filter:brightness(.45) blur(8px);scale:.56}
+ 42%{opacity:1;filter:brightness(1.7) blur(0);scale:1.08}
+ 100%{opacity:.85;filter:brightness(1.05) blur(1px);scale:1}
+}
+@keyframes gateDSacrificeLeft{
+ 0%{opacity:1;transform:translateY(9px) rotate(-3.7deg) rotateY(6deg) scale(.99)}
+ 52%{opacity:.92;filter:brightness(1.8) drop-shadow(0 0 12px #f8d8a4)}
+ 100%{opacity:0;transform:translate(140px,-38px) rotate(235deg) scale(.04);filter:brightness(2.8) blur(5px)}
+}
+@keyframes gateDSacrificeCenter{
+ 0%{opacity:1;transform:translateY(-2px) scale(1.01)}
+ 54%{opacity:1;filter:brightness(1.7) drop-shadow(0 0 12px #f6ccdd)}
+ 100%{opacity:0;transform:translateY(-58px) rotate(210deg) scale(.04);filter:brightness(2.8) blur(5px)}
+}
+@keyframes gateDSacrificeRight{
+ 0%{opacity:1;transform:translateY(9px) rotate(3.7deg) rotateY(-6deg) scale(.99)}
+ 52%{opacity:.92;filter:brightness(1.8) drop-shadow(0 0 12px #f8d8a4)}
+ 100%{opacity:0;transform:translate(-140px,-38px) rotate(-235deg) scale(.04);filter:brightness(2.8) blur(5px)}
+}
+.scene-artemis-reading[data-phase="sacrificing"] .reading-synthesis-portal{
+ animation:gateDPortalOpen .9s ease-out both;
+}
+.scene-artemis-reading[data-phase="sacrificing"] .reading-art-card:nth-child(1){
+ animation:gateDSacrificeLeft .92s ease-in forwards!important;pointer-events:none;
+}
+.scene-artemis-reading[data-phase="sacrificing"] .reading-art-card:nth-child(2){
+ animation:gateDSacrificeCenter .92s ease-in forwards!important;pointer-events:none;
+}
+.scene-artemis-reading[data-phase="sacrificing"] .reading-art-card:nth-child(3){
+ animation:gateDSacrificeRight .92s ease-in forwards!important;pointer-events:none;
+}
+.scene-artemis-reading[data-phase="sacrificing"] .reading-art-panel{
+ opacity:.24;transition:opacity .45s ease;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-synthesis-portal{
+ opacity:.69;filter:blur(1.5px);transform:translateX(-50%) perspective(650px) rotateX(63deg) scale(.8);
+}
+.scene-artemis-reading[data-phase="chat"] .reading-art-spread{
+ visibility:hidden;pointer-events:none;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-art-footer{display:none!important}
+.scene-artemis-reading[data-phase="chat"] .reading-art-header{display:none!important}
+.scene-artemis-reading[data-phase="chat"] .reading-art-layout{
+ box-sizing:border-box;display:grid;align-items:stretch;
+ height:100dvh;min-height:100dvh;max-height:none;
+ grid-template-rows:minmax(250px,42dvh) minmax(350px,1fr);
+ gap:0;padding:0;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-art-hero{
+ box-sizing:border-box;min-height:250px;height:100%;
+ overflow:hidden;margin:0;
+ --table-occlusion-line:86%;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-art-portrait{
+ top:0;left:50%;height:clamp(235px,35dvh,290px);
+ width:min(440px,68vw);mask:none!important;-webkit-mask:none!important;
+ opacity:1!important;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-art-halo{
+ top:-12%;height:95%;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-synthesis-portal{bottom:4%;z-index:6}
+.scene-artemis-reading[data-phase="chat"] .reading-art-atmosphere img{
+ object-position:center 36%;
+}
+
+/* Actual conversational UI: header + question + streamed message region +
+ * non-moving synthesis progress and guidance action. */
+.reading-chat-hud{
+ position:relative;z-index:9;box-sizing:border-box;
+ width:100%;height:100%;min-height:0;
+ display:flex;flex-direction:column;gap:0;overflow:hidden;
+ padding:10px clamp(13px,2vw,27px) max(12px,env(safe-area-inset-bottom,0px));
+ border:1px solid rgba(221,183,131,.77);border-radius:23px 23px 0 0;
+ background:linear-gradient(180deg,rgba(31,26,61,.97),rgba(15,16,41,.98) 67%,rgba(12,13,36,.99));
+ box-shadow:0 -8px 35px rgba(21,13,47,.55),inset 0 1px rgba(255,233,172,.20);
+ color:#f7e8d9;font-family:Georgia,"Times New Roman",serif;
+}
+.synthesis-chat-heading{
+ flex:none;display:flex;align-items:center;justify-content:center;gap:9px;
+ border-bottom:1px solid rgba(226,184,119,.38);padding:0 0 8px;margin:0;
+ text-align:center;
+}
+.synthesis-chat-heading>span{color:#f3d390;font-size:22px}
+.synthesis-chat-heading h2{margin:0;color:#ffe4b2;font:600 clamp(16px,2vw,22px)/1.1 Georgia,serif}
+.synthesis-chat-heading small{
+ color:#cbbbde;font:9px/1.3 Arial,sans-serif;letter-spacing:.11em;
+}
+.synthesis-chat-scroll{
+ box-sizing:border-box;flex:1;min-height:0;width:100%;overflow-x:hidden;overflow-y:auto;
+ padding:10px 4px 7px;overscroll-behavior:contain;
+ scrollbar-width:thin;scrollbar-color:#9e7baf transparent;
+}
+.synthesis-question,.synthesis-message-body{
+ border:1px solid rgba(236,201,153,.35);border-radius:15px;
+ background:linear-gradient(180deg,rgba(79,56,98,.61),rgba(39,34,73,.67));
+}
+.synthesis-question{padding:9px 13px;margin:0 0 12px}
+.synthesis-question-title{color:#edd4a5;font:700 11px/1.4 Georgia,serif}
+.synthesis-question p{margin:4px 0 0;padding:9px 12px;border:1px solid rgba(222,184,139,.5);
+ border-radius:10px;font:clamp(12px,1.5vw,15px)/1.4 Arial,sans-serif;
+ background:rgba(29,29,60,.76);overflow-wrap:anywhere}
+.synthesis-reader-head{display:flex;align-items:center;gap:9px;margin:0 0 5px}
+.synthesis-reader-head img,.synthesis-reader-head>span:first-child{
+ width:32px;height:32px;border:1px solid #d8ab77;border-radius:50%;
+ background:#38264d;object-fit:cover;object-position:center 14%;
+}
+.synthesis-reader-head>span:first-child{display:grid;place-items:center;color:#f9d993}
+.synthesis-reader-head>span:last-child{
+ padding:4px 10px;border:1px solid rgba(224,182,111,.62);border-radius:99px;
+ color:#ffdfac;font:600 12px/1.2 Georgia,serif;
+ background:rgba(32,25,64,.8);
+}
+.synthesis-message{display:flex;gap:8px;align-items:flex-start;margin:0 0 12px}
+.synthesis-message-icon{flex:none;color:#ebcfa5;font-size:19px}
+.synthesis-message-body{flex:1;min-width:0;padding:10px 13px;border-color:rgba(210,173,126,.46)}
+.synthesis-message-body strong{color:#f2d4a0;font-size:12px}
+.synthesis-message-body p{
+ color:#fff2e6;font:clamp(12px,1.45vw,15px)/1.54 Arial,sans-serif;
+ overflow-wrap:anywhere;white-space:pre-wrap;margin:5px 0 0;
+}
+.synthesis-chat-actions{display:flex;flex-direction:column;flex:none;gap:9px;padding-top:6px}
+.synthesis-progress{display:flex;gap:10px;align-items:center;max-width:100%;width:100%;color:#f0d4a2}
+.synthesis-progress-icon{display:grid;place-items:center;flex:none;
+ width:37px;height:37px;border:1px solid #d7a974;border-radius:50%;
+ box-shadow:0 0 10px rgba(231,182,104,.25);font-size:22px}
+.synthesis-progress>div{flex:1;font:12px/1.45 Georgia,serif}
+.synthesis-progress-track{height:7px;margin-top:7px;overflow:hidden;border-radius:99px;
+ border:1px solid rgba(230,187,122,.5);background:rgba(13,16,37,.8)}
+.synthesis-progress-track i{display:block;width:32%;height:100%;border-radius:99px;
+ background:linear-gradient(90deg,transparent,#ffe4a5,#cc9cec);
+ animation:synthesis-busy 1.6s ease-in-out infinite}
+@keyframes synthesis-busy{0%{transform:translateX(-115%)}100%{transform:translateX(410%)}}
+.synthesis-guidance-cta,.synthesis-followup-send,.synthesis-demo-fallback{
+ cursor:pointer;box-sizing:border-box;min-height:40px;border:1px solid #d9b47b;
+ border-radius:999px;background:linear-gradient(115deg,#745074,#3a2d59 61%,#282443);
+ color:#ffe2ae;box-shadow:inset 0 1px rgba(255,242,205,.2),0 3px 12px rgba(0,0,0,.35);
+ font:600 13px/1.3 Georgia,serif;padding:8px 14px;
+}
+.synthesis-guidance-cta{width:100%;display:flex;justify-content:center;align-items:center;gap:8px}
+.synthesis-guidance-cta:hover,.synthesis-followup-send:hover,.synthesis-demo-fallback:hover{
+ background:linear-gradient(120deg,#92628a,#564068 75%,#393051);
+ box-shadow:0 0 16px rgba(235,189,139,.30);
+}
+.synthesis-guidance-cta:focus-visible,.synthesis-followup-send:focus-visible,
+.synthesis-demo-fallback:focus-visible,.synthesis-followup-row input:focus-visible{
+ outline:2px solid #ffe3ae;outline-offset:2px;
+}
+.synthesis-guidance-confirmed{display:block;text-align:center;font:10px/1.35 Arial,sans-serif;color:#c5b39c}
+.synthesis-guidance-card{display:flex;gap:13px;align-items:center;
+ border:1px solid rgba(230,187,122,.53);border-radius:12px;
+ padding:9px;margin:8px 0;background:rgba(23,26,63,.8)}
+.synthesis-guidance-card img{width:55px;height:90px;object-fit:fill;border:1px solid #edc888;border-radius:4px}
+.synthesis-guidance-card img.is-reversed{transform:rotate(180deg)}
+.synthesis-guidance-card div{display:flex;flex-direction:column;gap:7px;min-width:0}
+.synthesis-guidance-card span{font:700 9px Arial,sans-serif;letter-spacing:.1em;color:#d6bb99}
+.synthesis-guidance-card strong{font:18px Georgia,serif;color:#ffe2ad;overflow-wrap:anywhere}
+.synthesis-guidance-card small{font:12px/1.35 Arial,sans-serif;color:#e1d5d0;overflow-wrap:anywhere}
+.synthesis-user-followup{border:1px solid rgba(202,173,135,.45);border-radius:13px;
+ background:rgba(76,62,101,.65);margin:10px 0 8px;padding:8px 12px}
+.synthesis-user-followup span{font:700 9px Arial,sans-serif;color:#ebcf9c}
+.synthesis-user-followup p{font:13px/1.45 Arial,sans-serif;margin:4px 0;color:#fff3e4;overflow-wrap:anywhere}
+.synthesis-followup-form{margin-top:11px}
+.synthesis-followup-form label{display:block;color:#f3d49f;font:600 12px Georgia,serif;margin:0 0 7px}
+.synthesis-followup-row{display:flex;align-items:center;gap:8px}
+.synthesis-followup-row input{flex:1;min-width:0;border:1px solid #b49279;
+ border-radius:12px;background:rgba(15,17,46,.83);color:#fff1de;
+ font:13px Arial,sans-serif;padding:10px}
+.synthesis-followup-send{flex:none;min-width:75px}
+.synthesis-error{color:#ffd1cb;font:12px/1.4 Arial,sans-serif;margin:7px 0}
+.synthesis-followup-loading{color:#eec7dd;font:italic 12px/1.4 Georgia,serif;padding:9px}
+@media(max-width:720px){
+ .scene-artemis-reading[data-phase="chat"] .reading-art-layout{
+  height:100dvh;min-height:100dvh;
+  grid-template-rows:minmax(255px,42dvh) minmax(375px,1fr);
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-art-hero{
+  min-height:255px;height:100%;margin:0;
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-art-portrait{
+  top:clamp(8px,3dvh,22px);
+  width:min(74vw,310px);height:clamp(228px,36dvh,290px);
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-art-halo{
+  top:-15%;width:92%;height:92%;
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-synthesis-portal{
+  bottom:2%;width:66%;height:18%;
+ }
+ .reading-chat-hud{border-radius:22px 22px 0 0;padding:8px 10px max(12px,env(safe-area-inset-bottom,0px))}
+ .synthesis-chat-heading{padding-bottom:6px}
+ .synthesis-chat-heading h2{font-size:18px}
+ .synthesis-chat-heading small{font-size:8px}
+ .synthesis-chat-scroll{padding:7px 2px}
+ .synthesis-question{padding:7px 10px;margin-bottom:8px}
+ .synthesis-question p{padding:7px 10px;font-size:12px}
+ .synthesis-message-body p{font-size:12px}
+ .synthesis-guidance-cta{font-size:12px}
+}
+@media(max-width:720px) and (max-height:680px){
+ .scene-artemis-reading[data-phase="chat"] .reading-art-layout{
+  height:auto;min-height:100dvh;grid-template-rows:250px minmax(385px,1fr);
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-art-hero{min-height:250px}
+}
+@media(prefers-reduced-motion:reduce){
+ .scene-artemis-reading[data-phase="sacrificing"] .reading-art-card,
+ .scene-artemis-reading[data-phase="sacrificing"] .reading-synthesis-portal,
+ .synthesis-progress-track i{animation:none!important}
+ .scene-artemis-reading[data-phase="sacrificing"] .reading-art-card{opacity:0}
+ .scene-artemis-reading[data-phase="sacrificing"] .reading-synthesis-portal{opacity:1}
+}
