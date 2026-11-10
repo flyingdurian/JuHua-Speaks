@@ -159,6 +159,7 @@ try{
    return {sameNode:layer===originals[i],carryover:layer.dataset.carryover,
     finish:layer.dataset.foilFinish,hasTexture:style.backgroundImage.includes('data:image'),
     opacity:Number(style.opacity),blend:style.mixBlendMode,z:Number(style.zIndex),
+    alphaBoost:style.filter.includes('reading-foil-alpha-boost'),
     repeatPass:getComputedStyle(layer,'::before').backgroundImage.includes('data:image'),
     glint:glint.animationName,insideFrame:Math.abs(l.left-f.left)<3&&Math.abs(l.top-f.top)<3
      &&Math.abs(l.width-f.width)<5&&Math.abs(l.height-f.height)<5};
@@ -168,7 +169,7 @@ try{
  assert.equal(foilHandoff.count,3,'Artemis requires three in-frame foil layers');
  assert.ok(foilHandoff.details.every(s=>s.sameNode&&s.carryover==='original-foil'&&s.finish&&s.hasTexture),
   'Handoff must preserve the exact three textured, session-selected foil nodes');
- assert.ok(foilHandoff.details.every(s=>s.opacity>=.95&&s.blend==='screen'&&s.z>1&&s.insideFrame&&s.repeatPass),
+ assert.ok(foilHandoff.details.every(s=>s.opacity>=.95&&s.blend==='screen'&&s.z>1&&s.insideFrame&&s.repeatPass&&s.alphaBoost),
   'All three foils must render a high-visibility second pass of their original selected texture inside each card'+': '+JSON.stringify(foilHandoff.details));
  if(!foilHandoff.reduced)assert.ok(foilHandoff.details.every(s=>s.glint.includes('artemis-foil-drift')),
   'Reading foil needs active slow specular movement');
