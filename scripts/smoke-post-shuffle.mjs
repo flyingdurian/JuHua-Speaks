@@ -206,6 +206,21 @@ try{
    cardFrames:cards.map(rect=>({top:rect.top,bottom:rect.bottom,left:rect.left,right:rect.right}))};
  });
  const welcomeLayout=await readingGeometry();
+ const restoredTable=await page.evaluate(()=>{
+  const table=document.querySelector('.reading-art-table-surface');
+  const style=getComputedStyle(table),art=getComputedStyle(table,'::before');
+  const rect=table.getBoundingClientRect(),p=getComputedStyle(document.querySelector('.reading-art-portrait img'));
+  return {width:rect.width,height:rect.height,opacity:Number(style.opacity),
+   art:art.backgroundImage,portraitFit:p.objectFit,portraitHeight:document.querySelector('.reading-art-portrait').getBoundingClientRect().height};
+ });
+ assert.ok(restoredTable.width>620&&restoredTable.height>65&&restoredTable.opacity>=.9,
+  'Desktop must show a substantial real tabletop graphic instead of a missing/flattened stage');
+ assert.match(restoredTable.art,/bg_artemis_reading_stage_main\.webp/,
+  'Tabletop restores the installed room artwork, not a fabricated surface');
+ assert.equal(restoredTable.portraitFit,'contain','Stable master portrait must retain her shoulders and bodice without cover-cropping');
+ assert.ok(restoredTable.portraitHeight>=370,'Desktop portrait framing must leave sufficient room for Artemis waist and shoulders');
+ assert.ok(welcomeLayout.cardFrames.every(rect=>rect.width>=104),
+  'Desktop RWS cards should be physically larger than previous 100px review layout');
  assert.equal(welcomeLayout.cardTilt,42,'Cards must use the approved 42° tabletop perspective');
  assert.ok(welcomeLayout.cardFrames.every(rect=>rect.top>0&&rect.bottom<welcomeLayout.panelTop),
   'Every physical RWS frame must sit fully above the dialogue HUD');
@@ -252,7 +267,7 @@ try{
    cards:cards.map(r=>({left:r.left,right:r.right})),screen:innerWidth,
    hero:rect('.reading-art-hero'),portrait:rect('.reading-art-portrait'),
    table:rect('.reading-art-table-surface'),footer:rect('.reading-art-footer'),
-   scrollHeight:scene.scrollHeight,
+   scrollHeight:scene.scrollHeight,cardFrames:[...document.querySelectorAll('.reading-art-card-frame')].map(el=>{const r=el.getBoundingClientRect();return {width:r.width,top:r.top,bottom:r.bottom}}),
    nextLabel:document.querySelector('[data-action="reading-next"]')?.textContent};
  });
  assert.equal(phone.cards.length,3);
@@ -260,7 +275,14 @@ try{
   'All three selected Tarot cards must remain visible within a 390px phone viewport');
  assert.ok(phone.panel.width<=phone.screen+2,'The Artemis panel must fit phone width');
  assert.ok(phone.nextLabel?.trim().length>2,'Mobile panel must preserve the primary Next control');
- assert.ok(phone.hero.height<=426,'Tall mobile must not introduce a giant portrait/table dead gap');
+ assert.ok(phone.hero.height>=510&&phone.hero.height<=phone.scene.height*.80,
+  'Tall mobile hero must grow to fill the middle of the viewport without an unbounded blank region');
+ assert.ok(phone.panel.width>=phone.screen-22,
+  'Full-width mobile dialogue HUD must leave at most 11px on either side');
+ assert.ok(phone.footer.bottom>=phone.scene.bottom-45,
+  'Question footer must occupy the lower viewport region: no massive dark gap below');
+ assert.ok(phone.cardFrames.every(card=>card.width>=94),
+  'Mobile cards should be scaled up while preserving their 42-degree pitch');
  assert.ok(phone.table.top>phone.portrait.top&&phone.table.top<phone.panel.top,
   'Mobile table must belong to the portrait/chamber region above the HUD');
  assert.ok(phone.footer.bottom-phone.scene.top<=phone.scrollHeight+2,
