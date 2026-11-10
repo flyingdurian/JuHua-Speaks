@@ -8,6 +8,66 @@ import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
 import {createCardVapor} from './CardVapor.mjs';
 import {ART_OVERLAY_STYLES,ART_OVERLAY_LABELS,artOverlayDataUrls} from './ArtOverlays.mjs';
 
+// User-provided Style V1 is an ADDITIONAL reveal-stage comparison option.
+// The four historical Canvas engraving finishes remain intact and unchanged.
+export const FOIL_ANIM_V1='foil-anim-style-v1';
+const SANDBOX_FOIL_STYLES=Object.freeze([FOIL_ANIM_V1,...ART_OVERLAY_STYLES]);
+const foilStyleLabel=s=>s===FOIL_ANIM_V1?'Style V1 · Particle Drift':ART_OVERLAY_LABELS[s];
+const FOIL_V1_PARTICLES=Object.freeze([
+ [15,20,1.2,'#ffffff',.95],[35,45,1.8,'#ffd700',.9],
+ [65,25,.8,'#ffffff',.8],[95,35,1.5,'#da70d6',.95],
+ [125,15,2.2,'#ffd700',.9],[155,40,1,'#ffffff',.9],
+ [180,25,1.6,'#ffd700',.95],[20,90,1.4,'#ffffff',.9],
+ [55,75,1.8,'#ffd700',.95],[85,110,1.2,'#da70d6',.85],
+ [115,85,2,'#ffffff',.95],[145,105,.9,'#ffd700',.7],
+ [175,90,1.6,'#ffffff',.9],[30,150,1.5,'#ffd700',.9],
+ [60,135,1.2,'#da70d6',.8],[90,165,2,'#ffffff',.95],
+ [130,140,1.6,'#ffd700',.9],[165,160,1.2,'#ffffff',.9],
+ [45,185,1.8,'#da70d6',.9],[105,185,1.4,'#ffd700',.95]
+]);
+// Exact V1 particle sizes, locations, colours and opacity, with URI-safe
+// encoding of the supplied SVG rather than the broken Markdown-in-URL text.
+export function foilV1ParticleUri(){
+ const svg='<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">'+
+ FOIL_V1_PARTICLES.map(([cx,cy,r,fill,opacity])=>
+  '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+fill+'" opacity="'+opacity+'"/>').join('')+'</svg>';
+ return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
+}
+export function installFoilV1Style(){
+ if(document.getElementById('foil-anim-style-v1'))return;
+ const style=document.createElement('style');
+ style.id='foil-anim-style-v1';
+ // Preserve the supplied 0/50/100%, brightness .7/1.5/.7 and 10s timing.
+ // Animate a particle pseudo-layer, not the parent's filter, since the
+ // original RWS/foil handoff already has authoritative parent filters.
+ style.innerHTML=`
+ @keyframes foilDriftV1 {
+   0% { background-position: 0px 0px; filter: brightness(0.7); }
+   50% { background-position: 80px 100px; filter: brightness(1.5); }
+   100% { background-position: 160px 200px; filter: brightness(0.7); }
+ }
+ .ps-tableau .ps-card-front .ps-card-art-overlay[data-foil-finish="foil-anim-style-v1"]::before,
+ .scene-artemis-reading .reading-art-card-frame .reading-art-card-foil[data-foil-finish="foil-anim-style-v1"]::before{
+   content:"";position:absolute;inset:0;display:block;
+   background-image:inherit;background-size:200px 200px;
+   background-repeat:repeat;mix-blend-mode:screen;
+   opacity:1;pointer-events:none;
+   animation:foilDriftV1 10s linear infinite!important;
+ }
+ @media(prefers-reduced-motion:reduce){
+  .ps-tableau .ps-card-front .ps-card-art-overlay[data-foil-finish="foil-anim-style-v1"]::before,
+  .scene-artemis-reading .reading-art-card-foil[data-foil-finish="foil-anim-style-v1"]::before{
+   animation:none!important;filter:brightness(1);
+  }
+ }
+ `;
+ document.head.appendChild(style);
+}
+function cycleSandboxFoil(current,direction=1){
+ const idx=SANDBOX_FOIL_STYLES.indexOf(current);
+ if(idx<0||!Number.isInteger(direction))throw new RangeError('Invalid foil style');
+ return SANDBOX_FOIL_STYLES[((idx+direction)%SANDBOX_FOIL_STYLES.length+SANDBOX_FOIL_STYLES.length)%SANDBOX_FOIL_STYLES.length];
+}
 export const FOIL_FINISHES=ART_OVERLAY_STYLES;
 // Legacy public names remain for old preview consumers, but now select art overlays.
 export const HOLOGRAM_STYLES=ART_OVERLAY_STYLES;
@@ -23,7 +83,7 @@ export function nextArtOverlayStyle(current,direction=1){
  return ART_OVERLAY_STYLES[((index+direction)%ART_OVERLAY_STYLES.length+ART_OVERLAY_STYLES.length)%ART_OVERLAY_STYLES.length];
 }
 export const nextHologramStyle=nextArtOverlayStyle;
-const labelStyle=s=>ART_OVERLAY_LABELS[s];
+const labelStyle=foilStyleLabel;
 export function cardBrief(id,orientation='upright'){
  const card=BY_ID.get(id);
  if(!card)throw new Error('Unknown Tarot card');
@@ -42,9 +102,11 @@ function node(tag,cls,text){
 }
 export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onRevealed=()=>{},onBeginReading=()=>{}}={}){
  if(!mount||!Array.isArray(picks)||picks.length!==3||new Set(picks.map(p=>p.id)).size!==3)throw new Error('Exactly three unique cards required');
- if(!ART_OVERLAY_STYLES.includes(foil))throw new Error('Invalid art overlay style');
+ if(!SANDBOX_FOIL_STYLES.includes(foil))throw new Error('Invalid art overlay style');
  const backUrl=paintBackDataUrl();
+ installFoilV1Style();
  const overlayTiles=artOverlayDataUrls(),overlayLayers=[];
+ overlayTiles[FOIL_ANIM_V1]=foilV1ParticleUri();
  const vapor=createCardVapor({reduceMotion:window.matchMedia?.('(prefers-reduced-motion:reduce)').matches??false});
  let revealed=0,disposed=false,activeStyle=foil,activeIntensity=.70;
  const foilStyleButtons=[];
@@ -63,7 +125,7 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
  const nextStyle=node('button','ps-overlay-next','›');
  nextStyle.type='button';nextStyle.setAttribute('aria-label','Next art overlay');
  function setArtOverlayStyle(next){
-  if(disposed||!ART_OVERLAY_STYLES.includes(next))throw new RangeError('Unknown art overlay style');
+  if(disposed||!SANDBOX_FOIL_STYLES.includes(next))throw new RangeError('Unknown art overlay style');
   section.classList.remove('ps-overlay-'+activeStyle);
   activeStyle=next;section.classList.add('ps-overlay-'+activeStyle);
   for(const layer of overlayLayers){
@@ -74,8 +136,8 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
   for(const b of foilStyleButtons)b.setAttribute('aria-pressed',String(b.dataset.foilStyle===activeStyle));
   return activeStyle;
  }
- prevStyle.addEventListener('click',()=>setArtOverlayStyle(nextArtOverlayStyle(activeStyle,-1)));
- nextStyle.addEventListener('click',()=>setArtOverlayStyle(nextArtOverlayStyle(activeStyle,1)));
+ prevStyle.addEventListener('click',()=>setArtOverlayStyle(cycleSandboxFoil(activeStyle,-1)));
+ nextStyle.addEventListener('click',()=>setArtOverlayStyle(cycleSandboxFoil(activeStyle,1)));
  styles.append(prevStyle,styleName,nextStyle);
  // Owner-only review tool at Gate C. It never appears in the final reading.
  // The visible foil is the same live Canvas texture subsequently carried to D.
@@ -86,7 +148,7 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
  const sandboxHeading=node('p','ps-foil-sandbox-heading','LIVE FOIL TUNING · REVEAL STAGE');
  const styleGrid=node('div','ps-foil-style-grid');
  styleGrid.setAttribute('role','group');styleGrid.setAttribute('aria-label','Choose one of four animated foil finishes');
- for(const style of ART_OVERLAY_STYLES){
+ for(const style of SANDBOX_FOIL_STYLES){
   const b=node('button','ps-foil-style-option',labelStyle(style));
   b.type='button';b.dataset.foilStyle=style;
   b.setAttribute('aria-pressed',String(style===activeStyle));
@@ -119,7 +181,8 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
  exportButton.type='button';exportButton.setAttribute('aria-label','Export current foil style and intensity as JSON');
  const exportStatus=node('p','ps-foil-export-status','');
  exportStatus.setAttribute('role','status');exportStatus.setAttribute('aria-live','polite');
- const foilConfig=()=>({version:1,style:activeStyle,intensity:activeIntensity,animation:'moving-gold-foil'});
+ const foilConfig=()=>({version:1,style:activeStyle,intensity:activeIntensity,
+  animation:activeStyle===FOIL_ANIM_V1?'foilDriftV1':'moving-gold-foil'});
  exportButton.addEventListener('click',()=>{
   if(disposed)return;
   const json=JSON.stringify(foilConfig(),null,2)+'\n';
@@ -237,8 +300,8 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
   prepareHandoff(){if(disposed)return;section.hidden=false;section.classList.add('ps-handoff-prepared');section.classList.add('ps-tableau-visible');},
   finishHandoff(){if(disposed)return;section.classList.add('ps-handoff-settled');vapor.start();},
   setArtOverlayStyle,setHologramStyle:setArtOverlayStyle,setFoilIntensity,
-  cycleArtOverlay(direction=1){return setArtOverlayStyle(nextArtOverlayStyle(activeStyle,direction))},
-  cycleHologram(direction=1){return setArtOverlayStyle(nextArtOverlayStyle(activeStyle,direction))},
+  cycleArtOverlay(direction=1){return setArtOverlayStyle(cycleSandboxFoil(activeStyle,direction))},
+  cycleHologram(direction=1){return setArtOverlayStyle(cycleSandboxFoil(activeStyle,direction))},
   element:section,picks:picks.map(p=>({...p})),
   show(){if(disposed)return;section.hidden=false;vapor.start();requestAnimationFrame(()=>section.classList.add('ps-tableau-visible'));},
   hide(){vapor.stop();section.classList.remove('ps-tableau-visible');section.hidden=true},
