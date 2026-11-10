@@ -1135,3 +1135,17 @@
  .scene-artemis-reading[data-phase="sacrificing"] .reading-art-card{opacity:0}
  .scene-artemis-reading[data-phase="sacrificing"] .reading-synthesis-portal{opacity:1}
 }
+
+/* Keep the ORIGINAL question visible while chat responses and one-card
+ * guidance scroll independently beneath it. On long questions, the bubble
+ * scrolls within its own small cap instead of shrinking the chat transcript. */
+.reading-chat-hud>.synthesis-question{
+ flex:none;max-height:clamp(86px,13dvh,126px);overflow-y:auto;
+ scrollbar-width:thin;scrollbar-color:rgba(218,181,125,.6) transparent;
+ margin:10px 0 8px;
+}
+@media(max-width:720px){
+ .reading-chat-hud>.synthesis-question{
+  max-height:clamp(70px,11dvh,96px);margin:7px 0 8px;
+ }
+}
