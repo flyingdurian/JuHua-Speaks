@@ -113,10 +113,10 @@
  /* The V3 keyframes animated filter, overriding even a last-loaded
   * CSS filter at runtime. Keep its slow glint ::after, but let the parent
   * foil retain actual contrast and contact glows at every animation frame. */
- animation:none;
+ animation:none!important;
  filter:brightness(2.1) contrast(1.18)
   drop-shadow(0 0 1px rgba(255,216,147,.96))
-  drop-shadow(0 0 .8px rgba(250,205,146,.72));
+  drop-shadow(0 0 .8px rgba(250,205,146,.72))!important;
  pointer-events:none;
 }
 /* V3 has more-specific per-finish opacity (.46-.67); override those
