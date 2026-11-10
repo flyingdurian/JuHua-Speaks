@@ -1,39 +1,43 @@
 /**
- * Gate D — Artemis "Your Reading" stage.
- * Production art has NOT arrived. No vector, procedurally drawn human, or
- * improvised character substitute is used. Each slot maps to an Art Director
- * PNG and stays explicitly marked PENDING until the asset pack is integrated.
- * All cards are immutable original RWS images chosen in Gate C.
+ * Gate D — composited Artemis Reading Stage V1.
+ *
+ * 31 owner-approved original illustrations live in Artemis_Asset_Candidates.
+ * Only a source-verified, actually installed file is considered available.
+ * Four prior WebP previews provide a safe fallback until the 31 originals are
+ * committed; neither geometric human puppets nor fabricated Tarot faces exist.
+ *
+ * The three physical RWS cards/identities come from Gate C and never change.
  */
+import {ARTEMIS_IMPORTED_FILES} from './artemis-assets-ready.mjs';
+import {ARTEMIS_PORTRAIT_SLOTS,ARTEMIS_SOURCE_FILES} from './artemis-art-catalog.mjs';
+
 export const ARTEMIS_ASSET_ROOT='../../assets/artemis/';
-// Four optimized transparent illustrations are already committed to this branch.
- // Other Stage D background/FX/UI assets remain explicitly unready.
 export const ARTEMIS_ASSET_READY=true;
-export const ARTEMIS_PROVISIONAL_READY_SLOTS=Object.freeze(['warmWelcome','welcomingGesture','thinking','reflective']);
-export const ARTEMIS_ART_DIRECTOR_FILES=Object.freeze({
- background:'bg_artemis_reading_stage_main.png',
- transition:'bg_artemis_transition_gate.png',
- portrait:'artemis_idle.png',
+export const ARTEMIS_PROVISIONAL_READY_SLOTS=Object.freeze([
+ 'warmWelcome','welcomingGesture','thinking','reflective'
+]);
+const PROVISIONAL_FILES=Object.freeze({
  warmWelcome:'artemis_warm_welcome.webp',
  welcomingGesture:'artemis_welcoming_gesture.webp',
  thinking:'artemis_thinking.webp',
- explaining:'artemis_explaining.png',
- reflective:'artemis_reflective.webp',
- focused:'artemis_focused.png',
- halo:'fx_artemis_halo_ring.png',
- sigils:'fx_artemis_sigils_soft.png',
- goldParticles:'fx_artemis_particles_gold.png',
- violetParticles:'fx_artemis_particles_violet.png',
- readingGlow:'fx_reading_glow_base.png',
- cardGlow:'fx_card_spread_glow.png',
- panel:'ui_reading_frame_panel.png',
- nameplate:'ui_artemis_nameplate.png',
- title:'ui_your_reading_titleplate.png',
- begin:'ui_begin_reading_button.png',
- continue:'ui_continue_button.png'
+ reflective:'artemis_reflective.webp'
 });
-const clamp=(n)=>Math.max(0,Math.min(1,Number.isFinite(n)?n:0));
-const esc=(x)=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+// Preserve the public V3.4 filenames used by older preview regression tests.
+// Source-package overrides use Artemis_Asset_Candidates/*.png, registered
+// separately by the importer, and take precedence over those four previews.
+export const ARTEMIS_ART_DIRECTOR_FILES=Object.freeze({
+ portrait:'artemis_idle.png',
+ ...Object.fromEntries(Object.entries(ARTEMIS_SOURCE_FILES).map(([slot,path])=>[slot,path.split('/').pop()])),
+ ...PROVISIONAL_FILES
+});
+export const ARTEMIS_READY_PORTRAIT_SLOTS=Object.freeze(
+ ARTEMIS_PORTRAIT_SLOTS.filter(slot=>{
+  const src=ARTEMIS_SOURCE_FILES[slot]?.split('/').pop();
+  return (src&&ARTEMIS_IMPORTED_FILES[slot]===src)||Object.hasOwn(PROVISIONAL_FILES,slot);
+ })
+);
+const clamp=n=>Math.max(0,Math.min(1,Number.isFinite(n)?n:0));
+const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
 export const READING_CHAPTERS=Object.freeze([-1,0,1,2,3]);
 export function canBeginReading(choices,peel){
  return Array.isArray(choices)&&choices.length===3
@@ -44,23 +48,35 @@ export function canBeginReading(choices,peel){
 export function handoffDuration(reducedMotion=false){return reducedMotion?0:1850;}
 export function assetUrl(slot){
  if(!Object.hasOwn(ARTEMIS_ART_DIRECTOR_FILES,slot))throw new RangeError('Unknown Artemis art slot: '+slot);
- return ARTEMIS_ASSET_READY&&ARTEMIS_PROVISIONAL_READY_SLOTS.includes(slot)
-  ?ARTEMIS_ASSET_ROOT+ARTEMIS_ART_DIRECTOR_FILES[slot]:null;
+ const original=ARTEMIS_SOURCE_FILES[slot]?.split('/').pop();
+ // The generated registration and the actual filename must agree. This is
+ // also a path traversal guard: never concatenate an arbitrary manifest path.
+ if(original&&ARTEMIS_IMPORTED_FILES[slot]===original)return ARTEMIS_ASSET_ROOT+original;
+ const fallback=PROVISIONAL_FILES[slot];
+ return fallback?ARTEMIS_ASSET_ROOT+fallback:null;
 }
 export function portraitSlotForChapter(chapter){
  if(!READING_CHAPTERS.includes(chapter))throw new RangeError('Invalid Artemis reading chapter');
- return chapter===-1?'warmWelcome':chapter===0?'welcomingGesture':chapter===1?'thinking':'reflective';
+ const intended=chapter===-1?'warmWelcome':chapter===0?'explaining':
+  chapter===1?'thinking':chapter===2?'reading':'reflective';
+ if(assetUrl(intended))return intended;
+ // Prior-stage preview remains functional while the new originals are staged.
+ return chapter===-1?'warmWelcome':chapter===0?'welcomingGesture':
+  chapter===1?'thinking':'reflective';
 }
-function artSlot(slot,classes,content=''){
- const uri=assetUrl(slot),file=ARTEMIS_ART_DIRECTOR_FILES[slot];
- return '<div class="'+esc(classes)+'" data-art-slot="'+esc(slot)+'" data-art-filename="'+esc(file)+'" data-art-status="'+(uri?'ready':'pending')+'">'+
- (uri?'<img src="'+esc(uri)+'" alt="" decoding="async" aria-hidden="true">':content)+'</div>';
+function artSlot(slot,classes,fallback=''){
+ const uri=assetUrl(slot),file=uri?.split('/').pop()||ARTEMIS_ART_DIRECTOR_FILES[slot];
+ return '<div class="'+esc(classes)+'" data-art-slot="'+esc(slot)+
+  '" data-art-filename="'+esc(file)+'" data-art-status="'+(uri?'ready':'pending')+'" aria-hidden="true">'+
+  (uri?'<img src="'+esc(uri)+'" alt="" loading="eager" decoding="async" draggable="false">':fallback)+'</div>';
 }
-const face=(choice,cardsById)=> {
+const face=(choice,cardsById)=>{
  const card=cardsById.get(choice.id);
  if(!card)throw new RangeError('Unknown selected Tarot card: '+choice.id);
  const reversed=choice.orientation==='reversed';
- return '<img class="reading-actual-card-face '+(reversed?'is-reversed':'')+'" src="../../assets/rws/'+esc(choice.id)+'.jpg" alt="'+esc(card.name)+(reversed?' reversed':' upright')+' original Rider–Waite–Smith card art" draggable="false">';
+ return '<img class="reading-actual-card-face '+(reversed?'is-reversed':'')+
+  '" src="../../assets/rws/'+esc(choice.id)+'.jpg" alt="'+esc(card.name)+
+  (reversed?' reversed':' upright')+' original Rider–Waite–Smith card art" draggable="false">';
 };
 function chapterText(demo,chapter){
  if(!READING_CHAPTERS.includes(chapter))throw new RangeError('Unknown reading chapter');
@@ -73,57 +89,91 @@ function chapterText(demo,chapter){
   text:demo.summary
  };
  const part=demo.cards[chapter];
- return {
-  eyebrow:part.position+' · '+(part.orientation==='reversed'?'REVERSED':'UPRIGHT'),
-  title:part.name,text:part.text
- };
+ return {eyebrow:part.position+' · '+(part.orientation==='reversed'?'REVERSED':'UPRIGHT'),
+  title:part.name,text:part.text};
+}
+export function renderReadingHandoff(){
+ return '<div class="reading-handoff-veil" role="status" aria-live="polite">'+
+  artSlot('transition','reading-handoff-backdrop')+
+  artSlot('sigils','reading-handoff-sigils')+
+  artSlot('goldParticles','reading-handoff-gold')+
+  '<div class="reading-handoff-aura" aria-hidden="true"><span>✧</span></div>'+
+  '<p>THE CARDS ARE READY TO SPEAK</p></div>';
 }
 export function renderReadingPanel(demo,chapter){
  if(!demo||!Array.isArray(demo.cards)||demo.cards.length!==3)throw new Error('Reading panel needs three interpretations');
  const current=chapterText(demo,chapter);
- const lead=chapter===-1?'Begin the interpretation ✧':chapter<2?'Continue the reading →':chapter===2?'Bring the three cards together →':'Return to the first card';
+ const lead=chapter===-1?'Begin the interpretation':chapter<2?'Continue the reading':
+  chapter===2?'Bring the cards together':'Return to the first card';
+ const step=READING_CHAPTERS.indexOf(chapter)+1;
  return '<div class="reading-art-panel-inner">'+
- '<span class="reading-art-nameplate">✦ ARTEMIS <span>· YOUR READER</span></span>'+
- '<p class="reading-art-kicker">'+esc(current.eyebrow)+'</p>'+
- '<h2 class="reading-art-narration-title" id="artemis-chapter-title" tabindex="-1">'+esc(current.title)+'</h2>'+
- '<p class="reading-art-narration-text">'+esc(current.text)+'</p>'+
- '<div class="reading-art-controls">'+
- '<button type="button" class="reading-art-control is-secondary" data-action="reading-prev" '+(chapter===-1?'disabled':'')+'>← Previous</button>'+
- '<button type="button" class="reading-art-control" data-action="reading-next">'+esc(lead)+'</button>'+
- '</div><nav class="reading-art-progress" aria-label="Reading chapters">'+
- READING_CHAPTERS.map((value,index)=>'<button type="button" data-reading-chapter="'+value+'" class="'+(chapter===value?'is-active':'')+'" aria-current="'+(chapter===value?'step':'false')+'" aria-label="Reading chapter '+(index+1)+'">'+String(index+1).padStart(2,'0')+'</button>').join('')+
- '</nav></div>';
+  artSlot('nameplate','reading-art-nameplate-art')+
+  '<span class="reading-art-nameplate">ARTEMIS <span>· YOUR READER</span></span>'+
+  '<p class="reading-art-kicker">'+esc(current.eyebrow)+'</p>'+
+  '<h2 class="reading-art-narration-title" id="artemis-chapter-title" tabindex="-1">'+esc(current.title)+'</h2>'+
+  '<p class="reading-art-narration-text">'+esc(current.text)+'</p>'+
+  '<div class="reading-art-controls">'+
+  '<button type="button" class="reading-art-control is-secondary" data-action="reading-prev" '+
+   (chapter===-1?'disabled':'')+' aria-label="Previous chapter">← Previous</button>'+
+  '<button type="button" class="reading-art-control is-primary" data-action="reading-next" aria-label="'+esc(lead)+'">'+
+   '<span>'+esc(lead)+'</span>'+artSlot('arrow','reading-art-control-arrow')+
+   '<span class="reading-art-control-arrow-fallback" aria-hidden="true">➜</span></button>'+
+  '</div><p class="reading-art-progress" aria-label="Reading chapter '+step+' of 5">'+
+   String(step).padStart(2,'0')+' <span>/</span> 05</p></div>';
+}
+function cardBrief(demo,card,choice,index){
+ // Real, established deck interpretations (never AI-invented keywords).
+ const meaning=demo.cards?.[index]?.meaning||
+  (choice.orientation==='reversed'?card.reversed:card.upright);
+ const oneLine=String(meaning).replace(/\s+/g,' ').trim();
+ return oneLine.length>72?oneLine.slice(0,69).replace(/\s+\S*$/,'')+'…':oneLine;
 }
 export function renderReadingStage({choices,cardsById,demo,chapter=-1,question=''}){
- if(!Array.isArray(choices)||choices.length!==3||new Set(choices.map(c=>c?.id)).size!==3)throw new Error('Reading stage requires exactly three distinct selected cards');
- for(const choice of choices){if(!['upright','reversed'].includes(choice.orientation))throw new Error('Missing card orientation');}
- if(!READING_CHAPTERS.includes(chapter))throw new Error('Invalid reading chapter');
+ if(!Array.isArray(choices)||choices.length!==3||new Set(choices.map(c=>c?.id)).size!==3)throw Error('Reading stage requires exactly three distinct selected cards');
+ for(const choice of choices)if(!['upright','reversed'].includes(choice.orientation))throw Error('Missing card orientation');
+ if(!READING_CHAPTERS.includes(chapter))throw Error('Invalid reading chapter');
+ if(!demo||!Array.isArray(demo.cards)||demo.cards.length!==3)throw Error('Reading stage requires its three actual interpretations');
  const roles=['Past','Present','Future'];
- const bg=assetUrl('background');
  return '<section class="scene scene-artemis-reading" aria-label="Your Reading with Artemis">'+
- '<div class="reading-art-atmosphere"'+(bg?' style="background-image:url('+esc(bg)+')"':'')+' aria-hidden="true"></div>'+
- '<div class="reading-art-stars" aria-hidden="true"></div>'+
- '<div class="reading-art-layout">'+
- '<header class="reading-art-header">'+
- artSlot('title','reading-art-title-art')+
- '<span class="reading-art-eyebrow">JUHUA SPEAKS · CELESTIAL TAROT</span>'+
- '<h1 tabindex="-1" id="artemis-reading-title">Your Reading</h1>'+
- '<p class="reading-art-subtitle">THREE CARDS · ONE STORY</p>'+
- '</header>'+
- '<div class="reading-art-hero" aria-label="Artemis illustration and your three selected cards">'+
- artSlot('halo','reading-art-halo')+
- artSlot(portraitSlotForChapter(chapter),'reading-art-portrait','<div class="reading-portrait-pending"><strong>ARTEMIS</strong><span>PROVISIONAL PORTRAIT UNAVAILABLE</span><small>Art Director preview asset · loading failed</small></div>')+
- '<div class="reading-art-spread" role="group" aria-label="Your three selected Tarot cards">'+
- choices.map((c,i)=>{
-  const card=cardsById.get(c.id);
-  if(!card)throw new Error('Selected card not found');
-  return '<button type="button" class="reading-art-card '+(chapter===i?'is-focused':'')+'" data-reading-chapter="'+i+'" aria-label="'+roles[i]+': '+esc(card.name)+', '+c.orientation+'" aria-pressed="'+(chapter===i)+'">'+
-  '<span class="reading-art-card-frame">'+face(c,cardsById)+'</span>'+
-  '<span class="reading-art-card-role">'+roles[i]+'</span></button>';
- }).join('')+
- '</div></div>'+
- '<div class="reading-art-panel" data-art-slot="panel" data-art-filename="ui_reading_frame_panel.png" data-art-status="pending">'+renderReadingPanel(demo,chapter)+'</div>'+
- '<footer class="reading-art-footer"><p class="reading-art-question">'+(question?'YOUR QUESTION · '+esc(question):'PAST · PRESENT · FUTURE')+'</p>'+
- '<p class="reading-art-demo">SCRIPTED DEMONSTRATION · NO LIVE AI REQUEST</p></footer>'+
- '</div></section>';
+  artSlot('background','reading-art-atmosphere')+
+  '<div class="reading-art-stars" aria-hidden="true"></div>'+
+  artSlot('sigils','reading-art-fx reading-art-fx-sigils')+
+  artSlot('violetParticles','reading-art-fx reading-art-fx-violet')+
+  artSlot('goldParticles','reading-art-fx reading-art-fx-gold')+
+  '<div class="reading-art-layout">'+
+  '<header class="reading-art-header">'+artSlot('title','reading-art-title-art')+
+  '<span class="reading-art-eyebrow">JUHUA SPEAKS · CELESTIAL TAROT</span>'+
+  '<h1 tabindex="-1" id="artemis-reading-title">Your Reading</h1>'+
+  '<p class="reading-art-subtitle">THREE CARDS · ONE STORY</p></header>'+
+  '<div class="reading-art-hero" aria-label="Artemis and the three cards chosen during the ritual">'+
+   artSlot('halo','reading-art-halo')+
+   artSlot('readingGlow','reading-art-reading-glow')+
+   artSlot(portraitSlotForChapter(chapter),'reading-art-portrait',
+    '<div class="reading-portrait-pending"><strong>ARTEMIS</strong><span>ARTWORK UNAVAILABLE</span></div>')+
+   '<div class="reading-art-table-surface" aria-hidden="true"></div>'+
+   artSlot('cardGlow','reading-art-card-glow')+
+   '<div class="reading-art-spread" role="group" aria-label="The original Past, Present and Future Tarot cards">'+
+   choices.map((choice,i)=>{
+    const card=cardsById.get(choice.id);
+    if(!card)throw Error('Selected card not found');
+    const orientation=choice.orientation==='reversed'?'Reversed':'Upright';
+    return '<button type="button" class="reading-art-card '+(chapter===i?'is-focused':'')+
+      '" data-reading-chapter="'+i+'" aria-label="'+roles[i]+': '+esc(card.name)+', '+choice.orientation+
+      '" aria-pressed="'+(chapter===i)+'" data-original-card-id="'+esc(choice.id)+'" data-orientation="'+esc(choice.orientation)+'">'+
+      '<span class="reading-art-card-frame">'+face(choice,cardsById)+'</span>'+
+      '<span class="reading-art-connector" aria-hidden="true"></span>'+
+      '<span class="reading-art-card-role">'+String(i+1).padStart(2,'0')+' · '+roles[i]+'</span>'+
+      '<span class="reading-art-card-meaning">'+orientation+' · '+esc(cardBrief(demo,card,choice,i))+'</span></button>';
+   }).join('')+
+   '</div></div>'+
+  '<div class="reading-art-panel" data-art-slot="panel" data-art-filename="'+
+   esc(assetUrl('panel')?.split('/').pop()||ARTEMIS_ART_DIRECTOR_FILES.panel)+
+   '" data-art-status="'+(assetUrl('panel')?'ready':'pending')+'">'+
+   artSlot('panel','reading-art-panel-skin')+
+   artSlot('corners','reading-art-panel-corners')+
+   renderReadingPanel(demo,chapter)+'</div>'+
+  '<footer class="reading-art-footer"><p class="reading-art-question">'+
+   (question?'YOUR QUESTION · '+esc(question):'PAST · PRESENT · FUTURE')+'</p>'+
+   '<p class="reading-art-demo">SCRIPTED DEMONSTRATION · NO LIVE AI REQUEST</p></footer>'+
+  '</div></section>';
 }
