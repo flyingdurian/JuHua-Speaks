@@ -63,7 +63,7 @@ test('Foil has a visible in-card second pass of the SAME selected background-ima
 
 test('Mobile preserves safe area, card geometry and short-viewport document scrolling',async()=>{
  const css=await source('../preview/post-shuffle/reading-polish-v4.css');
- assert.match(css,/grid-template-rows:auto minmax\(350px,1fr\) auto auto/);
+ assert.match(css,/grid-template-rows:auto minmax\(500px,1fr\) auto auto/);
  assert.match(css,/overflow-y:auto/);
  assert.match(css,/env\(safe-area-inset-bottom,0px\)/);
  assert.match(css,/@media\(max-width:720px\) and \(max-height:680px\)/);
