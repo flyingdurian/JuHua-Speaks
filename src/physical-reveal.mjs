@@ -43,6 +43,7 @@ export function renderPhysicalReveal({state,t,h,btn,eyebrow,cardBack,cardFace,de
       '<span class="physical-side physical-back">'+cardBack()+'</span>'+
       '<span class="physical-side physical-front">'+cardFace(entry.card,entry.orientation,true)+'</span>'+
      '</span></button>'+
+    '<div class="physical-card-meter"><label for="peek-meter-'+i+'">'+t('Reveal progress','揭牌进度')+'</label><progress id="peek-meter-'+i+'" data-peek-progress="'+i+'" max="100" value="'+Math.round(p*100)+'"></progress></div>'+
     '<div class="physical-card-meta"><span>'+rank+' · '+h(names[i])+'</span>'+
     (revealed?'<strong>'+h(name)+'</strong><small>'+side+'</small><p>'+h(trait)+'</p>':
       '<span class="physical-waiting">'+t('Tap · drag to peek','点击 · 拖动偷看')+'</span>')+

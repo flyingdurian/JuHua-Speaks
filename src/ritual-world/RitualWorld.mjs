@@ -7,6 +7,9 @@
 import {makeLandingCardEntities,sampleLandingPose,landingOpacity,entranceScale,landingAttitude,landingVisible,createVisualSeed,orbitDiagnostics} from './OrbitalField.mjs';
 export {makeLandingCardEntities,sampleLandingPose} from './OrbitalField.mjs';
 import {appendPremiumCard} from './CardSurface.mjs';
+import {PHYSICAL_CARD,samplePhysicalShuffle,deckPose,shuffleDuration,shuffleBeat,SHUFFLE_CHOICES,assertShuffleGeometry} from './ShuffleChoreography.mjs';
+import {sampleSphereEntrance,SPHERE_ENTRANCE_SECONDS} from './SphereEntrance.mjs';
+import {CARD_ECHO_HISTORY,sequenceOneEchoEnvelope,projectedCardSpeed,cardEchoOpacity,shouldEchoCard} from './TemporalEcho.mjs';
 const TAU = Math.PI * 2;
 const clamp = (v,a,b) => Math.max(a, Math.min(b,v));
 const hash = (x) => { x = Math.imul(x ^ x >>> 16, 0x7feb352d); x = Math.imul(x ^ x >>> 15,0x846ca68b); return ((x ^ x >>> 16) >>> 0) / 4294967296; };
@@ -27,8 +30,8 @@ const program=(gl)=>{
  void main(){gl_Position=projection*vec4(pos,1.0);vUv=uv;vLight=brightness;}`);
  const frag=shader(gl,gl.FRAGMENT_SHADER,`#version 300 es
  precision mediump float;
- in vec2 vUv;in float vLight;uniform sampler2D atlas;out vec4 color;
- void main(){vec4 base=texture(atlas,vUv);color=vec4(base.rgb*(.72+.28*clamp(vLight,0.0,1.0)),1.0);} // Solid obsidian, real cards, no translucent faces`);
+ in vec2 vUv;in float vLight;uniform sampler2D atlas;uniform float passAlpha;uniform float echoTone;out vec4 color;
+ void main(){vec4 base=texture(atlas,vUv);vec3 lit=base.rgb*(.72+.28*clamp(vLight,0.0,1.0));vec3 tinted=mix(lit,lit*.91+vec3(.11,.12,.18),echoTone);color=vec4(tinted,passAlpha);} // Main 78 sheets stay fully opaque; ghost pass is time-sampled only.`);
  const p=gl.createProgram();gl.attachShader(p,vert);gl.attachShader(p,frag);gl.linkProgram(p);
  gl.deleteShader(vert);gl.deleteShader(frag);
  if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(p));return p;
@@ -92,6 +95,7 @@ export class RitualWorld{
   if(!mount)throw Error('RitualWorld requires persistent mount');
   this.mount=mount;this.visualSeed=visualSeed;this.cards=makeLandingCardEntities(cards,visualSeed);this.faceAssetForId=faceAssetForId;
   this.onStatus=onStatus;this.disposed=false;this.phase='landing';this.start=performance.now();this.last=0;this.elapsed=0;this.entranceMode=entranceMode;
+  this.shuffleStyle='auto';this.shuffleStartedAt=0;this.shuffleLandingAt=0;this.shuffleRound=0;this.sphereEntranceStartedAt=0;
   this.pause=false;this.frame=0;this.failedAssets=[];this.loadedCount=0;this.atlas=makeAtlas();this.images=[];this.lastRendered=0;
   this.canvas=document.createElement('canvas');this.canvas.className='ritual-world-canvas';this.canvas.setAttribute('aria-hidden','true');mount.append(this.canvas);
   const gl=this.canvas.getContext('webgl2',{alpha:true,antialias:true,depth:true,powerPreference:'high-performance'});
@@ -106,12 +110,31 @@ export class RitualWorld{
   const anisotropy=gl.getExtension('EXT_texture_filter_anisotropic')||gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
   if(anisotropy)gl.texParameterf(gl.TEXTURE_2D,anisotropy.TEXTURE_MAX_ANISOTROPY_EXT,Math.min(8,gl.getParameter(anisotropy.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
   this.uploadAtlas();gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.depthMask(true);gl.disable(gl.CULL_FACE);gl.disable(gl.BLEND);
-  this.locProj=gl.getUniformLocation(this.program,'projection');this.locAtlas=gl.getUniformLocation(this.program,'atlas');
+  this.locProj=gl.getUniformLocation(this.program,'projection');this.locAtlas=gl.getUniformLocation(this.program,'atlas');this.locPassAlpha=gl.getUniformLocation(this.program,'passAlpha');this.locEchoTone=gl.getUniformLocation(this.program,'echoTone');
   this.canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();this.contextLost=true;this.pause=true;onStatus({state:'context-lost'})},{once:true});
   this.setPhase('landing');this.loadCardFaces();this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(mount);
   this.tick=this.tick.bind(this);this.frame=requestAnimationFrame(this.tick);
  }
- setPhase(phase){if(!['landing','question_submitted','shuffle_ritual','deck_formed','sphere_selection','three_reveal'].includes(phase))throw Error('Unsupported world phase');this.phase=phase;this.onStatus({state:phase,cards:this.cards.length})}
+ setPhase(phase){if(!['landing','question_submitted','shuffle_ritual','deck_formed','sphere_selection','sphere_transition','three_reveal'].includes(phase))throw Error('Unsupported world phase');this.phase=phase;this.onStatus({state:phase,cards:this.cards.length})}
+ beginAutoShuffle(){
+  if(this.phase!=='landing')throw Error('Auto shuffle requires landing');
+  assertShuffleGeometry(this.cards,{style:'auto',landingAt:this.elapsed,worldTime:this.elapsed,entranceMode:this.entranceMode});
+  this.shuffleStyle='auto';this.shuffleLandingAt=this.elapsed;this.shuffleStartedAt=this.elapsed;
+  this.setPhase('shuffle_ritual');this.shuffleRound++;
+ }
+ playShuffle(style){
+  if(this.phase!=='deck_formed')throw Error('Shuffle choice requires a formed deck');
+  if(!SHUFFLE_CHOICES.includes(style))throw Error('Unknown physical shuffle style');
+  assertShuffleGeometry(this.cards,{style,landingAt:this.shuffleLandingAt,worldTime:this.elapsed});
+  this.shuffleStyle=style;this.shuffleStartedAt=this.elapsed;this.shuffleRound++;
+  this.setPhase('shuffle_ritual');
+ }
+ startSphereEntrance(){if(this.phase!=='deck_formed')throw Error('Sphere entry requires full deck');this.sphereEntranceStartedAt=this.elapsed;this.setPhase('sphere_transition')}
+  resetGateB(){this.setPhase('landing');this.restartEntrance(this.entranceMode);this.shuffleStyle='auto';this.shuffleStartedAt=0}
+ getShuffleState(){
+  const age=Math.max(0,this.elapsed-this.shuffleStartedAt);
+  return {phase:this.phase,style:this.shuffleStyle,age,beat:this.phase==='shuffle_ritual'?shuffleBeat(this.shuffleStyle,age):this.phase,duration:shuffleDuration(this.shuffleStyle),entryAge:this.phase==='sphere_transition'?this.elapsed-this.sphereEntranceStartedAt:0,entryDuration:SPHERE_ENTRANCE_SECONDS,round:this.shuffleRound};
+ }
  setPaused(value){this.pause=!!value}
  restartEntrance(mode){if(!['inside-out','outside-in'].includes(mode))throw Error('Unsupported landing entrance');this.entranceMode=mode;this.elapsed=0;this.last=0;this.lastRendered=0;this.onStatus({state:'entrance',entrance:mode})}
  // UV v=0 addresses the TOP of the artwork. Keep canvas uploads unflipped for correct upright RWS fronts.
@@ -134,16 +157,84 @@ export class RitualWorld{
   const w=Math.max(2,Math.round(r.width*dpr)),h=Math.max(2,Math.round(r.height*dpr));if(w!==this.canvas.width||h!==this.canvas.height){this.canvas.width=w;this.canvas.height=h;this.gl.viewport(0,0,w,h)}}
  tick(now){if(this.disposed||this.contextLost)return;this.frame=requestAnimationFrame(this.tick);if(document.hidden||this.pause)return;
   const dt=Math.min(70,now-this.last||0);this.last=now;this.elapsed+=dt/1000;
+  if(this.phase==='shuffle_ritual'&&this.elapsed-this.shuffleStartedAt>=shuffleDuration(this.shuffleStyle))this.setPhase('deck_formed');
   if(now-this.lastRendered<28)return;this.lastRendered=now;
   this.resize();const gl=this.gl;gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(this.program);gl.bindVertexArray(this.vao);
   gl.uniformMatrix4fv(this.locProj,false,perspective(this.canvas.width/this.canvas.height));gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.texture);gl.uniform1i(this.locAtlas,0);
+  const age=this.elapsed-this.shuffleStartedAt;
+  // Actual temporal copies of the SAME 78 textured meshes. Alpha blending
+  // is enabled only during Gate B Sequence 1; never during approved Gate A
+  // landing, globe, deck assembly or user selection.
+  const echoes=this.phase==='shuffle_ritual'&&this.shuffleStyle==='auto'
+     &&age>1.37&&age<5.42&&sequenceOneEchoEnvelope(age)>.002;
+  if(echoes){
+   gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+   gl.depthMask(false);gl.uniform1f(this.locEchoTone,.75);
+   const pNow=this.cards.map(card=>samplePhysicalShuffle(card,{
+    style:'auto',age,landingAt:this.shuffleLandingAt,worldTime:this.elapsed,
+    entranceMode:this.entranceMode
+   }).position);
+   const pPast=this.cards.map(card=>samplePhysicalShuffle(card,{
+    style:'auto',age:age-.068,landingAt:this.shuffleLandingAt,
+    worldTime:this.elapsed-.068,entranceMode:this.entranceMode
+   }).position);
+   const speeds=pNow.map((p,i)=>projectedCardSpeed(p,pPast,.068,this.canvas.height));
+   for(const echo of CARD_ECHO_HISTORY){
+    const ghostVertices=[];
+    let peakAlpha=0;
+    for(let i=0;i<this.cards.length;i++){
+     const card=this.cards[i];
+     if(!shouldEchoCard(card,age))continue;
+     const alpha=cardEchoOpacity(age,echo.lag,speeds[i]);
+     if(alpha<.012)continue;
+     const sample=samplePhysicalShuffle(card,{
+      style:'auto',age:age-echo.lag,landingAt:this.shuffleLandingAt,
+      worldTime:this.elapsed-echo.lag,entranceMode:this.entranceMode
+     });
+     // Banded per-card alpha is achieved by clustering similar-speed sheets.
+     // Only material card geometry is replayed; no duplicate logical cards.
+     peakAlpha=Math.max(peakAlpha,alpha);
+     appendPremiumCard(ghostVertices,{...card,...PHYSICAL_CARD},sample.position,
+       sample.attitude,sample.scale,card.light,slotUv,{backSlot:BACK_SLOT,edgeSlot:EDGE_SLOT});
+    }
+    if(ghostVertices.length&&peakAlpha>.001){
+     gl.uniform1f(this.locPassAlpha,peakAlpha);
+     gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);
+     gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(ghostVertices),gl.DYNAMIC_DRAW);
+     gl.drawArrays(gl.TRIANGLES,0,ghostVertices.length/6);
+    }
+   }
+   gl.disable(gl.BLEND);gl.depthMask(true);gl.uniform1f(this.locEchoTone,0);
+  }
+  gl.uniform1f(this.locPassAlpha,1);gl.uniform1f(this.locEchoTone,0);
   const vertices=[];
-  for(const card of this.cards)appendBox(vertices,card,sampleLandingPose(card,this.elapsed,this.entranceMode),this.elapsed,this.entranceMode);
+  for(const card of this.cards){
+   if(this.phase==='landing'){
+    appendBox(vertices,card,sampleLandingPose(card,this.elapsed,this.entranceMode),this.elapsed,this.entranceMode);
+   }else{
+    const age=this.elapsed-this.shuffleStartedAt;
+    const sample=this.phase==='shuffle_ritual'
+     ?samplePhysicalShuffle(card,{style:this.shuffleStyle,age,landingAt:this.shuffleLandingAt,worldTime:this.elapsed,entranceMode:this.entranceMode})
+     :this.phase==='sphere_transition'
+       ?sampleSphereEntrance(card,{age:this.elapsed-this.sphereEntranceStartedAt,worldTime:this.sphereEntranceStartedAt})
+       :deckPose(card,this.elapsed);
+     // Match side-to-side page separation with the material thickness:
+     // 26 separate piles have NO hollow inter-page gaps; the final 78-page
+     // resting deck compresses naturally into a tightly laminated stack.
+     const pileAge=this.elapsed-this.shuffleStartedAt;
+     const envelope=this.phase==='shuffle_ritual'&&this.shuffleStyle==='auto'
+       ?Math.max(0,Math.min(1,(pileAge-10.70)/1.5))*Math.max(0,Math.min(1,(15.65-pileAge)/1.7)):0;
+     const settled=this.phase==='deck_formed'?1:this.phase==='shuffle_ritual'&&this.shuffleStyle==='auto'
+       ?Math.max(0,Math.min(1,(pileAge-15.65)/.9)):0;
+     const thickness=.0145+.0033*envelope-.005*settled;
+     appendPremiumCard(vertices,{...card,...PHYSICAL_CARD,thickness},sample.position,sample.attitude,sample.scale,card.light,slotUv,{backSlot:this.phase==='deck_formed'&&card.orbitSlot===0?card.index:BACK_SLOT,edgeSlot:EDGE_SLOT});
+   }
+  }
   gl.bindBuffer(gl.ARRAY_BUFFER,this.buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(vertices),gl.DYNAMIC_DRAW);
   gl.drawArrays(gl.TRIANGLES,0,vertices.length/6);
   this.onStatus({state:this.phase,rendered:78,elapsed:this.elapsed,loaded:this.loadedCount,failed:this.failedAssets.length});
  }
- getDiagnostics(){return {phase:this.phase,cards:this.cards.length,loaded:this.loadedCount,failed:this.failedAssets.length,elapsed:this.elapsed,visualSeed:this.visualSeed,entranceMode:this.entranceMode,opaqueCards:true,...orbitDiagnostics(this.cards,this.elapsed),webgl:this.gl.getParameter(this.gl.VERSION),textureTile:[TILE_W,TILE_H],cardGeometry:'rounded-beveled-thin',canvasWidth:this.canvas.width,canvasHeight:this.canvas.height}}
+ getDiagnostics(){return {phase:this.phase,cards:this.cards.length,loaded:this.loadedCount,failed:this.failedAssets.length,elapsed:this.elapsed,visualSeed:this.visualSeed,entranceMode:this.entranceMode,opaqueCards:true,shuffle:this.getShuffleState(),stackedCards:this.phase==='deck_formed'?78:0,...orbitDiagnostics(this.cards,this.elapsed),webgl:this.gl.getParameter(this.gl.VERSION),textureTile:[TILE_W,TILE_H],cardGeometry:'rounded-beveled-thin',canvasWidth:this.canvas.width,canvasHeight:this.canvas.height}}
  dispose(){if(this.disposed)return;this.disposed=true;cancelAnimationFrame(this.frame);this.resizeObserver?.disconnect();for(const img of this.images){img.onload=null;img.onerror=null}
   const gl=this.gl;if(!gl.isContextLost()){gl.deleteTexture(this.texture);gl.deleteBuffer(this.buffer);gl.deleteVertexArray(this.vao);gl.deleteProgram(this.program)}this.canvas.remove();}
 }
