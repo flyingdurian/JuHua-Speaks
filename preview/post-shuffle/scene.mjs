@@ -8,7 +8,7 @@
  */
 import {DECK,commonsThumbnailUrl,drawOrientation,BY_ID} from '../../src/deck.mjs';
 import {buildDemoReading} from '../../src/demo-reading.mjs';
-import {renderReadingStage,renderReadingPanel,handoffDuration,READING_CHAPTERS,portraitSlotForChapter,assetUrl,ARTEMIS_ART_DIRECTOR_FILES,ARTEMIS_PROVISIONAL_READY_SLOTS} from './reading-stage.mjs';
+import {renderReadingStage,renderReadingPanel,renderReadingHandoff,handoffDuration,READING_CHAPTERS,portraitSlotForChapter,assetUrl,ARTEMIS_ART_DIRECTOR_FILES,ARTEMIS_READY_PORTRAIT_SLOTS} from './reading-stage.mjs';
 import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
 import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
 import {SPHERE_VERTEX_STRIDE,extrudedCardVertices} from './PhysicalSphereMesh.mjs';
@@ -139,10 +139,10 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
 
  let lockAt=null,tableau=null,tableauShown=false,handoff=null;const pickAnchors=new Map();
  let readingStarted=false,readingTimer=null,readingChapter=-1,resourcesDisposed=false,portraitRevision=0;
- // Decode four already-shipped illustrated portraits in advance. A chapter
- // change must never replace the entire reading DOM or flash an unloaded image.
+ // Predecode all genuinely shipped portraits. The four existing WebP versions
+ // remain useful until the full owner-approved source pack is imported.
  const portraitCache=new Map();
- for(const slot of ARTEMIS_PROVISIONAL_READY_SLOTS){
+ for(const slot of ARTEMIS_READY_PORTRAIT_SLOTS){
   const uri=assetUrl(slot);
   if(!uri)continue;
   const image=new Image();
@@ -169,17 +169,32 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
  }
  function goReading(){
   if(dead||lockAt===null||tableau?.revealed!==3||readingStarted)return false;
+  // Carry forward the EXACT three authentic RWS <img> nodes that the visitor
+  // revealed. New stage frames are decorative wrappers, not new Tarot draws.
+  const originalFaces=[...(tableau?.element?.querySelectorAll('.ps-card-art')||[])];
+  if(originalFaces.length!==3||originalFaces.some(img=>!img.complete||!img.naturalWidth))return false;
+  for(const img of originalFaces)img.remove(); // survive tableau.dispose()
   readingStarted=true;ready=false;step='reading';world.dataset.beat='reading';
   cancelAnimationFrame(raf);disposeSphereResources();renderReading();
+  const sockets=[...world.querySelectorAll('.reading-art-card-frame .reading-actual-card-face')];
+  if(sockets.length!==3)throw Error('Reading stage lost an original Tarot-card slot');
+  originalFaces.forEach((img,i)=>{
+   img.onload=null;img.onerror=null;img.removeAttribute('hidden');
+   img.style.transform='';
+   img.className='reading-actual-card-face'+(choices[i].orientation==='reversed'?' is-reversed':'');
+   img.dataset.carryover='original-rws';
+   img.alt=BY_ID.get(choices[i].id).name+' '+choices[i].orientation+' original Rider–Waite–Smith card art';
+   sockets[i].replaceWith(img);
+  });
   world.querySelector('#artemis-reading-title')?.focus({preventScroll:true});
   return true;
  }
  function beginReading(){
   if(dead||lockAt===null||!tableauShown||tableau?.revealed!==3||readingStarted||readingTimer!==null)return false;
   step='reading-transition';world.dataset.beat='reading-transition';ready=false;
-  const veil=document.createElement('div');veil.className='reading-handoff-veil';veil.setAttribute('role','status');
-  veil.setAttribute('aria-live','polite');
-  veil.innerHTML='<div class="reading-handoff-aura" aria-hidden="true"><span>✧</span></div><p>THE CARDS ARE READY TO SPEAK</p>';
+  const wrapper=document.createElement('div');
+  wrapper.innerHTML=renderReadingHandoff();
+  const veil=wrapper.firstElementChild;
   world.append(veil);
   readingTimer=setTimeout(()=>{readingTimer=null;if(!dead)goReading()},handoffDuration(reduced));
   return true;
@@ -202,7 +217,7 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   const request=++portraitRevision;
   if(portrait&&url&&cached){
    portrait.dataset.artSlot=slot;
-   portrait.dataset.artFilename=ARTEMIS_ART_DIRECTOR_FILES[slot];
+   portrait.dataset.artFilename=url.split('/').pop();
    const display=()=>{
     if(dead||!readingStarted||request!==portraitRevision||!portrait.isConnected)return;
     const existing=[...portrait.querySelectorAll('img')];
