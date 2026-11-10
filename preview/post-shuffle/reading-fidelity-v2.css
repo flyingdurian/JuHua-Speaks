@@ -535,7 +535,7 @@
   bottom:10%;left:9%;right:9%;height:38%;
  }
  .scene-artemis-reading .reading-art-spread{
-  width:min(990px,96%);bottom:10.9%;
+  width:min(990px,96%);bottom:7%;
   gap:clamp(18px,4vw,70px);
   transform:translateX(-50%) perspective(1200px) rotateX(2deg);
  }
@@ -596,7 +596,7 @@
   left:2%;right:2%;bottom:11%;height:41%;
  }
  .scene-artemis-reading .reading-art-spread{
-  width:96%;bottom:13%;gap:clamp(8px,2.2vw,18px);
+  width:96%;bottom:9.5%;gap:clamp(8px,2.2vw,18px);
   transform:translateX(-50%) perspective(1000px) rotateX(1deg);
  }
  .scene-artemis-reading .reading-art-card{
