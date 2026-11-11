@@ -324,3 +324,75 @@
   height:520px!important;min-height:520px!important;
  }
 }
+
+
+/* Art-backed calibration: one seamless temple, original alpha lantern wings
+   and footer buttons that are hit targets on the PREPAINTED mobile capsules. */
+.scene-artemis-reading[data-phase="chat"] .reading-art-hero::before{
+ display:none!important;content:none!important;
+}
+.scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art{
+ -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 61%,rgba(0,0,0,.88) 76%,transparent 97%)!important;
+ mask-image:linear-gradient(to bottom,#000 0%,#000 61%,rgba(0,0,0,.88) 76%,transparent 97%)!important;
+}
+@media(max-width:720px){
+ /* Enlarge the actual ORIGINAL room bitmap vertically within the single
+    chamber crop so the gold table front meets the propped RWS card bases. */
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere img{
+  height:calc(100% + 78px)!important;
+  object-fit:cover!important;object-position:center top!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere::before,
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere::after{
+  display:block!important;content:""!important;
+  position:absolute!important;top:1%!important;
+  width:clamp(90px,29vw,145px)!important;
+  height:66%!important;z-index:1!important;
+  opacity:.89!important;pointer-events:none!important;
+  background-repeat:no-repeat!important;background-size:100% 100%!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere::before{
+  left:0!important;
+  background-image:url("../../assets/artemis/bg_artemis_mobile_lantern_left.webp")!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere::after{
+  right:0!important;
+  background-image:url("../../assets/artemis/bg_artemis_mobile_lantern_right.webp")!important;
+ }
+ /* In AI chat the room itself is one full-bleed image. These existing
+    transparent lantern wings restore the temple's depth without introducing
+    a second copy of the background or any hard seam. */
+ .scene-artemis-reading[data-phase="chat"] .reading-art-hero::before{
+  display:block!important;content:""!important;
+  position:absolute!important;inset:0!important;z-index:1!important;
+  background-image:url("../../assets/artemis/bg_artemis_mobile_lantern_left.webp"),
+    url("../../assets/artemis/bg_artemis_mobile_lantern_right.webp")!important;
+  background-position:left top,right top!important;
+  background-size:auto 100%,auto 100%!important;
+  background-repeat:no-repeat!important;
+  opacity:.90!important;pointer-events:none!important;
+ }
+ /* Only one painted input and ASK slot: never render a rounded HTML
+    textbox and button on top of the already illustrated gold capsules. */
+ .scene-artemis-reading[data-phase="chat"] .synthesis-followup-form label{
+  position:absolute!important;width:1px!important;height:1px!important;
+  margin:-1px!important;padding:0!important;overflow:hidden!important;
+  clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row{
+  display:grid!important;grid-template-columns:minmax(0,43%) minmax(0,1fr)!important;
+  gap:0!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row input,
+ .scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
+  width:100%!important;min-width:0!important;max-width:none!important;
+  height:48px!important;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row input{
+  padding:8px 7px!important;font-size:11px!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .synthesis-chat-actions{
+  padding:0 0 23px!important;
+ }
+}
