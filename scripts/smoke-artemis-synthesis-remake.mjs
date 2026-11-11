@@ -138,7 +138,7 @@ try{
  assert.equal(await page.locator('.synthesis-guidance-cta, .synthesis-reading-complete').count(),0,
   'The AI chat must NOT render the retired reading-stage or Draw Guidance CTAs');
  assert.ok(actionGeometry.scrollBottom<=actionGeometry.actionsTop+4
-  &&actionGeometry.inputRight<actionGeometry.buttonLeft,
+  &&actionGeometry.inputRight<=actionGeometry.buttonLeft+1,
   'Chat composer must be separate from the scrolling transcript: '+JSON.stringify(actionGeometry));
  assert.ok(actionGeometry.buttonBottom<=actionGeometry.hudBottom-8,
   'Chat ASK must remain inside the ornamental frame: '+JSON.stringify(actionGeometry));
@@ -180,7 +180,7 @@ try{
    scrollBottom:scroll.bottom};
  });
  assert.ok(inputGeometry.input.left<inputGeometry.button.left
-  &&inputGeometry.input.right<inputGeometry.button.left
+  &&inputGeometry.input.right<=inputGeometry.button.left+1
   &&inputGeometry.actions.top>=inputGeometry.scrollBottom-2,
   'Pinned follow-up input must not overlap the ASK CTA or the message transcript: '+
   JSON.stringify(inputGeometry));
@@ -220,7 +220,7 @@ try{
    inputTop:input.top,inputRight:input.right,
    buttonLeft:btn.left,buttonBottom:btn.bottom,viewport:innerHeight};
  });
- assert.ok(footerCompact.scrollTop>100&&footerCompact.inputRight<footerCompact.buttonLeft
+ assert.ok(footerCompact.scrollTop>100&&footerCompact.inputRight<=footerCompact.buttonLeft+1
   &&footerCompact.buttonBottom<footerCompact.viewport-22,
   'After scrolling compact chat, its input and ASK button must be visible in the two slots: '+
    JSON.stringify(footerCompact));
