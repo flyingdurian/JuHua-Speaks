@@ -89,12 +89,16 @@ try{
   const bounds=sel=>{const el=document.querySelector(sel),r=el.getBoundingClientRect();
    return {top:r.top,bottom:r.bottom,height:r.height,width:r.width}};
   return {hero:bounds('.reading-art-hero'),hud:bounds('.reading-chat-hud'),
+   heading:bounds('.synthesis-chat-heading h2'),
    question:bounds('.synthesis-question'),chat:bounds('.synthesis-chat-scroll'),
    frame:getComputedStyle(document.querySelector('.reading-chat-hud')).borderImageSource,
    focused:document.querySelector('.artemis-focused-chat-art')?.getAttribute('src'),
    avatar:document.querySelector('.synthesis-avatar')?.getAttribute('src')};
  });
  assert.ok(mobile.question.bottom<=mobile.chat.top+4,'Question pinned above scrolling chat log');
+ assert.ok(mobile.heading.top>=mobile.hud.top-1
+  &&mobile.heading.bottom<=mobile.question.top,
+  'Unified Reading heading must be visibly framed above question on mobile: '+JSON.stringify(mobile));
  assert.ok(mobile.hud.height>=320,'Mobile chat should occupy lower viewport');
  assert.ok(mobile.frame.includes('ui_reading_frame_panel_mobile.png'),'9-slice owner mobile panel selected');
  // In CI the owner-supplied binary ZIP may not yet have been installed.
