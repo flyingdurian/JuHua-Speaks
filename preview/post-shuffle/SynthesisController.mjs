@@ -133,7 +133,7 @@ export function createSynthesisController({world,question,choices,reading,reduce
     response=result.answer;
    }else{
     mode='scripted-demo';render();
-    await delay(1800);
+    await delay(3300);
     if(disposed||token!==requestToken)return;
     response=demoSynthesis({question,reading});
    }
