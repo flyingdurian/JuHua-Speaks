@@ -95,3 +95,30 @@
 .scene-artemis-reading[data-phase="sacrificing"] .artemis-synthesis-card-token{
  z-index:10!important;
 }
+
+
+/* Short-height phones: make the SCENE scroll vertically instead of shrinking
+   a 3-line question, long synthesis and prepainted footer into 553 pixels.
+   The original art dimensions and two footer buttons remain intact. */
+@media(max-width:720px) and (max-height:680px){
+ .scene-artemis-reading[data-phase="chat"]{
+  height:100dvh!important;min-height:100dvh!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  overscroll-behavior-y:contain;
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-art-layout{
+  height:auto!important;min-height:770px!important;max-height:none!important;
+  overflow:visible!important;
+  grid-template-rows:230px minmax(515px,auto)!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-art-hero{
+  min-height:230px!important;height:230px!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art{
+  top:-6px!important;height:242px!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
+  height:515px!important;min-height:515px!important;
+  overflow:hidden!important;
+ }
+}
