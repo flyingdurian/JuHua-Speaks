@@ -1190,8 +1190,8 @@
   }
   .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel {
     box-sizing:border-box;
-    height:clamp(330px,40dvh,385px);
-    min-height:330px;
+    height:clamp(390px,47.5dvh,440px);
+    min-height:390px;
     padding:46px clamp(37px,10.4vw,56px) 16px;
     margin-top:0;
     overflow:visible;
