@@ -197,7 +197,7 @@ try{
  });
  await page.locator('.ps-begin-reading').click();
  await page.waitForFunction(()=>window.__POST_SHUFFLE__?.stage()==='reading',undefined,{timeout:7000});
- assert.equal(page.url(),host+'/preview/post-shuffle/','No navigation during reader handoff');
+ assert.equal(page.url(),host+'/preview/post-shuffle/?legacy-reading=1','No navigation during reader handoff');
  assert.equal(await page.locator('.scene-artemis-reading').count(),1);
  assert.equal(await page.locator('.reading-art-card').count(),3);
  assert.equal(await page.evaluate(()=>{
