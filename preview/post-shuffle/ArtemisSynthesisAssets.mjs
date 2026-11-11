@@ -14,15 +14,21 @@ export const SYNTHESIS_ART=Object.freeze({
  mobilePanel:SYNTHESIS_ASSET_ROOT+'ui_reading_frame_panel_mobile.png'
 });
 export const ARTEMIS_CHAT_AVATARS=Object.freeze({
- neutral:SYNTHESIS_ASSET_ROOT+'avatar_artemis_neutral.png',
- warm_welcome:SYNTHESIS_ASSET_ROOT+'avatar_artemis_warm_welcome.png',
- focused_observation:SYNTHESIS_ASSET_ROOT+'avatar_artemis_focused_observation.png',
- thoughtful:SYNTHESIS_ASSET_ROOT+'avatar_artemis_thoughtful.png',
- surprised:SYNTHESIS_ASSET_ROOT+'avatar_artemis_surprised.png',
- reassuring:SYNTHESIS_ASSET_ROOT+'avatar_artemis_reassuring.png',
- confident:SYNTHESIS_ASSET_ROOT+'avatar_artemis_confident.png',
- mystical:SYNTHESIS_ASSET_ROOT+'avatar_artemis_mystical.png'
+ neutral:SYNTHESIS_ASSET_ROOT+'avatar_artemis_face_neutral.png',
+ warm_welcome:SYNTHESIS_ASSET_ROOT+'avatar_artemis_face_warm_welcome.png',
+ focused_observation:SYNTHESIS_ASSET_ROOT+'avatar_artemis_face_focused_observation.png',
+ thoughtful:SYNTHESIS_ASSET_ROOT+'avatar_artemis_face_thoughtful.png',
+ surprised:SYNTHESIS_ASSET_ROOT+'avatar_artemis_face_surprised.png',
+ reassuring:SYNTHESIS_ASSET_ROOT+'avatar_artemis_face_reassuring.png',
+ confident:SYNTHESIS_ASSET_ROOT+'avatar_artemis_face_confident.png',
+ mystical:SYNTHESIS_ASSET_ROOT+'avatar_artemis_face_mystical.png'
 });
+// Originals are retained as network-error fallbacks if a developer has only
+// installed the 11 initial assets and not the eight face crops yet.
+export const ARTEMIS_CHAT_AVATAR_ORIGINALS=Object.freeze(
+ Object.fromEntries(Object.entries(ARTEMIS_CHAT_AVATARS).map(([k,v])=>
+ [k,v.replace('/avatar_artemis_face_','/avatar_artemis_')]))
+);
 const direct=Object.freeze({
  intro:'warm_welcome',typing:'mystical',thinking:'thoughtful',
  analysis:'focused_observation',reflection:'thoughtful',
