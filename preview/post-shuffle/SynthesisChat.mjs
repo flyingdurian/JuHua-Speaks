@@ -85,8 +85,8 @@ export function renderSynthesisChat({question,mode='scripted-demo',status='gener
    '<button type="button" class="synthesis-demo-fallback" data-action="synthesis-demo">VIEW SCRIPTED PREVIEW</button>':'')+
   guidanceCard+log+
   (status==='followup-generating'?'<div class="synthesis-followup-loading" aria-hidden="true">✧ Guidance in progress</div>':'')+
-  form+'</div>'+
-  '<div class="synthesis-chat-actions">'+progress+
+  '</div>'+
+  '<div class="synthesis-chat-actions">'+form+progress+
   (complete&&!guidance?'<button class="synthesis-guidance-cta" data-action="draw-guidance" type="button">'+
    'Draw Guidance Card &amp; Ask Follow-up <span>✦</span></button>':'')+
   (guidance?'<span class="synthesis-guidance-confirmed">One guidance card drawn · Original three preserved</span>':'')+
