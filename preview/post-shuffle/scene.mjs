@@ -141,9 +141,10 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
  let lockAt=null,lockFrame=null,tableau=null,tableauShown=false,handoff=null;const pickAnchors=new Map();
  let readingStarted=false,readingTimer=null,readingChapter=-1,resourcesDisposed=false,portraitRevision=0;
  let synthesis=null;
- // Direct route is the default on this branch. The old five-chapter walkthrough
- // remains accessible to regression tests and review via ?legacy-reading=1.
- const directSynthesis=!new URLSearchParams(location.search).has('legacy-reading');
+ // The owner-approved journey is deterministic:
+ // Begin Interpretation -> scripted reading (-1,0,1,2,3) -> Ask Artemis -> AI.
+ // No query parameter can skip the scripted stage in the production flow.
+ const directSynthesis=false;
  // Predecode ONLY chapter-visible portraits; 16 source states exist but we
  // avoid eager-loading 16 large PNGs while the visitor is still in Gate C.
  const portraitCache=new Map();
@@ -237,7 +238,7 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   const sockets=[...world.querySelectorAll('.reading-art-card-frame .reading-actual-card-face')];
   const foilSockets=[...world.querySelectorAll('.reading-art-card-frame .reading-art-card-foil')];
   if(sockets.length!==3||foilSockets.length!==3)throw Error('Reading stage lost an original Tarot-card or foil slot');
-  if(directSynthesis)world.querySelector('.scene-artemis-reading')?.classList.add('is-synthesis-remake');
+  world.querySelector('.scene-artemis-reading')?.classList.add('is-synthesis-remake');
   originalFaces.forEach((img,i)=>{
    img.onload=null;img.onerror=null;img.removeAttribute('hidden');
    img.style.transform='';
@@ -257,14 +258,8 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
  }
  function beginReading(){
   if(dead||lockAt===null||!tableauShown||tableau?.revealed!==3||readingStarted||readingTimer!==null)return false;
-  // Owner-approved new gate: Begin Interpretation SYNTHESIZES the selected
-  // three cards immediately. It must not present the legacy chapter carousel
-  // before showing Artemis conjuring and her personalized chat.
-  if(directSynthesis){
-   if(!goReading())return false;
-   step='synthesis';world.dataset.beat='synthesis';
-   return synthesis?.start()===true;
-  }
+  // Begin Interpretation always enters the non-AI scripted reading first.
+  // The final chapter's Ask Artemis button alone launches synthesis.
   step='reading-transition';world.dataset.beat='reading-transition';ready=false;
   const wrapper=document.createElement('div');
   wrapper.innerHTML=renderReadingHandoff();
@@ -327,13 +322,11 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   if(synthesis?.handleClick(event))return;
   if(synthesis?.state.started)return;
   if(button.dataset.action==='reading-next'){
-   if(readingChapter===2){
+   if(readingChapter===3){
     if(synthesis?.start()){
      step='synthesis';world.dataset.beat='synthesis';
-     requestAnimationFrame(updateArtemisTableOcclusion);
-     setTimeout(updateArtemisTableOcclusion,1050);
     }
-   }else updateReadingChapter(readingChapter===3?0:readingChapter+1);
+   }else updateReadingChapter(Math.min(3,readingChapter+1));
    return;
   }
  };
