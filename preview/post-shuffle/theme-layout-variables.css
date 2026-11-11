@@ -24,6 +24,7 @@
  --reading-header-min-height:40px;
  --reading-atmosphere-top:36px;
  --reading-atmosphere-overdraw:78px;
+ --reading-atmosphere-pan:0px;
  --reading-layout-padding:6px 10px max(16px,env(safe-area-inset-bottom,0px));
  --reading-panel-gap:0px;
  --reading-spread-bottom:7%;
@@ -47,6 +48,7 @@
   /* Panel no longer overlaps hero; compensate card-base coordinates with
      --cards-y-offset to retain original on-screen mid-rib attachment. */
   --reading-hero-height: 390px;
+  --reading-atmosphere-pan:-56px;
   --artemis-portrait-width: min(82vw,332px);
   --artemis-portrait-height: 330px;
   --reading-panel-height: 354px;

@@ -36,7 +36,7 @@
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere img{
   width:100%!important;height:100%!important;max-width:none!important;
   object-fit:cover!important;object-position:center center!important;
-  transform:none!important;filter:none!important;
+  transform:translateY(var(--reading-atmosphere-pan))!important;filter:none!important;
  }
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere::before,
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere::after{
