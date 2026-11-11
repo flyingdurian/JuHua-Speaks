@@ -66,7 +66,7 @@ export function renderSynthesisChat({question,mode='scripted-demo',status='gener
  const form=(complete||status==='ready')&&!busy?
   '<form class="synthesis-followup-form" data-action="guidance-followup-form">'+
    '<label for="synthesis-followup-question">Ask Artemis a follow-up</label>'+
-   '<div class="synthesis-followup-row"><input id="synthesis-followup-question" name="question" maxlength="280" minlength="2" required placeholder="What should I consider next?" autocomplete="off"/>'+
+   '<div class="synthesis-followup-row"><input id="synthesis-followup-question" name="question" maxlength="280" minlength="2" required placeholder="Ask Artemis…" autocomplete="off"/>'+
    '<button type="submit" class="synthesis-followup-send">ASK ✦</button></div></form>':'';
  const progress=busy?
   '<div class="synthesis-progress" role="status" aria-label="Analyzing and synthesizing">'+
