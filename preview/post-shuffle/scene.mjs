@@ -237,6 +237,7 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   const sockets=[...world.querySelectorAll('.reading-art-card-frame .reading-actual-card-face')];
   const foilSockets=[...world.querySelectorAll('.reading-art-card-frame .reading-art-card-foil')];
   if(sockets.length!==3||foilSockets.length!==3)throw Error('Reading stage lost an original Tarot-card or foil slot');
+  if(directSynthesis)world.querySelector('.scene-artemis-reading')?.classList.add('is-synthesis-remake');
   originalFaces.forEach((img,i)=>{
    img.onload=null;img.onerror=null;img.removeAttribute('hidden');
    img.style.transform='';
