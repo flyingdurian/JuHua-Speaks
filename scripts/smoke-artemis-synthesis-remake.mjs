@@ -57,6 +57,11 @@ try{
  }
  assert.match(await page.locator('[data-action="reading-next"]').innerText(),/Ask Artemis/);
  await page.screenshot({path:path+'/01c-scripted-final-ask-mobile.png',fullPage:true});
+ await page.setViewportSize({width:860,height:720});
+ await page.waitForTimeout(180);
+ await page.screenshot({path:path+'/01d-scripted-reading-desktop.png',fullPage:true});
+ await page.setViewportSize({width:390,height:844});
+ await page.waitForTimeout(180);
  await page.locator('[data-action="reading-next"]').click();
  await page.locator('.artemis-synthesis-ritual').waitFor({timeout:5000});
  const ritual=await page.evaluate(()=>{
@@ -76,6 +81,13 @@ try{
  assert.equal(ritual.foilCount,3);
  assert.deepEqual(ritual.src,former);
  assert.equal(ritual.ritualDuration,SYNTHESIS_TRANSITION_MS);
+ const delays=await page.locator('.artemis-synthesis-card-token').evaluateAll(nodes=>
+  nodes.map(n=>({index:n.dataset.cardIndex,delay:getComputedStyle(n).animationDelay,
+   duration:getComputedStyle(n).animationDuration})));
+ assert.deepEqual(delays.map(x=>x.index),['0','1','2']);
+ assert.deepEqual(delays.map(x=>x.delay),['0.15s','0.55s','0.95s'],
+  'Cards must enter the glowing circle sequentially, not simultaneously');
+ assert.ok(delays.every(x=>x.duration==='1.55s'),'Each drop lasts 1.55 seconds');
  assert.ok(ritual.conjuringSrc?.includes('artemis_conjuring_transition.png'));
  await page.waitForTimeout(550);
  await page.screenshot({path:path+'/02-conjuring-card-drop-mobile.png'});
@@ -132,6 +144,24 @@ try{
  await page.waitForFunction(()=>document.querySelector('.reading-chat-hud')?.dataset.chatState==='followup-ready',null,{timeout:9000});
  assert.equal(await page.locator('.synthesis-user-followup').count(),1);
  assert.equal(await page.locator('.synthesis-message').count(),2);
+ const inputGeometry=await page.evaluate(()=>{
+  const hud=document.querySelector('.reading-chat-hud').getBoundingClientRect();
+  const actions=document.querySelector('.synthesis-chat-actions').getBoundingClientRect();
+  const input=document.querySelector('#synthesis-followup-question').getBoundingClientRect();
+  const button=document.querySelector('.synthesis-followup-send').getBoundingClientRect();
+  const scroll=document.querySelector('.synthesis-chat-scroll').getBoundingClientRect();
+  return {hud:{top:hud.top,bottom:hud.bottom},actions:{top:actions.top,bottom:actions.bottom},
+   input:{left:input.left,right:input.right,top:input.top,bottom:input.bottom},
+   button:{left:button.left,right:button.right,top:button.top,bottom:button.bottom},
+   scrollBottom:scroll.bottom};
+ });
+ assert.ok(inputGeometry.input.left<inputGeometry.button.left
+  &&inputGeometry.input.right<inputGeometry.button.left
+  &&inputGeometry.actions.top>=inputGeometry.scrollBottom-2,
+  'Pinned follow-up input must not overlap the ASK CTA or the message transcript: '+
+  JSON.stringify(inputGeometry));
+ assert.ok(inputGeometry.input.bottom<inputGeometry.hud.bottom-19,
+  'Input must remain above the ornamental bottom frame artwork: '+JSON.stringify(inputGeometry));
  await page.screenshot({path:path+'/06-chat-followup-mobile.png',fullPage:true});
  await page.setViewportSize({width:860,height:720});
  await page.waitForTimeout(350);
