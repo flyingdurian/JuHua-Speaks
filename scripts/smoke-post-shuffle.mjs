@@ -579,7 +579,22 @@ try{
   'Every slanted card must stay on the tabletop above the framed dialogue');
  assert.ok(fidelity.cards.every(c=>c.tiltDeg>=35&&c.tiltDeg<=45),
   'Actual CSS transform must project backward at 35–45 degrees');
- assert.ok(fidelity.portrait.y>=fidelity.header.bottom-8,'Artemis must be anchored below the question header');
+ // Portrait PNG includes transparent pixels above her hair; its outer box can
+ // sit under the banner without visual overlap. Assert the banner is legible,
+ // separated by stack order and not covered by the decorative portrait layer.
+ const compactHeader=await page.evaluate(()=>{
+  const header=document.querySelector('.reading-art-header');
+  const banner=document.querySelector('.reading-art-question-banner');
+  const portrait=document.querySelector('.reading-art-portrait');
+  const b=banner.getBoundingClientRect(),h=header.getBoundingClientRect();
+  return {bannerTop:b.top,bannerBottom:b.bottom,headerBottom:h.bottom,
+   headerZ:getComputedStyle(header).zIndex,portraitZ:getComputedStyle(portrait).zIndex,
+   question:getComputedStyle(banner).visibility};
+ });
+ assert.ok(compactHeader.bannerTop>=fidelity.header.y-2
+  &&compactHeader.bannerBottom<=compactHeader.headerBottom+2
+  &&compactHeader.question==='visible',
+  'Compact reading question must remain readable above Artemis: '+JSON.stringify(compactHeader));
  assert.ok(fidelity.cards[1].y>=fidelity.portrait.y+fidelity.portrait.height*.54,
   'At 458x553 the centre card must begin BELOW Artemis face, around her lower chest: '+
   JSON.stringify({cardTop:fidelity.cards[1].y,portraitTop:fidelity.portrait.y,portraitHeight:fidelity.portrait.height}));
