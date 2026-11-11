@@ -34,7 +34,9 @@ test('thinking avatar and animated dots precede result; response shows an analyt
  const after=renderSynthesisChat({question:'What now?',status:'ready',
   response:'The cards invite a reflective pause.'});
  assert.match(after,/avatar_artemis_face_focused_observation\.png/);
- assert.match(after,/synthesis-guidance-cta/);
+ assert.doesNotMatch(after,/synthesis-guidance-cta/);
+ assert.doesNotMatch(after,/synthesis-reading-complete/);
+ assert.match(after,/synthesis-followup-form/);
  assert.doesNotMatch(after,/synthesis-typing-dots/);
  const followup=renderSynthesisChat({question:'What now?',status:'followup-generating',
   response:'Initial reading is complete.',guidance:{id:'the_star',name:'The Star',
@@ -67,6 +69,15 @@ test('panel uses corner-safe nine slicing, no aspect-ratio stretching',async()=>
  assert.match(css,/border-image-slice:170 175 170 175 fill/);
  assert.match(css,/ui_reading_frame_panel_mobile\.png/);
  assert.match(css,/ui_reading_frame_panel\.png/);
+ const variables=await source('../preview/post-shuffle/theme-layout-variables.css');
+ const corrections=await source('../preview/post-shuffle/gate-d-layout-corrections.css');
+ for(const name of ['--artemis-top','--artemis-scale','--table-top','--cards-y-offset','--panel-padding']){
+  assert.ok(variables.includes(name),'IDE variable must be editable: '+name);
+  assert.ok(corrections.includes('var('+name),'DOM style must directly consume '+name);
+ }
+ assert.match(corrections,/reading-art-table-surface/);
+ assert.match(corrections,/reading-art-hero::after/);
+ assert.match(corrections,/bg_artemis_reading_stage_main\.webp/);
  assert.match(css,/artemis-conjuring-art/);
  assert.match(css,/artemis-focused-chat-art/);
  assert.match(css,/artemisCardOffering/);
