@@ -17,10 +17,10 @@
   height:auto!important;min-height:100dvh!important;
   grid-template-rows:min-content var(--reading-hero-height) var(--reading-panel-height) auto!important;
   align-content:start!important;
-  padding:6px 10px max(16px,env(safe-area-inset-bottom,0px))!important;
+  padding:var(--reading-layout-padding)!important;
  }
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-header{
-  position:relative;z-index:9;height:auto!important;min-height:40px!important;
+  position:relative;z-index:9;height:auto!important;min-height:var(--reading-header-min-height)!important;
   margin:0!important;padding:0 0 6px!important;
  }
  /* The portrait, painted chamber and restored table now share ONE fixed
@@ -28,7 +28,7 @@
     the entire chat+panel height. */
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere{
   position:absolute!important;inset:0 0 auto!important;
-  top:36px!important;height:var(--reading-hero-height)!important;
+  top:var(--reading-atmosphere-top)!important;height:var(--reading-hero-height)!important;
   width:100%!important;overflow:hidden!important;
   mask:none!important;-webkit-mask:none!important;
   z-index:0!important;
@@ -53,25 +53,33 @@
     No second inset rim, border, opaque rectangular box, or duplicate
     backdrop strip is allowed. */
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero::after{
-  display:none!important;content:none!important;
+  /* Mirror the single room bitmap into the foreground only BELOW the
+     actual painted tabletop edge, so Artemis sits behind it. scene.mjs
+     calculates the EXACT source-image cover alignment. */
+  display:block!important;content:""!important;
+  position:absolute!important;inset:0!important;z-index:4!important;
+  pointer-events:none!important;
+  background-image:url("../../assets/artemis/bg_artemis_reading_stage_main.webp")!important;
+  background-size:var(--room-cover-size,cover)!important;
+  background-position:var(--room-cover-position,center top)!important;
+  background-repeat:no-repeat!important;
+  clip-path:inset(var(--table-top) 0 0 0)!important;
+  border:0!important;box-shadow:none!important;
  }
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-table-surface{
+  /* One existing 3D surface: gentle bounce light only. The actual wood
+     and gold image comes from the original chamber + exact foreground matte.
+     No second displaced background crop or black tabletop rectangle. */
   display:block!important;visibility:visible!important;opacity:1!important;
-  z-index:4!important;position:absolute!important;
+  position:absolute!important;z-index:3!important;
   top:var(--table-top)!important;bottom:0!important;
-  left:-3%!important;right:-3%!important;height:auto!important;
-  transform:perspective(820px) rotateX(34deg)!important;
+  left:var(--reading-table-inset)!important;right:var(--reading-table-inset)!important;
+  height:auto!important;pointer-events:none!important;
+  transform:perspective(var(--reading-table-perspective)) rotateX(var(--reading-table-tilt))!important;
   transform-origin:center bottom!important;
-  border:0!important;
-  border-radius:45% 45% 0 0 / 11% 11% 0 0!important;
-  /* translucent violet bounce light lets the original painted tabletop
-     remain visually continuous rather than producing a second table. */
-  background:
-   radial-gradient(ellipse at 51% 28%,rgba(245,216,164,.13),transparent 64%),
-   linear-gradient(180deg,rgba(72,50,124,.22),rgba(20,14,59,.58))!important;
-  box-shadow:inset 0 6px 13px rgba(250,207,139,.19),
-   inset 0 -9px 20px rgba(14,10,45,.28)!important;
-  pointer-events:none;
+  border:0!important;border-radius:0!important;
+  background:radial-gradient(ellipse at 50% 60%,rgba(244,208,172,.07),transparent 78%)!important;
+  box-shadow:none!important;
  }
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
   position:absolute!important;z-index:2!important;
@@ -89,16 +97,16 @@
   opacity:1!important;
  }
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread{
-  z-index:5!important;bottom:calc(7% - var(--cards-y-offset))!important;
-  width:min(100%,480px)!important;left:50%!important;
+  z-index:5!important;bottom:calc(var(--reading-spread-bottom) - var(--cards-y-offset))!important;
+  width:var(--reading-spread-width)!important;left:50%!important;
   transform:translateX(-50%)!important;
-  gap:clamp(6px,2vw,15px)!important;
+  gap:var(--reading-spread-gap)!important;
  }
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-card{
-  width:clamp(86px,24vw,115px)!important;
+  width:var(--reading-card-width)!important;
  }
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-frame{
-  transform:perspective(750px) rotateX(42deg)!important;
+  transform:perspective(var(--reading-card-perspective)) rotateX(var(--reading-card-tilt))!important;
  }
  /* Reading panel: reserve a true bottom navigation row and separate
     pagination. Never position the CTAs across the gold footer ornament. */
@@ -153,7 +161,7 @@
   transform:translateX(-50%) scale(var(--artemis-scale))!important;
  }
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread{
-  bottom:calc(7% - var(--cards-y-offset))!important;
+  bottom:calc(var(--reading-spread-bottom) - var(--cards-y-offset))!important;
  }
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
   padding:var(--panel-padding)!important;
@@ -211,7 +219,7 @@
  transform:translateX(-50%) scale(var(--artemis-scale))!important;
  transform-origin:center top!important;
  width:var(--artemis-portrait-width)!important;
- height:calc(var(--chat-hero-height) + 25px)!important;
+ height:calc(var(--chat-hero-height) + var(--chat-portrait-tail))!important;
  max-width:none!important;min-height:0!important;
  object-fit:contain!important;object-position:center top!important;
  opacity:1;filter:drop-shadow(0 6px 26px rgba(134,94,180,.22));
@@ -339,7 +347,7 @@
  /* Enlarge the actual ORIGINAL room bitmap vertically within the single
     chamber crop so the gold table front meets the propped RWS card bases. */
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere img{
-  height:calc(100% + 78px)!important;
+  height:calc(100% + var(--reading-atmosphere-overdraw))!important;
   object-fit:cover!important;object-position:center top!important;
  }
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere::before,
@@ -407,25 +415,13 @@
 }
 
 
-/* Art fidelity pass: reuse the ORIGINAL chamber's gold tabletop crop in the
-   existing single table DOM surface. No new nested table, card or image is
-   introduced. The lower rim comes from the same licensed scene texture.
-   Both the crop and panel overlap can be tuned in theme-layout-variables.css. */
+/* Mobile panel stays in normal document flow below the entire three-card
+   hero. Change --reading-panel-gap in theme-layout-variables.css (nonnegative)
+   rather than pulling the full dialogue over the card/tabletop scene. */
 @media(max-width:720px){
- .scene-artemis-reading:not([data-phase="chat"]) .reading-art-table-surface{
-  top:var(--table-top)!important;
-  transform:perspective(820px) rotateX(24deg)!important;
-  border:0!important;border-radius:0!important;box-shadow:none!important;
-  background-image:
-   linear-gradient(180deg,rgba(39,23,74,.15),rgba(14,11,48,.18)),
-   url("../../assets/artemis/bg_artemis_reading_stage_main.webp")!important;
-  background-position:center center,center var(--table-art-offset)!important;
-  background-size:100% 100%,auto var(--table-art-height)!important;
-  background-repeat:no-repeat!important;
- }
  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
   position:relative!important;
-  margin-top:calc(0px - var(--panel-hero-overlap))!important;
+  margin-top:var(--reading-panel-gap)!important;
   z-index:10!important;
  }
 }
