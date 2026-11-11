@@ -106,7 +106,7 @@
 @keyframes artemisCardOffering{
  0%{opacity:1;transform:translate(0,0) rotate(0) scale(1);filter:brightness(1)}
  25%{opacity:1;filter:brightness(1.55) drop-shadow(0 0 12px #ffdcaf)}
- 54%{opacity:1;transform:translate(calc(var(--ritual-dx)*.65),calc(var(--ritual-dy)*.55))
+ 54%{opacity:1;transform:translate(var(--ritual-dx65),var(--ritual-dy55))
     rotate(105deg) scale(.65)}
  75%{opacity:1;transform:translate(var(--ritual-dx),calc(var(--ritual-dy) - 32px))
     rotate(174deg) scale(.45);filter:brightness(1.9)}
