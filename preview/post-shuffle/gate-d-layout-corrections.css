@@ -396,3 +396,12 @@
   padding:0 0 23px!important;
  }
 }
+
+
+/* The original chamber also paints a tabletop near its lower edge.
+   Compact scrolled chat must not reveal that artwork THROUGH the center of
+   the mobile panel. Use continuous deep-indigo inside its gold illustration,
+   never an exterior black drop-shadow rectangle. */
+.scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
+ background:linear-gradient(155deg,rgba(30,24,70,.98),rgba(17,17,51,.99))!important;
+}
