@@ -195,7 +195,12 @@ export function createSynthesisController({world,question,choices,reading,reduce
  }
  async function askFollowUp(q){
   const prompt=String(q||'').trim();
-  if(disposed||!guidance||pending||prompt.length<2||prompt.length>280||history.length>=8)return false;
+  if(disposed||!['ready','guidance','followup-ready'].includes(status)
+   ||pending||prompt.length<2||prompt.length>280||history.length>=8)return false;
+  // The chat composer is always visible after synthesis. On its FIRST valid
+  // submission, draw ONE card from the remaining 75 and preserve the three
+  // locked RWS originals; never require the retired "Draw Guidance" CTA.
+  if(!guidance)guidance=drawOneGuidance(choices);
   pending=true;status='followup-generating';render();
   const token=++requestToken;let answer='';
   try{
@@ -225,7 +230,6 @@ export function createSynthesisController({world,question,choices,reading,reduce
   if(disposed||!started||phase!=='chat')return false;
   const button=event.target.closest('[data-action]');
   if(!button)return false;
-  if(button.dataset.action==='draw-guidance'){drawGuidance();return true}
   if(button.dataset.action==='synthesis-demo'){useDemo();return true}
   return false;
  }
