@@ -1,0 +1,28 @@
+name: PR28 RWS References for Local Art QA
+on:
+  push:
+    branches: [feat/artemis-ai-synthesis-remake]
+    paths:
+      - .github/workflows/artemis-pr28-rws-reference-assets.yml
+permissions:
+  contents: read
+jobs:
+  rws-reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download and license-check authentic historical Rider Waite Smith reference scans
+        run: npm run assets:sync
+      - name: Bundle exactly the verified reference JPEGs
+        run: |
+          test "$(find assets/rws -maxdepth 1 -name '*.jpg' | wc -l)" -eq 78
+          tar czf artemis-pr28-rws-references.tgz assets/rws
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artemis-pr28-historical-rws-references
+          path: artemis-pr28-rws-references.tgz
+          retention-days: 7

@@ -110,8 +110,8 @@ export function renderReadingHandoff(){
 export function renderReadingPanel(demo,chapter){
  if(!demo||!Array.isArray(demo.cards)||demo.cards.length!==3)throw new Error('Reading panel needs three interpretations');
  const current=chapterText(demo,chapter);
- const lead=chapter===-1?'Begin the interpretation':chapter<2?'Continue the reading':
-  chapter===2?'Bring the cards together':'Return to the first card';
+ const lead=chapter===-1?'Begin the interpretation':
+  chapter===3?'Ask Artemis':'Continue the reading';
  const step=READING_CHAPTERS.indexOf(chapter)+1;
  return '<div class="reading-art-panel-inner">'+
   artSlot('nameplate','reading-art-nameplate-art')+

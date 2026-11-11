@@ -1,0 +1,97 @@
+/*
+ * Gate D V4 — IDE tuning controls.
+ * Edit the :root variables directly in your IDE (desktop, phone, short phone).
+ * Five core knobs: --artemis-top, --artemis-scale, --table-top,
+ * --cards-y-offset and --panel-padding. Reading and chat geometry follows.
+ * The original three RWS cards retain their 42deg pitch; no JS writes
+ * owner-facing variables. Consumers: gate-d-layout-corrections.css.
+ */
+:root{
+ --artemis-top: 8px;
+ --artemis-scale: 1;
+ --table-top: 63%;
+ --cards-y-offset: 0px;
+ --panel-padding: 34px 38px 25px;
+ /* secondary controls to preserve the five primary tuning knobs */
+ --reading-hero-height: 380px;
+ --artemis-portrait-width: min(520px,54vw);
+ --artemis-portrait-height: 315px;
+ --reading-panel-height: 300px;
+ --chat-hero-height: 35dvh;
+ --chat-panel-padding: 22px 22px 28px;
+ --chat-mist-height: 70px;
+ --scripted-button-gap: 10px;
+ --reading-header-min-height:40px;
+ --reading-atmosphere-top:36px;
+ --reading-atmosphere-overdraw:78px;
+ --reading-atmosphere-pan:0px;
+ --reading-layout-padding:6px 10px max(16px,env(safe-area-inset-bottom,0px));
+ --reading-panel-gap:0px;
+ --reading-spread-bottom:7%;
+ --reading-spread-width:min(100%,480px);
+ --reading-spread-gap:clamp(6px,2vw,15px);
+ --reading-card-width:clamp(86px,24vw,115px);
+ --reading-card-perspective:750px;
+ --reading-card-tilt:42deg;
+ --reading-table-inset:-3%;
+ --reading-table-perspective:820px;
+ --reading-table-tilt:24deg;
+ --chat-portrait-tail:25px;
+}
+@media(max-width:720px){
+ :root{
+  --artemis-top: 9px;
+  --artemis-scale: .93;
+  --table-top: 64%;
+  --cards-y-offset: -6px;
+  --panel-padding: 46px 43px 33px;
+  /* Panel no longer overlaps hero; compensate card-base coordinates with
+     --cards-y-offset to retain original on-screen mid-rib attachment. */
+  --reading-hero-height: 390px;
+  --reading-atmosphere-pan:-56px;
+  --artemis-portrait-width: min(82vw,332px);
+  --artemis-portrait-height: 330px;
+  --reading-panel-height: 354px;
+  --chat-hero-height: 32dvh;
+  --chat-panel-padding: 28px 20px 28px;
+  --chat-mist-height: 65px;
+  --scripted-button-gap: 11px;
+ }
+}
+@media(max-width:720px) and (max-height:680px){
+ :root{
+  --artemis-top: 14px;
+  --artemis-scale: .87;
+  --table-top: 64%;
+  --cards-y-offset: 4px;
+  --panel-padding: 43px 32px 29px;
+  --reading-hero-height: 370px;
+  --artemis-portrait-width: min(78vw,308px);
+  --artemis-portrait-height: 319px;
+  --reading-panel-height: 332px;
+  --chat-hero-height: 230px;
+  --chat-panel-padding: 25px 16px 25px;
+  --chat-mist-height: 54px;
+ }
+}
+@media(min-width:721px){
+ :root{
+  --artemis-top: 4px;
+  --artemis-scale: .98;
+  --table-top: 63%;
+  --cards-y-offset: 0px;
+  --panel-padding: 38px 54px 34px;
+  --reading-hero-height: 360px;
+  --artemis-portrait-width: min(460px,49vw);
+  --artemis-portrait-height: 310px;
+  --reading-panel-height: 260px;
+  --chat-hero-height: 34dvh;
+  --chat-panel-padding: 20px 26px 27px;
+ }
+}
+
+/* Every panel phase consumes --panel-padding; only its value changes
+   on entering chat. Do not assign this variable in scene.mjs. */
+.scene-artemis-reading[data-phase="chat"]{
+ --panel-padding:var(--chat-panel-padding);
+}

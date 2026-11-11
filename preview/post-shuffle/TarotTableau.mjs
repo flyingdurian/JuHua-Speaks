@@ -200,7 +200,7 @@ export function createTarotTableau({mount,picks,foil=chooseFoilFinish(),onReveal
  const readingEntry=node('div','ps-reading-entry');
  readingEntry.hidden=true;readingEntry.setAttribute('aria-live','polite');
  const readingComplete=node('p','ps-reading-entry-complete','All three cards revealed · Your story is ready');
- const begin=node('button','ps-begin-reading','BEGIN READING ✧');
+ const begin=node('button','ps-begin-reading','BEGIN INTERPRETATION ✧');
  begin.type='button';begin.dataset.action='begin-reading';begin.disabled=true;
  begin.addEventListener('click',()=>{
   if(disposed||revealed!==3||begin.disabled)return;

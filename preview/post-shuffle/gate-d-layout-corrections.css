@@ -1,0 +1,427 @@
+/*
+ * PR #28 precision correction — last-loaded single source of layout consumers.
+ * All owner-tuneable numbers live in theme-layout-variables.css.
+ * Uses the original 16:9 celestial chamber (including its painted tabletop),
+ * existing 3D table DOM, RWS foil nodes and supplied Artemis portrait files.
+ */
+
+/* The screenshot's missing mobile table was caused by a GLOBAL
+ * "display:none!important" on the existing plane. Restore only the
+ * scripted reading surface; do not draw a second nested framed box. */
+@media(max-width:720px){
+ .scene-artemis-reading:not([data-phase="chat"]){
+  background:#171535;
+  overflow-x:hidden!important;overflow-y:auto!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-layout{
+  height:auto!important;min-height:100dvh!important;
+  grid-template-rows:min-content var(--reading-hero-height) var(--reading-panel-height) auto!important;
+  align-content:start!important;
+  padding:var(--reading-layout-padding)!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-header{
+  position:relative;z-index:9;height:auto!important;min-height:var(--reading-header-min-height)!important;
+  margin:0!important;padding:0 0 6px!important;
+ }
+ /* The portrait, painted chamber and restored table now share ONE fixed
+    hero dimension, rather than the room background being cropped using
+    the entire chat+panel height. */
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere{
+  position:absolute!important;inset:0 0 auto!important;
+  top:var(--reading-atmosphere-top)!important;height:var(--reading-hero-height)!important;
+  width:100%!important;overflow:hidden!important;
+  mask:none!important;-webkit-mask:none!important;
+  z-index:0!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere img{
+  width:100%!important;height:100%!important;max-width:none!important;
+  object-fit:cover!important;object-position:center center!important;
+  transform:translateY(var(--reading-atmosphere-pan))!important;filter:none!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere::before,
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere::after{
+  display:none!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero{
+  box-sizing:border-box;min-height:var(--reading-hero-height)!important;
+  height:var(--reading-hero-height)!important;
+  margin:0!important;overflow:hidden!important;
+  isolation:isolate;
+ }
+ /* The background already paints the real gold-edged table, and the
+    ORIGINAL table DOM contributes one unified perspective plane/occluder.
+    No second inset rim, border, opaque rectangular box, or duplicate
+    backdrop strip is allowed. */
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero::after{
+  /* Mirror the single room bitmap into the foreground only BELOW the
+     actual painted tabletop edge, so Artemis sits behind it. scene.mjs
+     calculates the EXACT source-image cover alignment. */
+  display:block!important;content:""!important;
+  position:absolute!important;inset:0!important;z-index:4!important;
+  pointer-events:none!important;
+  background-image:url("../../assets/artemis/bg_artemis_reading_stage_main.webp")!important;
+  background-size:var(--room-cover-size,cover)!important;
+  background-position:var(--room-cover-position,center top)!important;
+  background-repeat:no-repeat!important;
+  clip-path:inset(var(--table-top) 0 0 0)!important;
+  border:0!important;box-shadow:none!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-table-surface{
+  /* One existing 3D surface: gentle bounce light only. The actual wood
+     and gold image comes from the original chamber + exact foreground matte.
+     No second displaced background crop or black tabletop rectangle. */
+  display:block!important;visibility:visible!important;opacity:1!important;
+  position:absolute!important;z-index:3!important;
+  top:var(--table-top)!important;bottom:0!important;
+  left:var(--reading-table-inset)!important;right:var(--reading-table-inset)!important;
+  height:auto!important;pointer-events:none!important;
+  transform:perspective(var(--reading-table-perspective)) rotateX(var(--reading-table-tilt))!important;
+  transform-origin:center bottom!important;
+  border:0!important;border-radius:0!important;
+  background:radial-gradient(ellipse at 50% 60%,rgba(244,208,172,.07),transparent 78%)!important;
+  box-shadow:none!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
+  position:absolute!important;z-index:2!important;
+  top:var(--artemis-top)!important;left:50%!important;
+  width:var(--artemis-portrait-width)!important;
+  height:var(--artemis-portrait-height)!important;
+  transform:translateX(-50%) scale(var(--artemis-scale))!important;
+  transform-origin:center top!important;overflow:hidden!important;
+  mask:none!important;-webkit-mask:none!important;clip-path:none!important;
+  opacity:1!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait img{
+  width:100%!important;height:100%!important;
+  object-fit:cover!important;object-position:center top!important;
+  opacity:1!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread{
+  z-index:5!important;bottom:calc(var(--reading-spread-bottom) - var(--cards-y-offset))!important;
+  width:var(--reading-spread-width)!important;left:50%!important;
+  transform:translateX(-50%)!important;
+  gap:var(--reading-spread-gap)!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-card{
+  width:var(--reading-card-width)!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-frame{
+  transform:perspective(var(--reading-card-perspective)) rotateX(var(--reading-card-tilt))!important;
+ }
+ /* Reading panel: reserve a true bottom navigation row and separate
+    pagination. Never position the CTAs across the gold footer ornament. */
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
+  box-sizing:border-box!important;position:relative!important;
+  width:100%!important;height:var(--reading-panel-height)!important;
+  min-height:var(--reading-panel-height)!important;margin:0 auto!important;
+  padding:var(--panel-padding)!important;overflow:visible!important;
+  isolation:isolate;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel-inner{
+  display:flex!important;flex-direction:column!important;
+  align-items:center!important;justify-content:flex-start!important;
+  height:100%!important;max-height:100%!important;
+  min-height:0!important;overflow:visible!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-narration-title{
+  flex:none;line-height:1.18;margin:0 0 7px!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-narration-text{
+  box-sizing:border-box;flex:1 1 0!important;
+  min-height:0!important;max-height:none!important;
+  overflow-x:hidden!important;overflow-y:auto!important;
+  overflow-wrap:break-word!important;
+  margin:0 auto 7px!important;padding:0 4px 5px!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-controls{
+  display:flex!important;position:relative!important;
+  bottom:auto!important;left:auto!important;right:auto!important;
+  width:100%!important;max-width:100%!important;flex:none!important;
+  align-items:center!important;justify-content:center!important;
+  flex-wrap:nowrap!important;gap:var(--scripted-button-gap)!important;
+  margin:auto auto 0!important;padding:5px 0 0!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-progress{
+  position:relative!important;left:auto!important;bottom:auto!important;
+  margin:8px auto 0!important;padding:0!important;flex:none!important;
+  line-height:1.35!important;z-index:3;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-control{
+  min-height:35px!important;max-height:45px!important;
+ }
+}
+
+/* Theme variables apply to the desktop reading too, without changing
+   the approved 42° card pitch or introducing an extra table frame. */
+@media(min-width:721px){
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
+  top:var(--artemis-top)!important;
+  width:var(--artemis-portrait-width)!important;
+  height:var(--artemis-portrait-height)!important;
+  transform:translateX(-50%) scale(var(--artemis-scale))!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread{
+  bottom:calc(var(--reading-spread-bottom) - var(--cards-y-offset))!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
+  padding:var(--panel-padding)!important;
+ }
+}
+
+/* Full-width celestial chamber in AI mode, never desktop letterboxes or
+   plain dark side rectangles. Crop the ART IMAGE with cover, not a background
+   color to replace it. The portal/portrait stay in the upper hero. */
+.scene-artemis-reading[data-phase="chat"]{
+ width:100%!important;max-width:none!important;
+ background:
+  linear-gradient(180deg,rgba(11,11,45,.06),rgba(20,13,56,.18)),
+  url("../../assets/artemis/bg_artemis_reading_stage_main.webp")
+  center top/cover no-repeat!important;
+ overflow-x:hidden!important;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-art-layout{
+ width:100%!important;max-width:none!important;
+ padding-left:0!important;padding-right:0!important;
+ grid-template-rows:var(--chat-hero-height) minmax(360px,1fr)!important;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-art-atmosphere{
+ display:none!important;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-art-hero{
+ min-height:var(--chat-hero-height)!important;
+ height:var(--chat-hero-height)!important;
+ overflow:hidden!important;isolation:isolate;
+ background:transparent!important;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-art-hero::before{
+ background:
+  linear-gradient(180deg,transparent 0%,rgba(24,16,58,.08) 70%,rgba(34,20,62,.28) 100%),
+  url("../../assets/artemis/bg_artemis_reading_stage_main.webp")
+  center 22%/cover no-repeat!important;
+ opacity:1!important;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-art-hero::after{
+ content:""!important;display:block!important;
+ position:absolute!important;left:0;right:0;bottom:-1px;top:auto!important;
+ height:var(--chat-mist-height)!important;z-index:8!important;
+ pointer-events:none!important;
+ background:
+  radial-gradient(ellipse 34% 42% at 34% 80%,rgba(232,189,246,.23),transparent 90%),
+  radial-gradient(ellipse 27% 45% at 69% 78%,rgba(255,214,161,.20),transparent 94%),
+  linear-gradient(to bottom,transparent,rgba(207,157,235,.15) 48%,rgba(24,17,58,.47) 100%)!important;
+ filter:blur(4px)!important;
+ border:0!important;box-shadow:none!important;
+ clip-path:none!important;mask:none!important;
+}
+.scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art{
+ position:absolute!important;left:50%!important;
+ top:var(--artemis-top)!important;
+ transform:translateX(-50%) scale(var(--artemis-scale))!important;
+ transform-origin:center top!important;
+ width:var(--artemis-portrait-width)!important;
+ height:calc(var(--chat-hero-height) + var(--chat-portrait-tail))!important;
+ max-width:none!important;min-height:0!important;
+ object-fit:contain!important;object-position:center top!important;
+ opacity:1;filter:drop-shadow(0 6px 26px rgba(134,94,180,.22));
+}
+/* The old tabletop, card buttons, reading glow and old panel are not
+   rendered in synthesis; only the chat and focused reader may be visible. */
+.scene-artemis-reading[data-phase="chat"] .reading-art-table-surface,
+.scene-artemis-reading[data-phase="chat"] .reading-art-spread,
+.scene-artemis-reading[data-phase="chat"] .reading-art-card-glow,
+.scene-artemis-reading[data-phase="chat"] .reading-art-reading-glow,
+.scene-artemis-reading[data-phase="chat"] .reading-art-footer{
+ display:none!important;
+}
+
+/* Mobile chat panel safety: the actual decorative PNG corners extend
+   inwards. Titles and original question must clear their star/moon details.
+   Use the owner-tunable --panel-padding for the real content area. */
+.scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
+ box-sizing:border-box!important;min-width:0!important;
+ padding:var(--panel-padding)!important;
+ border-radius:0!important;
+ box-shadow:none!important;
+ background:rgba(25,19,58,.26)!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-chat-heading{
+ margin:0 0 9px!important;min-height:30px!important;
+ text-align:center!important;overflow:visible!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-chat-heading h2{
+ margin:0!important;line-height:1.2!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-question{
+ margin:0 0 10px!important;
+ padding:8px 12px!important;
+ min-height:0!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-chat-scroll{
+ flex:1 1 0!important;min-height:0!important;
+ overflow-y:auto!important;overflow-x:hidden!important;
+ margin:0!important;padding:5px 1px 12px!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-chat-actions{
+ position:relative!important;flex:none!important;
+ display:block!important;min-width:0!important;
+ padding:10px 0 0!important;margin:0!important;
+ box-shadow:none!important;background:transparent!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-followup-form{
+ position:relative!important;display:block!important;
+ margin:0!important;padding:0!important;
+ border:0!important;background:transparent!important;
+ box-shadow:none!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-followup-form label{
+ position:static!important;display:block!important;
+ margin:0 0 8px!important;padding:0!important;
+ color:#e9cbab!important;font-size:12px!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-followup-row{
+ display:flex!important;align-items:stretch!important;
+ width:100%!important;min-width:0!important;
+ gap:10px!important;margin:0!important;padding:0!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-followup-row input{
+ box-sizing:border-box!important;flex:1 1 auto!important;
+ width:auto!important;min-width:0!important;
+ height:43px!important;max-height:43px!important;
+ padding:9px 12px!important;border-radius:13px!important;
+ border:1px solid rgba(246,213,158,.75)!important;
+ background:linear-gradient(140deg,rgba(56,43,88,.88),rgba(35,26,67,.84))!important;
+ box-shadow:inset 0 1px 2px rgba(252,220,175,.13)!important;
+ font:13px/1.35 Georgia,serif!important;color:#fff0df!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
+ box-sizing:border-box!important;flex:0 0 80px!important;
+ height:43px!important;max-height:43px!important;
+ min-width:80px!important;max-width:100px!important;
+ margin:0!important;padding:8px!important;border-radius:12px!important;
+ border:1px solid rgba(247,212,158,.80)!important;
+ color:#ffe8bd!important;font:600 13px Georgia,serif!important;
+ background:linear-gradient(150deg,#79568b,#352851)!important;
+ box-shadow:inset 0 1px 2px rgba(255,226,174,.25)!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-reading-complete,
+.scene-artemis-reading[data-phase="chat"] .synthesis-guidance-cta,
+.scene-artemis-reading[data-phase="chat"] .synthesis-guidance-confirmed{
+ display:none!important;
+}
+@media(max-width:720px){
+ .scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
+  min-height:430px!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .synthesis-question{
+  max-height:120px!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .synthesis-chat-heading{
+  padding-top:2px!important;
+ }
+}
+@media(max-width:720px) and (max-height:680px){
+ .scene-artemis-reading[data-phase="chat"]{
+  height:100dvh!important;overflow-y:auto!important;overflow-x:hidden!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-art-layout{
+  height:auto!important;min-height:810px!important;
+  grid-template-rows:var(--chat-hero-height) minmax(510px,auto)!important;
+  overflow:visible!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
+  height:520px!important;min-height:520px!important;
+ }
+}
+
+
+/* Art-backed calibration: one seamless temple, original alpha lantern wings
+   and footer buttons that are hit targets on the PREPAINTED mobile capsules. */
+.scene-artemis-reading[data-phase="chat"] .reading-art-hero::before{
+ display:none!important;content:none!important;
+}
+.scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art{
+ -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 61%,rgba(0,0,0,.88) 76%,transparent 97%)!important;
+ mask-image:linear-gradient(to bottom,#000 0%,#000 61%,rgba(0,0,0,.88) 76%,transparent 97%)!important;
+}
+@media(max-width:720px){
+ /* Enlarge the actual ORIGINAL room bitmap vertically within the single
+    chamber crop so the gold table front meets the propped RWS card bases. */
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere img{
+  height:calc(100% + var(--reading-atmosphere-overdraw))!important;
+  object-fit:cover!important;object-position:center top!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere::before,
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere::after{
+  display:block!important;content:""!important;
+  position:absolute!important;top:1%!important;
+  width:clamp(90px,29vw,145px)!important;
+  height:66%!important;z-index:1!important;
+  opacity:.89!important;pointer-events:none!important;
+  background-repeat:no-repeat!important;background-size:100% 100%!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere::before{
+  left:0!important;
+  background-image:url("../../assets/artemis/bg_artemis_mobile_lantern_left.webp")!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere::after{
+  right:0!important;
+  background-image:url("../../assets/artemis/bg_artemis_mobile_lantern_right.webp")!important;
+ }
+ /* In AI chat the room itself is one full-bleed image. These existing
+    transparent lantern wings restore the temple's depth without introducing
+    a second copy of the background or any hard seam. */
+ .scene-artemis-reading[data-phase="chat"] .reading-art-hero::before{
+  display:block!important;content:""!important;
+  position:absolute!important;inset:0!important;z-index:1!important;
+  background-image:url("../../assets/artemis/bg_artemis_mobile_lantern_left.webp"),
+    url("../../assets/artemis/bg_artemis_mobile_lantern_right.webp")!important;
+  background-position:left top,right top!important;
+  background-size:auto 100%,auto 100%!important;
+  background-repeat:no-repeat!important;
+  opacity:.90!important;pointer-events:none!important;
+ }
+ /* Only one painted input and ASK slot: never render a rounded HTML
+    textbox and button on top of the already illustrated gold capsules. */
+ .scene-artemis-reading[data-phase="chat"] .synthesis-followup-form label{
+  position:absolute!important;width:1px!important;height:1px!important;
+  margin:-1px!important;padding:0!important;overflow:hidden!important;
+  clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row{
+  display:grid!important;grid-template-columns:minmax(0,43%) minmax(0,1fr)!important;
+  gap:0!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row input,
+ .scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
+  width:100%!important;min-width:0!important;max-width:none!important;
+  height:48px!important;border:0!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row input{
+  padding:8px 7px!important;font-size:11px!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .synthesis-chat-actions{
+  padding:0 0 23px!important;
+ }
+}
+
+
+/* The original chamber also paints a tabletop near its lower edge.
+   Compact scrolled chat must not reveal that artwork THROUGH the center of
+   the mobile panel. Use continuous deep-indigo inside its gold illustration,
+   never an exterior black drop-shadow rectangle. */
+.scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
+ background:linear-gradient(155deg,rgba(30,24,70,.98),rgba(17,17,51,.99))!important;
+}
+
+
+/* Mobile panel stays in normal document flow below the entire three-card
+   hero. Change --reading-panel-gap in theme-layout-variables.css (nonnegative)
+   rather than pulling the full dialogue over the card/tabletop scene. */
+@media(max-width:720px){
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
+  position:relative!important;
+  margin-top:var(--reading-panel-gap)!important;
+  z-index:10!important;
+ }
+}

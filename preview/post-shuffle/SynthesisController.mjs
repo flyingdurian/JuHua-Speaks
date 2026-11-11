@@ -8,6 +8,7 @@ import {DECK,BY_ID,secureRandomInt,drawOrientation} from '../../src/deck.mjs';
 import {discoverLocalExodia,sendLocalExodia} from '../../src/local-exodia-client.mjs';
 import {assetUrl} from './reading-stage.mjs';
 import {renderSynthesisChat,demoSynthesis,demoGuidance} from './SynthesisChat.mjs';
+import {SYNTHESIS_ART,SYNTHESIS_TRANSITION_MS} from './ArtemisSynthesisAssets.mjs';
 
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const readingContext=(question,choices)=>({
@@ -28,6 +29,7 @@ export function createSynthesisController({world,question,choices,reading,reduce
  let disposed=false,started=false,phase='idle',status='generating';
  let mode='scripted-demo',response='',error='',guidance=null;
  let history=[],pending=false,requestToken=0,transitionTimer=null;
+ let ritualLayer=null;
  const context=readingContext(question,choices);
  const room=()=>world.querySelector('.scene-artemis-reading');
  const imageUrl=assetUrl('warmWelcome')||assetUrl('reflective')||'';
@@ -43,23 +45,88 @@ export function createSynthesisController({world,question,choices,reading,reduce
   else room()?.querySelector('.reading-art-panel')?.replaceWith(next);
   const list=next.querySelector('.synthesis-chat-scroll');
   if(list)list.scrollTop=guidance||history.length?list.scrollHeight:y;
+  // Asset loading can fail in an incomplete developer checkout. Keep the chat
+  // readable with an existing registered Artemis portrait, without concealing
+  // an asset installation failure from validation tests.
+  for(const image of next.querySelectorAll('img.synthesis-avatar')){
+   image.addEventListener('error',()=>{
+    const stage=Number(image.dataset.fallbackStage||0);
+    if(stage===0){
+     image.dataset.fallbackStage='1';
+     image.src=image.getAttribute('src').replace('/avatar_artemis_face_','/avatar_artemis_');
+    }else if(stage===1&&imageUrl){
+     image.dataset.fallbackStage='2';
+     image.src=imageUrl;
+    }
+   });
+  }
   world.dataset.synthesisStatus=status;
  }
- function updatePortrait(){
-  const portrait=room()?.querySelector('.reading-art-portrait');
-  if(!portrait)return;
-  const slot=['invocation','presenting','reflective'].find(s=>assetUrl(s));
-  if(!slot)return; // Never invent missing portrait assets.
-  const src=assetUrl(slot);
-  if(portrait.querySelector('img')?.getAttribute('src')===src)return;
-  const img=new Image();
-  img.decoding='async';img.alt='';img.src=src;
-  img.decode().then(()=>{
-   if(disposed||!portrait.isConnected)return;
-   portrait.replaceChildren(img);
-   portrait.dataset.artSlot=slot;
-   portrait.dataset.artFilename=src.split('/').pop();
-  }).catch(()=>{}); // Keep currently installed reader art on decode failure.
+ function buildCardConjuringScene(){
+  const stage=room();
+  if(!stage)return;
+  const layer=document.createElement('div');
+  layer.className='artemis-synthesis-ritual';
+  layer.setAttribute('role','status');
+  layer.setAttribute('aria-label','Artemis is conjuring your three chosen cards');
+  layer.dataset.ritualDuration=String(SYNTHESIS_TRANSITION_MS);
+  const conjuring=document.createElement('img');
+  conjuring.className='artemis-conjuring-art';conjuring.alt='';
+  conjuring.decoding='async';conjuring.src=SYNTHESIS_ART.conjuring;
+  conjuring.addEventListener('error',()=>{conjuring.hidden=true},{once:true});
+  const circle=document.createElement('div');circle.className='artemis-synthesis-circle';
+  circle.setAttribute('aria-hidden','true');
+  circle.innerHTML='<i></i><i></i><i></i><b></b>';
+  const veil=document.createElement('div');veil.className='artemis-synthesis-veil';
+  const label=document.createElement('div');label.className='artemis-synthesis-ritual-label';
+  label.textContent='The three cards become one story';
+  layer.append(veil,conjuring,circle,label);
+  stage.append(layer);
+  const stageBox=stage.getBoundingClientRect();
+  const cards=[...stage.querySelectorAll('.reading-art-card')].slice(0,3);
+  if(cards.length!==3)throw Error('Synthesis lost the original three physical cards');
+  // Match the visible front-of-hand magic circle: cards converge into the
+  // SAME 65%-height destination rather than disappearing above the ring.
+  const portal={x:stageBox.width*.5,y:Math.min(stageBox.height*.65,stageBox.height-100)};
+  cards.forEach((button,index)=>{
+   const image=button.querySelector('img.reading-actual-card-face');
+   const foil=button.querySelector('.reading-art-card-foil');
+   if(!image||!foil)throw Error('Synthesis cannot detach selected RWS/foil identities');
+   const rect=button.getBoundingClientRect();
+   const token=document.createElement('div');
+   token.className='artemis-synthesis-card-token';token.dataset.cardIndex=String(index);
+   token.dataset.originalCardId=button.dataset.originalCardId||'';
+   token.style.left=(rect.left-stageBox.left)+'px';
+   token.style.top=(rect.top-stageBox.top)+'px';
+   token.style.width=rect.width+'px';token.style.height=rect.height+'px';
+   const dx=portal.x-(rect.left-stageBox.left+rect.width*.5);
+   const dy=portal.y-(rect.top-stageBox.top+rect.height*.5);
+   token.style.setProperty('--ritual-dx',dx+'px');
+   token.style.setProperty('--ritual-dy',dy+'px');
+   token.style.setProperty('--ritual-dx65',dx*.65+'px');
+   token.style.setProperty('--ritual-dy55',dy*.55+'px');
+   const face=image.cloneNode(true);
+   face.removeAttribute('id');face.classList.add('artemis-synthesis-card-face');
+   const shimmer=foil.cloneNode(true);
+   shimmer.removeAttribute('id');shimmer.classList.add('artemis-synthesis-card-foil');
+   token.append(face,shimmer);layer.append(token);
+  });
+  ritualLayer=layer;
+ }
+ function showFocusedReadingArt(){
+  const hero=room()?.querySelector('.reading-art-hero');
+  if(!hero)return;
+  const img=document.createElement('img');
+  img.className='artemis-focused-chat-art';
+  img.alt='';img.decoding='async';img.src=SYNTHESIS_ART.focused;
+  img.addEventListener('load',()=>{
+   if(!disposed&&room()?.contains(img))room().dataset.synthesisPortrait='focused';
+  },{once:true});
+  img.addEventListener('error',()=>{
+   // Do not hide the old readable Artemis art if an asset is missing.
+   img.remove();if(room())room().dataset.synthesisPortrait='fallback';
+  },{once:true});
+  hero.append(img);
  }
  async function synthesize(){
   const token=++requestToken;
@@ -73,7 +140,7 @@ export function createSynthesisController({world,question,choices,reading,reduce
     response=result.answer;
    }else{
     mode='scripted-demo';render();
-    await delay(1800);
+    await delay(3300);
     if(disposed||token!==requestToken)return;
     response=demoSynthesis({question,reading});
    }
@@ -88,8 +155,20 @@ export function createSynthesisController({world,question,choices,reading,reduce
  function activateChat(){
   if(disposed||!started)return;
   phase='chat';
-  room().dataset.phase='chat';
+  const stage=room();
+  stage.dataset.phase='chat';
+  // Deliberately retire the scripted stage's visual layers. Card and foil
+  // identities remain mounted but hidden for continuity and diagnostics.
+  // The repeated backdrop tabletop must not paint behind the chat.
+  for(const selector of ['.reading-art-spread','.reading-art-table-surface',
+    '.reading-art-card-glow','.reading-art-reading-glow']){
+   const obsolete=stage.querySelector(selector);
+   if(obsolete){obsolete.hidden=true;obsolete.setAttribute('aria-hidden','true');}
+  }
+  ritualLayer?.remove();ritualLayer=null;
+  showFocusedReadingArt();
   render();
+  room()?.querySelector('#synthesis-title')?.focus({preventScroll:true});
   void synthesize();
  }
  function start(){
@@ -97,15 +176,10 @@ export function createSynthesisController({world,question,choices,reading,reduce
   started=true;phase='sacrificing';
   world.dataset.beat='synthesis';
   room().dataset.phase='sacrificing';
-  const hero=room().querySelector('.reading-art-hero');
-  if(hero&&!hero.querySelector('.reading-synthesis-portal')){
-   const portal=document.createElement('div');
-   portal.className='reading-synthesis-portal';
-   portal.setAttribute('aria-hidden','true');
-   hero.append(portal);
-  }
-  updatePortrait();
-  transitionTimer=setTimeout(activateChat,reducedMotion?10:950);
+  // The three card identities and foil DOM nodes remain in their frames.
+  // Faithful visual tokens fly into the circle; no replacement card is drawn.
+  buildCardConjuringScene();
+  transitionTimer=setTimeout(activateChat,reducedMotion?60:SYNTHESIS_TRANSITION_MS);
   return true;
  }
  function drawGuidance(){
@@ -121,7 +195,12 @@ export function createSynthesisController({world,question,choices,reading,reduce
  }
  async function askFollowUp(q){
   const prompt=String(q||'').trim();
-  if(disposed||!guidance||pending||prompt.length<2||prompt.length>280||history.length>=8)return false;
+  if(disposed||!['ready','guidance','followup-ready'].includes(status)
+   ||pending||prompt.length<2||prompt.length>280||history.length>=8)return false;
+  // The chat composer is always visible after synthesis. On its FIRST valid
+  // submission, draw ONE card from the remaining 75 and preserve the three
+  // locked RWS originals; never require the retired "Draw Guidance" CTA.
+  if(!guidance)guidance=drawOneGuidance(choices);
   pending=true;status='followup-generating';render();
   const token=++requestToken;let answer='';
   try{
@@ -151,7 +230,6 @@ export function createSynthesisController({world,question,choices,reading,reduce
   if(disposed||!started||phase!=='chat')return false;
   const button=event.target.closest('[data-action]');
   if(!button)return false;
-  if(button.dataset.action==='draw-guidance'){drawGuidance();return true}
   if(button.dataset.action==='synthesis-demo'){useDemo();return true}
   return false;
  }
@@ -166,6 +244,7 @@ export function createSynthesisController({world,question,choices,reading,reduce
  return {
   start,handleClick,handleSubmit,drawGuidance,askFollowUp,dispose(){
    disposed=true;requestToken++;clearTimeout(transitionTimer);
+   ritualLayer?.remove();ritualLayer=null;
   },
   get state(){return {started,phase,status,mode,locked:choices.map(x=>x.id),
    guidance:guidance?{...guidance}:null,historyLength:history.length}}

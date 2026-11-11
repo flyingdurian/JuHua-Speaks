@@ -1,0 +1,124 @@
+/* Gate D / Artemis chat — art-backed responsive geometry pass.
+   Kept separate from accepted scripted-reading CSS. Owner QA: no table
+   behind the AI reader, no transcript underneath mobile painted controls. */
+
+.scene-artemis-reading[data-phase="chat"] .synthesis-guidance-label-mobile,
+.scene-artemis-reading[data-phase="chat"] .synthesis-reading-complete{
+ display:none;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-guidance-label-desktop{
+ display:inline;
+}
+
+/* The top celestial chamber is the ONLY backdrop. The source's tabletop
+   begins below the cropped source viewport, so it cannot leak into chat. */
+.scene-artemis-reading[data-phase="chat"] .reading-art-hero::before{
+ content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+ background:
+  linear-gradient(180deg,rgba(12,15,49,.06) 0%,rgba(24,14,59,.20) 57%,#221940 98%),
+  url("../../assets/artemis/bg_artemis_reading_stage_main.webp") center top /
+  auto clamp(520px,80dvh,760px) no-repeat!important;
+ opacity:.84;
+}
+
+/* More room for the actual synthesis rather than a top-heavy portrait.
+   Desktop preserves the official original desktop frame PNG. */
+@media(min-width:721px){
+ .scene-artemis-reading[data-phase="chat"] .reading-art-layout{
+  grid-template-rows:clamp(210px,34dvh,338px) minmax(370px,1fr)!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-art-hero{
+  min-height:210px!important;
+ }
+}
+@media(max-width:720px){
+ .scene-artemis-reading[data-phase="chat"] .reading-art-layout{
+  grid-template-rows:clamp(240px,33dvh,295px) minmax(425px,1fr)!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-art-hero{
+  min-height:240px!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art{
+  top:-10px!important;width:clamp(220px,70vw,295px)!important;
+  height:clamp(240px,36dvh,304px)!important;min-height:0!important;
+ }
+ /* Reserve the true prepainted button area, not just the CSS border width.
+    This moves the scrollport's end ABOVE the two ornamental capsules. */
+ .scene-artemis-reading[data-phase="chat"] .synthesis-chat-actions{
+  padding-bottom:34px!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .synthesis-guidance-cta{
+  gap:6px!important;align-items:center!important;justify-content:center!important;
+  padding:0 7px!important;overflow:hidden!important;white-space:nowrap!important;
+  font-size:12px!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .synthesis-guidance-label-mobile{
+  display:inline;
+ }
+ .scene-artemis-reading[data-phase="chat"] .synthesis-guidance-label-desktop{
+  display:none;
+ }
+ /* The unused left painted capsule has status text, not a dead button. */
+ .scene-artemis-reading[data-phase="chat"] .synthesis-reading-complete{
+  position:absolute;bottom:34px;left:3px;display:flex;
+  width:41%;height:42px;align-items:center;justify-content:center;
+  padding:0;font:600 10px/1.1 Georgia,serif;color:#e6cda8;
+  letter-spacing:.025em;text-align:center;white-space:nowrap;pointer-events:none;
+ }
+}
+@media(max-width:720px) and (max-height:680px){
+ .scene-artemis-reading[data-phase="chat"] .reading-art-layout{
+  grid-template-rows:clamp(210px,35dvh,235px) minmax(320px,1fr)!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-art-hero{
+  min-height:210px!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art{
+  top:-8px!important;height:230px!important;
+ }
+}
+
+
+/* Front-of-hand celestial summoning circle. The original three RWS card
+   face+foil tokens land at the same 65% portal coordinates as the geometry
+   in SynthesisController, one by one. Preserve the 2.6s choreography. */
+.scene-artemis-reading[data-phase="sacrificing"] .artemis-synthesis-circle{
+ top:65%!important;z-index:9!important;
+ width:min(82vw,470px)!important;height:180px!important;
+ transform:translate(-50%,-50%) scaleY(.50)!important;
+ border-width:3px!important;
+ box-shadow:0 0 18px 8px rgba(255,248,212,.9),
+  0 0 54px 20px rgba(244,208,143,.77),
+  0 0 124px 48px rgba(234,148,255,.38),
+  inset 0 0 38px 10px rgba(254,244,196,.88)!important;
+}
+.scene-artemis-reading[data-phase="sacrificing"] .artemis-synthesis-card-token{
+ z-index:10!important;
+}
+
+
+/* Short-height phones: make the SCENE scroll vertically instead of shrinking
+   a 3-line question, long synthesis and prepainted footer into 553 pixels.
+   The original art dimensions and two footer buttons remain intact. */
+@media(max-width:720px) and (max-height:680px){
+ .scene-artemis-reading[data-phase="chat"]{
+  height:100dvh!important;min-height:100dvh!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  overscroll-behavior-y:contain;
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-art-layout{
+  height:auto!important;min-height:770px!important;max-height:none!important;
+  overflow:visible!important;
+  grid-template-rows:230px minmax(515px,auto)!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-art-hero{
+  min-height:230px!important;height:230px!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art{
+  top:-6px!important;height:242px!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
+  height:515px!important;min-height:515px!important;
+  overflow:hidden!important;
+ }
+}

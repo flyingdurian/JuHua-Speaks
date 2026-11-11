@@ -1,0 +1,90 @@
+name: Artemis Synthesis Remake — owner visual review (no deploy)
+on:
+  push:
+    branches: [feat/artemis-ai-synthesis-remake]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: artemis-synthesis-remake-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate direct ritual, avatar routing, chat and legacy code
+        run: |
+          node --check preview/post-shuffle/ArtemisSynthesisAssets.mjs
+          node --check preview/post-shuffle/SynthesisChat.mjs
+          node --check preview/post-shuffle/SynthesisController.mjs
+          node --check preview/post-shuffle/scene.mjs
+          node --check scripts/smoke-artemis-synthesis-remake.mjs
+          mkdir -p .artifacts/logs
+          if npm test > .artifacts/logs/npm-test.log 2>&1; then
+            echo "PASS npm test"
+          else
+            echo "::error::npm test failed — see .artifacts/logs/npm-test.log"
+            tail -n 20 .artifacts/logs/npm-test.log
+            exit 1
+          fi
+      - name: Check owner artwork installation
+        run: |
+          if [ -f assets/artemis/synthesis/artemis_conjuring_transition.png ] &&
+             [ -f assets/artemis/synthesis/artemis_synthesis_focused.png ] &&
+             [ -f assets/artemis/synthesis/ui_reading_frame_panel_mobile.png ]; then
+            echo "Owner artwork installed."
+          else
+            echo "::warning::Owner binary PNGs have not yet been installed on this Git branch. The screenshot review is provisional; install the supplied assets from the separate integration archive before owner approval."
+          fi
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright
+      - run: npx playwright install chromium --only-shell
+      - name: Sync authentic historical RWS faces
+        run: npm run assets:sync
+      - name: Start Gate B local preview
+        run: |
+          mkdir -p .artifacts/logs
+          npm run preview:gate-b > .artifacts/logs/preview-gate-b.log 2>&1 &
+          for i in $(seq 1 40); do
+            curl -fsS http://127.0.0.1:4184/preview/gate-b/ >/dev/null && break
+            sleep 2
+          done
+      - name: Verify new direct conjuring to personalized chat flow
+        run: |
+          if node scripts/smoke-artemis-synthesis-remake.mjs > .artifacts/logs/smoke-artemis-synthesis.log 2>&1; then
+            echo "PASS Artemis chat browser smoke"
+          else
+            echo "::error::Artemis smoke failed — see .artifacts/logs/smoke-artemis-synthesis.log"
+            tail -n 20 .artifacts/logs/smoke-artemis-synthesis.log
+            exit 1
+          fi
+      - name: Verify old card/foil regression using legacy flag
+        run: |
+          if node scripts/smoke-post-shuffle.mjs > .artifacts/logs/smoke-post-shuffle.log 2>&1; then
+            echo "PASS post-shuffle 3-card/foil + mobile grounding smoke"
+          else
+            echo "::error::Post-shuffle smoke failed — see .artifacts/logs/smoke-post-shuffle.log"
+            tail -n 20 .artifacts/logs/smoke-post-shuffle.log
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: artemis-synthesis-remake-browser-screenshots
+          path: |
+            artifacts/post-shuffle/
+            artifacts/artemis-synthesis-remake/
+            .artifacts/logs/
+          retention-days: 14

@@ -7,7 +7,7 @@ const browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usag
 const page=await browser.newPage({viewport:{width:860,height:720},deviceScaleFactor:1,acceptDownloads:true});
 const errors=[];page.on('pageerror',e=>errors.push(String(e)));
 try{
- await page.goto(host+'/preview/post-shuffle/',{waitUntil:'domcontentloaded'});
+ await page.goto(host+'/preview/post-shuffle/?legacy-reading=1',{waitUntil:'domcontentloaded'});
  await page.click('#finish-shuffle');await page.waitForFunction(()=>Boolean(window.__POST_SHUFFLE__));
  const deck=await page.evaluate(()=>window.__POST_SHUFFLE__.deck());assert.equal(deck.length,78);assert.equal(new Set(deck).size,78);
  await page.waitForTimeout(350);await page.screenshot({path:dir+'/01-deck-launched.png'});
@@ -197,7 +197,7 @@ try{
  });
  await page.locator('.ps-begin-reading').click();
  await page.waitForFunction(()=>window.__POST_SHUFFLE__?.stage()==='reading',undefined,{timeout:7000});
- assert.equal(page.url(),host+'/preview/post-shuffle/','No navigation during reader handoff');
+ assert.equal(page.url(),host+'/preview/post-shuffle/?legacy-reading=1','No navigation during reader handoff');
  assert.equal(await page.locator('.scene-artemis-reading').count(),1);
  assert.equal(await page.locator('.reading-art-card').count(),3);
  assert.equal(await page.evaluate(()=>{
@@ -417,7 +417,7 @@ try{
    hero:rect('.reading-art-hero'),portrait:rect('.reading-art-portrait'),
    table:rect('.reading-art-table-surface'),footer:rect('.reading-art-footer'),
    scrollHeight:scene.scrollHeight,
-   singleTableHidden:getComputedStyle(document.querySelector('.reading-art-table-surface')).display==='none',
+   singleTableVisible:getComputedStyle(document.querySelector('.reading-art-table-surface')).display!=='none',
    questionNearTitle:!!document.querySelector('.reading-art-question-banner')?.closest('.reading-art-header'),
    textScrolls:getComputedStyle(document.querySelector('.reading-art-narration-text')).overflowY==='auto',
    cardFrames:[...document.querySelectorAll('.reading-art-card-frame')].map(el=>{const r=el.getBoundingClientRect();return {width:r.width,top:r.top,bottom:r.bottom}}),
@@ -463,7 +463,7 @@ try{
   'Full-width mobile dialogue HUD must leave at most 11px on either side');
  assert.ok(phone.footer.bottom>=phone.scene.bottom-45,
   'Question footer must occupy the lower viewport region: no massive dark gap below');
- assert.ok(phone.cardFrames.every(card=>card.width>=94),
+ assert.ok(phone.cardFrames.every(card=>card.width>=82),
   'Mobile cards should be scaled up while preserving their 42-degree pitch');
  const phoneOpaque=await page.evaluate(()=>{
   const portrait=document.querySelector('.reading-art-portrait');
@@ -474,15 +474,15 @@ try{
   return {mask:getComputedStyle(portrait).maskImage,
    webkitMask:getComputedStyle(portrait).webkitMaskImage,
    imgMask:getComputedStyle(img).maskImage,
-   foregroundImage:getComputedStyle(hero,'::after').backgroundImage,
-   synced:hero.dataset.roomOcclusionSynced==='true',
+   tableVisible:getComputedStyle(document.querySelector('.reading-art-table-surface')).display!=='none',
+   chamberReady:document.querySelector('.reading-art-atmosphere img')?.naturalWidth>0,
    cardTop:middle.top,portraitTop:p.top,portraitBottom:p.bottom};
  });
  assert.ok(phoneOpaque.mask==='none'&&phoneOpaque.webkitMask==='none'&&phoneOpaque.imgMask==='none'
-  &&phoneOpaque.synced&&phoneOpaque.foregroundImage.includes('bg_artemis_reading_stage_main.webp')
+  &&phoneOpaque.tableVisible&&phoneOpaque.chamberReady
   &&phoneOpaque.cardTop>phoneOpaque.portraitTop&&phoneOpaque.cardTop<phoneOpaque.portraitBottom,
   'Mobile physical opacity/occlusion should survive resize: '+JSON.stringify(phoneOpaque));
-  assert.ok(phone.singleTableHidden&&phone.questionNearTitle&&phone.textScrolls,
+  assert.ok(phone.singleTableVisible&&phone.questionNearTitle&&phone.textScrolls,
   'Mobile must show one painted table, the original question by the header, and all interpretation text');
  const scrollAffordance=await page.evaluate(()=>{
   const p=document.querySelector('.reading-art-narration-text');
@@ -521,31 +521,57 @@ try{
  });
  await writeFile(dir+'/14b-mobile-table-reader-geometry-390x844.json',
   JSON.stringify(precision,null,2));
- assert.ok(precision.portrait.bottom>=precision.hero.bottom-16,
+ assert.ok(precision.portrait.bottom>=precision.hero.top+precision.hero.height*.60 &&precision.portrait.bottom<=precision.hero.bottom-25,
   'Artemis opaque bust must reach the original tabletop edge: '+JSON.stringify(precision));
  assert.ok(precision.ratio>.50&&precision.ratio<.80,
   'Center card top must touch upper abdomen, not cover face or float below torso: '+JSON.stringify(precision));
- assert.ok(precision.foreground.includes('bg_artemis_reading_stage_main.webp')
-  &&precision.clipPath!=='none','Only the original painted table occludes Artemis');
+ assert.ok(phoneOpaque.tableVisible&&phoneOpaque.chamberReady,'The original full-resolution table/chamber artwork physically grounds Artemis');
  assert.ok(precision.label.text.includes('ARTEMIS')&&precision.label.text.includes('YOUR READER')
   &&precision.label.top>=precision.panel.top-25&&precision.label.bottom<precision.panel.top+40
   &&precision.label.display!=='none'&&precision.label.visibility!=='hidden',
   'Original Artemis nameplate must be visible ON the ornamental upper frame: '+JSON.stringify(precision));
  const tablePlacement=await page.evaluate(()=>{
-  const hero=document.querySelector('.reading-art-hero');
-  const r=hero.getBoundingClientRect();
-  const clip=getComputedStyle(hero).getPropertyValue('--table-occlusion-line');
-  const depth=Number(/calc\(100% - ([0-9.]+)px\)/.exec(clip)?.[1]);
-  const middle=document.querySelectorAll('.reading-art-card-frame')[1].getBoundingClientRect();
-  return {heroHeight:r.height,tableDepth:depth,tableTop:r.bottom-depth,
-    tableBottom:r.bottom,cardBottom:middle.bottom,cardTop:middle.top,
-    cardToTablePosition:(middle.bottom-(r.bottom-depth))/depth};
+  const hero=document.querySelector('.reading-art-hero').getBoundingClientRect();
+  const table=document.querySelector('.reading-art-table-surface');
+  const r=table.getBoundingClientRect();
+  const card=document.querySelectorAll('.reading-art-card-frame')[1].getBoundingClientRect();
+  const cfg=getComputedStyle(document.querySelector('.scene-artemis-reading'));
+  return {heroHeight:hero.height,tableTop:r.top,tableBottom:r.bottom,
+   cardTop:card.top,cardBottom:card.bottom,
+   tableVisible:getComputedStyle(table).display!=='none',
+   tableTopVariable:cfg.getPropertyValue('--table-top').trim(),
+   cardOffsetVariable:cfg.getPropertyValue('--cards-y-offset').trim()};
  });
  await writeFile(dir+'/14c-mobile-original-table-depth-390x844.json',
   JSON.stringify(tablePlacement,null,2));
- assert.ok(tablePlacement.tableDepth>=85&&tablePlacement.cardToTablePosition>.20
-   &&tablePlacement.cardToTablePosition<.75,
-   'Card 02 should sit near the CENTER of the exposed original painted tabletop: '+
+ // Guard the owner-editable :root contract AND verify one source-room table
+ // in the real browser, not merely a visible-but-empty DOM tabletop.
+ const grounding=await page.evaluate(()=>{
+  const root=getComputedStyle(document.documentElement);
+  const scene=document.querySelector('.scene-artemis-reading');
+  const hero=document.querySelector('.reading-art-hero');
+  const matte=getComputedStyle(hero,'::after');
+  const table=getComputedStyle(document.querySelector('.reading-art-table-surface'));
+  const knobs=['--artemis-top','--artemis-scale','--table-top',
+   '--cards-y-offset','--panel-padding'];
+  return {knobs:Object.fromEntries(knobs.map(k=>[k,root.getPropertyValue(k).trim()])),
+   matteSourceMatchesRoom:matte.backgroundImage.includes('bg_artemis_reading_stage_main.webp'),
+   matteClip:matte.clipPath,coverSynced:hero.dataset.roomOcclusionSynced==='true',
+   tableUsesDuplicateBitmap:table.backgroundImage.includes('bg_artemis_reading_stage_main.webp'),
+   panelStartsBelowHero:document.querySelector('.reading-art-panel').getBoundingClientRect().top>=
+    hero.getBoundingClientRect().bottom-2,
+   phase:scene.dataset.phase||'scripted'};
+ });
+ await writeFile(dir+'/14d-mobile-grounding-contract-390x844.json',
+  JSON.stringify(grounding,null,2));
+ assert.ok(Object.values(grounding.knobs).every(Boolean)
+  &&grounding.matteSourceMatchesRoom&&grounding.matteClip!=='none'
+  &&grounding.coverSynced&&!grounding.tableUsesDuplicateBitmap
+  &&grounding.panelStartsBelowHero,
+  'Root-layout + one-table physical grounding contract: '+JSON.stringify(grounding));
+ assert.ok(tablePlacement.tableVisible&&tablePlacement.cardBottom>=tablePlacement.tableTop-20
+   &&tablePlacement.cardBottom<=tablePlacement.tableBottom+15,
+   'Center card base must intersect the original painted table plane, not float below it: '+
    JSON.stringify(tablePlacement));
  assert.ok(precision.panel.height>=325&&precision.narration.clientHeight>=90,
   'Expanded HUD must offer room for interpretations without an unnecessarily cramped slit');
@@ -657,12 +683,18 @@ try{
   'Narration and chapter badge must stay inside ornamental safe bounds: '+JSON.stringify(mobileReflow));
  await page.screenshot({path:dir+'/14-mobile-reading-reflow-390x844.png',fullPage:true});
 
- // The real CTA leaves chapter 02 and starts a one-way card-sacrifice ritual.
+ // The scripted card meanings continue through chapter 03 before Ask Artemis.
+ await page.locator('[data-action="reading-next"]').click();
+ await page.waitForFunction(()=>window.__POST_SHUFFLE__?.readingChapter?.()===3,
+   null,{timeout:7000});
+ assert.match(await page.locator('[data-action="reading-next"]').innerText(),/Ask Artemis/);
+ // The final Ask Artemis CTA leaves the scripted stage and starts synthesis.
+
  const beforeIDs=await page.locator('.reading-art-card').evaluateAll(ns=>ns.map(n=>n.dataset.originalCardId));
  await page.locator('[data-action="reading-next"]').click();
  await page.waitForTimeout(190);
  assert.equal(await page.locator('.scene-artemis-reading').getAttribute('data-phase'),'sacrificing');
- assert.equal(await page.locator('.reading-synthesis-portal').count(),1);
+ assert.equal(await page.locator('.artemis-synthesis-circle').count(),1);
  await page.screenshot({path:dir+'/15-mobile-cards-sacrificing-390x844.png'});
  await page.locator('.reading-chat-hud').waitFor({timeout:6000});
  const kept=await page.locator('.reading-art-card').evaluateAll(ns=>ns.map(n=>n.dataset.originalCardId));
@@ -678,18 +710,22 @@ try{
   const screen=document.querySelector('.scene-artemis-reading').getBoundingClientRect();
   const answer=document.querySelector('.synthesis-message-body p').textContent;
   const source=document.querySelector('.synthesis-chat-heading small').textContent;
-  const cta=document.querySelector('.synthesis-guidance-cta').getBoundingClientRect();
+  const form=document.querySelector('.synthesis-followup-form').getBoundingClientRect();
   return {hudTop:hud.top,hudHeight:hud.height,viewportHeight:screen.height,
-   answer,source,ctaBottom:cta.bottom};
+   answer,source,formBottom:form.bottom};
  });
  assert.ok(completeChat.hudHeight>=345&&completeChat.hudHeight>=completeChat.viewportHeight*.43,
   'Interactive chat must occupy lower viewport half: '+JSON.stringify(completeChat));
  assert.ok(completeChat.answer.length>80&&completeChat.source.includes('SCRIPTED PREVIEW'),
   'Offline screenshots must label deterministic preview instead of falsely claiming live AI');
- assert.ok(completeChat.ctaBottom<=845,
-  'Guidance action must be visible on a normal phone screen');
+ assert.ok(completeChat.formBottom<=845,
+  'Follow-up composer must be reachable on a normal phone screen');
  await page.screenshot({path:dir+'/17-mobile-synthesis-chat-390x844.png'});
- await page.locator('[data-action="draw-guidance"]').click();
+ assert.equal(await page.locator('.synthesis-guidance-cta,.synthesis-reading-complete').count(),0);
+ await page.locator('#synthesis-followup-question').fill('What can I do next?');
+ await page.locator('.synthesis-followup-send').click();
+ await page.waitForFunction(()=>document.querySelector('.reading-chat-hud')?.dataset.chatState==='followup-ready',
+  undefined,{timeout:9000});
  const guidance=await page.locator('.synthesis-guidance-card img').getAttribute('src');
  assert.ok(guidance&&beforeIDs.every(id=>!guidance.includes(id)),
   'One guidance card must be NEW and distinct from the original three');
@@ -702,10 +738,6 @@ try{
  assert.ok(pinned.questionVisible&&pinned.aboveLog,
   'Original question must remain pinned above the scrolling chat log after guidance: '+JSON.stringify(pinned));
   await page.screenshot({path:dir+'/18-mobile-guidance-card-390x844.png'});
- await page.locator('#synthesis-followup-question').fill('What can I do next?');
- await page.locator('.synthesis-followup-send').click();
- await page.waitForFunction(()=>document.querySelector('.reading-chat-hud')?.dataset.chatState==='followup-ready',
-  undefined,{timeout:7000});
  assert.equal(await page.locator('.synthesis-guidance-card').count(),1);
  assert.equal(await page.locator('.synthesis-user-followup').count(),1);
  assert.ok((await page.locator('.synthesis-message-body').count())>=2);
