@@ -46,6 +46,18 @@ try{
  await page.screenshot({path:path+'/01-three-original-cards-mobile.png'});
  assert.ok((await page.locator('.ps-begin-reading').textContent()).includes('BEGIN INTERPRETATION'));
  await page.locator('.ps-begin-reading').click();
+ await page.locator('.reading-art-panel').waitFor({timeout:9000});
+ assert.equal(await page.locator('.reading-art-narration-title').innerText(),'The cards are ready to speak.');
+ await page.screenshot({path:path+'/01b-scripted-welcome-mobile.png',fullPage:true});
+ for(let chapter=0;chapter<=3;chapter++){
+  await page.locator('[data-action="reading-next"]').click();
+  await page.waitForFunction(c=>window.__POST_SHUFFLE__?.readingChapter?.()===c,
+    chapter,{timeout:7000});
+  assert.ok((await page.locator('.reading-art-narration-text').innerText()).trim().length>30);
+ }
+ assert.match(await page.locator('[data-action="reading-next"]').innerText(),/Ask Artemis/);
+ await page.screenshot({path:path+'/01c-scripted-final-ask-mobile.png',fullPage:true});
+ await page.locator('[data-action="reading-next"]').click();
  await page.locator('.artemis-synthesis-ritual').waitFor({timeout:5000});
  const ritual=await page.evaluate(()=>{
   const stage=document.querySelector('.scene-artemis-reading');
@@ -101,6 +113,8 @@ try{
   'Unified Reading heading must be visibly framed above question on mobile: '+JSON.stringify(mobile));
  assert.ok(mobile.hud.height>=320,'Mobile chat should occupy lower viewport');
  assert.ok(mobile.frame.includes('ui_reading_frame_panel_mobile.png'),'9-slice owner mobile panel selected');
+ assert.ok(mobile.avatar?.includes('/avatar_artemis_face_')||mobile.avatar?.includes('/avatar_artemis_'),
+  'Message thumbnail must use the appropriate avatar');
  // In CI the owner-supplied binary ZIP may not yet have been installed.
  // Assert the dedicated focus slot in source, but report any missing pixels
  // explicitly instead of treating a fallback portrait as art sign-off.
