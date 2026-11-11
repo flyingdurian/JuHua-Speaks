@@ -187,7 +187,11 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   }
   // Exact bitmap alignment: the occluder reuses the painted table pixels from
   // this SAME room artwork. It is a depth mask, not a second table graphic.
-  const r=room.getBoundingClientRect(),h=hero.getBoundingClientRect();
+  // The room bitmap can be vertically panned for mobile composition.
+  // Using the ACTUAL transformed image rectangle (not the scene rectangle)
+  // keeps the physically occluding table pixels perfectly aligned with the
+  // backdrop and avoids a second displaced rim or an exposed dress seam.
+  const r=image.getBoundingClientRect(),h=hero.getBoundingClientRect();
   const scale=Math.max(r.width/image.naturalWidth,r.height/image.naturalHeight);
   const w=image.naturalWidth*scale,ht=image.naturalHeight*scale;
   const pos=getComputedStyle(image).objectPosition.trim().split(/\s+/);
