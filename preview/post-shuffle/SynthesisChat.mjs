@@ -60,7 +60,10 @@ export function renderSynthesisChat({question,mode='scripted-demo',status='gener
  const log=history.map(turn=>
   '<div class="synthesis-user-followup"><span>YOU</span><p>'+h(turn.question)+'</p></div>'+
   message(turn.answer,'Artemis','auto')).join('');
- const form=guidance&&status!=='followup-generating'?
+ // The chat is itself the follow-up interaction: no additional legacy
+ // "THREE CARDS READ" or "Draw Guidance" buttons should appear here.
+ // A single new guidance card is drawn when the visitor sends a follow-up.
+ const form=(complete||status==='ready')&&!busy?
   '<form class="synthesis-followup-form" data-action="guidance-followup-form">'+
    '<label for="synthesis-followup-question">Ask Artemis a follow-up</label>'+
    '<div class="synthesis-followup-row"><input id="synthesis-followup-question" name="question" maxlength="280" minlength="2" required placeholder="What should I consider next?" autocomplete="off"/>'+
@@ -87,11 +90,5 @@ export function renderSynthesisChat({question,mode='scripted-demo',status='gener
   (status==='followup-generating'?'<div class="synthesis-followup-loading" aria-hidden="true">✧ Guidance in progress</div>':'')+
   '</div>'+
   '<div class="synthesis-chat-actions">'+form+progress+
-  (complete&&!guidance?'<span class="synthesis-reading-complete" aria-hidden="true">✦ THREE CARDS READ</span>'+
-   '<button class="synthesis-guidance-cta" data-action="draw-guidance" type="button" aria-label="Draw Guidance Card and Ask Follow-up">'+
-   '<span class="synthesis-guidance-label-desktop">Draw Guidance Card &amp; Ask Follow-up</span>'+
-   '<span class="synthesis-guidance-label-mobile">Draw Guidance</span>'+
-   '<span aria-hidden="true">✦</span></button>':'')+
-  (guidance?'<span class="synthesis-guidance-confirmed">One guidance card drawn · Original three preserved</span>':'')+
   '</div></section>';
 }
