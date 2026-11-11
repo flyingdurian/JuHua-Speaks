@@ -77,3 +77,21 @@
   top:-8px!important;height:230px!important;
  }
 }
+
+
+/* Front-of-hand celestial summoning circle. The original three RWS card
+   face+foil tokens land at the same 65% portal coordinates as the geometry
+   in SynthesisController, one by one. Preserve the 2.6s choreography. */
+.scene-artemis-reading[data-phase="sacrificing"] .artemis-synthesis-circle{
+ top:65%!important;z-index:9!important;
+ width:min(82vw,470px)!important;height:180px!important;
+ transform:translate(-50%,-50%) scaleY(.50)!important;
+ border-width:3px!important;
+ box-shadow:0 0 18px 8px rgba(255,248,212,.9),
+  0 0 54px 20px rgba(244,208,143,.77),
+  0 0 124px 48px rgba(234,148,255,.38),
+  inset 0 0 38px 10px rgba(254,244,196,.88)!important;
+}
+.scene-artemis-reading[data-phase="sacrificing"] .artemis-synthesis-card-token{
+ z-index:10!important;
+}
