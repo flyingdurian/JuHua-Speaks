@@ -59,7 +59,7 @@ export function renderSynthesisChat({question,mode='scripted-demo',status='gener
   '<small>'+h(guidance.orientation.toUpperCase())+' · '+h(guidance.meaning)+'</small></div></div>':'';
  const log=history.map(turn=>
   '<div class="synthesis-user-followup"><span>YOU</span><p>'+h(turn.question)+'</p></div>'+
-  message(turn.answer,'Artemis','guidance')).join('');
+  message(turn.answer,'Artemis','auto')).join('');
  const form=guidance&&status!=='followup-generating'?
   '<form class="synthesis-followup-form" data-action="guidance-followup-form">'+
    '<label for="synthesis-followup-question">Ask Artemis a follow-up</label>'+
@@ -79,7 +79,7 @@ export function renderSynthesisChat({question,mode='scripted-demo',status='gener
   '<div class="synthesis-chat-scroll" role="log" aria-live="polite" aria-relevant="additions text">'+
   '<div class="synthesis-reader-head"><span class="synthesis-reader-sigil">✧</span>'+
   '<span>Artemis · Your Celestial Reader</span></div>'+
-  (response?message(response,'Artemis','analysis'):'')+
+  (response?message(response,'Artemis','auto'):'')+
   (busy?typingIndicator(status==='followup-generating'):'')+
   (status==='error'?'<div class="synthesis-error" role="alert">'+h(error||'The local AI service is unavailable.')+'</div>'+
    '<button type="button" class="synthesis-demo-fallback" data-action="synthesis-demo">VIEW SCRIPTED PREVIEW</button>':'')+
