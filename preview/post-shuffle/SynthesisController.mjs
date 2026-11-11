@@ -85,7 +85,9 @@ export function createSynthesisController({world,question,choices,reading,reduce
   const stageBox=stage.getBoundingClientRect();
   const cards=[...stage.querySelectorAll('.reading-art-card')].slice(0,3);
   if(cards.length!==3)throw Error('Synthesis lost the original three physical cards');
-  const portal={x:stageBox.width*.5,y:Math.min(stageBox.height*.59,stageBox.height-120)};
+  // Match the visible front-of-hand magic circle: cards converge into the
+  // SAME 65%-height destination rather than disappearing above the ring.
+  const portal={x:stageBox.width*.5,y:Math.min(stageBox.height*.65,stageBox.height-100)};
   cards.forEach((button,index)=>{
    const image=button.querySelector('img.reading-actual-card-face');
    const foil=button.querySelector('.reading-art-card-foil');
