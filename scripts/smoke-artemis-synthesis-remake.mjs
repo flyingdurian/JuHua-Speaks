@@ -124,6 +124,25 @@ try{
   &&mobile.heading.bottom<=mobile.question.top,
   'Unified Reading heading must be visibly framed above question on mobile: '+JSON.stringify(mobile));
  assert.ok(mobile.hud.height>=320,'Mobile chat should occupy lower viewport');
+ const actionGeometry=await page.evaluate(()=>{
+  const rect=selector=>document.querySelector(selector).getBoundingClientRect();
+  const footer=rect('.synthesis-chat-actions'),cta=rect('.synthesis-guidance-cta');
+  const scroll=rect('.synthesis-chat-scroll'),hud=rect('.reading-chat-hud');
+  const label=document.querySelector('.synthesis-guidance-label-mobile');
+  return {scrollBottom:scroll.bottom,actionsTop:footer.top,ctaTop:cta.top,
+   ctaBottom:cta.bottom,hudBottom:hud.bottom,
+   labelVisible:getComputedStyle(label).display!=='none',
+   buttonOverflows:cta.scrollWidth>cta.clientWidth+3,
+   text:label.textContent.trim()};
+ });
+ assert.ok(actionGeometry.labelVisible&&actionGeometry.text==='Draw Guidance',
+  'Mobile CTA uses a concise label within the painted right-hand button slot');
+ assert.ok(actionGeometry.scrollBottom<=actionGeometry.actionsTop-3,
+  'Scrolling transcript must stop before the two prepainted mobile footer slots: '+JSON.stringify(actionGeometry));
+ assert.ok(actionGeometry.ctaTop>=actionGeometry.scrollBottom+1
+  &&actionGeometry.ctaBottom<=actionGeometry.hudBottom-50
+  &&!actionGeometry.buttonOverflows,
+  'Draw Guidance CTA must fit without overlapping painted footer/corner ornaments: '+JSON.stringify(actionGeometry));
  assert.ok(mobile.frame.includes('ui_reading_frame_panel_mobile.png'),'9-slice owner mobile panel selected');
  const avatarMood=await page.locator('.synthesis-message[data-artemis-mood]').first().getAttribute('data-artemis-mood');
  assert.ok(avatarMood,'Each response must choose an Artemis expression');
@@ -169,6 +188,16 @@ try{
  await page.setViewportSize({width:860,height:720});
  await page.waitForTimeout(350);
  await page.screenshot({path:path+'/07-chat-synthesis-desktop.png',fullPage:true});
+ const desktop=await page.evaluate(()=>{
+  const panel=document.querySelector('.reading-chat-hud'),skin=getComputedStyle(panel).borderImageSource;
+  const desktopLabel=document.querySelector('.synthesis-guidance-label-desktop');
+  const hero=document.querySelector('.reading-art-hero').getBoundingClientRect();
+  return {skin,desktopLabelVisible:desktopLabel?getComputedStyle(desktopLabel).display!=='none':false,
+   heroHeight:hero.height};
+ });
+ assert.ok(desktop.skin.includes('ui_reading_frame_panel.png')
+   &&!desktop.skin.includes('ui_reading_frame_panel_mobile.png'),
+   'Desktop chat must render the dedicated original desktop frame PNG: '+JSON.stringify(desktop));
  assert.deepEqual(errors,[]);
  console.log('ARTEMIS REMAKE SMOKE PASS',JSON.stringify({chosen,mobile}));
 }finally{await browser.close()}
