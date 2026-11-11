@@ -5,6 +5,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: artemis-synthesis-remake-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   source:
     runs-on: ubuntu-latest
@@ -50,10 +53,10 @@ jobs:
             curl -fsS http://127.0.0.1:4184/preview/gate-b/ >/dev/null && break
             sleep 2
           done
-      - name: Verify old card/foil regression using legacy flag
-        run: node scripts/smoke-post-shuffle.mjs
       - name: Verify new direct conjuring to personalized chat flow
         run: node scripts/smoke-artemis-synthesis-remake.mjs
+      - name: Verify old card/foil regression using legacy flag
+        run: node scripts/smoke-post-shuffle.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
