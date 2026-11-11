@@ -531,6 +531,22 @@ try{
   &&precision.label.top>=precision.panel.top-25&&precision.label.bottom<precision.panel.top+40
   &&precision.label.display!=='none'&&precision.label.visibility!=='hidden',
   'Original Artemis nameplate must be visible ON the ornamental upper frame: '+JSON.stringify(precision));
+ const tablePlacement=await page.evaluate(()=>{
+  const hero=document.querySelector('.reading-art-hero');
+  const r=hero.getBoundingClientRect();
+  const clip=getComputedStyle(hero).getPropertyValue('--table-occlusion-line');
+  const depth=Number(/calc\(100% - ([0-9.]+)px\)/.exec(clip)?.[1]);
+  const middle=document.querySelectorAll('.reading-art-card-frame')[1].getBoundingClientRect();
+  return {heroHeight:r.height,tableDepth:depth,tableTop:r.bottom-depth,
+    tableBottom:r.bottom,cardBottom:middle.bottom,cardTop:middle.top,
+    cardToTablePosition:(middle.bottom-(r.bottom-depth))/depth};
+ });
+ await writeFile(dir+'/14c-mobile-original-table-depth-390x844.json',
+  JSON.stringify(tablePlacement,null,2));
+ assert.ok(tablePlacement.tableDepth>=85&&tablePlacement.cardToTablePosition>.20
+   &&tablePlacement.cardToTablePosition<.75,
+   'Card 02 should sit near the CENTER of the exposed original painted tabletop: '+
+   JSON.stringify(tablePlacement));
  assert.ok(precision.panel.height>=325&&precision.narration.clientHeight>=90,
   'Expanded HUD must offer room for interpretations without an unnecessarily cramped slit');
  assert.ok(phone.footer.bottom-phone.scene.top<=phone.scrollHeight+2,
