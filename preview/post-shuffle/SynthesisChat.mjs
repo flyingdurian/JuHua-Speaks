@@ -87,8 +87,11 @@ export function renderSynthesisChat({question,mode='scripted-demo',status='gener
   (status==='followup-generating'?'<div class="synthesis-followup-loading" aria-hidden="true">✧ Guidance in progress</div>':'')+
   '</div>'+
   '<div class="synthesis-chat-actions">'+form+progress+
-  (complete&&!guidance?'<button class="synthesis-guidance-cta" data-action="draw-guidance" type="button">'+
-   'Draw Guidance Card &amp; Ask Follow-up <span>✦</span></button>':'')+
+  (complete&&!guidance?'<span class="synthesis-reading-complete" aria-hidden="true">✦ THREE CARDS READ</span>'+
+   '<button class="synthesis-guidance-cta" data-action="draw-guidance" type="button" aria-label="Draw Guidance Card and Ask Follow-up">'+
+   '<span class="synthesis-guidance-label-desktop">Draw Guidance Card &amp; Ask Follow-up</span>'+
+   '<span class="synthesis-guidance-label-mobile">Draw Guidance</span>'+
+   '<span aria-hidden="true">✦</span></button>':'')+
   (guidance?'<span class="synthesis-guidance-confirmed">One guidance card drawn · Original three preserved</span>':'')+
   '</div></section>';
 }
