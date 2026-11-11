@@ -19,8 +19,10 @@ test('The V4 corrective layer remains isolated and last-loaded in both entries',
 test('One and only one tabletop: existing illustrated chamber, no nested synthetic plane',async()=>{
  const css=await source('../preview/post-shuffle/reading-polish-v4.css');
  const markup=await source('../preview/post-shuffle/reading-stage.mjs');
- assert.match(css,/\.reading-art-table-surface\{display:none!important\}/);
+ assert.match(markup,/class="reading-hero-stage"/);
  assert.match(markup,/artSlot\('background','reading-art-atmosphere'\)/);
+ assert.match(css,/@media\(max-width:720px\)\{[\s\S]*\.reading-hero-stage>\.reading-art-table-surface\{[^}]*display:block!important/);
+ assert.match(css,/aspect-ratio:2\.35 \/ 1/);
  assert.doesNotMatch(css,/\.reading-art-table-surface::before\s*\{/);
  assert.doesNotMatch(css,/\.reading-art-table-surface::after\s*\{/);
 });
@@ -133,10 +135,9 @@ test('Opaque Artemis has no artificial bottom fade and uses the real room artwor
  const css=await source('../preview/post-shuffle/reading-polish-v4.css');
  const scene=await source('../preview/post-shuffle/scene.mjs');
  assert.match(css,/mask:none!important;-webkit-mask:none!important/);
- assert.match(css,/reading-art-hero::after/);
- assert.match(css,/--room-cover-size/);
+ assert.match(css,/reading-art-hero::after\{[^}]*display:none!important/);
+ assert.match(css,/reading-hero-stage>\.reading-art-portrait\{[^}]*mask:none!important/);
  assert.match(css,/bg_artemis_reading_stage_main\.webp/);
- assert.match(css,/clip-path:inset\(var\(--table-occlusion-line\) 0 0 0\)/);
  assert.match(scene,/function updateArtemisTableOcclusion\(\)/);
  assert.match(scene,/image\.naturalWidth/);
  assert.match(scene,/hero\.dataset\.roomOcclusionSynced='true'/);

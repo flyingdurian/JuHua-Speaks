@@ -1149,3 +1149,98 @@
   max-height:clamp(70px,11dvh,96px);margin:7px 0 8px;
  }
 }
+
+/* Gate D V4 manual layout: one hero stage owns Artemis, the table and the
+ * 42° cards. Later absolute offsets and bottom fades cannot detach them. */
+.scene-artemis-reading .reading-art-layout{
+ display:grid;grid-template-rows:auto auto auto auto;
+ align-items:start;justify-items:stretch;
+}
+.scene-artemis-reading .reading-art-hero{
+ position:relative;display:block;height:auto;min-height:0;
+ overflow:visible;
+}
+.scene-artemis-reading .reading-art-hero::after{
+ display:none!important;content:none!important;
+ background:none!important;clip-path:none!important;opacity:0!important;
+}
+.scene-artemis-reading .reading-hero-stage{
+ position:relative;z-index:2;box-sizing:border-box;
+ display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+ width:100%;min-height:clamp(420px,58dvh,640px);
+ padding:0 clamp(12px,3vw,28px) 8px;
+}
+.scene-artemis-reading .reading-hero-stage>.reading-art-portrait{
+ position:relative!important;top:auto!important;left:auto!important;right:auto!important;
+ bottom:auto!important;transform:none!important;
+ z-index:1;flex:none;
+ width:min(460px,70vw);height:clamp(300px,46dvh,460px);
+ margin:0 0 -16% 0;
+ overflow:hidden;opacity:1!important;
+ mask:none!important;-webkit-mask:none!important;
+ mask-image:none!important;-webkit-mask-image:none!important;
+ clip-path:none!important;filter:none!important;mix-blend-mode:normal!important;
+}
+.scene-artemis-reading .reading-hero-stage>.reading-art-portrait img{
+ position:absolute;inset:0;width:100%;height:100%;
+ object-fit:cover;object-position:center top;
+ opacity:1!important;
+ mask:none!important;-webkit-mask:none!important;
+ mask-image:none!important;-webkit-mask-image:none!important;
+ clip-path:none!important;filter:none!important;mix-blend-mode:normal!important;
+}
+.scene-artemis-reading .reading-hero-stage>.reading-art-table-surface{
+ display:block!important;position:relative!important;
+ left:auto!important;right:auto!important;bottom:auto!important;top:auto!important;
+ z-index:2;flex:none;
+ width:min(1040px,100%);height:auto;min-height:132px;
+ aspect-ratio:2.35 / 1;
+ margin-top:0;transform:none!important;
+ border:0;border-radius:0;box-shadow:none;
+ background-image:url('../../assets/artemis/bg_artemis_reading_stage_main.webp')!important;
+ background-repeat:no-repeat;background-size:cover;
+ background-position:center 82%;
+ pointer-events:none;
+}
+.scene-artemis-reading .reading-hero-stage>.reading-art-card-glow{
+ position:absolute;z-index:2;left:8%;right:8%;bottom:18%;
+ height:28%;pointer-events:none;
+}
+.scene-artemis-reading .reading-hero-stage>.reading-art-spread{
+ position:relative!important;left:auto!important;right:auto!important;
+ bottom:auto!important;top:auto!important;
+ z-index:5;width:min(780px,100%);
+ margin:-22% 0 0;
+ transform:none!important;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-hero-stage{
+ min-height:0;padding-bottom:0;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-hero-stage>.reading-art-spread{
+ position:absolute!important;height:0;overflow:hidden;margin:0;
+ visibility:hidden;pointer-events:none;
+}
+@media(max-width:720px){
+ .scene-artemis-reading .reading-hero-stage{
+  min-height:clamp(390px,62dvh,560px);padding-inline:8px;
+ }
+ .scene-artemis-reading .reading-hero-stage>.reading-art-portrait{
+  width:min(84vw,340px);height:clamp(260px,42dvh,360px);margin-bottom:-18%;
+ }
+ .scene-artemis-reading .reading-hero-stage>.reading-art-table-surface{
+  display:block!important;min-height:148px;aspect-ratio:2.35 / 1;
+  width:100%;background-position:center 78%;
+ }
+ .scene-artemis-reading .reading-hero-stage>.reading-art-spread{
+  width:100%;margin-top:-28%;
+ }
+}
+@media(max-width:720px) and (max-height:680px){
+ .scene-artemis-reading .reading-hero-stage{min-height:380px}
+ .scene-artemis-reading .reading-hero-stage>.reading-art-portrait{
+  height:clamp(230px,38dvh,300px);
+ }
+ .scene-artemis-reading .reading-hero-stage>.reading-art-table-surface{
+  display:block!important;min-height:112px;aspect-ratio:2.35 / 1;
+ }
+}

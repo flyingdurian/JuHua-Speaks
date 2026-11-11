@@ -160,6 +160,7 @@ export function renderReadingStage({choices,cardsById,demo,chapter=-1,question='
   '<div class="reading-art-hero" aria-label="Artemis and the three cards chosen during the ritual">'+
    artSlot('halo','reading-art-halo')+
    artSlot('readingGlow','reading-art-reading-glow')+
+   '<div class="reading-hero-stage">'+
    artSlot(portraitSlotForChapter(chapter),'reading-art-portrait',
     '<div class="reading-portrait-pending"><strong>ARTEMIS</strong><span>ARTWORK UNAVAILABLE</span></div>')+
    '<div class="reading-art-table-surface" aria-hidden="true"></div>'+
@@ -177,7 +178,7 @@ export function renderReadingStage({choices,cardsById,demo,chapter=-1,question='
       '<span class="reading-art-card-role">'+String(i+1).padStart(2,'0')+'. '+roles[i]+'</span>'+
       '<span class="reading-art-card-meaning">'+orientation+' · '+esc(cardBrief(demo,card,choice,i))+'</span></button>';
    }).join('')+
-   '</div></div>'+
+   '</div></div></div>'+
   '<div class="reading-art-panel" data-art-slot="panel" data-art-filename="'+
    esc(assetUrl('panel')?.split('/').pop()||ARTEMIS_ART_DIRECTOR_FILES.panel)+
    '" data-art-status="'+(assetUrl('panel')?'ready':'pending')+'">'+
