@@ -657,7 +657,13 @@ try{
   'Narration and chapter badge must stay inside ornamental safe bounds: '+JSON.stringify(mobileReflow));
  await page.screenshot({path:dir+'/14-mobile-reading-reflow-390x844.png',fullPage:true});
 
- // The real CTA leaves chapter 02 and starts a one-way card-sacrifice ritual.
+ // The scripted card meanings continue through chapter 03 before Ask Artemis.
+ await page.locator('[data-action="reading-next"]').click();
+ await page.waitForFunction(()=>window.__POST_SHUFFLE__?.readingChapter?.()===3,
+   null,{timeout:7000});
+ assert.match(await page.locator('[data-action="reading-next"]').innerText(),/Ask Artemis/);
+ // The final Ask Artemis CTA leaves the scripted stage and starts synthesis.
+
  const beforeIDs=await page.locator('.reading-art-card').evaluateAll(ns=>ns.map(n=>n.dataset.originalCardId));
  await page.locator('[data-action="reading-next"]').click();
  await page.waitForTimeout(190);
