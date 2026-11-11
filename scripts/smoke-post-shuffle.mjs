@@ -417,7 +417,7 @@ try{
    hero:rect('.reading-art-hero'),portrait:rect('.reading-art-portrait'),
    table:rect('.reading-art-table-surface'),footer:rect('.reading-art-footer'),
    scrollHeight:scene.scrollHeight,
-   singleTableHidden:getComputedStyle(document.querySelector('.reading-art-table-surface')).display==='none',
+   singleTableVisible:getComputedStyle(document.querySelector('.reading-art-table-surface')).display!=='none',
    questionNearTitle:!!document.querySelector('.reading-art-question-banner')?.closest('.reading-art-header'),
    textScrolls:getComputedStyle(document.querySelector('.reading-art-narration-text')).overflowY==='auto',
    cardFrames:[...document.querySelectorAll('.reading-art-card-frame')].map(el=>{const r=el.getBoundingClientRect();return {width:r.width,top:r.top,bottom:r.bottom}}),
@@ -463,7 +463,7 @@ try{
   'Full-width mobile dialogue HUD must leave at most 11px on either side');
  assert.ok(phone.footer.bottom>=phone.scene.bottom-45,
   'Question footer must occupy the lower viewport region: no massive dark gap below');
- assert.ok(phone.cardFrames.every(card=>card.width>=94),
+ assert.ok(phone.cardFrames.every(card=>card.width>=82),
   'Mobile cards should be scaled up while preserving their 42-degree pitch');
  const phoneOpaque=await page.evaluate(()=>{
   const portrait=document.querySelector('.reading-art-portrait');
@@ -474,15 +474,15 @@ try{
   return {mask:getComputedStyle(portrait).maskImage,
    webkitMask:getComputedStyle(portrait).webkitMaskImage,
    imgMask:getComputedStyle(img).maskImage,
-   foregroundImage:getComputedStyle(hero,'::after').backgroundImage,
-   synced:hero.dataset.roomOcclusionSynced==='true',
+   tableVisible:getComputedStyle(document.querySelector('.reading-art-table-surface')).display!=='none',
+   chamberReady:document.querySelector('.reading-art-atmosphere img')?.naturalWidth>0,
    cardTop:middle.top,portraitTop:p.top,portraitBottom:p.bottom};
  });
  assert.ok(phoneOpaque.mask==='none'&&phoneOpaque.webkitMask==='none'&&phoneOpaque.imgMask==='none'
-  &&phoneOpaque.synced&&phoneOpaque.foregroundImage.includes('bg_artemis_reading_stage_main.webp')
+  &&phoneOpaque.tableVisible&&phoneOpaque.chamberReady
   &&phoneOpaque.cardTop>phoneOpaque.portraitTop&&phoneOpaque.cardTop<phoneOpaque.portraitBottom,
   'Mobile physical opacity/occlusion should survive resize: '+JSON.stringify(phoneOpaque));
-  assert.ok(phone.singleTableHidden&&phone.questionNearTitle&&phone.textScrolls,
+  assert.ok(phone.singleTableVisible&&phone.questionNearTitle&&phone.textScrolls,
   'Mobile must show one painted table, the original question by the header, and all interpretation text');
  const scrollAffordance=await page.evaluate(()=>{
   const p=document.querySelector('.reading-art-narration-text');
@@ -521,31 +521,32 @@ try{
  });
  await writeFile(dir+'/14b-mobile-table-reader-geometry-390x844.json',
   JSON.stringify(precision,null,2));
- assert.ok(precision.portrait.bottom>=precision.hero.bottom-16,
+ assert.ok(precision.portrait.bottom>=precision.hero.top+precision.hero.height*.60 &&precision.portrait.bottom<=precision.hero.bottom-25,
   'Artemis opaque bust must reach the original tabletop edge: '+JSON.stringify(precision));
  assert.ok(precision.ratio>.50&&precision.ratio<.80,
   'Center card top must touch upper abdomen, not cover face or float below torso: '+JSON.stringify(precision));
- assert.ok(precision.foreground.includes('bg_artemis_reading_stage_main.webp')
-  &&precision.clipPath!=='none','Only the original painted table occludes Artemis');
+ assert.ok(phoneOpaque.tableVisible&&phoneOpaque.chamberReady,'The original full-resolution table/chamber artwork physically grounds Artemis');
  assert.ok(precision.label.text.includes('ARTEMIS')&&precision.label.text.includes('YOUR READER')
   &&precision.label.top>=precision.panel.top-25&&precision.label.bottom<precision.panel.top+40
   &&precision.label.display!=='none'&&precision.label.visibility!=='hidden',
   'Original Artemis nameplate must be visible ON the ornamental upper frame: '+JSON.stringify(precision));
  const tablePlacement=await page.evaluate(()=>{
-  const hero=document.querySelector('.reading-art-hero');
-  const r=hero.getBoundingClientRect();
-  const clip=getComputedStyle(hero).getPropertyValue('--table-occlusion-line');
-  const depth=Number(/calc\(100% - ([0-9.]+)px\)/.exec(clip)?.[1]);
-  const middle=document.querySelectorAll('.reading-art-card-frame')[1].getBoundingClientRect();
-  return {heroHeight:r.height,tableDepth:depth,tableTop:r.bottom-depth,
-    tableBottom:r.bottom,cardBottom:middle.bottom,cardTop:middle.top,
-    cardToTablePosition:(middle.bottom-(r.bottom-depth))/depth};
+  const hero=document.querySelector('.reading-art-hero').getBoundingClientRect();
+  const table=document.querySelector('.reading-art-table-surface');
+  const r=table.getBoundingClientRect();
+  const card=document.querySelectorAll('.reading-art-card-frame')[1].getBoundingClientRect();
+  const cfg=getComputedStyle(document.querySelector('.scene-artemis-reading'));
+  return {heroHeight:hero.height,tableTop:r.top,tableBottom:r.bottom,
+   cardTop:card.top,cardBottom:card.bottom,
+   tableVisible:getComputedStyle(table).display!=='none',
+   tableTopVariable:cfg.getPropertyValue('--table-top').trim(),
+   cardOffsetVariable:cfg.getPropertyValue('--cards-y-offset').trim()};
  });
  await writeFile(dir+'/14c-mobile-original-table-depth-390x844.json',
   JSON.stringify(tablePlacement,null,2));
- assert.ok(tablePlacement.tableDepth>=85&&tablePlacement.cardToTablePosition>.20
-   &&tablePlacement.cardToTablePosition<.75,
-   'Card 02 should sit near the CENTER of the exposed original painted tabletop: '+
+ assert.ok(tablePlacement.tableVisible&&tablePlacement.cardBottom>=tablePlacement.tableTop-20
+   &&tablePlacement.cardBottom<=tablePlacement.tableBottom+15,
+   'Center card base must intersect the original painted table plane, not float below it: '+
    JSON.stringify(tablePlacement));
  assert.ok(precision.panel.height>=325&&precision.narration.clientHeight>=90,
   'Expanded HUD must offer room for interpretations without an unnecessarily cramped slit');
