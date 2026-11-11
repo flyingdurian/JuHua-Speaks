@@ -50,10 +50,15 @@ export function createSynthesisController({world,question,choices,reading,reduce
   // an asset installation failure from validation tests.
   for(const image of next.querySelectorAll('img.synthesis-avatar')){
    image.addEventListener('error',()=>{
-    if(image.dataset.fallbackApplied)return;
-    image.dataset.fallbackApplied='true';
-    if(imageUrl)image.src=imageUrl;
-   },{once:true});
+    const stage=Number(image.dataset.fallbackStage||0);
+    if(stage===0){
+     image.dataset.fallbackStage='1';
+     image.src=image.getAttribute('src').replace('/avatar_artemis_face_','/avatar_artemis_');
+    }else if(stage===1&&imageUrl){
+     image.dataset.fallbackStage='2';
+     image.src=imageUrl;
+    }
+   });
   }
   world.dataset.synthesisStatus=status;
  }
@@ -148,7 +153,16 @@ export function createSynthesisController({world,question,choices,reading,reduce
  function activateChat(){
   if(disposed||!started)return;
   phase='chat';
-  room().dataset.phase='chat';
+  const stage=room();
+  stage.dataset.phase='chat';
+  // Deliberately retire the scripted stage's visual layers. Card and foil
+  // identities remain mounted but hidden for continuity and diagnostics.
+  // The repeated backdrop tabletop must not paint behind the chat.
+  for(const selector of ['.reading-art-spread','.reading-art-table-surface',
+    '.reading-art-card-glow','.reading-art-reading-glow']){
+   const obsolete=stage.querySelector(selector);
+   if(obsolete){obsolete.hidden=true;obsolete.setAttribute('aria-hidden','true');}
+  }
   ritualLayer?.remove();ritualLayer=null;
   showFocusedReadingArt();
   render();
