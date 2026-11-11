@@ -42,7 +42,9 @@ test('Scripted fallback explicitly identifies itself and uses all three original
  assert.ok(narrative.includes(question));
  const html=renderSynthesisChat({question,status:'ready',response:narrative});
  assert.match(html,/SCRIPTED PREVIEW/);
- assert.match(html,/Draw Guidance Card &amp; Ask Follow-up/);
+ assert.doesNotMatch(html,/Draw Guidance Card &amp; Ask Follow-up/);
+ assert.doesNotMatch(html,/THREE CARDS READ/);
+ assert.match(html,/synthesis-followup-form/);
  const card=DECK[4],text=demoGuidance({card,orientation:'upright',question:'What next?',reading});
  assert.match(text,/What next/);assert.match(text,new RegExp(card.name));
 });
