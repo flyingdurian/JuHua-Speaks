@@ -1,0 +1,70 @@
+/*
+ * Gate D V4 — IDE tuning controls.
+ * Edit ONLY the values here to alter reading/AI chat layout.
+ * No JavaScript assigns these five owner-facing layout variables.
+ * Sizes are per viewport; CSS consumers live in gate-d-layout-corrections.css.
+ */
+.scene-artemis-reading{
+ --artemis-top: 8px;
+ --artemis-scale: 1;
+ --table-top: 63%;
+ --cards-y-offset: 0px;
+ --panel-padding: 34px 38px 25px;
+ /* secondary controls to preserve the five primary tuning knobs */
+ --reading-hero-height: 380px;
+ --artemis-portrait-width: min(520px,54vw);
+ --artemis-portrait-height: 315px;
+ --reading-panel-height: 300px;
+ --chat-hero-height: 35dvh;
+ --chat-panel-padding: 22px 22px 28px;
+ --chat-mist-height: 70px;
+ --scripted-button-gap: 10px;
+}
+@media(max-width:720px){
+ .scene-artemis-reading{
+  --artemis-top: 9px;
+  --artemis-scale: .93;
+  --table-top: 59%;
+  --cards-y-offset: 0px;
+  --panel-padding: 44px 35px 33px;
+  --reading-hero-height: 440px;
+  --artemis-portrait-width: min(82vw,332px);
+  --artemis-portrait-height: 330px;
+  --reading-panel-height: 354px;
+  --chat-hero-height: 32dvh;
+  --chat-panel-padding: 28px 20px 28px;
+  --chat-mist-height: 65px;
+  --scripted-button-gap: 11px;
+ }
+}
+@media(max-width:720px) and (max-height:680px){
+ .scene-artemis-reading{
+  --artemis-top: 14px;
+  --artemis-scale: .87;
+  --table-top: 59%;
+  --cards-y-offset: 0px;
+  --panel-padding: 43px 32px 29px;
+  --reading-hero-height: 422px;
+  --artemis-portrait-width: min(78vw,308px);
+  --artemis-portrait-height: 319px;
+  --reading-panel-height: 332px;
+  --chat-hero-height: 230px;
+  --chat-panel-padding: 25px 16px 25px;
+  --chat-mist-height: 54px;
+ }
+}
+@media(min-width:721px){
+ .scene-artemis-reading{
+  --artemis-top: 4px;
+  --artemis-scale: .98;
+  --table-top: 63%;
+  --cards-y-offset: 0px;
+  --panel-padding: 38px 54px 34px;
+  --reading-hero-height: 360px;
+  --artemis-portrait-width: min(460px,49vw);
+  --artemis-portrait-height: 310px;
+  --reading-panel-height: 260px;
+  --chat-hero-height: 34dvh;
+  --chat-panel-padding: 20px 26px 27px;
+ }
+}
