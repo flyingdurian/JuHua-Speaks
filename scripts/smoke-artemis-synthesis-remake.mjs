@@ -126,23 +126,22 @@ try{
  assert.ok(mobile.hud.height>=320,'Mobile chat should occupy lower viewport');
  const actionGeometry=await page.evaluate(()=>{
   const rect=selector=>document.querySelector(selector).getBoundingClientRect();
-  const footer=rect('.synthesis-chat-actions'),cta=rect('.synthesis-guidance-cta');
-  const scroll=rect('.synthesis-chat-scroll'),hud=rect('.reading-chat-hud');
-  const label=document.querySelector('.synthesis-guidance-label-mobile');
-  return {scrollBottom:scroll.bottom,actionsTop:footer.top,ctaTop:cta.top,
-   ctaBottom:cta.bottom,hudBottom:hud.bottom,
-   labelVisible:getComputedStyle(label).display!=='none',
-   buttonOverflows:cta.scrollWidth>cta.clientWidth+3,
-   text:label.textContent.trim()};
+  const actions=rect('.synthesis-chat-actions');
+  const input=rect('#synthesis-followup-question');
+  const button=rect('.synthesis-followup-send');
+  const scroll=rect('.synthesis-chat-scroll');
+  const hud=rect('.reading-chat-hud');
+  return {scrollBottom:scroll.bottom,actionsTop:actions.top,
+   inputTop:input.top,inputRight:input.right,buttonLeft:button.left,
+   buttonBottom:button.bottom,hudBottom:hud.bottom};
  });
- assert.ok(actionGeometry.labelVisible&&actionGeometry.text==='Draw Guidance',
-  'Mobile CTA uses a concise label within the painted right-hand button slot');
- assert.ok(actionGeometry.scrollBottom<=actionGeometry.actionsTop-3,
-  'Scrolling transcript must stop before the two prepainted mobile footer slots: '+JSON.stringify(actionGeometry));
- assert.ok(actionGeometry.ctaTop>=actionGeometry.scrollBottom+1
-  &&actionGeometry.ctaBottom<=actionGeometry.hudBottom-50
-  &&!actionGeometry.buttonOverflows,
-  'Draw Guidance CTA must fit without overlapping painted footer/corner ornaments: '+JSON.stringify(actionGeometry));
+ assert.equal(await page.locator('.synthesis-guidance-cta, .synthesis-reading-complete').count(),0,
+  'The AI chat must NOT render the retired reading-stage or Draw Guidance CTAs');
+ assert.ok(actionGeometry.scrollBottom<=actionGeometry.actionsTop+4
+  &&actionGeometry.inputRight<actionGeometry.buttonLeft,
+  'Chat composer must be separate from the scrolling transcript: '+JSON.stringify(actionGeometry));
+ assert.ok(actionGeometry.buttonBottom<=actionGeometry.hudBottom-8,
+  'Chat ASK must remain inside the ornamental frame: '+JSON.stringify(actionGeometry));
  assert.ok(mobile.frame.includes('ui_reading_frame_panel_mobile.png'),'9-slice owner mobile panel selected');
  const avatarMood=await page.locator('.synthesis-message[data-artemis-mood]').first().getAttribute('data-artemis-mood');
  assert.ok(avatarMood,'Each response must choose an Artemis expression');
@@ -156,15 +155,18 @@ try{
  if(!mobile.focused)console.warn('VISUAL ASSET PENDING: focused Artemis PNG absent from repo checkout');
  assert.ok(Object.keys(ARTEMIS_CHAT_AVATARS).length===8);
  await page.screenshot({path:path+'/04-chat-synthesis-ready-mobile.png',fullPage:true});
- await page.locator('[data-action="draw-guidance"]').click();
- assert.equal(await page.locator('.synthesis-guidance-card').count(),1);
- const guidance=await page.locator('.synthesis-guidance-card img').getAttribute('src');
- assert.ok(chosen.every(id=>!guidance.includes(id)));
- await page.screenshot({path:path+'/05-guidance-mobile.png',fullPage:true});
+ assert.equal(await page.locator('.synthesis-guidance-card').count(),0,
+  'No guidance draw until visitor submits the first follow-up');
  await page.locator('#synthesis-followup-question').fill('How should I act on this insight?');
  await page.locator('.synthesis-followup-send').click();
  await page.waitForFunction(()=>document.querySelector('.reading-chat-hud')?.dataset.chatState==='followup-ready',null,{timeout:9000});
- assert.equal(await page.locator('.synthesis-user-followup').count(),1);
+ assert.equal(await page.locator('.synthesis-guidance-card').count(),1,
+  'Exactly one new guidance card appears after first follow-up');
+ const guidance=await page.locator('.synthesis-guidance-card img').getAttribute('src');
+ assert.ok(chosen.every(id=>!guidance.includes(id)),
+  'Guidance card is distinct from the original three');
+ await page.screenshot({path:path+'/05-guidance-mobile.png',fullPage:true});
+  assert.equal(await page.locator('.synthesis-user-followup').count(),1);
  assert.equal(await page.locator('.synthesis-message').count(),2);
  const inputGeometry=await page.evaluate(()=>{
   const hud=document.querySelector('.reading-chat-hud').getBoundingClientRect();
