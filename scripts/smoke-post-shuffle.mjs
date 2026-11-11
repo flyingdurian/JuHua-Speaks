@@ -7,7 +7,7 @@ const browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usag
 const page=await browser.newPage({viewport:{width:860,height:720},deviceScaleFactor:1,acceptDownloads:true});
 const errors=[];page.on('pageerror',e=>errors.push(String(e)));
 try{
- await page.goto(host+'/preview/post-shuffle/',{waitUntil:'domcontentloaded'});
+ await page.goto(host+'/preview/post-shuffle/?legacy-reading=1',{waitUntil:'domcontentloaded'});
  await page.click('#finish-shuffle');await page.waitForFunction(()=>Boolean(window.__POST_SHUFFLE__));
  const deck=await page.evaluate(()=>window.__POST_SHUFFLE__.deck());assert.equal(deck.length,78);assert.equal(new Set(deck).size,78);
  await page.waitForTimeout(350);await page.screenshot({path:dir+'/01-deck-launched.png'});
