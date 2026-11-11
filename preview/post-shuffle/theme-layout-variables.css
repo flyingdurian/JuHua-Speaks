@@ -24,9 +24,9 @@
  .scene-artemis-reading{
   --artemis-top: 9px;
   --artemis-scale: .93;
-  --table-top: 59%;
-  --cards-y-offset: 0px;
-  --panel-padding: 44px 35px 33px;
+  --table-top: 64%;
+  --cards-y-offset: -52px;
+  --panel-padding: 46px 43px 33px;
   --reading-hero-height: 440px;
   --artemis-portrait-width: min(82vw,332px);
   --artemis-portrait-height: 330px;
@@ -41,8 +41,8 @@
  .scene-artemis-reading{
   --artemis-top: 14px;
   --artemis-scale: .87;
-  --table-top: 59%;
-  --cards-y-offset: 0px;
+  --table-top: 64%;
+  --cards-y-offset: -45px;
   --panel-padding: 43px 32px 29px;
   --reading-hero-height: 422px;
   --artemis-portrait-width: min(78vw,308px);
