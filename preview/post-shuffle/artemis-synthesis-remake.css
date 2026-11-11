@@ -562,3 +562,56 @@
   animation-duration:1ms!important;animation-delay:0ms!important;
  }
 }
+
+
+/* PR #28 art-backed QA: eliminate the dark empty band below the reader,
+   free more vertical room for question/answers on phones, and keep the
+   ornamental bottom cap clear of chat form controls. */
+.scene-artemis-reading[data-phase="chat"] .reading-art-hero{
+ background:radial-gradient(ellipse 63% 82% at 50% 35%,
+  rgba(134,88,174,.24),transparent 82%),
+  linear-gradient(180deg,#172044 0%,#221a47 61%,#281d49 100%)!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-chat-actions{
+ padding-bottom:17px!important;
+}
+/* The guidance state is already clear from its newly drawn card. Preserve
+   the original status for accessibility without painting small text across
+   the gilded footer or over the chat input. */
+.scene-artemis-reading[data-phase="chat"] .synthesis-guidance-confirmed{
+ position:absolute!important;width:1px!important;height:1px!important;
+ overflow:hidden!important;clip-path:inset(50%)!important;
+ white-space:nowrap!important;margin:-1px!important;padding:0!important;
+ border:0!important;
+}
+@media(min-width:721px){
+ .scene-artemis-reading[data-phase="chat"] .synthesis-chat-heading{
+  margin:19px 0 6px!important;
+ }
+}
+@media(max-width:720px){
+ .scene-artemis-reading[data-phase="chat"] .reading-art-layout{
+  grid-template-rows:minmax(248px,39dvh) minmax(365px,1fr)!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-art-hero{
+  min-height:248px!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art{
+  top:-6px!important;height:clamp(260px,40dvh,340px)!important;
+  width:clamp(236px,72vw,345px)!important;min-height:0!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .synthesis-chat-actions{
+  padding-bottom:15px!important;
+ }
+}
+@media(max-width:720px) and (max-height:680px){
+ .scene-artemis-reading[data-phase="chat"] .reading-art-layout{
+  grid-template-rows:218px minmax(334px,1fr)!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .reading-art-hero{
+  min-height:218px!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art{
+  top:-4px!important;height:222px!important;
+ }
+}
