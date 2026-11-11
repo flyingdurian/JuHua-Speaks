@@ -1,0 +1,15 @@
+name: Artemis owner-art integration gate (blocks visual approval)
+on:
+  push:
+    branches: [feat/artemis-ai-synthesis-remake]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-owner-art-committed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify eleven original files and eight original-derived face crops
+        run: python3 scripts/verify-artemis-owner-art.py
