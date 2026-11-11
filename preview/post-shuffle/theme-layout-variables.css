@@ -31,6 +31,9 @@
   --artemis-portrait-width: min(82vw,332px);
   --artemis-portrait-height: 330px;
   --reading-panel-height: 354px;
+  --table-art-height: 550px;
+  --table-art-offset: -265px;
+  --panel-hero-overlap: 54px;
   --chat-hero-height: 32dvh;
   --chat-panel-padding: 28px 20px 28px;
   --chat-mist-height: 65px;
@@ -48,6 +51,7 @@
   --artemis-portrait-width: min(78vw,308px);
   --artemis-portrait-height: 319px;
   --reading-panel-height: 332px;
+  --panel-hero-overlap: 54px;
   --chat-hero-height: 230px;
   --chat-panel-padding: 25px 16px 25px;
   --chat-mist-height: 54px;
