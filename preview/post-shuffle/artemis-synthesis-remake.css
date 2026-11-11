@@ -267,7 +267,7 @@
    no desktop distortion. This is deliberately a nine-slice rather than
    forcing the 4:3 source PNG to fill a tall mobile rectangle. */
 @media(max-width:720px){
- .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
+ .scene-artemis-reading.is-synthesis-remake:not([data-phase="chat"]) .reading-art-panel{
   border-style:solid!important;border-color:transparent!important;
   border-width:38px 35px 42px!important;
   border-image-source:var(--artemis-mobile-panel)!important;
@@ -277,14 +277,14 @@
   background:transparent!important;box-shadow:none!important;
   padding:5px 7px 4px!important;overflow:visible!important;
  }
- .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel-skin,
- .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel-corners{
+ .scene-artemis-reading.is-synthesis-remake:not([data-phase="chat"]) .reading-art-panel-skin,
+ .scene-artemis-reading.is-synthesis-remake:not([data-phase="chat"]) .reading-art-panel-corners{
   display:none!important;
  }
- .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel-inner{
+ .scene-artemis-reading.is-synthesis-remake:not([data-phase="chat"]) .reading-art-panel-inner{
   min-width:0;min-height:0;max-width:100%;
  }
- .scene-artemis-reading:not([data-phase="chat"]) .reading-art-nameplate{
+ .scene-artemis-reading.is-synthesis-remake:not([data-phase="chat"]) .reading-art-nameplate{
   top:-39px!important;
  }
  .scene-artemis-reading[data-phase="chat"] .reading-art-layout{
