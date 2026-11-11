@@ -28,18 +28,18 @@ test('exact owner assets are addressed and all eight avatars have unambiguous mo
 test('thinking avatar and animated dots precede result; response shows an analytical avatar',()=>{
  const before=renderSynthesisChat({question:'What now?',status:'generating',mode:'scripted-demo'});
  assert.match(before,/synthesis-typing-dots/);
- assert.match(before,/avatar_artemis_face_mystical\\.png/);
+ assert.match(before,/avatar_artemis_face_mystical\.png/);
  assert.match(before,/Synthesizing/);
  assert.doesNotMatch(before,/synthesis-guidance-cta/);
  const after=renderSynthesisChat({question:'What now?',status:'ready',
   response:'The cards invite a reflective pause.'});
- assert.match(after,/avatar_artemis_face_focused_observation\\.png/);
+ assert.match(after,/avatar_artemis_face_focused_observation\.png/);
  assert.match(after,/synthesis-guidance-cta/);
  assert.doesNotMatch(after,/synthesis-typing-dots/);
  const followup=renderSynthesisChat({question:'What now?',status:'followup-generating',
   response:'Initial reading is complete.',guidance:{id:'the_star',name:'The Star',
    orientation:'upright',meaning:'Hope'},history:[]});
- assert.match(followup,/avatar_artemis_face_thoughtful\\.png/);
+ assert.match(followup,/avatar_artemis_face_thoughtful\.png/);
  assert.match(followup,/synthesis-typing-dots/);
 });
 test('Begin Interpretation restores scripted reading; only final Ask Artemis starts synthesis',async()=>{
