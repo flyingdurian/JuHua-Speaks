@@ -544,6 +544,31 @@ try{
  });
  await writeFile(dir+'/14c-mobile-original-table-depth-390x844.json',
   JSON.stringify(tablePlacement,null,2));
+ // Guard the owner-editable :root contract AND verify one source-room table
+ // in the real browser, not merely a visible-but-empty DOM tabletop.
+ const grounding=await page.evaluate(()=>{
+  const root=getComputedStyle(document.documentElement);
+  const scene=document.querySelector('.scene-artemis-reading');
+  const hero=document.querySelector('.reading-art-hero');
+  const matte=getComputedStyle(hero,'::after');
+  const table=getComputedStyle(document.querySelector('.reading-art-table-surface'));
+  const knobs=['--artemis-top','--artemis-scale','--table-top',
+   '--cards-y-offset','--panel-padding'];
+  return {knobs:Object.fromEntries(knobs.map(k=>[k,root.getPropertyValue(k).trim()])),
+   matteSourceMatchesRoom:matte.backgroundImage.includes('bg_artemis_reading_stage_main.webp'),
+   matteClip:matte.clipPath,coverSynced:hero.dataset.roomOcclusionSynced==='true',
+   tableUsesDuplicateBitmap:table.backgroundImage.includes('bg_artemis_reading_stage_main.webp'),
+   panelStartsBelowHero:document.querySelector('.reading-art-panel').getBoundingClientRect().top>=
+    hero.getBoundingClientRect().bottom-2,
+   phase:scene.dataset.phase||'scripted'};
+ });
+ await writeFile(dir+'/14d-mobile-grounding-contract-390x844.json',
+  JSON.stringify(grounding,null,2));
+ assert.ok(Object.values(grounding.knobs).every(Boolean)
+  &&grounding.matteSourceMatchesRoom&&grounding.matteClip!=='none'
+  &&grounding.coverSynced&&!grounding.tableUsesDuplicateBitmap
+  &&grounding.panelStartsBelowHero,
+  'Root-layout + one-table physical grounding contract: '+JSON.stringify(grounding));
  assert.ok(tablePlacement.tableVisible&&tablePlacement.cardBottom>=tablePlacement.tableTop-20
    &&tablePlacement.cardBottom<=tablePlacement.tableBottom+15,
    'Center card base must intersect the original painted table plane, not float below it: '+
