@@ -59,7 +59,7 @@ test('The final interpretation CTA triggers a real synthesis phase, never anothe
  const scene=await readFile(new URL('../preview/post-shuffle/scene.mjs',import.meta.url),'utf8');
  const css=await readFile(new URL('../preview/post-shuffle/reading-polish-v4.css',import.meta.url),'utf8');
  const server=await readFile(new URL('../scripts/serve-gate-a.mjs',import.meta.url),'utf8');
- assert.match(scene,/if\(readingChapter===2\)/);
+ assert.match(scene,/if\(readingChapter===3\)/);
  assert.match(scene,/synthesis\?\.start\(\)/);
  assert.match(css,/data-phase="sacrificing"/);
  assert.match(css,/gateDSacrificeCenter/);
@@ -77,4 +77,6 @@ test('Original question stays outside scrolling chat log after guidance is drawn
  const scrollPos=html.indexOf('class="synthesis-chat-scroll"');
  assert.ok(questionPos>=0&&scrollPos>questionPos);
  assert.match(html,/guidance-followup-form/);
+ assert.ok(html.indexOf('class="synthesis-chat-actions"') < html.indexOf('class="synthesis-followup-form"'));
+ assert.ok(html.indexOf('class="synthesis-followup-form"') > html.indexOf('</div></div>'));
 });
