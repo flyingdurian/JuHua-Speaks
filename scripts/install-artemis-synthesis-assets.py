@@ -63,7 +63,7 @@ def install(archive):
                 contents=z.read(path)
                 if (len(contents)!=item['bytes'] or
                     hashlib.sha256(contents).hexdigest()!=item['sha256'] or
-                    not contents.startswith(b'\\x89PNG\\r\\n\\x1a\\n')):
+                    not contents.startswith(b'\x89PNG\r\n\x1a\n')):
                     raise ValueError('Face crop checksum or format error: '+path)
                 blobs[Path(path).name]=contents
         ASSET_DIR.mkdir(parents=True,exist_ok=True)
