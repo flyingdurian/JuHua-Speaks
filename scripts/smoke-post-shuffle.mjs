@@ -684,18 +684,22 @@ try{
   const screen=document.querySelector('.scene-artemis-reading').getBoundingClientRect();
   const answer=document.querySelector('.synthesis-message-body p').textContent;
   const source=document.querySelector('.synthesis-chat-heading small').textContent;
-  const cta=document.querySelector('.synthesis-guidance-cta').getBoundingClientRect();
+  const form=document.querySelector('.synthesis-followup-form').getBoundingClientRect();
   return {hudTop:hud.top,hudHeight:hud.height,viewportHeight:screen.height,
-   answer,source,ctaBottom:cta.bottom};
+   answer,source,formBottom:form.bottom};
  });
  assert.ok(completeChat.hudHeight>=345&&completeChat.hudHeight>=completeChat.viewportHeight*.43,
   'Interactive chat must occupy lower viewport half: '+JSON.stringify(completeChat));
  assert.ok(completeChat.answer.length>80&&completeChat.source.includes('SCRIPTED PREVIEW'),
   'Offline screenshots must label deterministic preview instead of falsely claiming live AI');
- assert.ok(completeChat.ctaBottom<=845,
-  'Guidance action must be visible on a normal phone screen');
+ assert.ok(completeChat.formBottom<=845,
+  'Follow-up composer must be reachable on a normal phone screen');
  await page.screenshot({path:dir+'/17-mobile-synthesis-chat-390x844.png'});
- await page.locator('[data-action="draw-guidance"]').click();
+ assert.equal(await page.locator('.synthesis-guidance-cta,.synthesis-reading-complete').count(),0);
+ await page.locator('#synthesis-followup-question').fill('What can I do next?');
+ await page.locator('.synthesis-followup-send').click();
+ await page.waitForFunction(()=>document.querySelector('.reading-chat-hud')?.dataset.chatState==='followup-ready',
+  undefined,{timeout:9000});
  const guidance=await page.locator('.synthesis-guidance-card img').getAttribute('src');
  assert.ok(guidance&&beforeIDs.every(id=>!guidance.includes(id)),
   'One guidance card must be NEW and distinct from the original three');
@@ -708,10 +712,6 @@ try{
  assert.ok(pinned.questionVisible&&pinned.aboveLog,
   'Original question must remain pinned above the scrolling chat log after guidance: '+JSON.stringify(pinned));
   await page.screenshot({path:dir+'/18-mobile-guidance-card-390x844.png'});
- await page.locator('#synthesis-followup-question').fill('What can I do next?');
- await page.locator('.synthesis-followup-send').click();
- await page.waitForFunction(()=>document.querySelector('.reading-chat-hud')?.dataset.chatState==='followup-ready',
-  undefined,{timeout:7000});
  assert.equal(await page.locator('.synthesis-guidance-card').count(),1);
  assert.equal(await page.locator('.synthesis-user-followup').count(),1);
  assert.ok((await page.locator('.synthesis-message-body').count())>=2);
