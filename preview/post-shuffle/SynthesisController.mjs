@@ -92,8 +92,12 @@ export function createSynthesisController({world,question,choices,reading,reduce
    token.style.left=(rect.left-stageBox.left)+'px';
    token.style.top=(rect.top-stageBox.top)+'px';
    token.style.width=rect.width+'px';token.style.height=rect.height+'px';
-   token.style.setProperty('--ritual-dx',(portal.x-(rect.left-stageBox.left+rect.width*.5))+'px');
-   token.style.setProperty('--ritual-dy',(portal.y-(rect.top-stageBox.top+rect.height*.5))+'px');
+   const dx=portal.x-(rect.left-stageBox.left+rect.width*.5);
+   const dy=portal.y-(rect.top-stageBox.top+rect.height*.5);
+   token.style.setProperty('--ritual-dx',dx+'px');
+   token.style.setProperty('--ritual-dy',dy+'px');
+   token.style.setProperty('--ritual-dx65',dx*.65+'px');
+   token.style.setProperty('--ritual-dy55',dy*.55+'px');
    const face=image.cloneNode(true);
    face.removeAttribute('id');face.classList.add('artemis-synthesis-card-face');
    const shimmer=foil.cloneNode(true);
