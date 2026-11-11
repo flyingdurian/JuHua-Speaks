@@ -44,12 +44,36 @@ def install(archive):
             if not contents.startswith(b'\x89PNG\r\n\x1a\n'):
                 raise ValueError('Asset is not a PNG: '+path)
             blobs[Path(path).name]=contents
+        # The upgraded PR #28 archive optionally includes eight 512px
+        # deterministic face crops. Verify each one before writing anything.
+        face_manifest_path='assets/artemis/synthesis/face-crops-manifest.json'
+        face_manifest=None
+        if face_manifest_path in z.namelist():
+            face_manifest=json.loads(z.read(face_manifest_path))
+            face_entries=face_manifest.get('files',[])
+            expected_faces={'avatar_artemis_face_'+stem+'.png' for stem in (
+                'neutral','warm_welcome','focused_observation','thoughtful',
+                'surprised','reassuring','confident','mystical')}
+            if {Path(item['path']).name for item in face_entries}!=expected_faces or len(face_entries)!=8:
+                raise ValueError('Face crop manifest must include all eight moods')
+            for item in face_entries:
+                path=item['path']
+                if path!='assets/artemis/synthesis/'+Path(path).name:
+                    raise ValueError('Unsafe face-crop path: '+path)
+                contents=z.read(path)
+                if (len(contents)!=item['bytes'] or
+                    hashlib.sha256(contents).hexdigest()!=item['sha256'] or
+                    not contents.startswith(b'\\x89PNG\\r\\n\\x1a\\n')):
+                    raise ValueError('Face crop checksum or format error: '+path)
+                blobs[Path(path).name]=contents
         ASSET_DIR.mkdir(parents=True,exist_ok=True)
         for name,contents in blobs.items():
             (ASSET_DIR/name).write_bytes(contents)
             print('installed',name,len(contents),'bytes')
         (ASSET_DIR/'asset-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
-        print('All original Artemis assets installed and verified.')
+        if face_manifest is not None:
+            (ASSET_DIR/'face-crops-manifest.json').write_text(json.dumps(face_manifest,indent=2)+'\n')
+        print('All owner originals and supplied close-up faces installed and verified.')
 
 if __name__=='__main__':
     if len(sys.argv)!=2:
