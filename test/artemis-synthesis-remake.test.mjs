@@ -28,28 +28,31 @@ test('exact owner assets are addressed and all eight avatars have unambiguous mo
 test('thinking avatar and animated dots precede result; response shows an analytical avatar',()=>{
  const before=renderSynthesisChat({question:'What now?',status:'generating',mode:'scripted-demo'});
  assert.match(before,/synthesis-typing-dots/);
- assert.match(before,/avatar_artemis_mystical\.png/);
+ assert.match(before,/avatar_artemis_face_mystical\\.png/);
  assert.match(before,/Synthesizing/);
  assert.doesNotMatch(before,/synthesis-guidance-cta/);
  const after=renderSynthesisChat({question:'What now?',status:'ready',
   response:'The cards invite a reflective pause.'});
- assert.match(after,/avatar_artemis_focused_observation\.png/);
+ assert.match(after,/avatar_artemis_face_focused_observation\\.png/);
  assert.match(after,/synthesis-guidance-cta/);
  assert.doesNotMatch(after,/synthesis-typing-dots/);
  const followup=renderSynthesisChat({question:'What now?',status:'followup-generating',
   response:'Initial reading is complete.',guidance:{id:'the_star',name:'The Star',
    orientation:'upright',meaning:'Hope'},history:[]});
- assert.match(followup,/avatar_artemis_thoughtful\.png/);
+ assert.match(followup,/avatar_artemis_face_thoughtful\\.png/);
  assert.match(followup,/synthesis-typing-dots/);
 });
-test('new Begin Interpretation state bypasses old chapters without breaking legacy testing',async()=>{
+test('Begin Interpretation restores scripted reading; only final Ask Artemis starts synthesis',async()=>{
  const scene=await source('../preview/post-shuffle/scene.mjs');
  const controller=await source('../preview/post-shuffle/SynthesisController.mjs');
  const tableau=await source('../preview/post-shuffle/TarotTableau.mjs');
  assert.match(tableau,/BEGIN INTERPRETATION/);
- assert.match(scene,/directSynthesis=!new URLSearchParams\(location\.search\)\.has\('legacy-reading'\)/);
- assert.match(scene,/if\(directSynthesis\)\{/);
- assert.match(scene,/return synthesis\?\.start\(\)===true/);
+ assert.match(scene,/const directSynthesis=false/);
+ assert.match(scene,/if\(readingChapter===3\)/);
+ assert.match(scene,/renderReadingHandoff\(\)/);
+ const stage=await source('../preview/post-shuffle/reading-stage.mjs');
+ assert.match(stage,/chapter===3\?'Ask Artemis'/);
+ assert.match(stage,/The cards are ready to speak/);
  assert.match(controller,/buildCardConjuringScene/);
  assert.match(controller,/const cards=\[\.\.\.stage\.querySelectorAll\('\.reading-art-card'\)\]/);
  assert.match(controller,/image\.cloneNode\(true\)/);
@@ -63,6 +66,7 @@ test('panel uses corner-safe nine slicing, no aspect-ratio stretching',async()=>
  const preview=await source('../preview/post-shuffle/index.html');
  assert.match(css,/border-image-slice:170 175 170 175 fill/);
  assert.match(css,/ui_reading_frame_panel_mobile\.png/);
+ assert.match(css,/ui_reading_frame_panel\.png/);
  assert.match(css,/artemis-conjuring-art/);
  assert.match(css,/artemis-focused-chat-art/);
  assert.match(css,/artemisCardOffering/);
