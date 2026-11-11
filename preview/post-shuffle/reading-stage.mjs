@@ -85,7 +85,7 @@ const face=(choice,cardsById)=>{
 function chapterText(demo,chapter){
  if(!READING_CHAPTERS.includes(chapter))throw new RangeError('Unknown reading chapter');
  if(chapter===-1)return {
-  eyebrow:'WELCOME TO YOUR READING',title:'The cards are ready to speak.',
+  eyebrow:'',title:'The cards are ready to speak.',
   text:'I am Artemis. These are your three chosen cards, each with a different place in your story. We can read them with curiosity, not as a fixed prediction.'
  };
  if(chapter===3)return {
@@ -116,9 +116,10 @@ export function renderReadingPanel(demo,chapter){
  return '<div class="reading-art-panel-inner">'+
   artSlot('nameplate','reading-art-nameplate-art')+
   '<span class="reading-art-nameplate">ARTEMIS <span>· YOUR READER</span></span>'+
-  '<p class="reading-art-kicker">'+esc(current.eyebrow)+'</p>'+
+  (current.eyebrow?'<p class="reading-art-kicker">'+esc(current.eyebrow)+'</p>':'')+
   '<h2 class="reading-art-narration-title" id="artemis-chapter-title" tabindex="-1">'+esc(current.title)+'</h2>'+
-  '<p class="reading-art-narration-text">'+esc(current.text)+'</p>'+
+  '<p class="reading-art-narration-text" tabindex="0" aria-label="Full reading interpretation">'+esc(current.text)+'</p>'+
+  '<span class="reading-art-scroll-cue" aria-hidden="true">SCROLL FOR MORE ↓</span>'+
   '<div class="reading-art-controls">'+
   '<button type="button" class="reading-art-control is-secondary" data-action="reading-prev" '+
    (chapter===-1?'disabled':'')+' aria-label="Previous chapter">← Previous</button>'+
@@ -148,10 +149,14 @@ export function renderReadingStage({choices,cardsById,demo,chapter=-1,question='
   artSlot('violetParticles','reading-art-fx reading-art-fx-violet')+
   artSlot('goldParticles','reading-art-fx reading-art-fx-gold')+
   '<div class="reading-art-layout">'+
-  '<header class="reading-art-header">'+artSlot('title','reading-art-title-art')+
-  '<span class="reading-art-eyebrow">JUHUA SPEAKS · CELESTIAL TAROT</span>'+
-  '<h1 tabindex="-1" id="artemis-reading-title">Your Reading</h1>'+
-  '<p class="reading-art-subtitle">THREE CARDS · ONE STORY</p></header>'+
+  // The title block is visually removed. Keep a focusable landmark for
+  // assistive tech and the existing Gate C -> D focus handoff.
+  '<header class="reading-art-header">'+
+  '<h1 class="reading-art-screenreader-title" tabindex="-1" id="artemis-reading-title">Your Reading</h1>'+
+  (question?'<div class="reading-art-question-banner" aria-label="Your question">'+
+   '<span class="reading-art-question-label">YOUR QUESTION</span>'+
+   '<p class="reading-art-question">'+esc(question)+'</p></div>':'')+
+  '</header>'+
   '<div class="reading-art-hero" aria-label="Artemis and the three cards chosen during the ritual">'+
    artSlot('halo','reading-art-halo')+
    artSlot('readingGlow','reading-art-reading-glow')+
@@ -169,7 +174,7 @@ export function renderReadingStage({choices,cardsById,demo,chapter=-1,question='
       '" aria-pressed="'+(chapter===i)+'" data-original-card-id="'+esc(choice.id)+'" data-orientation="'+esc(choice.orientation)+'">'+
       '<span class="reading-art-card-visual" data-tabletop-tilt-deg="42"><span class="reading-art-card-frame">'+face(choice,cardsById)+'<span class="reading-art-card-foil ps-card-art-overlay" data-foil-finish="pending" aria-hidden="true"></span></span></span>'+
       '<span class="reading-art-connector" aria-hidden="true"></span>'+
-      '<span class="reading-art-card-role">'+String(i+1).padStart(2,'0')+' · '+roles[i]+'</span>'+
+      '<span class="reading-art-card-role">'+String(i+1).padStart(2,'0')+'. '+roles[i]+'</span>'+
       '<span class="reading-art-card-meaning">'+orientation+' · '+esc(cardBrief(demo,card,choice,i))+'</span></button>';
    }).join('')+
    '</div></div>'+
@@ -179,8 +184,7 @@ export function renderReadingStage({choices,cardsById,demo,chapter=-1,question='
    artSlot('panel','reading-art-panel-skin')+
    artSlot('corners','reading-art-panel-corners')+
    renderReadingPanel(demo,chapter)+'</div>'+
-  '<footer class="reading-art-footer"><p class="reading-art-question">'+
-   (question?'YOUR QUESTION · '+esc(question):'PAST · PRESENT · FUTURE')+'</p>'+
+  '<footer class="reading-art-footer">'+
    '<p class="reading-art-demo">SCRIPTED DEMONSTRATION · NO LIVE AI REQUEST</p></footer>'+
   '</div></section>';
 }

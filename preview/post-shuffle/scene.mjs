@@ -13,6 +13,7 @@ import {initCelestialSky} from '../../src/ritual-world/CelestialSky.mjs';
 import {paintCelestialBack} from '../../src/ritual-world/EngravedBack.mjs';
 import {SPHERE_VERTEX_STRIDE,extrudedCardVertices} from './PhysicalSphereMesh.mjs';
 import {chooseFoilFinish,createTarotTableau} from './TarotTableau.mjs';
+import {createSynthesisController} from './SynthesisController.mjs';
 import {createSelectionHandoff,HANDOFF_SETTLE_MS} from './SelectionHandoff.mjs';
 import {BEATS,sphereLayout,clamp,smooth,cardWorld,orbitAngle,cameraDistance,gyroAttitude,selectCard,getStage,perspectiveFocal,pickProjectedCard,orbitYaw,selectionRise,CAMERA_CLIP_NEAR,CAMERA_NEAR,clipCardNearPlane} from './geometry.mjs';
 
@@ -139,6 +140,7 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
 
  let lockAt=null,lockFrame=null,tableau=null,tableauShown=false,handoff=null;const pickAnchors=new Map();
  let readingStarted=false,readingTimer=null,readingChapter=-1,resourcesDisposed=false,portraitRevision=0;
+ let synthesis=null;
  // Predecode ONLY chapter-visible portraits; 16 source states exist but we
  // avoid eager-loading 16 large PNGs while the visitor is still in Gate C.
  const portraitCache=new Map();
@@ -162,10 +164,58 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   sky.dispose();handoff?.dispose();tableau?.dispose();atlas.dispose();
   gl.deleteBuffer(vertexBuffer);gl.deleteVertexArray(vao);gl.deleteProgram(program);
  }
+ function updateReadingOverflowCue(){
+  const panel=world.querySelector('.reading-art-panel');
+  const body=panel?.querySelector('.reading-art-narration-text');
+  if(!panel||!body)return;
+  const more=body.scrollHeight>body.clientHeight+3&&
+   body.scrollTop<body.scrollHeight-body.clientHeight-3;
+  panel.dataset.textOverflow=String(more);
+ }
+ function updateArtemisTableOcclusion(){
+  if(dead||!readingStarted)return;
+  const room=world.querySelector('.scene-artemis-reading');
+  const hero=room?.querySelector('.reading-art-hero');
+  const image=room?.querySelector('.reading-art-atmosphere img');
+  if(!room||!hero||!image)return;
+  if(!image.complete||!image.naturalWidth||!image.naturalHeight){
+   if(!image.dataset.occlusionLoadBound){
+    image.dataset.occlusionLoadBound='true';
+    image.addEventListener('load',updateArtemisTableOcclusion,{once:true});
+   }
+   return;
+  }
+  // Exact bitmap alignment: the occluder reuses the painted table pixels from
+  // this SAME room artwork. It is a depth mask, not a second table graphic.
+  // The room bitmap can be vertically panned for mobile composition.
+  // Using the ACTUAL transformed image rectangle (not the scene rectangle)
+  // keeps the physically occluding table pixels perfectly aligned with the
+  // backdrop and avoids a second displaced rim or an exposed dress seam.
+  const r=image.getBoundingClientRect(),h=hero.getBoundingClientRect();
+  const scale=Math.max(r.width/image.naturalWidth,r.height/image.naturalHeight);
+  const w=image.naturalWidth*scale,ht=image.naturalHeight*scale;
+  const pos=getComputedStyle(image).objectPosition.trim().split(/\s+/);
+  const fraction=(v,defaultValue)=>{
+   if(!v)return defaultValue;
+   if(v==='center')return .5;
+   if(v==='left'||v==='top')return 0;
+   if(v==='right'||v==='bottom')return 1;
+   if(v.endsWith('%'))return Number.parseFloat(v)/100;
+   return defaultValue;
+  };
+  const ox=(r.width-w)*fraction(pos[0],.5)+r.left-h.left;
+  const oy=(r.height-ht)*fraction(pos[1],.48)+r.top-h.top;
+  hero.style.setProperty('--room-cover-size',w+'px '+ht+'px');
+  hero.style.setProperty('--room-cover-position',ox+'px '+oy+'px');
+  hero.dataset.roomOcclusionSynced='true';
+ }
  function renderReading(){
   if(!readingStarted)return;
   world.innerHTML=renderReadingStage({choices,cardsById:BY_ID,demo:readingDemo(),
    chapter:readingChapter,question:readingQuestion});
+  requestAnimationFrame(()=>{
+   updateReadingOverflowCue();updateArtemisTableOcclusion();
+  });
  }
  function goReading(){
   if(dead||lockAt===null||tableau?.revealed!==3||readingStarted)return false;
@@ -196,6 +246,8 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
    layer.dataset.carryover='original-foil';
    foilSockets[i].replaceWith(layer);
   });
+  synthesis=createSynthesisController({world,question:readingQuestion,choices,
+   reading:readingDemo(),reducedMotion:reduced});
   world.querySelector('#artemis-reading-title')?.focus({preventScroll:true});
   return true;
  }
@@ -252,6 +304,7 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
    cached.decode().then(display).catch(()=>{if(request===portraitRevision)portrait.dataset.artStatus='unavailable';});
   }
   world.querySelector('#artemis-chapter-title')?.focus({preventScroll:true});
+  requestAnimationFrame(updateReadingOverflowCue);
   return true;
  }
  const handleReadingControls=event=>{
@@ -259,9 +312,33 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   const button=event.target.closest('button');if(!button)return;
   if(button.hasAttribute('data-reading-chapter')){updateReadingChapter(Number(button.dataset.readingChapter));return;}
   if(button.dataset.action==='reading-prev'){updateReadingChapter(Math.max(-1,readingChapter-1));return;}
-  if(button.dataset.action==='reading-next'){updateReadingChapter(readingChapter===3?0:readingChapter+1);return;}
+  if(synthesis?.handleClick(event))return;
+  if(synthesis?.state.started)return;
+  if(button.dataset.action==='reading-next'){
+   if(readingChapter===2){
+    if(synthesis?.start()){
+     step='synthesis';world.dataset.beat='synthesis';
+     requestAnimationFrame(updateArtemisTableOcclusion);
+     setTimeout(updateArtemisTableOcclusion,1050);
+    }
+   }else updateReadingChapter(readingChapter===3?0:readingChapter+1);
+   return;
+  }
  };
  mount.addEventListener('click',handleReadingControls);
+ const onSynthesisSubmit=event=>{
+  if(synthesis?.handleSubmit(event))return;
+ };
+ mount.addEventListener('submit',onSynthesisSubmit);
+ const onReadingTextScroll=event=>{
+  if(readingStarted&&event.target?.classList?.contains('reading-art-narration-text'))
+   updateReadingOverflowCue();
+ };
+ mount.addEventListener('scroll',onReadingTextScroll,true);
+ const onReadingResize=()=>{
+  updateReadingOverflowCue();updateArtemisTableOcclusion();
+ };
+ window.addEventListener('resize',onReadingResize);
  const sessionFoil=chooseFoilFinish();
  mount.innerHTML='<div class="ps-world" role="region" aria-label="Continuous post-shuffle Tarot sphere" id="ps-world">'+
   '<div class="ps-sky" id="ps-sky"><canvas class="ps-stars" id="ps-stars"></canvas></div>'+
@@ -428,10 +505,16 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
   visible:()=>rendered.map(p=>({id:p.id,side:p.side,selected:p.selected,x:p.center.x,y:p.center.y,depth:p.depth})),
   selectionLocked:()=>lockAt!==null,selectionSnapshot:()=>lockFrame?{...lockFrame,picks:lockFrame.picks.map(p=>({...p}))}:null,
   time:()=>t,tap,togglePause:changePause,orbitYaw:()=>yaw,artOverlay:()=>tableau?.artOverlay??sessionFoil,hologram:()=>tableau?.hologram??sessionFoil,
-  foil:()=>tableau?.artOverlay??sessionFoil,readingChapter:()=>readingChapter,readingReady:()=>tableauShown&&tableau?.revealed===3,beginReading,tableau:()=>({active:tableauShown,revealed:tableau?.revealed||0,artOverlay:tableau?.artOverlay??sessionFoil}),
+  foil:()=>tableau?.artOverlay??sessionFoil,readingChapter:()=>readingChapter,synthesisState:()=>synthesis?.state||null,
+  readingReady:()=>tableauShown&&tableau?.revealed===3,beginReading,tableau:()=>({active:tableauShown,revealed:tableau?.revealed||0,artOverlay:tableau?.artOverlay??sessionFoil}),
   dispose(){
    dead=true;portraitRevision++;cancelAnimationFrame(raf);if(readingTimer!==null)clearTimeout(readingTimer);
-   mount.removeEventListener('click',handleReadingControls);disposeSphereResources();world.remove();
+   mount.removeEventListener('click',handleReadingControls);
+   mount.removeEventListener('submit',onSynthesisSubmit);
+   synthesis?.dispose();
+   mount.removeEventListener('scroll',onReadingTextScroll,true);
+   window.removeEventListener('resize',onReadingResize);
+   disposeSphereResources();world.remove();
   }
  };
 }

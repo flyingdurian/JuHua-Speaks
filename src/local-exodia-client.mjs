@@ -1,6 +1,6 @@
 /** Local Node proxy only. Never contact Exodia's port 8765 from browser JS. */
 export function isLocalJuHua(loc=globalThis.location){
- return loc?.protocol==='http:'&&['127.0.0.1','localhost'].includes(loc.hostname)&&(!loc.port||loc.port==='4173');
+ return loc?.protocol==='http:'&&['127.0.0.1','localhost'].includes(loc.hostname)&&(!loc.port||loc.port==='4173'||loc.port==='4184');
 }
 export async function discoverLocalExodia({fetcher=globalThis.fetch,loc=globalThis.location}={}){
  if(!isLocalJuHua(loc))return null;
@@ -12,7 +12,7 @@ export async function discoverLocalExodia({fetcher=globalThis.fetch,loc=globalTh
  }catch{return null;}
 }
 export async function sendLocalExodia(payload,{fetcher=globalThis.fetch,loc=globalThis.location}={}){
- if(!isLocalJuHua(loc))throw new Error('Local Exodia is only available in the local JuHua app on port 4173');
+ if(!isLocalJuHua(loc))throw new Error('Local Exodia is only available in the local JuHua app or Gate B review server');
  const response=await fetcher('/api/local-exodia/reading',{
   method:'POST',
   headers:{'Content-Type':'application/json','X-JuHua-Local-Client':'1'},

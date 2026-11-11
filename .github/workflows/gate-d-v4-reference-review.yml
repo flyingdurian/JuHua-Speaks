@@ -1,0 +1,54 @@
+name: Gate D V4 reference tabletop / portrait / mobile review (no deploy)
+on:
+  push:
+    branches: [fix/gate-d-v4-reference-table-portrait-mobile]
+  pull_request:
+    branches: [fix/gate-d-v3-foil-table-responsive]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and source tests
+        run: |
+          node --check preview/post-shuffle/reading-stage.mjs
+          node --check preview/post-shuffle/scene.mjs
+          node --check scripts/smoke-post-shuffle.mjs
+          node --check test/gate-d-v4-reference-layout.test.mjs
+          npm test
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save playwright
+      - run: npx playwright install chromium --only-shell
+      - name: Use authentic historic RWS scans
+        run: npm run assets:sync
+      - name: Launch review-only Gate BC / Artemis preview
+        run: |
+          npm run preview:gate-b > /tmp/gate-d-v4.log 2>&1 &
+          for i in $(seq 1 35); do
+            if curl -fsS http://127.0.0.1:4184/preview/gate-b/ >/dev/null; then break; fi
+            sleep 2
+          done
+      - name: Render screenshot and assert real table, portrait, card, dialog and footer geometry
+        run: node scripts/smoke-post-shuffle.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gate-d-v4-reference-layout-screenshots
+          path: |
+            artifacts/post-shuffle
+            /tmp/gate-d-v4.log
+          retention-days: 14

@@ -85,7 +85,12 @@ test('reading chamber is one cohesive composition with original RWS images and a
  assert.match(html,/reading-art-panel-skin/);
  assert.match(html,/reading-art-panel-corners/);
  assert.match(html,/reading-art-nameplate-art/);
- assert.match(html,/reading-art-title-art/);
+ assert.doesNotMatch(html,/class="reading-art-title-art"/,
+  'Owner requested removal of the three-line visible title block');
+ assert.match(html,/reading-art-screenreader-title/,
+  'Preserve a visually hidden heading for accessible reading navigation');
+ assert.match(html,/reading-art-question-banner/,
+  'Display original question prominently in the reclaimed header');
  assert.match(html,/SCRIPTED DEMONSTRATION/);
  assert.ok(html.includes('Do &lt;we&gt; really know &quot;the answer&quot;?'));
  assert.ok(!html.includes('Do <we>'));

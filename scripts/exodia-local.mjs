@@ -1,10 +1,11 @@
 import {normalizeReadingRequest} from '../src/reading-contract.mjs';
+import {BY_ID} from '../src/deck.mjs';
 
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const supportedHosts=new Set(['127.0.0.1','localhost','[::1]']);
 const error=(message,status=502)=>Object.assign(new Error(message),{status});
 
-export function buildExodiaPrompt({kind,context,followup='',initialReading='',history=[]}){
+export function buildExodiaPrompt({kind,context,followup='',initialReading='',history=[],guidanceCard=null}){
  const normalized=normalizeReadingRequest(context);
  if(!['reading','followup'].includes(kind))throw error('Unsupported reading operation',400);
  if(kind==='followup'){
@@ -21,7 +22,8 @@ export function buildExodiaPrompt({kind,context,followup='',initialReading='',hi
   cards:normalized.cards.map(card=>({id:card.id,position:card.position,name:card.name,chineseName:card.zh,orientation:card.orientation,meaning:card.meaning}))
  };
  const guidance=[
-  'You are JuHua Speaks, offering reflective Tarot entertainment, not certain future predictions.',
+  'You are Artemis, an elegant celestial tarot reader: emotionally attentive, compassionate, practical, never fatalistic.',
+  'Offer reflective Tarot entertainment, not certain future predictions.',
   'Interpret the exact original question and its practical choices, NOT a generic card glossary.',
   'Keep all three provided cards, their positions, and their upright/reversed orientations. Do not draw new cards.',
   'Compare Path A and Path B fairly when it is a crossroads reading.',
@@ -34,6 +36,16 @@ export function buildExodiaPrompt({kind,context,followup='',initialReading='',hi
  guidance.push('Your next task is a FOLLOW-UP in a separate conversation; you MUST use the original reading and recent turns below.');
  guidance.push('Original reading:\n'+initialReading);
  guidance.push('Previous follow-up exchanges:\n'+JSON.stringify(history.map(turn=>({question:turn.question,answer:turn.answer}))));
+ if(guidanceCard!==null){
+  const picked=new Set(normalized.cards.map(c=>c.id));
+  const extra=BY_ID.get(guidanceCard?.id);
+  if(!extra||picked.has(extra.id)||!['upright','reversed'].includes(guidanceCard?.orientation))
+   throw error('One distinct, valid guidance card is required',400);
+  guidance.push('ONE newly drawn guidance card: '+JSON.stringify({
+   id:extra.id,name:extra.name,orientation:guidanceCard.orientation,
+   meaning:extra[guidanceCard.orientation]}));
+  guidance.push('Keep the original three unchanged; interpret this ONE additional guidance card alongside them.');
+ }
  guidance.push('New user follow-up question: '+followup.trim());
  guidance.push('Answer this new question in relation to the original question and cards. Do not redo the shuffle.');
  return guidance.join('\n');

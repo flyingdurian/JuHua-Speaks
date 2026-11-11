@@ -14,15 +14,23 @@ export const ART_OVERLAY_LABELS=Object.freeze({
  'scroll-texture':'Starlight Engraving'
 });
 const TAU=Math.PI*2;
+// At 100–120px final card width, the old .5px source strokes collapsed
+// below a quarter screen pixel. Increase *source* alpha/coverage, rather than
+// painting a separate overlay after Gate C: the same chosen texture and DOM
+// layer still travel physically into Gate D.
+const foilAlpha=(alpha,multiplier=2.4)=>Math.min(.82,alpha*multiplier+.055);
 function stroke(ctx,a,b,alpha=.24,width=.65){
- ctx.strokeStyle='rgba(220,187,128,'+alpha+')';ctx.lineWidth=width;
+ ctx.strokeStyle='rgba(237,201,148,'+foilAlpha(alpha)+')';
+ ctx.lineWidth=Math.max(1.15,width*2.15);
  ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();
 }
 function dot(ctx,x,y,r=.95,alpha=.45){
- ctx.fillStyle='rgba(232,205,156,'+alpha+')';ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.fill();
+ ctx.fillStyle='rgba(245,218,167,'+foilAlpha(alpha,1.75)+')';
+ ctx.beginPath();ctx.arc(x,y,Math.max(.92,r*1.5),0,TAU);ctx.fill();
 }
 function ring(ctx,x,y,r,alpha=.18){
- ctx.strokeStyle='rgba(226,192,133,'+alpha+')';ctx.lineWidth=.6;
+ ctx.strokeStyle='rgba(239,206,156,'+foilAlpha(alpha,2.25)+')';
+ ctx.lineWidth=1.18;
  ctx.beginPath();ctx.arc(x,y,r,0,TAU);ctx.stroke();
 }
 function lattice(ctx){
@@ -64,7 +72,7 @@ function glyphs(ctx){
   const x=27+col*67+(row%2?17:0),y=30+row*67;
   const symbol=signs[(row*5+col*7)%signs.length];
   ctx.font='17px "Noto Sans Symbols 2","DejaVu Sans",Georgia,serif';
-  ctx.fillStyle='rgba(218,183,121,.24)';ctx.fillText(symbol,x,y);
+  ctx.fillStyle='rgba(238,201,146,.49)';ctx.fillText(symbol,x,y);
   if((col+row)%3===0){
    ring(ctx,x,y,14,.16);
    stroke(ctx,[x-21,y+22],[x+21,y+22],.15,.6);
