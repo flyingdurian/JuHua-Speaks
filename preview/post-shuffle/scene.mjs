@@ -141,6 +141,9 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
  let lockAt=null,lockFrame=null,tableau=null,tableauShown=false,handoff=null;const pickAnchors=new Map();
  let readingStarted=false,readingTimer=null,readingChapter=-1,resourcesDisposed=false,portraitRevision=0;
  let synthesis=null;
+ // Direct route is the default on this branch. The old five-chapter walkthrough
+ // remains accessible to regression tests and review via ?legacy-reading=1.
+ const directSynthesis=!new URLSearchParams(location.search).has('legacy-reading');
  // Predecode ONLY chapter-visible portraits; 16 source states exist but we
  // avoid eager-loading 16 large PNGs while the visitor is still in Gate C.
  const portraitCache=new Map();
@@ -253,6 +256,14 @@ export function mountPostShuffle({mount,deckIds,question='',onComplete=()=>{},de
  }
  function beginReading(){
   if(dead||lockAt===null||!tableauShown||tableau?.revealed!==3||readingStarted||readingTimer!==null)return false;
+  // Owner-approved new gate: Begin Interpretation SYNTHESIZES the selected
+  // three cards immediately. It must not present the legacy chapter carousel
+  // before showing Artemis conjuring and her personalized chat.
+  if(directSynthesis){
+   if(!goReading())return false;
+   step='synthesis';world.dataset.beat='synthesis';
+   return synthesis?.start()===true;
+  }
   step='reading-transition';world.dataset.beat='reading-transition';ready=false;
   const wrapper=document.createElement('div');
   wrapper.innerHTML=renderReadingHandoff();
