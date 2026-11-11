@@ -662,7 +662,7 @@ try{
  await page.locator('[data-action="reading-next"]').click();
  await page.waitForTimeout(190);
  assert.equal(await page.locator('.scene-artemis-reading').getAttribute('data-phase'),'sacrificing');
- assert.equal(await page.locator('.reading-synthesis-portal').count(),1);
+ assert.equal(await page.locator('.artemis-synthesis-circle').count(),1);
  await page.screenshot({path:dir+'/15-mobile-cards-sacrificing-390x844.png'});
  await page.locator('.reading-chat-hud').waitFor({timeout:6000});
  const kept=await page.locator('.reading-art-card').evaluateAll(ns=>ns.map(n=>n.dataset.originalCardId));
