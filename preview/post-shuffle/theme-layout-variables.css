@@ -68,3 +68,9 @@
   --chat-panel-padding: 20px 26px 27px;
  }
 }
+
+/* Every panel phase consumes --panel-padding; only its value changes
+   on entering chat. Do not assign this variable in scene.mjs. */
+.scene-artemis-reading[data-phase="chat"]{
+ --panel-padding:var(--chat-panel-padding);
+}
