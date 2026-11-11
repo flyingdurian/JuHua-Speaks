@@ -108,9 +108,14 @@ export function createSynthesisController({world,question,choices,reading,reduce
   const img=document.createElement('img');
   img.className='artemis-focused-chat-art';
   img.alt='';img.decoding='async';img.src=SYNTHESIS_ART.focused;
-  img.addEventListener('error',()=>{img.remove()},{once:true});
+  img.addEventListener('load',()=>{
+   if(!disposed&&room()?.contains(img))room().dataset.synthesisPortrait='focused';
+  },{once:true});
+  img.addEventListener('error',()=>{
+   // Do not hide the old readable Artemis art if an asset is missing.
+   img.remove();if(room())room().dataset.synthesisPortrait='fallback';
+  },{once:true});
   hero.append(img);
-  room().dataset.synthesisPortrait='focused';
  }
  async function synthesize(){
   const token=++requestToken;
