@@ -41,14 +41,14 @@ def install(archive):
             contents=z.read(path)
             if len(contents)!=item['bytes'] or hashlib.sha256(contents).hexdigest()!=item['sha256']:
                 raise ValueError('Owner asset checksum mismatch: '+path)
-            if not contents.startswith(b'\\x89PNG\\r\\n\\x1a\\n'):
+            if not contents.startswith(b'\x89PNG\r\n\x1a\n'):
                 raise ValueError('Asset is not a PNG: '+path)
             blobs[Path(path).name]=contents
         ASSET_DIR.mkdir(parents=True,exist_ok=True)
         for name,contents in blobs.items():
             (ASSET_DIR/name).write_bytes(contents)
             print('installed',name,len(contents),'bytes')
-        (ASSET_DIR/'asset-manifest.json').write_text(json.dumps(manifest,indent=2)+'\\n')
+        (ASSET_DIR/'asset-manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
         print('All original Artemis assets installed and verified.')
 
 if __name__=='__main__':
