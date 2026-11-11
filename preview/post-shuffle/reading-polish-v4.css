@@ -1149,3 +1149,136 @@
   max-height:clamp(70px,11dvh,96px);margin:7px 0 8px;
  }
 }
+
+
+/* Gate D V4 — precision table/reader/HUD corrections, 2026-11-10.
+   This is a focused *reading-phase only* override: the already approved
+   desktop scene and the subsequent synthesis/chat stage stay untouched.
+   No extra table DOM or artwork is created. The one original room bitmap
+   remains the sole painted table and foreground occlusion texture. */
+@media (max-width:720px) {
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-layout {
+    grid-template-rows:min-content 395px auto auto;
+    align-content:start;
+    min-height:100dvh;
+  }
+  /* The apparent table-rim height is at the END of the room's hero viewport,
+     not 80% up it. The previous clip line erased Artemis's lower bust, leaving
+     her visibly floating above a cropped/zoomed table edge. */
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero {
+    min-height:395px;height:395px;
+    --table-occlusion-line:calc(100% - 12px);
+    margin-top:-12px;margin-bottom:-12px;
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait {
+    top:clamp(9px,1.7dvh,17px);
+    width:min(84vw,342px);
+    height:calc(100% - 4px);
+    overflow:hidden;opacity:1!important;
+    -webkit-mask:none!important;mask:none!important;
+    object-position:center top;
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait img {
+    width:100%;height:100%;object-fit:cover;object-position:center top;
+    opacity:1;
+  }
+  /* Card 02 begins near the upper abdomen, not Artemis's face. Its bottom
+     stays on the VISIBLE painted table, while the real 42° pitch is retained
+     by the unchanged card-frame transform. */
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread {
+    bottom:18%;z-index:5;width:min(100%,490px);
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel {
+    box-sizing:border-box;
+    height:clamp(330px,40dvh,385px);
+    min-height:330px;
+    padding:46px clamp(37px,10.4vw,56px) 16px;
+    margin-top:0;
+    overflow:visible;
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel-inner {
+    position:relative;display:flex;flex-direction:column;
+    width:100%;max-width:100%;height:100%;
+    min-height:0;overflow:visible;
+    align-items:center;justify-content:flex-start;
+  }
+  /* The reader's original semantic badge was there all along, but the
+     panel clipped its negative margin. Anchor it to the ornate upper rim. */
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-nameplate {
+    position:absolute;left:50%;top:-52px;z-index:9;
+    transform:translateX(-50%);
+    margin:0!important;padding:6px 18px;
+    max-width:calc(100vw - 80px);
+    white-space:nowrap;text-align:center;
+    font:600 11px/1.25 Georgia,serif;
+    letter-spacing:.15em;color:#f8deb0;
+    border:1px solid #d7b67e;border-radius:99px;
+    background:linear-gradient(160deg,#26203e,#101629);
+    box-shadow:inset 0 1px rgba(255,233,181,.24),0 3px 12px rgba(7,7,22,.45);
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-nameplate span {
+    font:9px/1.25 Arial,sans-serif;color:#cfc0c9;
+    letter-spacing:.07em;
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-nameplate-art {
+    top:-61px;
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-kicker {
+    flex:none;max-width:100%;min-width:0;margin:0 auto 5px;
+    font-size:clamp(9px,2.5vw,11px);line-height:1.3;
+    overflow-wrap:break-word;
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-narration-title {
+    flex:none;max-width:100%;min-width:0;
+    margin:0 0 8px;
+    font-size:clamp(18px,4.65vw,24px);
+    line-height:1.2;overflow-wrap:break-word;
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-narration-text {
+    box-sizing:border-box;
+    flex:1 1 auto;min-width:0;min-height:0;
+    width:100%;max-width:100%;
+    font-size:clamp(13px,3.4vw,15px);
+    line-height:1.52;
+    padding:0 4px 4px;margin:0 auto 8px;
+    white-space:normal;overflow-wrap:break-word;word-break:normal;
+    overflow-x:hidden!important;overflow-y:auto!important;
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-controls {
+    flex:none;align-self:center;flex-wrap:nowrap;max-width:100%;
+    margin:2px auto 3px;
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-progress {
+    flex:none;margin:1px auto 0;
+  }
+}
+@media (max-width:720px) and (max-height:680px) {
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-layout {
+    grid-template-rows:min-content 390px auto auto;
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero {
+    min-height:390px;height:390px;
+    --table-occlusion-line:calc(100% - 12px);
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait {
+    top:16px;width:min(68vw,295px);height:calc(100% - 10px);
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread {
+    bottom:13%;
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel {
+    min-height:310px;height:310px;
+    padding:44px clamp(35px,9.5vw,50px) 14px;
+  }
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-nameplate {
+    top:-50px;
+  }
+}
+@media (min-width:721px) {
+  /* Protect the desktop's already accepted composition while enforcing the
+     same opaque, single-table depth contract at its actual room rim. */
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait,
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait img {
+    -webkit-mask:none!important;mask:none!important;
+  }
+}
