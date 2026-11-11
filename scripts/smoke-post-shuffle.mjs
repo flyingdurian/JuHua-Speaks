@@ -483,6 +483,43 @@ try{
   'A long mobile interpretation must visibly indicate that more text can be scrolled');
  else assert.equal(scrollAffordance.visible,false,
   'Short interpretations must not display an inert scroll hint');
+ // Owner precision criteria: card-to-bust contact at the mid-ribs, the
+ // original painting continues under the solid portrait at the table edge,
+ // and the existing Artemis nameplate appears cleanly above the chapter.
+ const precision=await page.evaluate(()=>{
+  const rect=sel=>document.querySelector(sel).getBoundingClientRect();
+  const hero=rect('.reading-art-hero'),portrait=rect('.reading-art-portrait');
+  const card=document.querySelectorAll('.reading-art-card-frame')[1].getBoundingClientRect();
+  const label=rect('.reading-art-nameplate'),panel=rect('.reading-art-panel');
+  const narration=rect('.reading-art-narration-text');
+  const body=document.querySelector('.reading-art-narration-text');
+  const overlay=getComputedStyle(document.querySelector('.reading-art-hero'),'::after');
+  const badge=getComputedStyle(document.querySelector('.reading-art-nameplate'));
+  return {hero:{top:hero.top,bottom:hero.bottom,height:hero.height},
+   portrait:{top:portrait.top,bottom:portrait.bottom,height:portrait.height},
+   card:{top:card.top,bottom:card.bottom},
+   panel:{top:panel.top,bottom:panel.bottom,height:panel.height},
+   label:{top:label.top,bottom:label.bottom,left:label.left,right:label.right,
+    display:badge.display,visibility:badge.visibility,text:document.querySelector('.reading-art-nameplate').textContent.trim()},
+   narration:{top:narration.top,bottom:narration.bottom,scrollHeight:body.scrollHeight,
+    clientHeight:body.clientHeight},clipPath:overlay.clipPath,
+   foreground:overlay.backgroundImage,
+   ratio:(card.top-portrait.top)/portrait.height};
+ });
+ await writeFile(dir+'/14b-mobile-table-reader-geometry-390x844.json',
+  JSON.stringify(precision,null,2));
+ assert.ok(precision.portrait.bottom>=precision.hero.bottom-16,
+  'Artemis opaque bust must reach the original tabletop edge: '+JSON.stringify(precision));
+ assert.ok(precision.ratio>.50&&precision.ratio<.80,
+  'Center card top must touch upper abdomen, not cover face or float below torso: '+JSON.stringify(precision));
+ assert.ok(precision.foreground.includes('bg_artemis_reading_stage_main.webp')
+  &&precision.clipPath!=='none','Only the original painted table occludes Artemis');
+ assert.ok(precision.label.text.includes('ARTEMIS')&&precision.label.text.includes('YOUR READER')
+  &&precision.label.top>=precision.panel.top-25&&precision.label.bottom<precision.panel.top+40
+  &&precision.label.display!=='none'&&precision.label.visibility!=='hidden',
+  'Original Artemis nameplate must be visible ON the ornamental upper frame: '+JSON.stringify(precision));
+ assert.ok(precision.panel.height>=325&&precision.narration.clientHeight>=90,
+  'Expanded HUD must offer room for interpretations without an unnecessarily cramped slit');
  assert.ok(phone.footer.bottom-phone.scene.top<=phone.scrollHeight+2,
   'Question/footer must remain reachable inside the scrollable safe-area layout');
  await page.screenshot({path:dir+'/11-artemis-phone-390x844.png',fullPage:true});
