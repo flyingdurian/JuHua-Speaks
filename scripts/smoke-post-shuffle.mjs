@@ -433,6 +433,19 @@ try{
     return c.left<b.right&&c.right>b.left&&c.top<b.bottom&&c.bottom>b.top;
    })()};
  });
+ await page.screenshot({path:dir+'/11-mobile-preflight-390x844.png',fullPage:true});
+ await writeFile(dir+'/11-mobile-preflight-geometry-390x844.json',JSON.stringify({
+  panel:{top:phone.panel.top,bottom:phone.panel.bottom,height:phone.panel.height},
+  hero:{top:phone.hero.top,bottom:phone.hero.bottom,height:phone.hero.height},
+  portrait:{top:phone.portrait.top,bottom:phone.portrait.bottom,height:phone.portrait.height},
+  footer:{top:phone.footer.top,bottom:phone.footer.bottom},
+  scene:{top:phone.scene.top,bottom:phone.scene.bottom,height:phone.scene.height,scrollHeight:phone.scrollHeight},
+  nextButtonBottom:phone.nextButtonBottom,cardFrames:phone.cardFrames
+ },null,2));
+ console.log('Precision mobile preflight:',JSON.stringify({
+  heroTop:phone.hero.top,heroHeight:phone.hero.height,portraitBottom:phone.portrait.bottom,
+  panelTop:phone.panel.top,panelBottom:phone.panel.bottom,footerBottom:phone.footer.bottom,
+  sceneBottom:phone.scene.bottom,scrollHeight:phone.scrollHeight}));
  assert.equal(phone.cards.length,3);
  assert.ok(phone.cards.every(c=>c.left>=-2&&c.right<=phone.screen+2),
   'All three selected Tarot cards must remain visible within a 390px phone viewport');
