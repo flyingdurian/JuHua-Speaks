@@ -198,6 +198,31 @@ try{
  assert.ok(desktop.skin.includes('ui_reading_frame_panel.png')
    &&!desktop.skin.includes('ui_reading_frame_panel_mobile.png'),
    'Desktop chat must render the dedicated original desktop frame PNG: '+JSON.stringify(desktop));
+ await page.setViewportSize({width:458,height:553});
+ await page.waitForTimeout(180);
+ const compact=await page.evaluate(()=>{
+  const scene=document.querySelector('.scene-artemis-reading');
+  const initial={viewport:innerHeight,clientHeight:scene.clientHeight,scrollHeight:scene.scrollHeight};
+  scene.scrollTop=scene.scrollHeight;
+  return initial;
+ });
+ assert.ok(compact.scrollHeight>compact.clientHeight+140,
+  'Short-height phones must SCROLL instead of squeezing chat and footer under the screen: '+JSON.stringify(compact));
+ await page.waitForTimeout(160);
+ const footerCompact=await page.evaluate(()=>{
+  const scene=document.querySelector('.scene-artemis-reading');
+  const form=document.querySelector('.synthesis-followup-form').getBoundingClientRect();
+  const input=document.querySelector('#synthesis-followup-question').getBoundingClientRect();
+  const btn=document.querySelector('.synthesis-followup-send').getBoundingClientRect();
+  return {scrollTop:scene.scrollTop,formBottom:form.bottom,
+   inputTop:input.top,inputRight:input.right,
+   buttonLeft:btn.left,buttonBottom:btn.bottom,viewport:innerHeight};
+ });
+ assert.ok(footerCompact.scrollTop>100&&footerCompact.inputRight<footerCompact.buttonLeft
+  &&footerCompact.buttonBottom<footerCompact.viewport-22,
+  'After scrolling compact chat, its input and ASK button must be visible in the two slots: '+
+   JSON.stringify(footerCompact));
+ await page.screenshot({path:path+'/08-compact-458x553-chat-scrolled.png'});
  assert.deepEqual(errors,[]);
- console.log('ARTEMIS REMAKE SMOKE PASS',JSON.stringify({chosen,mobile}));
+ console.log('ARTEMIS REMAKE SMOKE PASS',JSON.stringify({chosen,mobile,compact,footerCompact}));
 }finally{await browser.close()}
