@@ -1179,7 +1179,7 @@
   .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait {
     top:clamp(9px,1.7dvh,17px);
     width:min(84vw,342px);
-    height:calc(100% - 4px);
+    height:calc(100% - 15px);
     overflow:hidden;opacity:1!important;
     -webkit-mask:none!important;mask:none!important;
     object-position:center top;
@@ -1267,7 +1267,7 @@
     --table-occlusion-line:calc(100% - 66px);
   }
   .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait {
-    top:16px;width:min(68vw,295px);height:calc(100% - 10px);
+    top:16px;width:min(68vw,295px);height:calc(100% - 16px);
   }
   .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread {
     bottom:2%;
