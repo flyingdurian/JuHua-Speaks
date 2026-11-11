@@ -23,7 +23,7 @@ test('exact owner assets are addressed and all eight avatars have unambiguous mo
  assert.equal(selectArtemisMood({purpose:'conclusion'}),'confident');
  assert.equal(selectArtemisMood({purpose:'surprise'}),'surprised');
  assert.equal(selectArtemisMood({purpose:'unknown',text:'start by taking one step'}),'confident');
- assert.match(chatAvatarFor({purpose:'analysis'}),/avatar_artemis_focused_observation/);
+ assert.match(chatAvatarFor({purpose:'analysis'}),/avatar_artemis_face_focused_observation/);
 });
 test('thinking avatar and animated dots precede result; response shows an analytical avatar',()=>{
  const before=renderSynthesisChat({question:'What now?',status:'generating',mode:'scripted-demo'});
