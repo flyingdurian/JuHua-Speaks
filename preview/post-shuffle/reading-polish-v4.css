@@ -1167,8 +1167,14 @@
      her visibly floating above a cropped/zoomed table edge. */
   .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero {
     min-height:395px;height:395px;
-    --table-occlusion-line:calc(100% - 12px);
+    --table-occlusion-line:calc(100% - 66px);
     margin-top:-12px;margin-bottom:-12px;
+  }
+  /* Pan the existing FULL chamber bitmap, not a new table layer.
+     This exposes more of its painted tabletop, roughly beneath mid-ribs;
+     the foreground occluder uses the SAME image transform (see scene.mjs). */
+  .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere img {
+    transform:translateY(-56px);
   }
   .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait {
     top:clamp(9px,1.7dvh,17px);
@@ -1186,7 +1192,7 @@
      stays on the VISIBLE painted table, while the real 42° pitch is retained
      by the unchanged card-frame transform. */
   .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread {
-    bottom:18%;z-index:5;width:min(100%,490px);
+    bottom:2%;z-index:5;width:min(100%,490px);
   }
   .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel {
     box-sizing:border-box;
@@ -1258,13 +1264,13 @@
   }
   .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero {
     min-height:390px;height:390px;
-    --table-occlusion-line:calc(100% - 12px);
+    --table-occlusion-line:calc(100% - 66px);
   }
   .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait {
     top:16px;width:min(68vw,295px);height:calc(100% - 10px);
   }
   .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread {
-    bottom:13%;
+    bottom:2%;
   }
   .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel {
     min-height:310px;height:310px;
