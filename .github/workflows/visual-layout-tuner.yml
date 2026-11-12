@@ -25,6 +25,7 @@ jobs:
             node --check preview/post-shuffle/debug/layout-preview.mjs
             node --check preview/post-shuffle/debug/layout-inspector.mjs
             node --check preview/post-shuffle/debug/layout-assets.mjs
+            node --check scripts/smoke-visual-layout-direct.mjs
             node scripts/test-visual-layout-tuner.mjs
             npm test
           } > .artifacts/logs/visual-layout-source.log 2>&1; then
@@ -55,6 +56,15 @@ jobs:
           else
             echo "::error::Visual tuner browser test failed; see .artifacts/logs/visual-layout-browser.log"
             tail -n 20 .artifacts/logs/visual-layout-browser.log
+            exit 1
+          fi
+      - name: Direct editor, route parity and asset ZIP checks
+        run: |
+          if node scripts/smoke-visual-layout-direct.mjs > .artifacts/logs/visual-layout-direct.log 2>&1; then
+            echo "PASS direct editor / route parity / package"
+          else
+            echo "::error::Direct editor failed; see .artifacts/logs/visual-layout-direct.log"
+            tail -n 20 .artifacts/logs/visual-layout-direct.log
             exit 1
           fi
       - uses: actions/upload-artifact@v4

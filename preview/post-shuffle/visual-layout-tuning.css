@@ -399,3 +399,14 @@ html:is([data-vlt-edits~="--layout-chat-mist-width"]) .scene-artemis-reading[dat
 html[data-vlt-edits~="--layout-reading-art-x"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{left:calc(50% + var(--layout-reading-art-x))!important;}
 html[data-vlt-edits~="--layout-reading-art-y"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{translate:0 var(--layout-reading-art-y)!important;}
 html[data-vlt-edits~="--layout-chat-art-x"] .scene-artemis-reading[data-phase="chat"] :is(.artemis-focused-chat-art,.reading-art-portrait){left:calc(50% + var(--layout-chat-art-x))!important;}
+
+/* Individually adjustable original cards. */
+html:is([data-vlt-edits~="--layout-card-1-x"],[data-vlt-edits~="--layout-card-1-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread .reading-art-card:nth-child(1){translate:var(--layout-card-1-x) var(--layout-card-1-y)!important;}
+html[data-vlt-edits~="--layout-card-1-scale"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread .reading-art-card:nth-child(1){scale:var(--layout-card-1-scale)!important;}
+html[data-vlt-edits~="--layout-card-1-pitch"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread .reading-art-card:nth-child(1) .reading-art-card-frame{transform:perspective(var(--reading-card-perspective)) rotateX(var(--layout-card-1-pitch))!important;}
+html:is([data-vlt-edits~="--layout-card-2-x"],[data-vlt-edits~="--layout-card-2-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread .reading-art-card:nth-child(2){translate:var(--layout-card-2-x) var(--layout-card-2-y)!important;}
+html[data-vlt-edits~="--layout-card-2-scale"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread .reading-art-card:nth-child(2){scale:var(--layout-card-2-scale)!important;}
+html[data-vlt-edits~="--layout-card-2-pitch"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread .reading-art-card:nth-child(2) .reading-art-card-frame{transform:perspective(var(--reading-card-perspective)) rotateX(var(--layout-card-2-pitch))!important;}
+html:is([data-vlt-edits~="--layout-card-3-x"],[data-vlt-edits~="--layout-card-3-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread .reading-art-card:nth-child(3){translate:var(--layout-card-3-x) var(--layout-card-3-y)!important;}
+html[data-vlt-edits~="--layout-card-3-scale"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread .reading-art-card:nth-child(3){scale:var(--layout-card-3-scale)!important;}
+html[data-vlt-edits~="--layout-card-3-pitch"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread .reading-art-card:nth-child(3) .reading-art-card-frame{transform:perspective(var(--reading-card-perspective)) rotateX(var(--layout-card-3-pitch))!important;}

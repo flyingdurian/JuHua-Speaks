@@ -34,6 +34,70 @@ function applyProfile(){
  syncEdited();syncControls();schedule();
 }
 function computed(n){return getComputedStyle(root).getPropertyValue(n).trim();}
+
+const measuredProps={
+ '--reading-hero-height':['.reading-art-hero','height'],
+ '--reading-panel-height':['.reading-art-panel','height'],
+ '--artemis-portrait-width':['.reading-art-portrait','width'],
+ '--artemis-portrait-height':['.reading-art-portrait','height'],
+ '--reading-spread-width':['.reading-art-spread','width'],
+ '--reading-spread-gap':['.reading-art-spread','columnGap'],
+ '--reading-card-width':['.reading-art-card','width'],
+ '--layout-reading-title-size':['.reading-art-narration-title','fontSize'],
+ '--layout-reading-text-size':['.reading-art-narration-text','fontSize'],
+ '--layout-reading-panel-top':['.reading-art-panel','paddingTop'],
+ '--layout-reading-panel-side':['.reading-art-panel','paddingLeft'],
+ '--layout-reading-panel-bottom':['.reading-art-panel','paddingBottom'],
+ '--layout-reading-controls-gap':['.reading-art-controls','columnGap'],
+ '--layout-reading-controls-align':['.reading-art-controls','justifyContent'],
+ '--layout-reading-next-width':['.reading-art-control.is-primary','minWidth'],
+ '--layout-reading-prev-width':['.reading-art-control.is-secondary','minWidth'],
+ '--chat-hero-height':['.reading-art-hero','height'],
+ '--layout-chat-art-width':['.artemis-focused-chat-art,.reading-art-portrait','width'],
+ '--layout-chat-art-height':['.artemis-focused-chat-art,.reading-art-portrait','height'],
+ '--layout-chat-art-y':['.artemis-focused-chat-art,.reading-art-portrait','top'],
+ '--layout-chat-panel-height':['.reading-chat-hud','height'],
+ '--layout-chat-panel-min-height':['.reading-chat-hud','minHeight'],
+ '--layout-chat-panel-top':['.reading-chat-hud','paddingTop'],
+ '--layout-chat-panel-side':['.reading-chat-hud','paddingLeft'],
+ '--layout-chat-panel-bottom':['.reading-chat-hud','paddingBottom'],
+ '--layout-chat-frame-top':['.reading-chat-hud','borderTopWidth'],
+ '--layout-chat-frame-side':['.reading-chat-hud','borderLeftWidth'],
+ '--layout-chat-frame-bottom':['.reading-chat-hud','borderBottomWidth'],
+ '--layout-chat-heading-size':['.synthesis-chat-heading h2','fontSize'],
+ '--layout-chat-heading-gap':['.synthesis-chat-heading','marginBottom'],
+ '--layout-chat-question-height':['.synthesis-question','maxHeight'],
+ '--layout-chat-question-size':['.synthesis-question p','fontSize'],
+ '--layout-chat-question-gap':['.synthesis-question','marginBottom'],
+ '--layout-chat-transcript-max-height':['.synthesis-chat-scroll','maxHeight'],
+ '--layout-chat-transcript-top':['.synthesis-chat-scroll','paddingTop'],
+ '--layout-chat-transcript-side':['.synthesis-chat-scroll','paddingLeft'],
+ '--layout-chat-transcript-bottom':['.synthesis-chat-scroll','paddingBottom'],
+ '--layout-chat-message-size':['.synthesis-message-body p','fontSize'],
+ '--layout-chat-avatar-size':['.synthesis-avatar','width'],
+ '--layout-chat-message-gap':['.synthesis-message','columnGap'],
+ '--layout-chat-message-spacing':['.synthesis-message','marginBottom'],
+ '--layout-chat-footer-top':['.synthesis-chat-actions','paddingTop'],
+ '--layout-chat-footer-bottom':['.synthesis-chat-actions','paddingBottom'],
+ '--layout-chat-input-height':['.synthesis-followup-row input','height'],
+ '--layout-chat-input-font':['.synthesis-followup-row input','fontSize'],
+ '--layout-chat-ask-width':['.synthesis-followup-send','width'],
+ '--layout-chat-ask-font':['.synthesis-followup-send','fontSize'],
+ '--layout-chat-row-gap':['.synthesis-followup-row','columnGap'],
+ '--layout-chat-row-align':['.synthesis-followup-row','alignItems']
+};
+function displayValue(n){
+ if(Object.hasOwn(values(),n))return computed(n);
+ const s=target(),m=measuredProps[n];
+ if(m&&s){
+  const chat=s.dataset.phase==='chat',isChat=n.startsWith('--layout-chat-')||n.startsWith('--chat-');
+  if(chat===isChat){let el=s.querySelector(m[0]);if(m[0].startsWith('.artemis-focused-chat-art'))el=s.querySelector('.artemis-focused-chat-art')||s.querySelector('.reading-art-portrait');
+   if(el){const v=getComputedStyle(el)[m[1]];if(v&&v!=='normal'&&v!=='auto')return v}
+  }
+ }
+ return computed(n);
+}
+
 function numeric(raw,c){
  const unit=c[2];if(unit==='select')return raw;
  const simple=raw.match(/^(-?(?:\d+\.?\d*|\.\d+))(px|%|deg)?$/);
@@ -50,7 +114,7 @@ function btn(text,fn,cls=''){const b=make('button',cls,text);b.type='button';b.a
 function select(options,label,fn){const s=make('select');s.setAttribute('aria-label',label);for(const [v,t] of options){const o=make('option','',t);o.value=v;s.append(o)}s.addEventListener('change',()=>fn(s.value));return s}
 function syncControls(){
  for(const [n,obj] of controls){
-  const raw=computed(n),c=obj.c;
+  const raw=displayValue(n),c=obj.c;
   obj.value.textContent=raw||'unset';
   obj.row.classList.toggle('is-edited',Object.hasOwn(values(),n));
   if(c[2]==='select'){obj.range.value=raw;continue}
@@ -134,7 +198,7 @@ async function showPreview(mode){
  const mod=await import('./layout-preview.mjs');
  if(!enabled)return;
  fixture?.remove();fixture=mod.createLayoutPreview(mode,()=>schedule());document.body.append(fixture);
- schedule();statusLine.textContent='Quick preview: '+mode+' · actual renderer / no live AI';
+ syncControls();schedule();statusLine.textContent='Quick preview: '+mode+' · actual renderer / no live AI';
 }
 function returnLive(){fixture?.remove();fixture=null;statusLine.textContent='Live app · continue the original ritual normally';schedule()}
 function toggleGuides(){guides=!guides;document.body.classList.toggle('vlt-guides',guides);schedule()}
@@ -248,7 +312,7 @@ function build(){
  cssOutput=make('textarea','vlt-export');cssOutput.readOnly=true;cssOutput.hidden=true;cssOutput.setAttribute('aria-label','Exported CSS variables');footer.append(cssOutput);panel.append(footer);
  launcher=btn('LAYOUT TUNER · Shift+D',reopen,'vlt-launcher');launcher.hidden=true;document.body.append(panel,launcher);
  workshop=createAssetWorkshop({status:assetStatus,onChange:()=>{schedule();refreshAssetInfo()}});workshop.load();
- inspector=mountInspector({target,set:setVar,read:computed,controls:CONTROLS,onSelect:l=>{selectedFilter(l);layerPicker.value=l.id},onClear:clearFilter,onUpdate:()=>{syncControls();schedule()}});
+ inspector=mountInspector({target,set:setVar,read:displayValue,controls:CONTROLS,onSelect:l=>{selectedFilter(l);layerPicker.value=l.id},onClear:clearFilter,onUpdate:()=>{syncControls();schedule()}});
  refreshLayers();applyProfile();
 }
 function activate(){

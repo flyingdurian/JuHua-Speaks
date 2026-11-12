@@ -10,7 +10,8 @@ export const LAYERS=[
  L('previous','Previous button','.reading-art-control.is-secondary',[a('reading-prev-x'),a('reading-prev-y'),a('reading-prev-scale'),a('reading-prev-width')],[a('reading-prev-x'),a('reading-prev-y')],a('reading-prev-scale'),'previous','reading'),
  L('reading-controls','Navigation group','.reading-art-controls',[a('reading-controls-x'),a('reading-controls-y'),a('reading-controls-scale'),a('reading-controls-align'),a('reading-controls-gap')],[a('reading-controls-x'),a('reading-controls-y')],a('reading-controls-scale'),null,'reading'),
  L('nameplate','Reader nameplate','.reading-art-nameplate',[a('reading-nameplate-y')],[null,a('reading-nameplate-y')],null,'nameplate','reading'),
- L('cards','Three-card spread','.reading-art-card,.reading-art-spread',[a('cards-x'),'--cards-y-offset',a('cards-scale'),'--reading-spread-width','--reading-spread-bottom','--reading-spread-gap','--reading-card-width','--reading-card-perspective','--reading-card-tilt',a('card-shadows'),a('card-label-size'),a('card-meaning-size')],[a('cards-x'),'--cards-y-offset'],a('cards-scale'),null,'reading'),
+ L('cards','Three-card spread','.reading-art-spread',[a('cards-x'),'--cards-y-offset',a('cards-scale'),'--reading-spread-width','--reading-spread-bottom','--reading-spread-gap','--reading-card-width','--reading-card-perspective','--reading-card-tilt',a('card-shadows'),a('card-label-size'),a('card-meaning-size')],[a('cards-x'),'--cards-y-offset'],a('cards-scale'),null,'reading'),
+ ...[1,2,3].map(i=>L('card-'+i,['Past card','Present card','Future card'][i-1],'.reading-art-spread .reading-art-card:nth-child('+i+')',[a('card-'+i+'-x'),a('card-'+i+'-y'),a('card-'+i+'-scale'),a('card-'+i+'-pitch')],[a('card-'+i+'-x'),a('card-'+i+'-y')],a('card-'+i+'-scale'),null,'reading')),
  L('table','Reading table / painted edge','.reading-art-table-surface',[ '--table-top',a('table-x'),a('table-width'),'--reading-table-perspective','--reading-table-tilt',a('table-opacity'),a('table-display')],[a('table-x'),'--table-top'],a('table-width'),null,'reading'),
  L('halo','Artemis halo','.reading-art-halo',[a('reading-halo-x'),a('reading-halo-y'),a('reading-halo-scale'),a('reading-halo')],[a('reading-halo-x'),a('reading-halo-y')],a('reading-halo-scale'),'halo','reading'),
  L('glow','Reading / card glow','.reading-art-reading-glow,.reading-art-card-glow',[a('reading-glow-x'),a('reading-glow-y'),a('reading-glow-scale'),a('reading-glow')],[a('reading-glow-x'),a('reading-glow-y')],a('reading-glow-scale'),'glow','reading'),
@@ -72,9 +73,13 @@ export function mountInspector({target,set,read,controls,onSelect,onClear,onUpda
   const scene=target();if(!scene||!scene.contains(e.target))return null;
   // Most specific matching DOM element wins; nearest ancestor first.
   let n=e.target;while(n&&scene.contains(n)){
-   const l=candidates().find(l=>!['mist','hero','chat-hero','chat-chamber'].includes(l.id)&&n.matches?.(l.selector));
+   const l=candidates().find(l=>!['mist','hero','chat-hero','chat-chamber','chamber'].includes(l.id)&&n.matches?.(l.selector));
    if(l)return l;n=n.parentElement;
   }
+  // Artwork uses pointer-events:none; test visible layer bounds when the DOM
+  // hit is just a container. Prefer portraits/cards over decorative layers.
+  const ids=phase()==='chat'?['focused','avatar','input','ask','heading','question','message','guidance','transcript','composer','chat-frame','mist','chat-hero']:['card-1','card-2','card-3','reading-portrait','reading-title','reading-text','next','previous','nameplate','reading-header','reading-frame','halo','glow','table','hero'];
+  for(const id of ids){const l=candidates().find(x=>x.id===id),r=bounds(l);if(r&&e.clientX>=r.left&&e.clientX<=r.left+r.width&&e.clientY>=r.top&&e.clientY<=r.top+r.height)return l}
   return candidates().find(l=>l.id===(phase()==='chat'?'chat-chamber':'chamber'));
  }
  document.addEventListener('pointermove',e=>{if(!active||drag||e.target.closest?.('.vlt-panel,.vlt-inspector-layer,.vlt-launcher'))return;hover=identify(e);if(!selected)redraw()},true);
@@ -84,7 +89,7 @@ export function mountInspector({target,set,read,controls,onSelect,onClear,onUpda
  const lookup=n=>controls.find(c=>c[0]===n);
  function numeric(n,el){let v=read(n);const c=lookup(n);if(!c)return 0;let x=parseFloat(v);if(c[2]==='px'&&(!v.endsWith('px')||/calc|clamp|min|max/.test(v))){const r=el?.getBoundingClientRect();x=r?.height||c[3]}return Number.isFinite(x)?x:c[3]}
  function begin(e,kind){if(!selected)return;e.preventDefault();e.stopPropagation();const l=selected,n=nodeFor(l),names=kind==='move'?l.move:[l.scale];drag={kind,l,x:e.clientX,y:e.clientY,values:names.map(k=>k?numeric(k,n):0),rect:bounds(l)};e.currentTarget.setPointerCapture(e.pointerId)}
- function update(e){if(!drag)return;const d=drag,dx=e.clientX-d.x,dy=e.clientY-d.y;const names=d.kind==='move'?d.l.move:[d.l.scale];for(let i=0;i<names.length;i++){const n=names[i],c=lookup(n);if(!c)continue;let delta=d.kind==='move'?(i?dy:dx):Math.hypot(dx,dy)*Math.sign(dx+dy);if(n==='--layout-chat-mist-y')delta=-delta;if(c[2]==='%')delta=delta/(i?Math.max(1,target().clientHeight):Math.max(1,target().clientWidth))*100;if(c[2]==='')delta/=Math.max(100,d.rect?.width||300);const v=Math.max(c[3],Math.min(c[4],d.values[i]+delta));set(n,String(Number(v.toFixed(3)))+c[2]);}onUpdate();redraw()}
+ function update(e){if(!drag)return;const d=drag,dx=e.clientX-d.x,dy=e.clientY-d.y;const names=d.kind==='move'?d.l.move:[d.l.scale];for(let i=0;i<names.length;i++){const n=names[i],c=lookup(n);if(!c)continue;let delta=d.kind==='move'?(i?dy:dx):Math.hypot(dx,dy)*Math.sign(dx+dy);if(n==='--layout-chat-mist-y')delta=-delta;if(c[2]==='%'){const parent=n==='--table-top'?target().querySelector('.reading-art-hero'):target();delta=delta/(i?Math.max(1,parent.clientHeight):Math.max(1,parent.clientWidth))*100;}if(c[2]==='')delta=delta/Math.max(40,d.rect?.width||300)*Math.max(.1,d.values[i]);const v=Math.max(c[3],Math.min(c[4],d.values[i]+delta));set(n,String(Number(v.toFixed(3)))+c[2]);}onUpdate();redraw()}
  for(const [el,kind] of [[move,'move'],[resize,'scale']]){el.addEventListener('pointerdown',e=>begin(e,kind));el.addEventListener('pointermove',update);el.addEventListener('pointerup',()=>drag=null);el.addEventListener('pointercancel',()=>drag=null)}
  function refresh(){if(selected&&!candidates().some(l=>l.id===selected.id))clear();if(active)redraw()}
  return {toggle,pick:id=>pick(candidates().find(l=>l.id===id)),clear,refresh,active:()=>active,layers:candidates,selected:()=>selected};
