@@ -1037,13 +1037,14 @@ export const GROUPS = [
   ]
  ]
 ];
+GROUPS.push(["Direct manipulation · individual layers","Fine-grained element handles",[["--layout-reading-title-x","Reading title X","px",-300,300,1],["--layout-reading-title-y","Reading title Y","px",-300,300,1],["--layout-reading-text-x","Reading text X","px",-300,300,1],["--layout-reading-text-y","Reading text Y","px",-300,300,1],["--layout-reading-next-x","Next button X","px",-300,300,1],["--layout-reading-next-y","Next button Y","px",-300,300,1],["--layout-reading-next-scale","Next button scale","",0.4,2,0.01],["--layout-reading-prev-x","Previous button X","px",-300,300,1],["--layout-reading-prev-y","Previous button Y","px",-300,300,1],["--layout-reading-prev-scale","Previous button scale","",0.4,2,0.01],["--layout-chat-avatar-x","Avatar X","px",-300,300,1],["--layout-chat-avatar-y","Avatar Y","px",-300,300,1],["--layout-chat-message-x","Message X","px",-300,300,1],["--layout-chat-message-y","Message Y","px",-300,300,1],["--layout-chat-guidance-x","Guidance card X","px",-300,300,1],["--layout-chat-guidance-y","Guidance card Y","px",-300,300,1],["--layout-chat-guidance-scale","Guidance scale","",0.4,2,0.01],["--layout-chat-input-scale","Input scale","",0.4,2,0.01],["--layout-reading-halo-x","Halo X","px",-300,300,1],["--layout-reading-halo-y","Halo Y","px",-300,300,1],["--layout-reading-halo-scale","Halo scale","",0.4,2,0.01],["--layout-reading-glow-x","Reading glow X","px",-300,300,1],["--layout-reading-glow-y","Reading glow Y","px",-300,300,1],["--layout-reading-glow-scale","Reading glow scale","",0.4,2,0.01],["--layout-chat-mist-x","Mist X","px",-300,300,1],["--layout-chat-mist-width","Mist width","%",10,180,1],["--layout-reading-chamber-x","Chamber X","px",-300,300,1],["--layout-reading-chamber-scale","Chamber scale","",0.5,2,0.01],["--layout-reading-footer-x","Reading footer X","px",-300,300,1],["--layout-reading-footer-y","Reading footer Y","px",-300,300,1],["--layout-reading-footer-size","Reading footer text size","px",6,30,0.5]]]);
 export const CONTROLS=GROUPS.flatMap(([, ,controls])=>controls);
 export const NAMES=CONTROLS.map(c=>c[0]);
 export const PROFILES=Object.freeze({desktop:'(min-width:721px)',mobile:'(max-width:720px) and (min-height:681px)',compact:'(max-width:720px) and (max-height:680px)'});
 export function profileFor(width,height){return width>720?'desktop':height<=680?'compact':'mobile'}
 export function formatCSS(values,profile='root'){
  const lines=NAMES.filter(name=>Object.hasOwn(values,name)).map(name=>'  '+name+': '+values[name]+';');
- lines.push('  --panel-padding: var(--layout-reading-panel-top) var(--layout-reading-panel-side) var(--layout-reading-panel-bottom);','  --chat-panel-padding: var(--layout-chat-panel-top) var(--layout-chat-panel-side) var(--layout-chat-panel-bottom);');
+ // Only explicit edits are exported; untouched baseline properties stay unchanged.
  const root=':root {\n'+lines.join('\n')+'\n}';
  return profile==='root'?root:'@media '+PROFILES[profile]+' {\n'+root.split('\n').map(line=>'  '+line).join('\n')+'\n}';
 }

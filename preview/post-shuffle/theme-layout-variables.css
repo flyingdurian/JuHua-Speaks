@@ -253,18 +253,6 @@
   --layout-chat-avatar-size:53px;
  }
 }
-/* Derived shorthands intentionally defined after the original defaults.
-   Keep the five existing public knobs compatible with IDE edits. */
-:root {
- --panel-padding:var(--layout-reading-panel-top) var(--layout-reading-panel-side) var(--layout-reading-panel-bottom);
- --chat-panel-padding:var(--layout-chat-panel-top) var(--layout-chat-panel-side) var(--layout-chat-panel-bottom);
-}
 
-@media(min-width:721px){
- :root{
-  --reading-spread-width:min(1000px,96%);
-  --reading-spread-gap:clamp(18px,4vw,70px);
-  --reading-card-width:clamp(110px,9.6vw,163px);
-  --table-top:81%;
- }
-}
+/* Debug controls are inert until explicitly edited. */
+:root{--layout-reading-title-x:0px;--layout-reading-title-y:0px;--layout-reading-text-x:0px;--layout-reading-text-y:0px;--layout-reading-next-x:0px;--layout-reading-next-y:0px;--layout-reading-next-scale:1;--layout-reading-prev-x:0px;--layout-reading-prev-y:0px;--layout-reading-prev-scale:1;--layout-chat-avatar-x:0px;--layout-chat-avatar-y:0px;--layout-chat-message-x:0px;--layout-chat-message-y:0px;--layout-chat-guidance-x:0px;--layout-chat-guidance-y:0px;--layout-chat-guidance-scale:1;--layout-chat-input-scale:1;--layout-reading-mist-x:0px;--layout-reading-mist-y:0px;--layout-reading-halo-x:0px;--layout-reading-halo-y:0px;--layout-reading-halo-scale:1;--layout-reading-glow-x:0px;--layout-reading-glow-y:0px;--layout-reading-glow-scale:1;--layout-chat-mist-x:0px;--layout-chat-mist-width:100%;--layout-reading-chamber-x:0px;--layout-reading-chamber-scale:1;--layout-reading-footer-x:0px;--layout-reading-footer-y:0px;--layout-reading-footer-size:10px;}

@@ -12,7 +12,7 @@ function launchPostShuffle(skipToSelection=false){
  if(world)return;
  const deckIds=skipToSelection?reviewDeckOrder(Number.isSafeInteger(reviewSeed)?reviewSeed:2165840022):
   handoff?.cardIds||shuffleDeck().map(c=>c.id);
- world=mountPostShuffle({mount:document.getElementById('post-shuffle-mount'),deckIds,skipToSelection,demo:skipToSelection});
+ world=mountPostShuffle({mount:document.getElementById('post-shuffle-mount'),deckIds,question:handoff?.question||'How can I find clarity in the decision ahead?',skipToSelection,demo:skipToSelection});
  launch.hidden=true;window.__POST_SHUFFLE__=world;
 }
 button.addEventListener('click',()=>launchPostShuffle(false));

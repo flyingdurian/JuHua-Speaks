@@ -1,6 +1,6 @@
 /* Debug-only browser overlay. Real CSS variables, no dependencies. */
 import {GROUPS,CONTROLS,NAMES,profileFor,formatCSS} from './layout-controls.mjs';
-const STORE='juhua.visual-layout-tuner.v1';
+const STORE='juhua.visual-layout-tuner.v2';
 const root=document.documentElement;
 const params=new URLSearchParams(location.search);
 const original=new Map(NAMES.map(n=>[n,[root.style.getPropertyValue(n),root.style.getPropertyPriority(n)]]));
@@ -20,14 +20,15 @@ function values(){const out={};for(const [n,v] of Object.entries(profiles[profil
 function setVar(n,v){
  if(!validValue(n,v))return;
  (profiles[profile]||(profiles[profile]={}))[n]=v;
- root.style.setProperty(n,v);save();schedule();
+ root.style.setProperty(n,v);syncEdited();save();schedule();
 }
 function restore(n){const [v,p]=original.get(n)||['',''];if(v)root.style.setProperty(n,v,p);else root.style.removeProperty(n);}
+function syncEdited(){root.dataset.vltEdits=Object.keys(values()).join(' ')}
 function applyProfile(){
  for(const n of NAMES)restore(n);
  for(const [n,v] of Object.entries(values()))root.style.setProperty(n,v);
  if(profileLabel)profileLabel.textContent=profile.toUpperCase()+' · '+innerWidth+'×'+innerHeight;
- syncControls();schedule();
+ syncEdited();syncControls();schedule();
 }
 function computed(n){return getComputedStyle(root).getPropertyValue(n).trim();}
 function numeric(raw,c){
@@ -74,11 +75,11 @@ function rowFor(c){
   range.addEventListener('input',()=>update(range.value));number.addEventListener('change',()=>update(number.value));
   line.append(range,number,make('span','vlt-unit',unit||'×'));row.append(line);
  }
- const meta=make('div','vlt-meta');meta.append(make('code','',n),btn('Focus',()=>focusControl(row),'vlt-reset'),btn('Reset',()=>{delete (profiles[profile]||{})[n];restore(n);save();syncControls();schedule()},'vlt-reset'));row.append(meta);
+ const meta=make('div','vlt-meta');meta.append(make('code','',n),btn('Focus',()=>focusControl(row),'vlt-reset'),btn('Reset',()=>{delete (profiles[profile]||{})[n];restore(n);syncEdited();save();syncControls();schedule()},'vlt-reset'));row.append(meta);
  controls.set(n,{c,row,range,number,value:raw});return row;
 }
 function snapshot(){return Object.fromEntries(NAMES.map(n=>[n,computed(n)]).filter(([,v])=>v));}
-function exportText(scoped=false){return formatCSS(snapshot(),scoped?profile:'root')}
+function exportText(scoped=false){return formatCSS(values(),scoped?profile:'root')}
 async function copy(scoped=false){
  exportScoped=scoped;const text=exportText(scoped);cssOutput.value=text;cssOutput.hidden=false;
  try{await navigator.clipboard.writeText(text);exportStatus.textContent='Copied '+(scoped?profile+' breakpoint':'exact :root block')+' to clipboard.'}
@@ -165,13 +166,13 @@ function build(){
  body=make('div','vlt-body');
  for(const [title,desc,list] of GROUPS){
   const detail=make('details','vlt-group');const summary=make('summary','',title);detail.append(summary,make('p','vlt-group-note',desc));
-  const reset=btn('Reset group',()=>{for(const c of list){delete (profiles[profile]||{})[c[0]];restore(c[0])}save();syncControls();schedule()},'vlt-group-reset');detail.append(reset);
+  const reset=btn('Reset group',()=>{for(const c of list){delete (profiles[profile]||{})[c[0]];restore(c[0])}syncEdited();save();syncControls();schedule()},'vlt-group-reset');detail.append(reset);
   for(const c of list)detail.append(rowFor(c));body.append(detail);
  }
  search.addEventListener('input',()=>{const query=search.value.toLowerCase().trim();for(const d of body.querySelectorAll('details')){let count=0;for(const r of d.querySelectorAll('.vlt-control')){r.hidden=!!query&&!r.dataset.search.includes(query);if(!r.hidden)count++}d.hidden=count===0;if(query&&count)d.open=true}});
  panel.append(body);
  const footer=make('footer','vlt-footer');const buttons=make('div','vlt-copy-row');buttons.append(btn('Copy CSS Variables',()=>copy(false),'vlt-primary'),btn('Copy breakpoint CSS',()=>copy(true)),btn('Reset profile',resetProfile));footer.append(buttons);
- exportStatus=make('small','vlt-export-status','Paste the root block at the end of theme-layout-variables.css. Breakpoint export is safer for mobile-only changes.');footer.append(exportStatus);
+ exportStatus=make('small','vlt-export-status','Exports explicit edits only. Save Package includes the matching consumer rules and assets.');footer.append(exportStatus);
  cssOutput=make('textarea','vlt-export');cssOutput.readOnly=true;cssOutput.hidden=true;cssOutput.setAttribute('aria-label','Exported CSS variables');footer.append(cssOutput);panel.append(footer);
  launcher=btn('LAYOUT TUNER · Shift+D',reopen,'vlt-launcher');launcher.hidden=true;document.body.append(panel,launcher);
  applyProfile();
@@ -181,8 +182,7 @@ function activate(){
  enabled=true;lastFocus=document.activeElement;
  const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('./visual-layout-tuner.css',import.meta.url).href;document.head.append(link);
  build();
- const mount=document.getElementById('post-shuffle-mount');
- observer=new MutationObserver(schedule);if(mount)observer.observe(mount,{subtree:true,childList:true,attributes:true,attributeFilter:['data-phase','data-chat-state','data-synthesis-portrait','data-beat']});
+ observer=new MutationObserver(records=>{if(records.some(r=>!r.target.closest?.('.vlt-panel,.vlt-launcher,.vlt-inspector-layer')&&(r.type==='attributes'||[...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&(!n.closest?.('.vlt-panel')&&(n.matches?.('.scene-artemis-reading,.ps-mount,.ps-world,.reading-chat-hud')||n.querySelector?.('.scene-artemis-reading,.reading-chat-hud')||r.target.closest?.('.scene-artemis-reading'))))))schedule()});observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['data-phase','data-chat-state','data-synthesis-portrait','data-beat']});
  window.addEventListener('resize',()=>{const r=panel.getBoundingClientRect();if(!panel.hidden&&(r.right>innerWidth||r.left<0||r.top<0||r.bottom>innerHeight))dockPanel(dock);const next=profileFor(innerWidth,innerHeight);if(next!==profile){profile=next;applyProfile()}else{profileLabel.textContent=profile.toUpperCase()+' · '+innerWidth+'×'+innerHeight;syncControls();schedule()}});
  window.addEventListener('load',schedule,true);document.addEventListener('scroll',schedule,true);
  window.__VISUAL_LAYOUT_TUNER__={set:setVar,reset:resetProfile,snapshot,exportCSS:exportText,preview:showPreview,live:returnLive,profile:()=>profile,diagnose};

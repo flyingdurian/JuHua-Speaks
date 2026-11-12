@@ -1,186 +1,403 @@
-/* Debug branch: real scene variable consumers. No debug UI styling here.
-   Loaded last; these rules beat legacy !important layers without editing
-   production PR #28. Values are in theme-layout-variables.css. */
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-header{
+/* Debug-only opt-in consumers: opening the tuner never activates geometry.
+   data-vlt-edits lists explicitly edited variable names. */
+html:is([data-vlt-edits~="--layout-reading-header-x"],[data-vlt-edits~="--layout-reading-header-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-header{
  translate:var(--layout-reading-header-x) var(--layout-reading-header-y)!important;
 }
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero{
+html:is([data-vlt-edits~="--layout-reading-hero-x"],[data-vlt-edits~="--layout-reading-hero-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero{
  translate:var(--layout-reading-hero-x) var(--layout-reading-hero-y)!important;
 }
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
+html:is([data-vlt-edits~="--layout-reading-art-x"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
  left:calc(50% + var(--layout-reading-art-x))!important;
+}
+html:is([data-vlt-edits~="--artemis-top"],[data-vlt-edits~="--layout-reading-art-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
  top:calc(var(--artemis-top) + var(--layout-reading-art-y))!important;
+}
+html:is([data-vlt-edits~="--artemis-portrait-width"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
  width:var(--artemis-portrait-width)!important;
+}
+html:is([data-vlt-edits~="--artemis-portrait-height"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
  height:var(--artemis-portrait-height)!important;
+}
+html:is([data-vlt-edits~="--artemis-scale"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
  transform:translateX(-50%) scale(var(--artemis-scale))!important;
+}
+html:is([data-vlt-edits~="--layout-reading-portrait-opacity"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
  opacity:var(--layout-reading-portrait-opacity)!important;
 }
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-halo{opacity:var(--layout-reading-halo)!important}
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-reading-glow,
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-glow{opacity:var(--layout-reading-glow)!important}
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-table-surface{
- display:var(--layout-table-display)!important;
- top:var(--table-top)!important;bottom:0!important;height:auto!important;
- left:calc(50% + var(--layout-table-x))!important;right:auto!important;
- width:var(--layout-table-width)!important;
- transform:translateX(-50%) perspective(var(--reading-table-perspective)) rotateX(var(--reading-table-tilt))!important;
- transform-origin:center bottom!important;opacity:var(--layout-table-opacity)!important;
+html:is([data-vlt-edits~="--layout-reading-halo"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-halo{
+ opacity:var(--layout-reading-halo)!important;
 }
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero::after{
+html:is([data-vlt-edits~="--layout-reading-glow"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-reading-glow,
+html:is([data-vlt-edits~="--layout-reading-glow"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-glow{
+ opacity:var(--layout-reading-glow)!important;
+}
+html:is([data-vlt-edits~="--layout-table-display"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-table-surface{
+ display:var(--layout-table-display)!important;
+}
+html:is([data-vlt-edits~="--table-top"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-table-surface{
+ top:var(--table-top)!important;
+}
+html:is([data-vlt-edits~="--layout-table-x"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-table-surface{
+ left:calc(50% + var(--layout-table-x))!important;
+}
+html:is([data-vlt-edits~="--layout-table-width"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-table-surface{
+ width:var(--layout-table-width)!important;
+}
+html:is([data-vlt-edits~="--reading-table-perspective"],[data-vlt-edits~="--reading-table-tilt"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-table-surface{
+ transform:translateX(-50%) perspective(var(--reading-table-perspective)) rotateX(var(--reading-table-tilt))!important;
+}
+html:is([data-vlt-edits~="--layout-table-opacity"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-table-surface{
+ opacity:var(--layout-table-opacity)!important;
+}
+html:is([data-vlt-edits~="--table-top"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero::after{
  clip-path:inset(var(--table-top) 0 0 0)!important;
 }
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread{
+html:is([data-vlt-edits~="--layout-cards-x"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread{
  left:calc(50% + var(--layout-cards-x))!important;
+}
+html:is([data-vlt-edits~="--reading-spread-bottom"],[data-vlt-edits~="--cards-y-offset"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread{
  bottom:calc(var(--reading-spread-bottom) - var(--cards-y-offset))!important;
- width:var(--reading-spread-width)!important;gap:var(--reading-spread-gap)!important;
+}
+html:is([data-vlt-edits~="--reading-spread-width"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread{
+ width:var(--reading-spread-width)!important;
+}
+html:is([data-vlt-edits~="--reading-spread-gap"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread{
+ gap:var(--reading-spread-gap)!important;
+}
+html:is([data-vlt-edits~="--layout-cards-scale"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread{
  transform:translateX(-50%) scale(var(--layout-cards-scale))!important;
- transform-origin:center bottom!important;
 }
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-card{width:var(--reading-card-width)!important}
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-frame{
+html:is([data-vlt-edits~="--reading-card-width"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-card{
+ width:var(--reading-card-width)!important;
+}
+html:is([data-vlt-edits~="--reading-card-perspective"],[data-vlt-edits~="--reading-card-tilt"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-frame{
  transform:perspective(var(--reading-card-perspective)) rotateX(var(--reading-card-tilt))!important;
- transform-origin:center bottom!important;
 }
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-role{font-size:var(--layout-card-label-size)!important}
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-meaning{font-size:var(--layout-card-meaning-size)!important}
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-card:not(.is-focused){
+html:is([data-vlt-edits~="--layout-card-label-size"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-role{
+ font-size:var(--layout-card-label-size)!important;
+}
+html:is([data-vlt-edits~="--layout-card-meaning-size"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-meaning{
+ font-size:var(--layout-card-meaning-size)!important;
+}
+html:is([data-vlt-edits~="--layout-card-shadows"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-card:not(.is-focused){
  filter:drop-shadow(0 8px 15px rgb(0 0 0 / calc(.65 * var(--layout-card-shadows))))!important;
 }
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
+html:is([data-vlt-edits~="--layout-reading-panel-width"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
  width:var(--layout-reading-panel-width)!important;
- translate:var(--layout-reading-panel-x) var(--layout-reading-panel-y)!important;
- padding:var(--panel-padding)!important;
 }
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-nameplate{translate:0 var(--layout-reading-nameplate-y)!important}
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-narration-title{font-size:var(--layout-reading-title-size)!important}
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-narration-text{font-size:var(--layout-reading-text-size)!important}
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-controls{
+html:is([data-vlt-edits~="--layout-reading-panel-x"],[data-vlt-edits~="--layout-reading-panel-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
+ translate:var(--layout-reading-panel-x) var(--layout-reading-panel-y)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-panel-top"],[data-vlt-edits~="--layout-chat-panel-side"],[data-vlt-edits~="--layout-chat-panel-bottom"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
+ padding:var(--layout-chat-panel-top) var(--layout-chat-panel-side) var(--layout-chat-panel-bottom)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-nameplate-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-nameplate{
+ translate:0 var(--layout-reading-nameplate-y)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-title-size"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-narration-title{
+ font-size:var(--layout-reading-title-size)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-text-size"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-narration-text{
+ font-size:var(--layout-reading-text-size)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-controls-x"],[data-vlt-edits~="--layout-reading-controls-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-controls{
  translate:var(--layout-reading-controls-x) var(--layout-reading-controls-y)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-controls-scale"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-controls{
  scale:var(--layout-reading-controls-scale)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-controls-align"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-controls{
  justify-content:var(--layout-reading-controls-align)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-controls-gap"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-controls{
  gap:var(--layout-reading-controls-gap)!important;
 }
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-control.is-primary{min-width:var(--layout-reading-next-width)!important}
-.scene-artemis-reading:not([data-phase="chat"]) .reading-art-control.is-secondary{min-width:var(--layout-reading-prev-width)!important}
-@media(min-width:721px){
- .scene-artemis-reading:not([data-phase="chat"]) .reading-art-layout{
-  grid-template-rows:min-content var(--reading-hero-height) var(--reading-panel-height) auto!important;
-  align-content:start!important;
- }
- .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero{
-  height:var(--reading-hero-height)!important;min-height:var(--reading-hero-height)!important;
- }
- .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
-  height:var(--reading-panel-height)!important;min-height:var(--reading-panel-height)!important;
-  margin-top:var(--reading-panel-gap)!important;
- }
+html:is([data-vlt-edits~="--layout-reading-next-width"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-control.is-primary{
+ min-width:var(--layout-reading-next-width)!important;
 }
-.scene-artemis-reading[data-phase="chat"]{
+html:is([data-vlt-edits~="--layout-reading-prev-width"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-control.is-secondary{
+ min-width:var(--layout-reading-prev-width)!important;
+}
+@media(min-width:721px){
+html:is([data-vlt-edits~="--reading-hero-height"],[data-vlt-edits~="--reading-panel-height"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-layout{
+ grid-template-rows:min-content var(--reading-hero-height) var(--reading-panel-height) auto!important;
+}
+html:is([data-vlt-edits~="--reading-hero-height"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero{
+ height:var(--reading-hero-height)!important;
+}
+html:is([data-vlt-edits~="--reading-hero-height"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero{
+ min-height:var(--reading-hero-height)!important;
+}
+html:is([data-vlt-edits~="--reading-panel-height"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
+ height:var(--reading-panel-height)!important;
+}
+html:is([data-vlt-edits~="--reading-panel-height"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
+ min-height:var(--reading-panel-height)!important;
+}
+html:is([data-vlt-edits~="--reading-panel-gap"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
+ margin-top:var(--reading-panel-gap)!important;
+}
+}
+html:is([data-vlt-edits~="--layout-chat-background-x"],[data-vlt-edits~="--layout-chat-background-y"]) .scene-artemis-reading[data-phase="chat"]{
  background-position:center top,var(--layout-chat-background-x) var(--layout-chat-background-y)!important;
 }
-.scene-artemis-reading[data-phase="chat"] .reading-art-hero{
+html:is([data-vlt-edits~="--layout-chat-hero-x"],[data-vlt-edits~="--layout-chat-hero-y"]) .scene-artemis-reading[data-phase="chat"] .reading-art-hero{
  translate:var(--layout-chat-hero-x) var(--layout-chat-hero-y)!important;
 }
-.scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art,
-.scene-artemis-reading[data-phase="chat"]:not([data-synthesis-portrait="focused"]) .reading-art-portrait{
+html:is([data-vlt-edits~="--layout-chat-art-x"]) .scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art,
+html:is([data-vlt-edits~="--layout-chat-art-x"]) .scene-artemis-reading[data-phase="chat"]:not([data-synthesis-portrait="focused"]) .reading-art-portrait{
  left:calc(50% + var(--layout-chat-art-x))!important;
+}
+html:is([data-vlt-edits~="--layout-chat-art-y"]) .scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art,
+html:is([data-vlt-edits~="--layout-chat-art-y"]) .scene-artemis-reading[data-phase="chat"]:not([data-synthesis-portrait="focused"]) .reading-art-portrait{
  top:var(--layout-chat-art-y)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-art-width"]) .scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art,
+html:is([data-vlt-edits~="--layout-chat-art-width"]) .scene-artemis-reading[data-phase="chat"]:not([data-synthesis-portrait="focused"]) .reading-art-portrait{
  width:var(--layout-chat-art-width)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-art-height"]) .scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art,
+html:is([data-vlt-edits~="--layout-chat-art-height"]) .scene-artemis-reading[data-phase="chat"]:not([data-synthesis-portrait="focused"]) .reading-art-portrait{
  height:var(--layout-chat-art-height)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-art-scale"]) .scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art,
+html:is([data-vlt-edits~="--layout-chat-art-scale"]) .scene-artemis-reading[data-phase="chat"]:not([data-synthesis-portrait="focused"]) .reading-art-portrait{
  transform:translateX(-50%) scale(var(--layout-chat-art-scale))!important;
- transform-origin:center top!important;
+}
+html:is([data-vlt-edits~="--layout-chat-art-opacity"]) .scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art,
+html:is([data-vlt-edits~="--layout-chat-art-opacity"]) .scene-artemis-reading[data-phase="chat"]:not([data-synthesis-portrait="focused"]) .reading-art-portrait{
  opacity:var(--layout-chat-art-opacity)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-glow-radius"],[data-vlt-edits~="--layout-chat-glow-opacity"]) .scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art,
+html:is([data-vlt-edits~="--layout-chat-glow-radius"],[data-vlt-edits~="--layout-chat-glow-opacity"]) .scene-artemis-reading[data-phase="chat"]:not([data-synthesis-portrait="focused"]) .reading-art-portrait{
  filter:drop-shadow(0 6px var(--layout-chat-glow-radius) rgb(134 94 180 / var(--layout-chat-glow-opacity)))!important;
+}
+html:is([data-vlt-edits~="--layout-chat-mask-start"],[data-vlt-edits~="--layout-chat-mask-mid"],[data-vlt-edits~="--layout-chat-mask-end"]) .scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art,
+html:is([data-vlt-edits~="--layout-chat-mask-start"],[data-vlt-edits~="--layout-chat-mask-mid"],[data-vlt-edits~="--layout-chat-mask-end"]) .scene-artemis-reading[data-phase="chat"]:not([data-synthesis-portrait="focused"]) .reading-art-portrait{
  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 var(--layout-chat-mask-start),rgba(0,0,0,.88) var(--layout-chat-mask-mid),transparent var(--layout-chat-mask-end))!important;
+}
+html:is([data-vlt-edits~="--layout-chat-mask-start"],[data-vlt-edits~="--layout-chat-mask-mid"],[data-vlt-edits~="--layout-chat-mask-end"]) .scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art,
+html:is([data-vlt-edits~="--layout-chat-mask-start"],[data-vlt-edits~="--layout-chat-mask-mid"],[data-vlt-edits~="--layout-chat-mask-end"]) .scene-artemis-reading[data-phase="chat"]:not([data-synthesis-portrait="focused"]) .reading-art-portrait{
  mask-image:linear-gradient(to bottom,#000 0%,#000 var(--layout-chat-mask-start),rgba(0,0,0,.88) var(--layout-chat-mask-mid),transparent var(--layout-chat-mask-end))!important;
 }
-.scene-artemis-reading[data-phase="chat"] .reading-art-hero::after{
+html:is([data-vlt-edits~="--layout-chat-mist-y"]) .scene-artemis-reading[data-phase="chat"] .reading-art-hero::after{
  bottom:var(--layout-chat-mist-y)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-mist-opacity"]) .scene-artemis-reading[data-phase="chat"] .reading-art-hero::after{
  opacity:var(--layout-chat-mist-opacity)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-mist-blur"]) .scene-artemis-reading[data-phase="chat"] .reading-art-hero::after{
  filter:blur(var(--layout-chat-mist-blur))!important;
+}
+html:is([data-vlt-edits~="--chat-mist-height"]) .scene-artemis-reading[data-phase="chat"] .reading-art-hero::after{
  height:var(--chat-mist-height)!important;
 }
-.scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
+html:is([data-vlt-edits~="--layout-chat-panel-width"]) .scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
  width:var(--layout-chat-panel-width)!important;
- justify-self:center!important;
+}
+html:is([data-vlt-edits~="--layout-chat-panel-x"],[data-vlt-edits~="--layout-chat-panel-y"]) .scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
  translate:var(--layout-chat-panel-x) var(--layout-chat-panel-y)!important;
- padding:var(--panel-padding)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-panel-top"],[data-vlt-edits~="--layout-chat-panel-side"],[data-vlt-edits~="--layout-chat-panel-bottom"]) .scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
+ padding:var(--layout-chat-panel-top) var(--layout-chat-panel-side) var(--layout-chat-panel-bottom)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-panel-min-height"]) .scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
  min-height:var(--layout-chat-panel-min-height)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-panel-height"]) .scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
  height:var(--layout-chat-panel-height)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-frame-top"],[data-vlt-edits~="--layout-chat-frame-side"],[data-vlt-edits~="--layout-chat-frame-bottom"]) .scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
  border-width:var(--layout-chat-frame-top) var(--layout-chat-frame-side) var(--layout-chat-frame-bottom)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-frame-top"],[data-vlt-edits~="--layout-chat-frame-side"],[data-vlt-edits~="--layout-chat-frame-bottom"]) .scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
  border-image-width:var(--layout-chat-frame-top) var(--layout-chat-frame-side) var(--layout-chat-frame-bottom)!important;
 }
-.scene-artemis-reading[data-phase="chat"] .synthesis-chat-heading{
+html:is([data-vlt-edits~="--layout-chat-heading-x"],[data-vlt-edits~="--layout-chat-heading-y"]) .scene-artemis-reading[data-phase="chat"] .synthesis-chat-heading{
  translate:var(--layout-chat-heading-x) var(--layout-chat-heading-y)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-heading-gap"]) .scene-artemis-reading[data-phase="chat"] .synthesis-chat-heading{
  margin-bottom:var(--layout-chat-heading-gap)!important;
 }
-.scene-artemis-reading[data-phase="chat"] .synthesis-chat-heading h2{font-size:var(--layout-chat-heading-size)!important}
-.scene-artemis-reading[data-phase="chat"] .synthesis-question{
+html:is([data-vlt-edits~="--layout-chat-heading-size"]) .scene-artemis-reading[data-phase="chat"] .synthesis-chat-heading h2{
+ font-size:var(--layout-chat-heading-size)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-question-x"],[data-vlt-edits~="--layout-chat-question-y"]) .scene-artemis-reading[data-phase="chat"] .synthesis-question{
  translate:var(--layout-chat-question-x) var(--layout-chat-question-y)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-question-height"]) .scene-artemis-reading[data-phase="chat"] .synthesis-question{
  max-height:var(--layout-chat-question-height)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-question-gap"]) .scene-artemis-reading[data-phase="chat"] .synthesis-question{
  margin-bottom:var(--layout-chat-question-gap)!important;
 }
-.scene-artemis-reading[data-phase="chat"] .synthesis-question p{font-size:var(--layout-chat-question-size)!important}
-.scene-artemis-reading[data-phase="chat"] .synthesis-chat-scroll{
- translate:var(--layout-chat-transcript-x) var(--layout-chat-transcript-y)!important;
- max-height:var(--layout-chat-transcript-max-height)!important;
- padding:var(--layout-chat-transcript-top) var(--layout-chat-transcript-side) var(--layout-chat-transcript-bottom)!important;
- min-height:0!important;overflow-y:auto!important;
+html:is([data-vlt-edits~="--layout-chat-question-size"]) .scene-artemis-reading[data-phase="chat"] .synthesis-question p{
+ font-size:var(--layout-chat-question-size)!important;
 }
-.scene-artemis-reading[data-phase="chat"] .synthesis-message{
+html:is([data-vlt-edits~="--layout-chat-transcript-x"],[data-vlt-edits~="--layout-chat-transcript-y"]) .scene-artemis-reading[data-phase="chat"] .synthesis-chat-scroll{
+ translate:var(--layout-chat-transcript-x) var(--layout-chat-transcript-y)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-transcript-max-height"]) .scene-artemis-reading[data-phase="chat"] .synthesis-chat-scroll{
+ max-height:var(--layout-chat-transcript-max-height)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-transcript-top"],[data-vlt-edits~="--layout-chat-transcript-side"],[data-vlt-edits~="--layout-chat-transcript-bottom"]) .scene-artemis-reading[data-phase="chat"] .synthesis-chat-scroll{
+ padding:var(--layout-chat-transcript-top) var(--layout-chat-transcript-side) var(--layout-chat-transcript-bottom)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-message-gap"]) .scene-artemis-reading[data-phase="chat"] .synthesis-message{
  gap:var(--layout-chat-message-gap)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-message-spacing"]) .scene-artemis-reading[data-phase="chat"] .synthesis-message{
  margin-bottom:var(--layout-chat-message-spacing)!important;
 }
-.scene-artemis-reading[data-phase="chat"] .synthesis-message-body p{font-size:var(--layout-chat-message-size)!important}
-.scene-artemis-reading[data-phase="chat"] .synthesis-avatar{
- width:var(--layout-chat-avatar-size)!important;height:var(--layout-chat-avatar-size)!important;
- min-width:var(--layout-chat-avatar-size)!important;max-width:var(--layout-chat-avatar-size)!important;
+html:is([data-vlt-edits~="--layout-chat-message-size"]) .scene-artemis-reading[data-phase="chat"] .synthesis-message-body p{
+ font-size:var(--layout-chat-message-size)!important;
 }
-.scene-artemis-reading[data-phase="chat"] .synthesis-chat-actions{
+html:is([data-vlt-edits~="--layout-chat-avatar-size"]) .scene-artemis-reading[data-phase="chat"] .synthesis-avatar{
+ width:var(--layout-chat-avatar-size)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-avatar-size"]) .scene-artemis-reading[data-phase="chat"] .synthesis-avatar{
+ height:var(--layout-chat-avatar-size)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-avatar-size"]) .scene-artemis-reading[data-phase="chat"] .synthesis-avatar{
+ min-width:var(--layout-chat-avatar-size)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-avatar-size"]) .scene-artemis-reading[data-phase="chat"] .synthesis-avatar{
+ max-width:var(--layout-chat-avatar-size)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-footer-x"],[data-vlt-edits~="--layout-chat-footer-y"]) .scene-artemis-reading[data-phase="chat"] .synthesis-chat-actions{
  translate:var(--layout-chat-footer-x) var(--layout-chat-footer-y)!important;
- width:var(--layout-chat-footer-width)!important;align-self:center!important;
+}
+html:is([data-vlt-edits~="--layout-chat-footer-width"]) .scene-artemis-reading[data-phase="chat"] .synthesis-chat-actions{
+ width:var(--layout-chat-footer-width)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-footer-top"],[data-vlt-edits~="--layout-chat-footer-bottom"]) .scene-artemis-reading[data-phase="chat"] .synthesis-chat-actions{
  padding:var(--layout-chat-footer-top) 0 var(--layout-chat-footer-bottom)!important;
 }
-.scene-artemis-reading[data-phase="chat"] .synthesis-followup-row{
+html:is([data-vlt-edits~="--layout-chat-row-gap"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row{
  gap:var(--layout-chat-row-gap)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-row-align"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row{
  align-items:var(--layout-chat-row-align)!important;
 }
-.scene-artemis-reading[data-phase="chat"] .synthesis-followup-row input{
+html:is([data-vlt-edits~="--layout-chat-input-x"],[data-vlt-edits~="--layout-chat-input-y"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row input{
  translate:var(--layout-chat-input-x) var(--layout-chat-input-y)!important;
- height:var(--layout-chat-input-height)!important;max-height:var(--layout-chat-input-height)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-input-height"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row input{
+ height:var(--layout-chat-input-height)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-input-height"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row input{
+ max-height:var(--layout-chat-input-height)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-input-font"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row input{
  font-size:var(--layout-chat-input-font)!important;
 }
-.scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
+html:is([data-vlt-edits~="--layout-chat-ask-x"],[data-vlt-edits~="--layout-chat-ask-y"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
  translate:var(--layout-chat-ask-x) var(--layout-chat-ask-y)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-ask-scale"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
  scale:var(--layout-chat-ask-scale)!important;
- height:var(--layout-chat-input-height)!important;max-height:var(--layout-chat-input-height)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-input-height"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
+ height:var(--layout-chat-input-height)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-input-height"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
+ max-height:var(--layout-chat-input-height)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-ask-font"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
  font-size:var(--layout-chat-ask-font)!important;
 }
 @media(min-width:721px){
- .scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
+html:is([data-vlt-edits~="--layout-chat-ask-width"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
  flex:0 0 var(--layout-chat-ask-width)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-ask-width"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
  min-width:var(--layout-chat-ask-width)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-ask-width"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
  max-width:var(--layout-chat-ask-width)!important;
- }
+}
 }
 @media(max-width:720px){
- .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row{
-  grid-template-columns:minmax(0,var(--layout-chat-input-share)) minmax(0,1fr)!important;
- }
- .scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
-  width:100%!important;min-width:0!important;max-width:none!important;
- }
+html:is([data-vlt-edits~="--layout-chat-input-share"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row{
+ grid-template-columns:minmax(0,var(--layout-chat-input-share)) minmax(0,1fr)!important;
+}
 }
 @media(max-width:720px) and (max-height:680px){
- .scene-artemis-reading[data-phase="chat"] .reading-art-layout{
-  grid-template-rows:var(--chat-hero-height) minmax(var(--layout-chat-panel-min-height),auto)!important;
- }
+html:is([data-vlt-edits~="--chat-hero-height"],[data-vlt-edits~="--layout-chat-panel-min-height"]) .scene-artemis-reading[data-phase="chat"] .reading-art-layout{
+ grid-template-rows:var(--chat-hero-height) minmax(var(--layout-chat-panel-min-height),auto)!important;
 }
-/* The old stage cannot bleed into chat. CSS display:none also removes
-   pointer/keyboard interaction and accessibility exposure. It does not
-   hide the live ASK button, guidance CARD, or current follow-up composer.
-   Debug inspection can temporarily reveal existing legacy nodes. */
-.scene-artemis-reading[data-phase="chat"] :is(.synthesis-reading-complete,.synthesis-guidance-cta,.synthesis-guidance-confirmed,.reading-art-controls,.reading-art-footer,.reading-art-panel,.ps-reading-entry,.ps-reading-entry-complete,[data-action="reading-next"],[data-action="reading-prev"],[data-action="draw-guidance"]),
-.ps-world:has(.scene-artemis-reading[data-phase="chat"]) :is(.ps-reading-entry,.ps-reading-entry-complete,.synthesis-reading-complete,.synthesis-guidance-cta){
+}
+html:is([data-vlt-edits~="--layout-legacy-cta-display"]) .scene-artemis-reading[data-phase="chat"] :is(.synthesis-reading-complete,.synthesis-guidance-cta,.synthesis-guidance-confirmed,.reading-art-controls,.reading-art-footer,.reading-art-panel,.ps-reading-entry,.ps-reading-entry-complete,[data-action="reading-next"],[data-action="reading-prev"],[data-action="draw-guidance"]),
+html:is([data-vlt-edits~="--layout-legacy-cta-display"]) .ps-world:has(.scene-artemis-reading[data-phase="chat"]) :is(.ps-reading-entry,.ps-reading-entry-complete,.synthesis-reading-complete,.synthesis-guidance-cta){
  display:var(--layout-legacy-cta-display)!important;
 }
+html:is([data-vlt-edits~="--layout-reading-title-x"],[data-vlt-edits~="--layout-reading-title-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-narration-title{
+ translate:var(--layout-reading-title-x) var(--layout-reading-title-y)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-text-x"],[data-vlt-edits~="--layout-reading-text-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-narration-text{
+ translate:var(--layout-reading-text-x) var(--layout-reading-text-y)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-next-x"],[data-vlt-edits~="--layout-reading-next-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-control.is-primary{
+ translate:var(--layout-reading-next-x) var(--layout-reading-next-y)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-next-scale"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-control.is-primary{
+ scale:var(--layout-reading-next-scale)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-prev-x"],[data-vlt-edits~="--layout-reading-prev-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-control.is-secondary{
+ translate:var(--layout-reading-prev-x) var(--layout-reading-prev-y)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-prev-scale"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-control.is-secondary{
+ scale:var(--layout-reading-prev-scale)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-halo-x"],[data-vlt-edits~="--layout-reading-halo-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-halo{
+ translate:var(--layout-reading-halo-x) var(--layout-reading-halo-y)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-halo-scale"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-halo{
+ scale:var(--layout-reading-halo-scale)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-glow-x"],[data-vlt-edits~="--layout-reading-glow-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-reading-glow,
+html:is([data-vlt-edits~="--layout-reading-glow-x"],[data-vlt-edits~="--layout-reading-glow-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-glow{
+ translate:var(--layout-reading-glow-x) var(--layout-reading-glow-y)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-glow-scale"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-reading-glow,
+html:is([data-vlt-edits~="--layout-reading-glow-scale"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-glow{
+ scale:var(--layout-reading-glow-scale)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-chamber-x"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere{
+ translate:var(--layout-reading-chamber-x) 0!important;
+}
+html:is([data-vlt-edits~="--layout-reading-chamber-scale"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere{
+ scale:var(--layout-reading-chamber-scale)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-footer-x"],[data-vlt-edits~="--layout-reading-footer-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-footer{
+ translate:var(--layout-reading-footer-x) var(--layout-reading-footer-y)!important;
+}
+html:is([data-vlt-edits~="--layout-reading-footer-size"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-footer{
+ font-size:var(--layout-reading-footer-size)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-avatar-x"],[data-vlt-edits~="--layout-chat-avatar-y"]) .scene-artemis-reading[data-phase="chat"] .synthesis-avatar{
+ translate:var(--layout-chat-avatar-x) var(--layout-chat-avatar-y)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-message-x"],[data-vlt-edits~="--layout-chat-message-y"]) .scene-artemis-reading[data-phase="chat"] .synthesis-message-body{
+ translate:var(--layout-chat-message-x) var(--layout-chat-message-y)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-guidance-x"],[data-vlt-edits~="--layout-chat-guidance-y"]) .scene-artemis-reading[data-phase="chat"] .synthesis-guidance-card{
+ translate:var(--layout-chat-guidance-x) var(--layout-chat-guidance-y)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-guidance-scale"]) .scene-artemis-reading[data-phase="chat"] .synthesis-guidance-card{
+ scale:var(--layout-chat-guidance-scale)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-input-scale"]) .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row input{
+ scale:var(--layout-chat-input-scale)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-mist-x"]) .scene-artemis-reading[data-phase="chat"] .reading-art-hero::after{
+ left:var(--layout-chat-mist-x)!important;
+}
+html:is([data-vlt-edits~="--layout-chat-mist-width"]) .scene-artemis-reading[data-phase="chat"] .reading-art-hero::after{
+ width:var(--layout-chat-mist-width)!important;
+}
+
+/* Individual offsets must compose with the original desktop layout. */
+html[data-vlt-edits~="--layout-reading-art-x"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{left:calc(50% + var(--layout-reading-art-x))!important;}
+html[data-vlt-edits~="--layout-reading-art-y"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{translate:0 var(--layout-reading-art-y)!important;top:var(--artemis-top)!important;}
+html[data-vlt-edits~="--layout-chat-art-x"] .scene-artemis-reading[data-phase="chat"] :is(.artemis-focused-chat-art,.reading-art-portrait){left:calc(50% + var(--layout-chat-art-x))!important;}
