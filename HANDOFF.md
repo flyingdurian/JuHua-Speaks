@@ -1,13 +1,57 @@
 # JuHua Speaks — Gate D V4 / Artemis AI Synthesis Handoff
 
-**Updated:** November 11, 2026  
+**Updated:** November 11, 2026 — visual layout debug milestone  
 **Repository:** https://github.com/flyingdurian/JuHua-Speaks  
-**Active Branch:** `feat/artemis-ai-synthesis-remake`  
+**Active Branch:** `debug/visual-layout-tuner` (owner calibration only)  
 **Review PR:** [Draft PR #28](https://github.com/flyingdurian/JuHua-Speaks/pull/28)  
-**Parent branch:** `fix/gate-d-v4-reference-table-portrait-mobile` (PR #27)  
+**Parent branch:** `feat/artemis-ai-synthesis-remake` (PR #28, base commit `b7233cc82a78`); production parent remains `fix/gate-d-v4-reference-table-portrait-mobile` (PR #27).  
 **Merge / deployment:** **Not authorized. PR #28 remains draft, unmerged, and awaiting owner visual sign-off.**
 
 > **Continuity rule:** Verify the current GitHub head and workflow status before changing anything. Older Gate D V4 handoffs that identify PR #27 as the *active* branch are superseded by this file. Treat screenshots and owner feedback as the visual authority; passing tests alone do not establish approval.
+
+## Milestone — Visual Layout Tuner (Nov 11, 2026)
+
+**Owner directive:** Build a dedicated debug branch, not a production merge. Branch `debug/visual-layout-tuner` is based on PR #28's exact `b7233cc82a78d9e3257076449b3aacb63aece5aa` commit. The debug branch's verified code commit is `47babb574f0c04959ad438ee4ed90fcff198efc1`. PR #28 itself is unchanged, draft/unmerged/undeployed.
+
+### Owner usage
+
+```bash
+git fetch origin
+git switch --track origin/debug/visual-layout-tuner
+npm ci
+npm run preview:gate-b
+```
+
+- `http://localhost:4184/preview/post-shuffle/?debug=1&layoutPreview=reading` — scripted reading/table.
+- `http://localhost:4184/preview/post-shuffle/?debug=1&layoutPreview=chat` — ready AI Synthesis HUD.
+- `http://localhost:4184/preview/post-shuffle/?debug=1&layoutPreview=long` — long conversation + guidance card.
+- `http://localhost:4184/preview/post-shuffle/?debug=1&layoutPreview=thinking` — thinking/progress state.
+- `?debug=1` without `layoutPreview` — actual app journey. Shift+D opens/collapses the overlay; on touch, use the collapse and launcher buttons. Hotkey is ignored while editing text inputs.
+
+The fixtures call the actual `renderReadingStage` and `renderSynthesisChat` functions with fixed RWS cards and deterministic sample messages, not a live AI request. In the real journey the existing three RWS card/foil identities and ritual transition are preserved. Debug state is saved locally per **desktop (>720px), mobile (<=720px, >680px high), compact (<=720px, <=680px high)**. Use browser device emulation/resize to change profile. The owner can search 123 controls in seven groups, adjust numeric sliders/exact values, reset a control/group/profile, drag/dock/collapse the panel, use single-control Focus mode, and turn on guides/live collision diagnostics.
+
+**CSS export:** `Copy CSS Variables` exports current computed variable values as a valid `:root { ... }` block. `Copy breakpoint CSS` wraps the same values for the current viewport profile and is preferred for phone-only calibration. Paste at the end of `preview/post-shuffle/theme-layout-variables.css` on the debug branch. Clipboard failure shows selectable text instead. The derived `--panel-padding` and `--chat-panel-padding` aliases use separate top/side/bottom sliders. Keep the legacy CTA setting `--layout-legacy-cta-display: none` for accepted layouts; Inspect is a debug-only reveal of existing retired elements. `display:none` removes their layout, pointer and keyboard exposure while preserving the real ASK composer and guidance card. Do not introduce fake old CTAs into production.
+
+### Implementation / transfer contract
+
+- `preview/post-shuffle/debug/layout-controls.mjs` — one metadata registry for sliders, persistence, validation, export, and responsive profiles.
+- `preview/post-shuffle/debug/visual-layout-tuner.mjs` / `.css` — debug-only overlay; actual root CSS updates, localStorage, focus/dock/search/reset, diagnostics, clipboard. `layout-preview.mjs` contains deterministic fixtures using production renderers.
+- `preview/post-shuffle/theme-layout-variables.css` — expanded real CSS variables. `preview/post-shuffle/visual-layout-tuning.css` is the last-loaded variable consumer; it controls actual reading/chat DOM, including independent portrait/mist, table/card transforms, HUD frame, scroll region, and input/ASK position. The existing CSS and source-art matte remain intact.
+- `preview/post-shuffle/index.html` loads the tuner module and consumer stylesheet only on this branch; overlay activates only through debug=1 or Shift+D. The debug branch intentionally allows layout deviations and should not be merged wholesale.
+- After owner signs off on a layout, port only approved CSS declarations **and the corresponding consumer rules** into PR #28 as a clean change, with breakpoint regression tests. Do not copy newly introduced variables alone without their consumers, and do not ship the debug module, fixture, controls or overlay CSS in production.
+- CSS variables can tune real artwork only if it is installed. The prior 19 missing original/derived owner synthesis PNGs and manifests are still an art-integration blocker on GitHub; no claim of visual acceptance with fallback artwork. Use actual art-backed local checkout to tune the exact ornament boundary and waist-mask edges.
+
+### Verification
+
+[Debug browser CI run 43146210479](https://github.com/flyingdurian/JuHua-Speaks/actions/runs/43146210479) **PASS**, verified against code commit `47babb574f0c04959ad438ee4ed90fcff198efc1`.
+
+1. Source syntax and registry/unit checks (including existing `npm test`): PASS.
+2. Chromium installation and RWS sync: PASS.
+3. Real Gate B preview startup: PASS.
+4. Browser regression: PASS — hotkey activation, live variable-to-element geometry, table/card pitch, chat transcript/footer/mist, CTA hide/inspect while ASK remains visible, CSS clipboard export, 390×844 / 458×553 / 860×720 profile switching and local persistence.
+5. Log/screenshots artifact upload: PASS — `visual-layout-tuner-review` contains `.artifacts/logs/` plus `.artifacts/visual-layout-tuner/` screenshots and geometry JSON. Workflow `.github/workflows/visual-layout-tuner.yml` runs only on this debug branch and does not deploy.
+
+**Visual status:** Functional checks passed; owner art-backed visual tuning and approval remain OPEN. No deployment/merge authorized. This HANDOFF update is documentation-only after verified CI; code remains identical to the tested SHA. Original artwork and production handoff milestones below are retained.
 
 ## Current State
 
