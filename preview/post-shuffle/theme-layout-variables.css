@@ -259,3 +259,12 @@
  --panel-padding:var(--layout-reading-panel-top) var(--layout-reading-panel-side) var(--layout-reading-panel-bottom);
  --chat-panel-padding:var(--layout-chat-panel-top) var(--layout-chat-panel-side) var(--layout-chat-panel-bottom);
 }
+
+@media(min-width:721px){
+ :root{
+  --reading-spread-width:min(1000px,96%);
+  --reading-spread-gap:clamp(18px,4vw,70px);
+  --reading-card-width:clamp(110px,9.6vw,163px);
+  --table-top:81%;
+ }
+}

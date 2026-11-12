@@ -7,6 +7,7 @@ const original=new Map(NAMES.map(n=>[n,[root.style.getPropertyValue(n),root.styl
 let enabled=false, panel=null, body=null, launcher=null, fixture=null, controls=new Map();
 let profile=profileFor(innerWidth,innerHeight), profiles={}, guides=false, scheduled=0, lastFocus=null, observer=null;
 let targetStatus=null, cssOutput=null, search=null, exportStatus=null, profileLabel=null, statusLine=null;
+let exportScoped=false, focusButton=null, dock='right-top';
 try{const saved=JSON.parse(localStorage.getItem(STORE)||'{}');if(saved&&typeof saved==='object')profiles=saved;}catch{}
 const validValue=(n,v)=>{
  const c=CONTROLS.find(x=>x[0]===n);if(!c||typeof v!=='string'||v.length>80)return false;
@@ -73,13 +74,13 @@ function rowFor(c){
   range.addEventListener('input',()=>update(range.value));number.addEventListener('change',()=>update(number.value));
   line.append(range,number,make('span','vlt-unit',unit||'×'));row.append(line);
  }
- const meta=make('div','vlt-meta');meta.append(make('code','',n),btn('Reset',()=>{delete (profiles[profile]||{})[n];restore(n);save();syncControls();schedule()},'vlt-reset'));row.append(meta);
+ const meta=make('div','vlt-meta');meta.append(make('code','',n),btn('Focus',()=>focusControl(row),'vlt-reset'),btn('Reset',()=>{delete (profiles[profile]||{})[n];restore(n);save();syncControls();schedule()},'vlt-reset'));row.append(meta);
  controls.set(n,{c,row,range,number,value:raw});return row;
 }
 function snapshot(){return Object.fromEntries(NAMES.map(n=>[n,computed(n)]).filter(([,v])=>v));}
 function exportText(scoped=false){return formatCSS(snapshot(),scoped?profile:'root')}
 async function copy(scoped=false){
- const text=exportText(scoped);cssOutput.value=text;cssOutput.hidden=false;
+ exportScoped=scoped;const text=exportText(scoped);cssOutput.value=text;cssOutput.hidden=false;
  try{await navigator.clipboard.writeText(text);exportStatus.textContent='Copied '+(scoped?profile+' breakpoint':'exact :root block')+' to clipboard.'}
  catch{cssOutput.focus();cssOutput.select();let ok=false;try{ok=document.execCommand('copy')}catch{}exportStatus.textContent=ok?'Copied CSS.':'Clipboard unavailable. CSS selected; Ctrl/Cmd+C.'}
 }
@@ -122,7 +123,7 @@ function schedule(){
    h.style.setProperty('--room-cover-position',((r.width-w)*fraction(pos[0],.5)+r.left-b.left)+'px '+((r.height-ht)*fraction(pos[1],.48)+r.top-b.top)+'px');
    h.dataset.roomOcclusionSynced='true';
   }
-  if(cssOutput&&!cssOutput.hidden&&document.activeElement!==cssOutput)cssOutput.value=exportText(false);
+  if(cssOutput&&!cssOutput.hidden&&document.activeElement!==cssOutput)cssOutput.value=exportText(exportScoped);
  });
 }
 async function showPreview(mode){
@@ -139,11 +140,23 @@ function drag(header){
  header.addEventListener('pointermove',e=>{if(!moving)return;panel.style.right='auto';panel.style.bottom='auto';panel.style.left=Math.max(0,Math.min(innerWidth-panel.offsetWidth,x+e.clientX-startX))+'px';panel.style.top=Math.max(0,Math.min(innerHeight-50,y+e.clientY-startY))+'px'});
  const end=()=>{moving=false};header.addEventListener('pointerup',end);header.addEventListener('pointercancel',end);
 }
+function focusControl(row){
+ for(const e of body.querySelectorAll('.vlt-focused,.vlt-focused-group'))e.classList.remove('vlt-focused','vlt-focused-group');
+ row.classList.add('vlt-focused');const group=row.closest('details');group.classList.add('vlt-focused-group');group.open=true;
+ panel.classList.add('is-focus-mode');focusButton.hidden=false;
+ dockPanel('right-bottom');row.scrollIntoView({block:'nearest'});
+}
+function exitFocus(){panel.classList.remove('is-focus-mode');focusButton.hidden=true;for(const e of body.querySelectorAll('.vlt-focused,.vlt-focused-group'))e.classList.remove('vlt-focused','vlt-focused-group')}
+function dockPanel(next){
+ dock=next;panel.style.left=next.startsWith('left')?'8px':'auto';panel.style.right=next.startsWith('right')?'8px':'auto';
+ panel.style.top=next.endsWith('top')?'8px':'auto';panel.style.bottom=next.endsWith('bottom')?'8px':'auto';
+}
+function cycleDock(){const positions=['right-top','right-bottom','left-bottom','left-top'];dockPanel(positions[(positions.indexOf(dock)+1)%positions.length])}
 function collapse(){panel.hidden=true;launcher.hidden=false;launcher.focus({preventScroll:true})}
 function reopen(){panel.hidden=false;launcher.hidden=true;syncControls();schedule()}
 function build(){
  panel=make('aside','vlt-panel');panel.id='visual-layout-tuner';panel.setAttribute('aria-label','Visual Layout Tuner');panel.setAttribute('role','region');
- const header=make('header','vlt-header'), heading=make('div');heading.append(make('strong','','VISUAL LAYOUT TUNER'),make('small','','Debug branch · Shift+D'));header.append(heading,btn('−',collapse,'vlt-icon'));panel.append(header);drag(header);
+ const header=make('header','vlt-header'), heading=make('div');heading.append(make('strong','','VISUAL LAYOUT TUNER'),make('small','','Debug branch · Shift+D'));const headerActions=make('div','vlt-header-actions');focusButton=btn('Full',exitFocus);focusButton.hidden=true;headerActions.append(focusButton,btn('Dock',cycleDock),btn('−',collapse,'vlt-icon'));header.append(heading,headerActions);panel.append(header);drag(header);
  const top=make('div','vlt-top');profileLabel=make('span','vlt-profile');statusLine=make('small','vlt-status','Live app · choose quick preview or enter reading');top.append(profileLabel,statusLine);
  const quick=make('div','vlt-quick');quick.append(btn('Reading',()=>showPreview('reading')),btn('Chat ready',()=>showPreview('chat')),btn('Long chat',()=>showPreview('long')),btn('Thinking',()=>showPreview('thinking')),btn('Live app',returnLive),btn('Guides',toggleGuides));top.append(quick);
  const note=make('small','vlt-note','Quick previews use real app templates, not live AI. Resize your actual browser / DevTools for independent desktop, phone and compact settings. Changes auto-save locally per viewport.');
@@ -170,7 +183,7 @@ function activate(){
  build();
  const mount=document.getElementById('post-shuffle-mount');
  observer=new MutationObserver(schedule);if(mount)observer.observe(mount,{subtree:true,childList:true,attributes:true,attributeFilter:['data-phase','data-chat-state','data-synthesis-portrait','data-beat']});
- window.addEventListener('resize',()=>{const next=profileFor(innerWidth,innerHeight);if(next!==profile){profile=next;applyProfile()}else{profileLabel.textContent=profile.toUpperCase()+' · '+innerWidth+'×'+innerHeight;syncControls();schedule()}});
+ window.addEventListener('resize',()=>{const r=panel.getBoundingClientRect();if(!panel.hidden&&(r.right>innerWidth||r.left<0||r.top<0||r.bottom>innerHeight))dockPanel(dock);const next=profileFor(innerWidth,innerHeight);if(next!==profile){profile=next;applyProfile()}else{profileLabel.textContent=profile.toUpperCase()+' · '+innerWidth+'×'+innerHeight;syncControls();schedule()}});
  window.addEventListener('load',schedule,true);document.addEventListener('scroll',schedule,true);
  window.__VISUAL_LAYOUT_TUNER__={set:setVar,reset:resetProfile,snapshot,exportCSS:exportText,preview:showPreview,live:returnLive,profile:()=>profile,diagnose};
  if(['reading','chat','long','thinking'].includes(params.get('layoutPreview')))showPreview(params.get('layoutPreview'));

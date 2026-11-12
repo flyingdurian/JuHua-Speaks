@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {GROUPS,CONTROLS,NAMES,formatCSS,profileFor} from '../preview/post-shuffle/debug/layout-controls.mjs';
+const vars=await readFile(new URL('../preview/post-shuffle/theme-layout-variables.css',import.meta.url),'utf8');
+assert.equal(new Set(NAMES).size,NAMES.length,'Unique CSS variables');
+assert.ok(CONTROLS.length>=100&&GROUPS.length>=7,'Comprehensive controls');
+for(const n of NAMES)assert.ok(vars.includes(n+':')||vars.includes(n+': '),'Root declaration exists: '+n);
+assert.equal(profileFor(390,844),'mobile');assert.equal(profileFor(458,553),'compact');assert.equal(profileFor(860,720),'desktop');
+assert.match(formatCSS({'--artemis-top':'16px'}),/^:root \{/);
+assert.match(formatCSS({'--artemis-top':'16px'},'mobile'),/^@media \(max-width:720px\) and \(min-height:681px\)/);
+assert.match(formatCSS({'--artemis-top':'16px'}),/--artemis-top: 16px;/);
+console.log('PASS visual layout registry, responsive profiles and CSS formatting');
