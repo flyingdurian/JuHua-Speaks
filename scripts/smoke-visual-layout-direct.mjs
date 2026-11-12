@@ -5,7 +5,7 @@ const host='http://127.0.0.1:'+(process.env.GATE_B_PORT||4184);
 const dir='.artifacts/visual-layout-tuner';
 await mkdir(dir,{recursive:true});
 const browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usage','--use-gl=angle','--use-angle=swiftshader']});
-const context=await browser.newContext({viewport:{width:1440,height:900},acceptDownloads:true});
+const context=await browser.newContext({viewport:{width:1440,height:900},acceptDownloads:true,reducedMotion:'reduce'});
 const p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(String(e)));
 const script='/preview/post-shuffle/debug/layout-preview.mjs';
 const select=()=>p.evaluate(async path=>{const m=await import(path);const el=m.createLayoutPreview('reading');document.body.append(el);},script);
@@ -20,14 +20,15 @@ async function openRoute(route,w,h){
  await p.keyboard.press('Shift+D');await p.locator('#visual-layout-tuner').waitFor({state:'visible'});
  await p.getByRole('button',{name:'Reading',exact:true}).click();
  await p.locator('.layout-tuner-fixture .reading-art-panel').waitFor();
- await p.waitForTimeout(400);
+ await p.evaluate(()=>{for(const a of document.querySelector('.layout-tuner-fixture').getAnimations({subtree:true})){const timing=a.effect?.getComputedTiming();if(timing&&Number.isFinite(timing.endTime)){try{a.finish()}catch{}}else a.pause()}});
+ await p.waitForTimeout(150);
  return geometry();
 }
 try{
  for(const [w,h] of [[1440,900],[3059,1066],[390,844],[458,553]]){
   const g=await openRoute('/preview/gate-b/',w,h);
   const s=await openRoute('/preview/post-shuffle/',w,h);
-  assert.deepEqual(s,g,'Identical same-profile reading geometry at '+w+'×'+h);
+  for(const key of Object.keys(g))assert.deepEqual(s[key],g[key],'Same geometry '+key+' at '+w+'×'+h);
   assert.equal(await p.evaluate(()=>document.documentElement.dataset.vltEdits),'','Opening tuner applies zero layout edits');
  }
  await openRoute('/preview/gate-b/',1440,900);

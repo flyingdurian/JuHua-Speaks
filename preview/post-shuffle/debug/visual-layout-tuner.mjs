@@ -87,8 +87,9 @@ const measuredProps={
  '--layout-chat-row-align':['.synthesis-followup-row','alignItems']
 };
 function displayValue(n){
- if(Object.hasOwn(values(),n))return computed(n);
+ if(Object.hasOwn(profiles[profile]||{},n))return computed(n);
  const s=target(),m=measuredProps[n];
+ if(s){const ratios={'--layout-reading-panel-width':['.reading-art-panel','width'],'--layout-chat-panel-width':['.reading-chat-hud','width'],'--layout-chat-footer-width':['.synthesis-chat-actions','width'],'--layout-chat-input-share':['.synthesis-followup-row input','width'],'--reading-spread-bottom':['.reading-art-spread','bottom'],'--layout-table-width':['.reading-art-table-surface','width']};const pair=ratios[n];if(pair){const e=s.querySelector(pair[0]);if(e&&e.parentElement){const d=pair[1]==='bottom'?e.parentElement.clientHeight:e.parentElement.clientWidth;const v=parseFloat(getComputedStyle(e)[pair[1]]);if(d&&Number.isFinite(v)&&v>0)return (v/d*100).toFixed(1)+'%'}}}
  if(m&&s){
   const chat=s.dataset.phase==='chat',isChat=n.startsWith('--layout-chat-')||n.startsWith('--chat-');
   if(chat===isChat){let el=s.querySelector(m[0]);if(m[0].startsWith('.artemis-focused-chat-art'))el=s.querySelector('.artemis-focused-chat-art')||s.querySelector('.reading-art-portrait');
@@ -112,8 +113,9 @@ function numeric(raw,c){
 function make(tag,cls,text){const el=document.createElement(tag);if(cls)el.className=cls;if(text!=null)el.textContent=text;return el}
 function btn(text,fn,cls=''){const b=make('button',cls,text);b.type='button';b.addEventListener('click',fn);return b}
 function select(options,label,fn){const s=make('select');s.setAttribute('aria-label',label);for(const [v,t] of options){const o=make('option','',t);o.value=v;s.append(o)}s.addEventListener('change',()=>fn(s.value));return s}
-function syncControls(){
+function syncControls(names=null){
  for(const [n,obj] of controls){
+  if(names&&!names.includes(n))continue;
   const raw=displayValue(n),c=obj.c;
   obj.value.textContent=raw||'unset';
   obj.row.classList.toggle('is-edited',Object.hasOwn(values(),n));
@@ -222,7 +224,7 @@ function dockPanel(next){
 function cycleDock(){const positions=['right-top','right-bottom','left-bottom','left-top'];dockPanel(positions[(positions.indexOf(dock)+1)%positions.length])}
 
 function selectedFilter(layer){
- selectedLayer=layer;exitFocus();search.value='';selectedTitle.textContent=layer.label+' · '+layer.vars.length+' controls';selectedTitle.hidden=false;
+ selectedLayer=layer;exitFocus();panel.classList.remove('is-pick-mode');panel.classList.add('is-context-mode');search.value='';selectedTitle.textContent=layer.label+' · '+layer.vars.length+' controls';selectedTitle.hidden=false;
  for(const detail of body.querySelectorAll('details')){
   let count=0;for(const row of detail.querySelectorAll('.vlt-control')){row.hidden=!layer.vars.includes(row.dataset.variable);if(!row.hidden)count++}
   detail.hidden=!count;if(count)detail.open=true;
@@ -230,10 +232,11 @@ function selectedFilter(layer){
  selectedAsset.hidden=!layer.asset;selectedAsset.textContent=layer.asset?'Swap '+layer.label+' artwork':'';
  if(layer.asset){assetPicker.value=layer.asset;refreshAssetInfo()}
  if(panel.hidden)reopen();
- body.scrollTop=0;syncControls();
+ if(innerWidth<=720){const el=target()?.querySelector(layer.selector),r=el?.getBoundingClientRect();dockPanel(r&&r.top+r.height/2>innerHeight/2?'right-top':'right-bottom')}
+ body.scrollTop=0;syncControls(layer.vars);
 }
 function clearFilter(){
- selectedLayer=null;if(selectedTitle)selectedTitle.hidden=true;if(selectedAsset)selectedAsset.hidden=true;
+ selectedLayer=null;panel.classList.remove('is-context-mode');panel.classList.toggle('is-pick-mode',!!inspector?.active());if(selectedTitle)selectedTitle.hidden=true;if(selectedAsset)selectedAsset.hidden=true;
  if(!body)return;for(const d of body.querySelectorAll('details')){d.hidden=false;for(const row of d.querySelectorAll('.vlt-control'))row.hidden=false}
 }
 function refreshLayers(){
@@ -289,7 +292,7 @@ function build(){
  const header=make('header','vlt-header'), heading=make('div');heading.append(make('strong','','VISUAL LAYOUT TUNER'),make('small','','Debug branch · Shift+D'));const headerActions=make('div','vlt-header-actions');focusButton=btn('Full',exitFocus);focusButton.hidden=true;headerActions.append(focusButton,btn('Dock',cycleDock),btn('−',collapse,'vlt-icon'));header.append(heading,headerActions);panel.append(header);drag(header);
  const top=make('div','vlt-top');profileLabel=make('span','vlt-profile');statusLine=make('small','vlt-status','Live app · choose quick preview or enter reading');top.append(profileLabel,statusLine);
  const quick=make('div','vlt-quick');quick.append(btn('Reading',()=>showPreview('reading')),btn('Chat ready',()=>showPreview('chat')),btn('Long chat',()=>showPreview('long')),btn('Thinking',()=>showPreview('thinking')),btn('Live app',returnLive),btn('Guides',toggleGuides));top.append(quick);
- const direct=make('div','vlt-direct');inspectButton=btn('Inspect element',()=>{const on=inspector.toggle();inspectButton.textContent=on?'Stop inspecting':'Inspect element';inspectButton.classList.toggle('vlt-active',on);if(!on)layerPicker.value=''});layerPicker=make('select','vlt-layer-picker');layerPicker.setAttribute('aria-label','Scene layer');layerPicker.addEventListener('change',()=>{if(layerPicker.value){inspector.pick(layerPicker.value);inspectButton.textContent='Stop inspecting';inspectButton.classList.add('vlt-active')}else inspector.clear()});direct.append(inspectButton,layerPicker);top.append(direct);
+ const direct=make('div','vlt-direct');inspectButton=btn('Inspect element',()=>{const on=inspector.toggle();inspectButton.textContent=on?'Stop inspecting':'Inspect element';inspectButton.classList.toggle('vlt-active',on);panel.classList.toggle('is-pick-mode',on&&!inspector.selected());if(on&&innerWidth<=720)dockPanel('right-bottom');if(!on){layerPicker.value='';panel.classList.remove('is-pick-mode','is-context-mode')}});layerPicker=make('select','vlt-layer-picker');layerPicker.setAttribute('aria-label','Scene layer');layerPicker.addEventListener('change',()=>{if(layerPicker.value){inspector.pick(layerPicker.value);inspectButton.textContent='Stop inspecting';inspectButton.classList.add('vlt-active')}else inspector.clear()});direct.append(inspectButton,layerPicker);top.append(direct);
  selectedTitle=make('div','vlt-selected-title');selectedTitle.hidden=true;selectedAsset=btn('',()=>{assetDetails.open=true;assetDetails.scrollIntoView({block:'nearest'});assetFile.click()},'vlt-asset-swap');selectedAsset.hidden=true;top.append(selectedTitle,selectedAsset);
  const note=make('small','vlt-note','Quick previews use real app templates, not live AI. Resize your actual browser / DevTools for independent desktop, phone and compact settings. Changes auto-save locally per viewport.');
  top.append(note);targetStatus=make('pre','vlt-diagnostics');top.append(targetStatus);
@@ -312,7 +315,7 @@ function build(){
  cssOutput=make('textarea','vlt-export');cssOutput.readOnly=true;cssOutput.hidden=true;cssOutput.setAttribute('aria-label','Exported CSS variables');footer.append(cssOutput);panel.append(footer);
  launcher=btn('LAYOUT TUNER · Shift+D',reopen,'vlt-launcher');launcher.hidden=true;document.body.append(panel,launcher);
  workshop=createAssetWorkshop({status:assetStatus,onChange:()=>{schedule();refreshAssetInfo()}});workshop.load();
- inspector=mountInspector({target,set:setVar,read:displayValue,controls:CONTROLS,onSelect:l=>{selectedFilter(l);layerPicker.value=l.id},onClear:clearFilter,onUpdate:()=>{syncControls();schedule()}});
+ inspector=mountInspector({target,set:setVar,read:displayValue,controls:CONTROLS,onSelect:l=>{selectedFilter(l);layerPicker.value=l.id},onClear:clearFilter,onUpdate:()=>{syncControls(selectedLayer?.vars||null);schedule()}});
  refreshLayers();applyProfile();
 }
 function activate(){

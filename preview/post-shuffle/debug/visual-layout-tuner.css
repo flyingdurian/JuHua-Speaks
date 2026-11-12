@@ -64,3 +64,13 @@
 .vlt-panel .vlt-footer{max-height:37dvh;overflow:auto}
 .vlt-panel.is-focus-mode .vlt-footer{display:none!important}
 @media(max-height:680px){.vlt-panel .vlt-top{max-height:39dvh;overflow:auto}.vlt-panel .vlt-footer{max-height:30dvh}.vlt-panel .vlt-body{min-height:50px}}
+
+/* Make inspect mode usable on phones: expose the scene, then show the relevant
+   inspector controls in a compact panel on the opposite side of the viewport. */
+.vlt-panel.is-pick-mode{width:min(310px,calc(100vw - 16px));max-height:180px}
+.vlt-panel.is-pick-mode .vlt-quick,.vlt-panel.is-pick-mode .vlt-note,.vlt-panel.is-pick-mode .vlt-diagnostics,.vlt-panel.is-pick-mode .vlt-search,.vlt-panel.is-pick-mode .vlt-body,.vlt-panel.is-pick-mode .vlt-footer{display:none!important}
+.vlt-panel.is-pick-mode .vlt-top{overflow:visible;max-height:none}
+.vlt-panel.is-context-mode .vlt-quick,.vlt-panel.is-context-mode .vlt-note,.vlt-panel.is-context-mode .vlt-diagnostics,.vlt-panel.is-context-mode .vlt-search{display:none}
+.vlt-panel.is-context-mode .vlt-footer{display:none}
+.vlt-panel.is-context-mode .vlt-body{min-height:70px}
+@media(max-width:720px){.vlt-panel.is-context-mode{max-height:min(48dvh,380px);width:min(330px,calc(100vw - 16px))}.vlt-panel.is-context-mode .vlt-top{max-height:none;overflow:visible}.vlt-panel.is-context-mode .vlt-status{display:none}.vlt-panel.is-pick-mode .vlt-status{display:none}}
