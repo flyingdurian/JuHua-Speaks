@@ -1,6 +1,6 @@
 # JuHua Speaks — Gate D V4 / Artemis AI Synthesis Handoff
 
-**Updated:** November 11, 2026 — visual layout debug milestone  
+**Updated:** November 11, 2026 — direct visual editor and shared entry baseline  
 **Repository:** https://github.com/flyingdurian/JuHua-Speaks  
 **Active Branch:** `debug/visual-layout-tuner` (owner calibration only)  
 **Review PR:** [Draft PR #28](https://github.com/flyingdurian/JuHua-Speaks/pull/28)  
@@ -8,6 +8,23 @@
 **Merge / deployment:** **Not authorized. PR #28 remains draft, unmerged, and awaiting owner visual sign-off.**
 
 > **Continuity rule:** Verify the current GitHub head and workflow status before changing anything. Older Gate D V4 handoffs that identify PR #27 as the *active* branch are superseded by this file. Treat screenshots and owner feedback as the visual authority; passing tests alone do not establish approval.
+
+## Milestone — Direct Visual Editor / Shared Entry Baseline (Nov 11, 2026)
+
+**Owner feedback:** Gate B and standalone post-shuffle screenshots showed different desktop/mobile geometry. The prior tuner applied a second, unconditional stylesheet (fixed grid rows, portrait/card/panel geometry) to the standalone route only. Opening an inspector must not change a composition.
+
+**Current code:** `56987b66321d0b8cdec5908a00ac31bc016da07e` on `debug/visual-layout-tuner`. PR #28 production head remains `b7233cc82a78`; no merge/deploy. Both HTML entry points load the same Gate A/Gate B/Artemis CSS order and tuner module. The original PR #28 root defaults are restored. New CSS consumers are gated by the explicitly edited custom-property names in `data-vlt-edits`; the initial empty set leaves the original scene intact. Previous v1 browser overrides deliberately do not migrate automatically to v2. Use one hostname (127.0.0.1 recommended): localhost and 127.0.0.1 have distinct browser storage.
+
+### Direct editor and asset workshop
+
+- Inspect element: hover outlines a real layer, click filters the panel to its controls; use Scene Layer dropdown for occluded/pseudo-layers. MOVE and corner resize handles edit real CSS variables; three original cards also have independent X/Y/scale/pitch controls. Mobile inspection minimizes to a small toolbar, then docks context controls away from the selected layer. Stop inspecting restores normal app interaction.
+- Asset workshop: replace original Artemis reading/focused/conjuring art, reading/chat frames (including mobile/desktop chat variants), chamber, halo/glow/mist, nameplate, navigation/ASK/input artwork and chat avatars. Original PNG/JPEG/WebP/GIF bytes are stored locally in IndexedDB; Restore original resets an asset. 20 MB per image. The original RWS identities are not changed. A baked button or tabletop in an illustration is not a separate DOM object: swap the parent art if its painted pixels must change.
+- Save Package ZIP exports all viewport edit profiles, manifest.json, theme-layout-variables.css (baseline declarations plus owner edits), layout-overrides.css (corresponding compiled consumers), asset-overrides.css and original uploaded files. Load Package restores the tuner-created ZIP, including layout and artwork. Review/port approved CSS and asset slots into PR #28, not the debug UI. Copy CSS exports explicit edits only; new properties need their corresponding consumers. Local browser edits are not Git commits.
+- Use `http://127.0.0.1:4184/preview/gate-b/?debug=1` for the actual ritual, or `http://127.0.0.1:4184/preview/post-shuffle/?debug=1&layoutPreview=reading` / `chat` / `long` / `thinking` for actual-renderer fixtures. Both routes accept the tuner; fixture messages are scripted, not live AI.
+
+### Verification (latest observed)
+
+[CI run 43150593159](https://github.com/flyingdurian/JuHua-Speaks/actions/runs/43150593159), code `56987b66321d`: source/unit PASS; browser install and RWS sync PASS; previous tuner browser interaction PASS; direct editor/route parity/asset ZIP IN PROGRESS; artifact upload PENDING. A previous attempt at route geometry comparison failed because it measured in-flight entrance animation/opacity; the current regression compares settled scenes (reduced-motion and completed animations). Do not claim pixel or visual acceptance until final checks and owner inspection. The prior selective-layout regression run 43150277726 passed. All logs remain in .artifacts/logs/; no raw/binary dumps. The 19 owner-art PNGs are still absent from the GitHub production branch; art-backed owner visual approval remains open.
 
 ## Milestone — Visual Layout Tuner (Nov 11, 2026)
 
