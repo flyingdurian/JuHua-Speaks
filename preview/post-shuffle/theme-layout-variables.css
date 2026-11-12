@@ -95,3 +95,167 @@
 .scene-artemis-reading[data-phase="chat"]{
  --panel-padding:var(--chat-panel-padding);
 }
+
+/* Visual Layout Tuner — debug branch only. All values below are consumed
+   by visual-layout-tuning.css. Paste a copied :root block at EOF, or use
+   the breakpoint export to tune one viewport only. */
+:root {
+ --layout-reading-art-x:0px;
+ --layout-reading-art-y:0px;
+ --layout-reading-portrait-opacity:1;
+ --layout-reading-glow:1;
+ --layout-reading-halo:1;
+ --layout-reading-hero-x:0px;
+ --layout-reading-hero-y:0px;
+ --layout-reading-header-x:0px;
+ --layout-reading-header-y:0px;
+ --layout-reading-panel-x:0px;
+ --layout-reading-panel-y:0px;
+ --layout-reading-panel-width:100%;
+ --layout-reading-panel-top:38px;
+ --layout-reading-panel-side:54px;
+ --layout-reading-panel-bottom:34px;
+ --layout-reading-title-size:24px;
+ --layout-reading-text-size:15px;
+ --layout-reading-controls-x:0px;
+ --layout-reading-controls-y:0px;
+ --layout-reading-controls-scale:1;
+ --layout-reading-controls-align:center;
+ --layout-reading-controls-gap:10px;
+ --layout-reading-next-width:0px;
+ --layout-reading-prev-width:0px;
+ --layout-reading-nameplate-y:0px;
+ --layout-table-x:0px;
+ --layout-table-width:106%;
+ --layout-table-opacity:1;
+ --layout-table-display:none;
+ --layout-cards-x:0px;
+ --layout-cards-scale:1;
+ --layout-card-label-size:12px;
+ --layout-card-meaning-size:10px;
+ --layout-card-shadows:1;
+ --layout-chat-art-x:0px;
+ --layout-chat-art-y:4px;
+ --layout-chat-art-scale:.98;
+ --layout-chat-art-width:min(460px,49vw);
+ --layout-chat-art-height:calc(var(--chat-hero-height) + var(--chat-portrait-tail));
+ --layout-chat-art-opacity:1;
+ --layout-chat-glow-opacity:.22;
+ --layout-chat-glow-radius:26px;
+ --layout-chat-mask-start:61%;
+ --layout-chat-mask-mid:76%;
+ --layout-chat-mask-end:97%;
+ --layout-chat-mist-opacity:1;
+ --layout-chat-mist-y:-1px;
+ --layout-chat-mist-blur:4px;
+ --layout-chat-background-x:50%;
+ --layout-chat-background-y:0%;
+ --layout-chat-hero-x:0px;
+ --layout-chat-hero-y:0px;
+ --layout-chat-panel-x:0px;
+ --layout-chat-panel-y:0px;
+ --layout-chat-panel-width:100%;
+ --layout-chat-panel-top:20px;
+ --layout-chat-panel-side:26px;
+ --layout-chat-panel-bottom:27px;
+ --layout-chat-panel-min-height:360px;
+ --layout-chat-panel-height:auto;
+ --layout-chat-frame-top:32px;
+ --layout-chat-frame-side:34px;
+ --layout-chat-frame-bottom:34px;
+ --layout-chat-heading-x:0px;
+ --layout-chat-heading-y:0px;
+ --layout-chat-heading-size:22px;
+ --layout-chat-heading-gap:9px;
+ --layout-chat-question-x:0px;
+ --layout-chat-question-y:0px;
+ --layout-chat-question-height:126px;
+ --layout-chat-question-size:14px;
+ --layout-chat-question-gap:10px;
+ --layout-chat-transcript-x:0px;
+ --layout-chat-transcript-y:0px;
+ --layout-chat-transcript-max-height:none;
+ --layout-chat-transcript-top:5px;
+ --layout-chat-transcript-side:1px;
+ --layout-chat-transcript-bottom:12px;
+ --layout-chat-message-size:14px;
+ --layout-chat-avatar-size:70px;
+ --layout-chat-message-gap:8px;
+ --layout-chat-message-spacing:12px;
+ --layout-chat-footer-x:0px;
+ --layout-chat-footer-y:0px;
+ --layout-chat-footer-top:10px;
+ --layout-chat-footer-bottom:0px;
+ --layout-chat-footer-width:100%;
+ --layout-chat-input-x:0px;
+ --layout-chat-input-y:0px;
+ --layout-chat-input-height:43px;
+ --layout-chat-input-font:13px;
+ --layout-chat-input-share:43%;
+ --layout-chat-ask-x:0px;
+ --layout-chat-ask-y:0px;
+ --layout-chat-ask-width:80px;
+ --layout-chat-ask-font:13px;
+ --layout-chat-ask-scale:1;
+ --layout-chat-row-gap:10px;
+ --layout-chat-row-align:stretch;
+ --layout-legacy-cta-display:none;
+}
+@media(max-width:720px) {
+ :root {
+  --layout-reading-panel-top:46px;
+  --layout-reading-panel-side:43px;
+  --layout-reading-panel-bottom:33px;
+  --layout-reading-title-size:20px;
+  --layout-reading-text-size:13px;
+  --layout-reading-controls-gap:11px;
+  --layout-table-display:block;
+  --layout-card-label-size:10px;
+  --layout-card-meaning-size:9px;
+  --layout-chat-art-y:9px;
+  --layout-chat-art-scale:.93;
+  --layout-chat-art-width:min(82vw,332px);
+  --layout-chat-panel-top:28px;
+  --layout-chat-panel-side:20px;
+  --layout-chat-panel-bottom:28px;
+  --layout-chat-panel-min-height:430px;
+  --layout-chat-frame-top:38px;
+  --layout-chat-frame-side:30px;
+  --layout-chat-frame-bottom:40px;
+  --layout-chat-heading-size:18px;
+  --layout-chat-question-height:120px;
+  --layout-chat-question-size:12px;
+  --layout-chat-message-size:12px;
+  --layout-chat-avatar-size:62px;
+  --layout-chat-footer-top:0px;
+  --layout-chat-footer-bottom:23px;
+  --layout-chat-input-height:48px;
+  --layout-chat-input-font:11px;
+  --layout-chat-row-gap:0px;
+ }
+}
+@media(max-width:720px) and (max-height:680px) {
+ :root {
+  --layout-reading-panel-top:43px;
+  --layout-reading-panel-side:32px;
+  --layout-reading-panel-bottom:29px;
+  --layout-chat-art-y:14px;
+  --layout-chat-art-scale:.87;
+  --layout-chat-art-width:min(78vw,308px);
+  --layout-chat-panel-top:25px;
+  --layout-chat-panel-side:16px;
+  --layout-chat-panel-bottom:25px;
+  --layout-chat-panel-min-height:520px;
+  --layout-chat-panel-height:520px;
+  --layout-chat-frame-top:33px;
+  --layout-chat-frame-side:26px;
+  --layout-chat-frame-bottom:35px;
+  --layout-chat-avatar-size:53px;
+ }
+}
+/* Derived shorthands intentionally defined after the original defaults.
+   Keep the five existing public knobs compatible with IDE edits. */
+:root {
+ --panel-padding:var(--layout-reading-panel-top) var(--layout-reading-panel-side) var(--layout-reading-panel-bottom);
+ --chat-panel-padding:var(--layout-chat-panel-top) var(--layout-chat-panel-side) var(--layout-chat-panel-bottom);
+}

@@ -1,0 +1,186 @@
+/* Debug branch: real scene variable consumers. No debug UI styling here.
+   Loaded last; these rules beat legacy !important layers without editing
+   production PR #28. Values are in theme-layout-variables.css. */
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-header{
+ translate:var(--layout-reading-header-x) var(--layout-reading-header-y)!important;
+}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero{
+ translate:var(--layout-reading-hero-x) var(--layout-reading-hero-y)!important;
+}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
+ left:calc(50% + var(--layout-reading-art-x))!important;
+ top:calc(var(--artemis-top) + var(--layout-reading-art-y))!important;
+ width:var(--artemis-portrait-width)!important;
+ height:var(--artemis-portrait-height)!important;
+ transform:translateX(-50%) scale(var(--artemis-scale))!important;
+ opacity:var(--layout-reading-portrait-opacity)!important;
+}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-halo{opacity:var(--layout-reading-halo)!important}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-reading-glow,
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-glow{opacity:var(--layout-reading-glow)!important}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-table-surface{
+ display:var(--layout-table-display)!important;
+ top:var(--table-top)!important;bottom:0!important;height:auto!important;
+ left:calc(50% + var(--layout-table-x))!important;right:auto!important;
+ width:var(--layout-table-width)!important;
+ transform:translateX(-50%) perspective(var(--reading-table-perspective)) rotateX(var(--reading-table-tilt))!important;
+ transform-origin:center bottom!important;opacity:var(--layout-table-opacity)!important;
+}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero::after{
+ clip-path:inset(var(--table-top) 0 0 0)!important;
+}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-spread{
+ left:calc(50% + var(--layout-cards-x))!important;
+ bottom:calc(var(--reading-spread-bottom) - var(--cards-y-offset))!important;
+ width:var(--reading-spread-width)!important;gap:var(--reading-spread-gap)!important;
+ transform:translateX(-50%) scale(var(--layout-cards-scale))!important;
+ transform-origin:center bottom!important;
+}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-card{width:var(--reading-card-width)!important}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-frame{
+ transform:perspective(var(--reading-card-perspective)) rotateX(var(--reading-card-tilt))!important;
+ transform-origin:center bottom!important;
+}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-role{font-size:var(--layout-card-label-size)!important}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-card-meaning{font-size:var(--layout-card-meaning-size)!important}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-card:not(.is-focused){
+ filter:drop-shadow(0 8px 15px rgb(0 0 0 / calc(.65 * var(--layout-card-shadows))))!important;
+}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
+ width:var(--layout-reading-panel-width)!important;
+ translate:var(--layout-reading-panel-x) var(--layout-reading-panel-y)!important;
+ padding:var(--panel-padding)!important;
+}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-nameplate{translate:0 var(--layout-reading-nameplate-y)!important}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-narration-title{font-size:var(--layout-reading-title-size)!important}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-narration-text{font-size:var(--layout-reading-text-size)!important}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-controls{
+ translate:var(--layout-reading-controls-x) var(--layout-reading-controls-y)!important;
+ scale:var(--layout-reading-controls-scale)!important;
+ justify-content:var(--layout-reading-controls-align)!important;
+ gap:var(--layout-reading-controls-gap)!important;
+}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-control.is-primary{min-width:var(--layout-reading-next-width)!important}
+.scene-artemis-reading:not([data-phase="chat"]) .reading-art-control.is-secondary{min-width:var(--layout-reading-prev-width)!important}
+@media(min-width:721px){
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-layout{
+  grid-template-rows:min-content var(--reading-hero-height) var(--reading-panel-height) auto!important;
+  align-content:start!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero{
+  height:var(--reading-hero-height)!important;min-height:var(--reading-hero-height)!important;
+ }
+ .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
+  height:var(--reading-panel-height)!important;min-height:var(--reading-panel-height)!important;
+  margin-top:var(--reading-panel-gap)!important;
+ }
+}
+.scene-artemis-reading[data-phase="chat"]{
+ background-position:center top,var(--layout-chat-background-x) var(--layout-chat-background-y)!important;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-art-hero{
+ translate:var(--layout-chat-hero-x) var(--layout-chat-hero-y)!important;
+}
+.scene-artemis-reading[data-phase="chat"] .artemis-focused-chat-art,
+.scene-artemis-reading[data-phase="chat"]:not([data-synthesis-portrait="focused"]) .reading-art-portrait{
+ left:calc(50% + var(--layout-chat-art-x))!important;
+ top:var(--layout-chat-art-y)!important;
+ width:var(--layout-chat-art-width)!important;
+ height:var(--layout-chat-art-height)!important;
+ transform:translateX(-50%) scale(var(--layout-chat-art-scale))!important;
+ transform-origin:center top!important;
+ opacity:var(--layout-chat-art-opacity)!important;
+ filter:drop-shadow(0 6px var(--layout-chat-glow-radius) rgb(134 94 180 / var(--layout-chat-glow-opacity)))!important;
+ -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 var(--layout-chat-mask-start),rgba(0,0,0,.88) var(--layout-chat-mask-mid),transparent var(--layout-chat-mask-end))!important;
+ mask-image:linear-gradient(to bottom,#000 0%,#000 var(--layout-chat-mask-start),rgba(0,0,0,.88) var(--layout-chat-mask-mid),transparent var(--layout-chat-mask-end))!important;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-art-hero::after{
+ bottom:var(--layout-chat-mist-y)!important;
+ opacity:var(--layout-chat-mist-opacity)!important;
+ filter:blur(var(--layout-chat-mist-blur))!important;
+ height:var(--chat-mist-height)!important;
+}
+.scene-artemis-reading[data-phase="chat"] .reading-chat-hud{
+ width:var(--layout-chat-panel-width)!important;
+ justify-self:center!important;
+ translate:var(--layout-chat-panel-x) var(--layout-chat-panel-y)!important;
+ padding:var(--panel-padding)!important;
+ min-height:var(--layout-chat-panel-min-height)!important;
+ height:var(--layout-chat-panel-height)!important;
+ border-width:var(--layout-chat-frame-top) var(--layout-chat-frame-side) var(--layout-chat-frame-bottom)!important;
+ border-image-width:var(--layout-chat-frame-top) var(--layout-chat-frame-side) var(--layout-chat-frame-bottom)!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-chat-heading{
+ translate:var(--layout-chat-heading-x) var(--layout-chat-heading-y)!important;
+ margin-bottom:var(--layout-chat-heading-gap)!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-chat-heading h2{font-size:var(--layout-chat-heading-size)!important}
+.scene-artemis-reading[data-phase="chat"] .synthesis-question{
+ translate:var(--layout-chat-question-x) var(--layout-chat-question-y)!important;
+ max-height:var(--layout-chat-question-height)!important;
+ margin-bottom:var(--layout-chat-question-gap)!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-question p{font-size:var(--layout-chat-question-size)!important}
+.scene-artemis-reading[data-phase="chat"] .synthesis-chat-scroll{
+ translate:var(--layout-chat-transcript-x) var(--layout-chat-transcript-y)!important;
+ max-height:var(--layout-chat-transcript-max-height)!important;
+ padding:var(--layout-chat-transcript-top) var(--layout-chat-transcript-side) var(--layout-chat-transcript-bottom)!important;
+ min-height:0!important;overflow-y:auto!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-message{
+ gap:var(--layout-chat-message-gap)!important;
+ margin-bottom:var(--layout-chat-message-spacing)!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-message-body p{font-size:var(--layout-chat-message-size)!important}
+.scene-artemis-reading[data-phase="chat"] .synthesis-avatar{
+ width:var(--layout-chat-avatar-size)!important;height:var(--layout-chat-avatar-size)!important;
+ min-width:var(--layout-chat-avatar-size)!important;max-width:var(--layout-chat-avatar-size)!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-chat-actions{
+ translate:var(--layout-chat-footer-x) var(--layout-chat-footer-y)!important;
+ width:var(--layout-chat-footer-width)!important;align-self:center!important;
+ padding:var(--layout-chat-footer-top) 0 var(--layout-chat-footer-bottom)!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-followup-row{
+ gap:var(--layout-chat-row-gap)!important;
+ align-items:var(--layout-chat-row-align)!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-followup-row input{
+ translate:var(--layout-chat-input-x) var(--layout-chat-input-y)!important;
+ height:var(--layout-chat-input-height)!important;max-height:var(--layout-chat-input-height)!important;
+ font-size:var(--layout-chat-input-font)!important;
+}
+.scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
+ translate:var(--layout-chat-ask-x) var(--layout-chat-ask-y)!important;
+ scale:var(--layout-chat-ask-scale)!important;
+ height:var(--layout-chat-input-height)!important;max-height:var(--layout-chat-input-height)!important;
+ font-size:var(--layout-chat-ask-font)!important;
+}
+@media(min-width:721px){
+ .scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
+ flex:0 0 var(--layout-chat-ask-width)!important;
+ min-width:var(--layout-chat-ask-width)!important;
+ max-width:var(--layout-chat-ask-width)!important;
+ }
+}
+@media(max-width:720px){
+ .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row{
+  grid-template-columns:minmax(0,var(--layout-chat-input-share)) minmax(0,1fr)!important;
+ }
+ .scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{
+  width:100%!important;min-width:0!important;max-width:none!important;
+ }
+}
+@media(max-width:720px) and (max-height:680px){
+ .scene-artemis-reading[data-phase="chat"] .reading-art-layout{
+  grid-template-rows:var(--chat-hero-height) minmax(var(--layout-chat-panel-min-height),auto)!important;
+ }
+}
+/* The old stage cannot bleed into chat. CSS display:none also removes
+   pointer/keyboard interaction and accessibility exposure. It does not
+   hide the live ASK button, guidance CARD, or current follow-up composer.
+   Debug inspection can temporarily reveal existing legacy nodes. */
+.scene-artemis-reading[data-phase="chat"] :is(.synthesis-reading-complete,.synthesis-guidance-cta,.synthesis-guidance-confirmed,.reading-art-controls,.reading-art-footer,.reading-art-panel,.ps-reading-entry,.ps-reading-entry-complete,[data-action="reading-next"],[data-action="reading-prev"],[data-action="draw-guidance"]),
+.ps-world:has(.scene-artemis-reading[data-phase="chat"]) :is(.ps-reading-entry,.ps-reading-entry-complete,.synthesis-reading-complete,.synthesis-guidance-cta){
+ display:var(--layout-legacy-cta-display)!important;
+}
