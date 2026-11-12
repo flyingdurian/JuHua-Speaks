@@ -43,3 +43,24 @@
 .vlt-panel.is-focus-mode .vlt-top,.vlt-panel.is-focus-mode .vlt-footer,.vlt-panel.is-focus-mode .vlt-group:not(.vlt-focused-group),.vlt-panel.is-focus-mode .vlt-group-note,.vlt-panel.is-focus-mode .vlt-group-reset,.vlt-panel.is-focus-mode .vlt-control:not(.vlt-focused){display:none!important}
 .vlt-panel.is-focus-mode .vlt-body{min-height:0;overflow:auto}
 .vlt-panel.is-focus-mode .vlt-group summary{font-size:10px;padding:4px 0;position:static}
+
+/* Inspector layer does not consume scene clicks; handles alone receive pointer events. */
+.vlt-direct{display:flex;gap:5px;margin:6px 0;align-items:center}
+.vlt-direct button{flex:none;font-size:11px!important}
+.vlt-direct select{min-width:0;flex:1;font-size:11px!important}
+.vlt-active{background:#35736d!important;border-color:#80e1cf!important}
+.vlt-selected-title{color:#9cebd8;font-weight:700;font-size:11px;margin:5px 0}
+.vlt-asset-swap{font-size:10px!important;width:100%;margin-bottom:4px}
+.vlt-inspector-layer{position:fixed;inset:0;z-index:2147483646;pointer-events:none}
+.vlt-selection-box{position:fixed;box-sizing:border-box;border:2px dashed #87dfef;pointer-events:none;filter:drop-shadow(0 0 4px #101a39)}
+.vlt-selection-box.is-selected{border:2px solid #72ead6}
+.vlt-selection-label{position:absolute;left:0;top:-22px;white-space:nowrap;max-width:min(270px,90vw);overflow:hidden;text-overflow:ellipsis;font:600 11px/1.4 system-ui,sans-serif;color:#09232a;background:#94efe3;padding:2px 6px;border-radius:3px}
+.vlt-selection-move,.vlt-selection-resize{pointer-events:auto;touch-action:none;position:absolute;border:1px solid #91ebde;background:#173d42;color:#b1fff0;font:700 10px system-ui,sans-serif;border-radius:4px;padding:4px 6px;cursor:move}
+.vlt-selection-move{left:0;bottom:0}.vlt-selection-resize{right:0;bottom:0;cursor:nwse-resize;font-size:15px}
+.vlt-picking .scene-artemis-reading{cursor:crosshair!important}
+.vlt-asset-workshop{border:1px solid #3b5164;border-radius:6px;padding:5px 7px;margin-bottom:7px;background:#111827}
+.vlt-asset-workshop summary{cursor:pointer;color:#f0d8aa;font-size:11px;font-weight:650}
+.vlt-asset-workshop select{width:100%;margin:5px 0}.vlt-asset-info{display:block;font-size:10px;color:#b6c3d7;overflow-wrap:anywhere;margin:3px 0 6px}
+.vlt-panel .vlt-footer{max-height:37dvh;overflow:auto}
+.vlt-panel.is-focus-mode .vlt-footer{display:none!important}
+@media(max-height:680px){.vlt-panel .vlt-top{max-height:39dvh;overflow:auto}.vlt-panel .vlt-footer{max-height:30dvh}.vlt-panel .vlt-body{min-height:50px}}

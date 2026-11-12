@@ -1,5 +1,7 @@
 /* Debug-only browser overlay. Real CSS variables, no dependencies. */
-import {GROUPS,CONTROLS,NAMES,profileFor,formatCSS} from './layout-controls.mjs';
+import {GROUPS,CONTROLS,NAMES,PROFILES,profileFor,formatCSS} from './layout-controls.mjs';
+import {mountInspector,LAYERS} from './layout-inspector.mjs';
+import {createAssetWorkshop,SLOTS} from './layout-assets.mjs';
 const STORE='juhua.visual-layout-tuner.v2';
 const root=document.documentElement;
 const params=new URLSearchParams(location.search);
@@ -8,6 +10,7 @@ let enabled=false, panel=null, body=null, launcher=null, fixture=null, controls=
 let profile=profileFor(innerWidth,innerHeight), profiles={}, guides=false, scheduled=0, lastFocus=null, observer=null;
 let targetStatus=null, cssOutput=null, search=null, exportStatus=null, profileLabel=null, statusLine=null;
 let exportScoped=false, focusButton=null, dock='right-top';
+let inspector=null,workshop=null,inspectButton=null,layerPicker=null,selectedTitle=null,selectedAsset=null,assetPicker=null,assetInfo=null,assetFile=null,selectedLayer=null,assetDetails=null;
 try{const saved=JSON.parse(localStorage.getItem(STORE)||'{}');if(saved&&typeof saved==='object')profiles=saved;}catch{}
 const validValue=(n,v)=>{
  const c=CONTROLS.find(x=>x[0]===n);if(!c||typeof v!=='string'||v.length>80)return false;
@@ -112,7 +115,7 @@ function diagnose(){
 function schedule(){
  cancelAnimationFrame(scheduled);scheduled=requestAnimationFrame(()=>{
   if(!enabled)return;
-  diagnose();
+  diagnose();inspector?.refresh();refreshLayers();
   // Existing scene measures the painted-room pixel alignment on resize.
   // CSS-only changes to the pan/hero need the same exact measurement.
   const s=target(), h=s?.querySelector('.reading-art-hero'),img=s?.querySelector('.reading-art-atmosphere img');
@@ -153,6 +156,68 @@ function dockPanel(next){
  panel.style.top=next.endsWith('top')?'8px':'auto';panel.style.bottom=next.endsWith('bottom')?'8px':'auto';
 }
 function cycleDock(){const positions=['right-top','right-bottom','left-bottom','left-top'];dockPanel(positions[(positions.indexOf(dock)+1)%positions.length])}
+
+function selectedFilter(layer){
+ selectedLayer=layer;exitFocus();search.value='';selectedTitle.textContent=layer.label+' · '+layer.vars.length+' controls';selectedTitle.hidden=false;
+ for(const detail of body.querySelectorAll('details')){
+  let count=0;for(const row of detail.querySelectorAll('.vlt-control')){row.hidden=!layer.vars.includes(row.dataset.variable);if(!row.hidden)count++}
+  detail.hidden=!count;if(count)detail.open=true;
+ }
+ selectedAsset.hidden=!layer.asset;selectedAsset.textContent=layer.asset?'Swap '+layer.label+' artwork':'';
+ if(layer.asset){assetPicker.value=layer.asset;refreshAssetInfo()}
+ if(panel.hidden)reopen();
+ body.scrollTop=0;syncControls();
+}
+function clearFilter(){
+ selectedLayer=null;if(selectedTitle)selectedTitle.hidden=true;if(selectedAsset)selectedAsset.hidden=true;
+ if(!body)return;for(const d of body.querySelectorAll('details')){d.hidden=false;for(const row of d.querySelectorAll('.vlt-control'))row.hidden=false}
+}
+function refreshLayers(){
+ if(!inspector||!layerPicker)return;
+ const list=inspector.layers(),key=list.map(l=>l.id).join('|');if(layerPicker.dataset.key===key)return;
+ const current=inspector.selected()?.id||'';layerPicker.replaceChildren();
+ const empty=make('option','','Choose scene layer…');empty.value='';layerPicker.append(empty);
+ for(const l of list){const o=make('option','',l.label);o.value=l.id;layerPicker.append(o)}
+ layerPicker.dataset.key=key;layerPicker.value=current;
+}
+function refreshAssetInfo(){
+ if(!assetPicker||!workshop)return;const r=workshop.records.get(assetPicker.value);
+ assetInfo.textContent=r?r.name+' · '+r.width+'×'+r.height+' · '+Math.round(r.blob.size/1024)+' KB':'Using original scene artwork';
+}
+function assetStatus(text){exportStatus.textContent=text}
+async function uploadFile(file){if(!file)return;try{const r=await workshop.put(assetPicker.value,file);refreshAssetInfo();assetStatus('Applied '+r.slot+' · '+r.width+'×'+r.height)}catch(e){assetStatus('Asset not applied: '+e.message)}finally{assetFile.value=''}}
+function safeProfiles(input){
+ const output={};for(const p of Object.keys(PROFILES)){output[p]={};for(const [n,v] of Object.entries(input?.[p]||{})){if(validValue(n,v))output[p][n]=v}}
+ return output;
+}
+function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}
+async function exportPackage(){
+ try{
+  const data=safeProfiles(profiles);let variableCSS='',consumerCSS='';
+  const source=await (await fetch(new URL('../visual-layout-tuning.css',import.meta.url))).text();
+  const assetSource=await (await fetch(new URL('./layout-assets.css',import.meta.url))).text();
+  // Generated rule selectors each use the same opt-in variable gate. Replace it
+  // only when one of that rule's variables was deliberately edited in a profile.
+  // Keep nested media conditions intact.
+  function compile(text,edits){
+   text=text.replace(/\/\*[\s\S]*?\*\//g,'');let i=0,out='';
+   while(i<text.length){const k=text.indexOf('{',i);if(k<0)break;const sel=text.slice(i,k).trim();let n=1,j=k+1;while(n&&j<text.length){if(text[j]==='{')n++;if(text[j]==='}')n--;j++}const b=text.slice(k+1,j-1);i=j;
+    if(sel.startsWith('@media')){const child=compile(b,edits);if(child.trim())out+=sel+'{\n'+child+'}\n';continue}
+    const gated=[...sel.matchAll(/data-vlt-edits~="(--[\w-]+)"/g)].map(m=>m[1]);
+    if(!gated.some(n=>Object.hasOwn(edits,n)))continue;
+    const cleaned=sel.replace(/html:is\((?:\[data-vlt-edits~="--[\w-]+"\],?)+\)\s*/g,'').replace(/html\[data-vlt-edits~="--[\w-]+"\]\s*/g,'');
+    out+=cleaned+'{\n'+b+'\n}\n';
+   }return out;
+  }
+  for(const p of Object.keys(PROFILES)){if(!Object.keys(data[p]).length)continue;variableCSS+=formatCSS(data[p],p)+'\n\n';consumerCSS+='@media '+PROFILES[p]+' {\n'+compile(source,data[p])+'}\n'}
+  const urls=[...workshop.records.values()].map(r=>' --vlt-asset-'+r.slot+':url("assets/'+r.slot+'.'+({'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/gif':'gif'}[r.type])+'");').join('\n');
+  let artRules=assetSource.split('\n').filter(l=>!l.trim().startsWith('/*')&&l.trim()).filter(l=>{const names=[...l.matchAll(/data-vlt-assets~="([^"]+)"/g)].map(m=>m[1]);return names.some(n=>workshop.records.has(n))}).map(l=>l.replace(/html\[data-vlt-assets~="[^"]+"\]\s*/g,'')).join('\n');
+  const packageBlob=await workshop.exportPackage(data,variableCSS,consumerCSS,':root {\n'+urls+'\n}\n'+artRules,'b7233cc82a78 · PR #28');
+  download(packageBlob,'JuHua-visual-layout-package.zip');assetStatus('Package saved: all device profiles, CSS consumers and '+workshop.records.size+' original assets.');
+ }catch(e){assetStatus('Package export failed: '+e.message)}
+}
+async function importPackage(file){if(!file)return;try{const imported=await workshop.importPackage(file);profiles=safeProfiles(imported);save();applyProfile();refreshAssetInfo();assetStatus('Package restored. Device profiles and artwork loaded.')}catch(e){assetStatus('Import failed: '+e.message)}}
+
 function collapse(){panel.hidden=true;launcher.hidden=false;launcher.focus({preventScroll:true})}
 function reopen(){panel.hidden=false;launcher.hidden=true;syncControls();schedule()}
 function build(){
@@ -160,6 +225,8 @@ function build(){
  const header=make('header','vlt-header'), heading=make('div');heading.append(make('strong','','VISUAL LAYOUT TUNER'),make('small','','Debug branch · Shift+D'));const headerActions=make('div','vlt-header-actions');focusButton=btn('Full',exitFocus);focusButton.hidden=true;headerActions.append(focusButton,btn('Dock',cycleDock),btn('−',collapse,'vlt-icon'));header.append(heading,headerActions);panel.append(header);drag(header);
  const top=make('div','vlt-top');profileLabel=make('span','vlt-profile');statusLine=make('small','vlt-status','Live app · choose quick preview or enter reading');top.append(profileLabel,statusLine);
  const quick=make('div','vlt-quick');quick.append(btn('Reading',()=>showPreview('reading')),btn('Chat ready',()=>showPreview('chat')),btn('Long chat',()=>showPreview('long')),btn('Thinking',()=>showPreview('thinking')),btn('Live app',returnLive),btn('Guides',toggleGuides));top.append(quick);
+ const direct=make('div','vlt-direct');inspectButton=btn('Inspect element',()=>{const on=inspector.toggle();inspectButton.textContent=on?'Stop inspecting':'Inspect element';inspectButton.classList.toggle('vlt-active',on);if(!on)layerPicker.value=''});layerPicker=make('select','vlt-layer-picker');layerPicker.setAttribute('aria-label','Scene layer');layerPicker.addEventListener('change',()=>{if(layerPicker.value){inspector.pick(layerPicker.value);inspectButton.textContent='Stop inspecting';inspectButton.classList.add('vlt-active')}else inspector.clear()});direct.append(inspectButton,layerPicker);top.append(direct);
+ selectedTitle=make('div','vlt-selected-title');selectedTitle.hidden=true;selectedAsset=btn('',()=>{assetDetails.open=true;assetDetails.scrollIntoView({block:'nearest'});assetFile.click()},'vlt-asset-swap');selectedAsset.hidden=true;top.append(selectedTitle,selectedAsset);
  const note=make('small','vlt-note','Quick previews use real app templates, not live AI. Resize your actual browser / DevTools for independent desktop, phone and compact settings. Changes auto-save locally per viewport.');
  top.append(note);targetStatus=make('pre','vlt-diagnostics');top.append(targetStatus);
  search=make('input','vlt-search');search.type='search';search.placeholder='Filter controls or CSS variables…';search.setAttribute('aria-label','Search layout controls');top.append(search);panel.append(top);
@@ -169,23 +236,30 @@ function build(){
   const reset=btn('Reset group',()=>{for(const c of list){delete (profiles[profile]||{})[c[0]];restore(c[0])}syncEdited();save();syncControls();schedule()},'vlt-group-reset');detail.append(reset);
   for(const c of list)detail.append(rowFor(c));body.append(detail);
  }
- search.addEventListener('input',()=>{const query=search.value.toLowerCase().trim();for(const d of body.querySelectorAll('details')){let count=0;for(const r of d.querySelectorAll('.vlt-control')){r.hidden=!!query&&!r.dataset.search.includes(query);if(!r.hidden)count++}d.hidden=count===0;if(query&&count)d.open=true}});
+ search.addEventListener('input',()=>{if(selectedLayer){inspector.clear();layerPicker.value=''}const query=search.value.toLowerCase().trim();for(const d of body.querySelectorAll('details')){let count=0;for(const r of d.querySelectorAll('.vlt-control')){r.hidden=!!query&&!r.dataset.search.includes(query);if(!r.hidden)count++}d.hidden=count===0;if(query&&count)d.open=true}});
  panel.append(body);
- const footer=make('footer','vlt-footer');const buttons=make('div','vlt-copy-row');buttons.append(btn('Copy CSS Variables',()=>copy(false),'vlt-primary'),btn('Copy breakpoint CSS',()=>copy(true)),btn('Reset profile',resetProfile));footer.append(buttons);
+ const footer=make('footer','vlt-footer');
+ assetDetails=make('details','vlt-asset-workshop');assetDetails.append(make('summary','','Asset workshop · swap / restore'));
+ assetPicker=select(SLOTS,'Asset slot',()=>refreshAssetInfo());assetFile=make('input');assetFile.type='file';assetFile.accept='image/png,image/jpeg,image/webp,image/gif';assetFile.hidden=true;assetFile.addEventListener('change',()=>uploadFile(assetFile.files[0]));
+ assetInfo=make('small','vlt-asset-info','Using original scene artwork');const assetActions=make('div','vlt-copy-row');assetActions.append(btn('Upload / swap image',()=>assetFile.click()),btn('Restore original',async()=>{await workshop.reset(assetPicker.value);refreshAssetInfo();assetStatus('Original artwork restored.')}));assetDetails.append(assetPicker,assetInfo,assetActions,assetFile);footer.append(assetDetails);
+ const buttons=make('div','vlt-copy-row');const importer=make('input');importer.type='file';importer.accept='.zip,application/zip';importer.hidden=true;importer.addEventListener('change',async()=>{await importPackage(importer.files[0]);importer.value=''});
+ buttons.append(btn('Save Package ZIP',exportPackage,'vlt-primary'),btn('Load Package',()=>importer.click()),btn('Copy CSS Variables',()=>copy(false)),btn('Copy breakpoint CSS',()=>copy(true)),btn('Reset profile',resetProfile));footer.append(buttons,importer);
  exportStatus=make('small','vlt-export-status','Exports explicit edits only. Save Package includes the matching consumer rules and assets.');footer.append(exportStatus);
  cssOutput=make('textarea','vlt-export');cssOutput.readOnly=true;cssOutput.hidden=true;cssOutput.setAttribute('aria-label','Exported CSS variables');footer.append(cssOutput);panel.append(footer);
  launcher=btn('LAYOUT TUNER · Shift+D',reopen,'vlt-launcher');launcher.hidden=true;document.body.append(panel,launcher);
- applyProfile();
+ workshop=createAssetWorkshop({status:assetStatus,onChange:()=>{schedule();refreshAssetInfo()}});workshop.load();
+ inspector=mountInspector({target,set:setVar,read:computed,controls:CONTROLS,onSelect:l=>{selectedFilter(l);layerPicker.value=l.id},onClear:clearFilter,onUpdate:()=>{syncControls();schedule()}});
+ refreshLayers();applyProfile();
 }
 function activate(){
  if(enabled){panel.hidden?reopen():collapse();return}
  enabled=true;lastFocus=document.activeElement;
- const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('./visual-layout-tuner.css',import.meta.url).href;document.head.append(link);
+ for(const name of ['visual-layout-tuner.css','layout-assets.css']){const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('./'+name,import.meta.url).href;document.head.append(link)}
  build();
  observer=new MutationObserver(records=>{if(records.some(r=>!r.target.closest?.('.vlt-panel,.vlt-launcher,.vlt-inspector-layer')&&(r.type==='attributes'||[...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&(!n.closest?.('.vlt-panel')&&(n.matches?.('.scene-artemis-reading,.ps-mount,.ps-world,.reading-chat-hud')||n.querySelector?.('.scene-artemis-reading,.reading-chat-hud')||r.target.closest?.('.scene-artemis-reading'))))))schedule()});observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['data-phase','data-chat-state','data-synthesis-portrait','data-beat']});
  window.addEventListener('resize',()=>{const r=panel.getBoundingClientRect();if(!panel.hidden&&(r.right>innerWidth||r.left<0||r.top<0||r.bottom>innerHeight))dockPanel(dock);const next=profileFor(innerWidth,innerHeight);if(next!==profile){profile=next;applyProfile()}else{profileLabel.textContent=profile.toUpperCase()+' · '+innerWidth+'×'+innerHeight;syncControls();schedule()}});
  window.addEventListener('load',schedule,true);document.addEventListener('scroll',schedule,true);
- window.__VISUAL_LAYOUT_TUNER__={set:setVar,reset:resetProfile,snapshot,exportCSS:exportText,preview:showPreview,live:returnLive,profile:()=>profile,diagnose};
+ window.__VISUAL_LAYOUT_TUNER__={set:setVar,reset:resetProfile,snapshot,exportCSS:exportText,preview:showPreview,live:returnLive,profile:()=>profile,diagnose,inspect:id=>inspector.pick(id),selected:()=>inspector.selected()?.id,assetPut:(slot,file)=>workshop.put(slot,file),assetReset:slot=>workshop.reset(slot),assetCount:()=>workshop.records.size,savePackage:exportPackage,loadPackage:importPackage};
  if(['reading','chat','long','thinking'].includes(params.get('layoutPreview')))showPreview(params.get('layoutPreview'));
 }
 document.addEventListener('keydown',e=>{if(e.shiftKey&&!e.ctrlKey&&!e.altKey&&!e.metaKey&&e.code==='KeyD'&&!e.repeat&&!e.target.closest('input,textarea,select,[contenteditable="true"]')){e.preventDefault();activate()}});
