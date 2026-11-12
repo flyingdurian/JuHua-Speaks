@@ -41,11 +41,23 @@ export async function readZip(file){
  return out;
 }
 export function createAssetWorkshop({status,onChange}){
- const records=new Map(),urls=new Map(),root=document.documentElement;
+ const records=new Map(),urls=new Map(),originalImages=new WeakMap(),root=document.documentElement;
  function apply(){
   root.dataset.vltAssets=[...records.keys()].join(' ');
   for(const [slot,url] of urls)root.style.setProperty('--vlt-asset-'+slot,'url("'+url+'")');
   onChange();
+ }
+ function refreshImages(scene){
+  if(!scene)return;
+  const selectors=[['chamber','.reading-art-atmosphere img'],['reading-portrait','.reading-art-portrait img'],['halo','.reading-art-halo img'],['glow','.reading-art-reading-glow img,.reading-art-card-glow img'],['reading-frame','.reading-art-panel-skin img']];
+  for(const [slot,sel] of selectors){
+   for(const img of scene.querySelectorAll(sel)){
+    if(slot==='reading-portrait'&&scene.dataset.phase==='chat')continue;
+    const url=urls.get(slot);
+    if(url){if(!originalImages.has(img))originalImages.set(img,img.getAttribute('src'));if(img.getAttribute('src')!==url)img.setAttribute('src',url);}
+    else if(originalImages.has(img)){const original=originalImages.get(img);originalImages.delete(img);if(original)img.setAttribute('src',original);else img.removeAttribute('src');}
+   }
+  }
  }
  async function load(){try{const all=await transaction('readonly',s=>s.getAll());for(const r of all||[]){if(slotIds.has(r.slot)&&r.blob instanceof Blob){records.set(r.slot,r);urls.set(r.slot,URL.createObjectURL(r.blob))}}apply()}catch(e){status('Asset storage unavailable: '+e.message)}}
  async function put(slot,file){if(!slotIds.has(slot))throw Error('Unknown asset slot');const dimensions=await verifyImage(file);const record={slot,name:file.name||slot+'.'+MIME[file.type],type:file.type,blob:file,...dimensions};
@@ -68,5 +80,5 @@ export function createAssetWorkshop({status,onChange}){
   for(const slot of [...records.keys()])await reset(slot);for(const [slot,f] of prepared)await put(slot,f);
   return m.profiles;
  }
- return {load,put,reset,records,exportPackage,importPackage};
+ return {load,put,reset,records,exportPackage,importPackage,refreshImages};
 }

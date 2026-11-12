@@ -20,13 +20,20 @@ jobs:
       - name: Source and unit checks
         run: |
           mkdir -p .artifacts/logs
-          {
+          if {
             node --check preview/post-shuffle/debug/visual-layout-tuner.mjs
             node --check preview/post-shuffle/debug/layout-preview.mjs
+            node --check preview/post-shuffle/debug/layout-inspector.mjs
+            node --check preview/post-shuffle/debug/layout-assets.mjs
             node scripts/test-visual-layout-tuner.mjs
             npm test
-          } > .artifacts/logs/visual-layout-source.log 2>&1
-          echo "PASS source / unit checks"
+          } > .artifacts/logs/visual-layout-source.log 2>&1; then
+            echo "PASS source / unit checks"
+          else
+            echo "::error::Source checks failed — see .artifacts/logs/visual-layout-source.log"
+            tail -n 12 .artifacts/logs/visual-layout-source.log
+            exit 1
+          fi
       - name: Install browser
         run: |
           npm install --no-save playwright > .artifacts/logs/playwright-install.log 2>&1

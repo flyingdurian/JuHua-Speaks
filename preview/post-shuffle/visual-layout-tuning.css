@@ -9,9 +9,7 @@ html:is([data-vlt-edits~="--layout-reading-hero-x"],[data-vlt-edits~="--layout-r
 html:is([data-vlt-edits~="--layout-reading-art-x"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
  left:calc(50% + var(--layout-reading-art-x))!important;
 }
-html:is([data-vlt-edits~="--artemis-top"],[data-vlt-edits~="--layout-reading-art-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
- top:calc(var(--artemis-top) + var(--layout-reading-art-y))!important;
-}
+html[data-vlt-edits~="--artemis-top"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{top:var(--artemis-top)!important;}
 html:is([data-vlt-edits~="--artemis-portrait-width"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{
  width:var(--artemis-portrait-width)!important;
 }
@@ -88,8 +86,8 @@ html:is([data-vlt-edits~="--layout-reading-panel-width"]) .scene-artemis-reading
 html:is([data-vlt-edits~="--layout-reading-panel-x"],[data-vlt-edits~="--layout-reading-panel-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
  translate:var(--layout-reading-panel-x) var(--layout-reading-panel-y)!important;
 }
-html:is([data-vlt-edits~="--layout-chat-panel-top"],[data-vlt-edits~="--layout-chat-panel-side"],[data-vlt-edits~="--layout-chat-panel-bottom"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
- padding:var(--layout-chat-panel-top) var(--layout-chat-panel-side) var(--layout-chat-panel-bottom)!important;
+html:is([data-vlt-edits~="--layout-reading-panel-top"],[data-vlt-edits~="--layout-reading-panel-side"],[data-vlt-edits~="--layout-reading-panel-bottom"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{
+ padding:var(--layout-reading-panel-top) var(--layout-reading-panel-side) var(--layout-reading-panel-bottom)!important;
 }
 html:is([data-vlt-edits~="--layout-reading-nameplate-y"]) .scene-artemis-reading:not([data-phase="chat"]) .reading-art-nameplate{
  translate:0 var(--layout-reading-nameplate-y)!important;
@@ -399,5 +397,5 @@ html:is([data-vlt-edits~="--layout-chat-mist-width"]) .scene-artemis-reading[dat
 
 /* Individual offsets must compose with the original desktop layout. */
 html[data-vlt-edits~="--layout-reading-art-x"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{left:calc(50% + var(--layout-reading-art-x))!important;}
-html[data-vlt-edits~="--layout-reading-art-y"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{translate:0 var(--layout-reading-art-y)!important;top:var(--artemis-top)!important;}
+html[data-vlt-edits~="--layout-reading-art-y"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-portrait{translate:0 var(--layout-reading-art-y)!important;}
 html[data-vlt-edits~="--layout-chat-art-x"] .scene-artemis-reading[data-phase="chat"] :is(.artemis-focused-chat-art,.reading-art-portrait){left:calc(50% + var(--layout-chat-art-x))!important;}

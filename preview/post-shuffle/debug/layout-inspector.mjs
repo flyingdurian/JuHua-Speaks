@@ -35,7 +35,7 @@ export const LAYERS=[
 ];
 const element=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text)e.textContent=text;return e};
 export function mountInspector({target,set,read,controls,onSelect,onClear,onUpdate}){
- let active=false,selected=null,hover=null,drag=null,frame=0;
+ let active=false,selected=null,hover=null,drag=null;
  const layer=element('div','vlt-inspector-layer');layer.hidden=true;
  const box=element('div','vlt-selection-box');box.hidden=true;
  const label=element('div','vlt-selection-label');

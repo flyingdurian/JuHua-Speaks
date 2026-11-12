@@ -7,20 +7,20 @@ html[data-vlt-assets~="focused"] .scene-artemis-reading[data-phase="chat"][data-
 html[data-vlt-assets~="conjuring"] .artemis-conjuring-art{content:var(--vlt-asset-conjuring)!important;display:block!important;visibility:visible!important}
 html[data-vlt-assets~="reading-frame"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel-skin img{content:var(--vlt-asset-reading-frame)!important}
 html[data-vlt-assets~="reading-frame"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel{border-image-source:var(--vlt-asset-reading-frame)!important}
-html[data-vlt-assets~="chat-frame"] .reading-chat-hud{border-image-source:var(--vlt-asset-chat-frame)!important}
-@media(min-width:721px){html[data-vlt-assets~="chat-frame-desktop"] .reading-chat-hud{border-image-source:var(--vlt-asset-chat-frame-desktop)!important}}
-@media(max-width:720px){html[data-vlt-assets~="chat-frame-mobile"] .reading-chat-hud{border-image-source:var(--vlt-asset-chat-frame-mobile)!important}}
+html[data-vlt-assets~="chat-frame"] .scene-artemis-reading[data-phase="chat"] .reading-chat-hud{border-image-source:var(--vlt-asset-chat-frame)!important}
+@media(min-width:721px){html[data-vlt-assets~="chat-frame-desktop"] .scene-artemis-reading[data-phase="chat"] .reading-chat-hud{border-image-source:var(--vlt-asset-chat-frame-desktop)!important}}
+@media(max-width:720px){html[data-vlt-assets~="chat-frame-mobile"] .scene-artemis-reading[data-phase="chat"] .reading-chat-hud{border-image-source:var(--vlt-asset-chat-frame-mobile)!important}}
 html[data-vlt-assets~="chamber"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-atmosphere img{content:var(--vlt-asset-chamber)!important}
 html[data-vlt-assets~="chamber"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-hero::after{background-image:var(--vlt-asset-chamber)!important}
 html[data-vlt-assets~="chamber"] .scene-artemis-reading[data-phase="chat"]{background-image:linear-gradient(180deg,rgba(11,11,45,.06),rgba(20,13,56,.18)),var(--vlt-asset-chamber)!important}
 html[data-vlt-assets~="halo"] .reading-art-halo img{content:var(--vlt-asset-halo)!important}
 html[data-vlt-assets~="glow"] :is(.reading-art-reading-glow,.reading-art-card-glow) img{content:var(--vlt-asset-glow)!important}
 html[data-vlt-assets~="mist"] .scene-artemis-reading[data-phase="chat"] .reading-art-hero::after{background:var(--vlt-asset-mist) center bottom/100% 100% no-repeat!important}
-html[data-vlt-assets~="nameplate"] .reading-art-nameplate{background:var(--vlt-asset-nameplate) center/100% 100% no-repeat!important}
-html[data-vlt-assets~="next"] .reading-art-control.is-primary{background:var(--vlt-asset-next) center/100% 100% no-repeat!important}
-html[data-vlt-assets~="previous"] .reading-art-control.is-secondary{background:var(--vlt-asset-previous) center/100% 100% no-repeat!important}
-html[data-vlt-assets~="ask"] .synthesis-followup-send{background:var(--vlt-asset-ask) center/100% 100% no-repeat!important}
-html[data-vlt-assets~="input"] .synthesis-followup-row input{background:var(--vlt-asset-input) center/100% 100% no-repeat!important}
+html[data-vlt-assets~="nameplate"] .scene-artemis-reading .reading-art-nameplate{background:var(--vlt-asset-nameplate) center/100% 100% no-repeat!important}
+html[data-vlt-assets~="next"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-control.is-primary{background:var(--vlt-asset-next) center/100% 100% no-repeat!important}
+html[data-vlt-assets~="previous"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-control.is-secondary{background:var(--vlt-asset-previous) center/100% 100% no-repeat!important}
+html[data-vlt-assets~="ask"] .scene-artemis-reading[data-phase="chat"] .synthesis-followup-send{background:var(--vlt-asset-ask) center/100% 100% no-repeat!important}
+html[data-vlt-assets~="input"] .scene-artemis-reading[data-phase="chat"] .synthesis-followup-row input{background:var(--vlt-asset-input) center/100% 100% no-repeat!important}
 html[data-vlt-assets~="avatar"] .synthesis-avatar{content:var(--vlt-asset-avatar)!important}
 html[data-vlt-assets~="avatar-neutral"] .synthesis-message[data-artemis-mood="neutral"] .synthesis-avatar{content:var(--vlt-asset-avatar-neutral)!important}
 html[data-vlt-assets~="avatar-warm_welcome"] .synthesis-message[data-artemis-mood="warm_welcome"] .synthesis-avatar{content:var(--vlt-asset-avatar-warm_welcome)!important}
@@ -30,3 +30,6 @@ html[data-vlt-assets~="avatar-surprised"] .synthesis-message[data-artemis-mood="
 html[data-vlt-assets~="avatar-reassuring"] .synthesis-message[data-artemis-mood="reassuring"] .synthesis-avatar{content:var(--vlt-asset-avatar-reassuring)!important}
 html[data-vlt-assets~="avatar-confident"] .synthesis-message[data-artemis-mood="confident"] .synthesis-avatar{content:var(--vlt-asset-avatar-confident)!important}
 html[data-vlt-assets~="avatar-mystical"] .synthesis-message[data-artemis-mood="mystical"] .synthesis-avatar{content:var(--vlt-asset-avatar-mystical)!important}
+
+@media(min-width:721px){html[data-vlt-assets~="reading-frame"] .scene-artemis-reading:not([data-phase="chat"]) .reading-art-panel-skin{display:block!important;opacity:1!important}}
+@media(max-width:720px){html[data-vlt-assets~="reading-frame"] .scene-artemis-reading.is-synthesis-remake:not([data-phase="chat"]) .reading-art-panel{border-image-source:var(--vlt-asset-reading-frame)!important}}

@@ -115,7 +115,7 @@ function diagnose(){
 function schedule(){
  cancelAnimationFrame(scheduled);scheduled=requestAnimationFrame(()=>{
   if(!enabled)return;
-  diagnose();inspector?.refresh();refreshLayers();
+  workshop?.refreshImages(target());diagnose();inspector?.refresh();refreshLayers();
   // Existing scene measures the painted-room pixel alignment on resize.
   // CSS-only changes to the pan/hero need the same exact measurement.
   const s=target(), h=s?.querySelector('.reading-art-hero'),img=s?.querySelector('.reading-art-atmosphere img');
@@ -193,7 +193,7 @@ function safeProfiles(input){
 function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}
 async function exportPackage(){
  try{
-  const data=safeProfiles(profiles);let variableCSS='',consumerCSS='';
+  const data=safeProfiles(profiles);let variableCSS=await (await fetch(new URL('../theme-layout-variables.css',import.meta.url))).text()+'\n\n/* Owner profile edits */\n',consumerCSS='';
   const source=await (await fetch(new URL('../visual-layout-tuning.css',import.meta.url))).text();
   const assetSource=await (await fetch(new URL('./layout-assets.css',import.meta.url))).text();
   // Generated rule selectors each use the same opt-in variable gate. Replace it
@@ -205,20 +205,20 @@ async function exportPackage(){
     if(sel.startsWith('@media')){const child=compile(b,edits);if(child.trim())out+=sel+'{\n'+child+'}\n';continue}
     const gated=[...sel.matchAll(/data-vlt-edits~="(--[\w-]+)"/g)].map(m=>m[1]);
     if(!gated.some(n=>Object.hasOwn(edits,n)))continue;
-    const cleaned=sel.replace(/html:is\((?:\[data-vlt-edits~="--[\w-]+"\],?)+\)\s*/g,'').replace(/html\[data-vlt-edits~="--[\w-]+"\]\s*/g,'');
+    const cleaned=sel.replace(/html:is\((?:\[data-vlt-edits~="--[\w-]+"\],?)+\)\s*/g,'html:root ').replace(/html\[data-vlt-edits~="--[\w-]+"\]\s*/g,'html:root ');
     out+=cleaned+'{\n'+b+'\n}\n';
    }return out;
   }
   for(const p of Object.keys(PROFILES)){if(!Object.keys(data[p]).length)continue;variableCSS+=formatCSS(data[p],p)+'\n\n';consumerCSS+='@media '+PROFILES[p]+' {\n'+compile(source,data[p])+'}\n'}
   const urls=[...workshop.records.values()].map(r=>' --vlt-asset-'+r.slot+':url("assets/'+r.slot+'.'+({'image/png':'png','image/jpeg':'jpg','image/webp':'webp','image/gif':'gif'}[r.type])+'");').join('\n');
-  let artRules=assetSource.split('\n').filter(l=>!l.trim().startsWith('/*')&&l.trim()).filter(l=>{const names=[...l.matchAll(/data-vlt-assets~="([^"]+)"/g)].map(m=>m[1]);return names.some(n=>workshop.records.has(n))}).map(l=>l.replace(/html\[data-vlt-assets~="[^"]+"\]\s*/g,'')).join('\n');
+  let artRules=assetSource.split('\n').filter(l=>!l.trim().startsWith('/*')&&l.trim()).filter(l=>{const names=[...l.matchAll(/data-vlt-assets~="([^"]+)"/g)].map(m=>m[1]);return names.some(n=>workshop.records.has(n))}).map(l=>l.replace(/html\[data-vlt-assets~="[^"]+"\]\s*/g,'html:root ')).join('\n');
   const packageBlob=await workshop.exportPackage(data,variableCSS,consumerCSS,':root {\n'+urls+'\n}\n'+artRules,'b7233cc82a78 · PR #28');
   download(packageBlob,'JuHua-visual-layout-package.zip');assetStatus('Package saved: all device profiles, CSS consumers and '+workshop.records.size+' original assets.');
  }catch(e){assetStatus('Package export failed: '+e.message)}
 }
 async function importPackage(file){if(!file)return;try{const imported=await workshop.importPackage(file);profiles=safeProfiles(imported);save();applyProfile();refreshAssetInfo();assetStatus('Package restored. Device profiles and artwork loaded.')}catch(e){assetStatus('Import failed: '+e.message)}}
 
-function collapse(){panel.hidden=true;launcher.hidden=false;launcher.focus({preventScroll:true})}
+function collapse(){if(inspector?.active()){inspector.toggle(false);inspectButton.textContent='Inspect element';inspectButton.classList.remove('vlt-active');layerPicker.value=''}panel.hidden=true;launcher.hidden=false;launcher.focus({preventScroll:true})}
 function reopen(){panel.hidden=false;launcher.hidden=true;syncControls();schedule()}
 function build(){
  panel=make('aside','vlt-panel');panel.id='visual-layout-tuner';panel.setAttribute('aria-label','Visual Layout Tuner');panel.setAttribute('role','region');
@@ -256,7 +256,15 @@ function activate(){
  enabled=true;lastFocus=document.activeElement;
  for(const name of ['visual-layout-tuner.css','layout-assets.css']){const link=document.createElement('link');link.rel='stylesheet';link.href=new URL('./'+name,import.meta.url).href;document.head.append(link)}
  build();
- observer=new MutationObserver(records=>{if(records.some(r=>!r.target.closest?.('.vlt-panel,.vlt-launcher,.vlt-inspector-layer')&&(r.type==='attributes'||[...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&(!n.closest?.('.vlt-panel')&&(n.matches?.('.scene-artemis-reading,.ps-mount,.ps-world,.reading-chat-hud')||n.querySelector?.('.scene-artemis-reading,.reading-chat-hud')||r.target.closest?.('.scene-artemis-reading'))))))schedule()});observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['data-phase','data-chat-state','data-synthesis-portrait','data-beat']});
+ observer=new MutationObserver(records=>{
+  const changed=records.some(r=>{
+   if(r.target.closest?.('.vlt-panel,.vlt-launcher,.vlt-inspector-layer'))return false;
+   if(r.type==='attributes')return true;
+   if(r.target.closest?.('.scene-artemis-reading'))return true;
+   return [...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&(n.matches?.('.scene-artemis-reading,.ps-mount,.ps-world')||n.querySelector?.('.scene-artemis-reading,.reading-chat-hud')));
+  });
+  if(changed)schedule();
+ });observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['data-phase','data-chat-state','data-synthesis-portrait','data-beat']});
  window.addEventListener('resize',()=>{const r=panel.getBoundingClientRect();if(!panel.hidden&&(r.right>innerWidth||r.left<0||r.top<0||r.bottom>innerHeight))dockPanel(dock);const next=profileFor(innerWidth,innerHeight);if(next!==profile){profile=next;applyProfile()}else{profileLabel.textContent=profile.toUpperCase()+' · '+innerWidth+'×'+innerHeight;syncControls();schedule()}});
  window.addEventListener('load',schedule,true);document.addEventListener('scroll',schedule,true);
  window.__VISUAL_LAYOUT_TUNER__={set:setVar,reset:resetProfile,snapshot,exportCSS:exportText,preview:showPreview,live:returnLive,profile:()=>profile,diagnose,inspect:id=>inspector.pick(id),selected:()=>inspector.selected()?.id,assetPut:(slot,file)=>workshop.put(slot,file),assetReset:slot=>workshop.reset(slot),assetCount:()=>workshop.records.size,savePackage:exportPackage,loadPackage:importPackage};
