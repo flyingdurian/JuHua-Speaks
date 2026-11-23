@@ -1,6 +1,6 @@
 # JuHua Speaks — Gate D V4 / Artemis AI Synthesis Handoff
 
-**Updated:** November 11, 2026 — direct visual editor and shared entry baseline  
+**Updated:** November 22, 2026 — verified GitHub/CI continuity correction (documentation only)  
 **Repository:** https://github.com/flyingdurian/JuHua-Speaks  
 **Active Branch:** `debug/visual-layout-tuner` (owner calibration only)  
 **Review PR:** [Draft PR #28](https://github.com/flyingdurian/JuHua-Speaks/pull/28)  
@@ -8,6 +8,8 @@
 **Merge / deployment:** **Not authorized. PR #28 remains draft, unmerged, and awaiting owner visual sign-off.**
 
 > **Continuity rule:** Verify the current GitHub head and workflow status before changing anything. Older Gate D V4 handoffs that identify PR #27 as the *active* branch are superseded by this file. Treat screenshots and owner feedback as the visual authority; passing tests alone do not establish approval.
+>
+> **Reverified 2026-11-22:** Remote debug head `7bf2e47048575360d9b52e4d39a0b42b9532e768` follows tested code `56987b66321d0b8cdec5908a00ac31bc016da07e` by a documentation-only update. GitHub's latest repository-wide Actions run is the successful visual-tuner run `43150593159`; PR #28 remains a draft on `feat/artemis-ai-synthesis-remake` (`b7233cc82a78d9e3257076449b3aacb63aece5aa`), stacked on draft PR #27. PR #28's owner-art gate `43035823958` remains failed because its synthesis owner-art manifest/directory is missing. The migration package has both reference screenshots, but no owner-art package, exported layout ZIP, or local repository checkout. This recheck did **not** run new local tests, the complete live Gate B journey, or owner-device GPU/visual QA. No merge/deploy authority granted.
 
 ## Milestone — Direct Visual Editor / Shared Entry Baseline (Nov 11, 2026)
 
@@ -24,7 +26,7 @@
 
 ### Verification (latest observed)
 
-[CI run 43150593159](https://github.com/flyingdurian/JuHua-Speaks/actions/runs/43150593159), code `56987b66321d`: source/unit PASS; browser install and RWS sync PASS; previous tuner browser interaction PASS; direct editor/route parity/asset ZIP IN PROGRESS; artifact upload PENDING. A previous attempt at route geometry comparison failed because it measured in-flight entrance animation/opacity; the current regression compares settled scenes (reduced-motion and completed animations). Do not claim pixel or visual acceptance until final checks and owner inspection. The prior selective-layout regression run 43150277726 passed. All logs remain in .artifacts/logs/; no raw/binary dumps. The 19 owner-art PNGs are still absent from the GitHub production branch; art-backed owner visual approval remains open.
+[CI run 43150593159](https://github.com/flyingdurian/JuHua-Speaks/actions/runs/43150593159), code `56987b66321d`: source/unit PASS; browser install and RWS sync PASS; previous tuner browser interaction PASS; direct editor/route parity/asset ZIP PASS; artifact upload PASS. A previous attempt at route geometry comparison failed because it measured in-flight entrance animation/opacity; the current regression compares settled scenes (reduced-motion and completed animations). Do not claim pixel or visual acceptance until final checks and owner inspection. The prior selective-layout regression run 43150277726 passed. All logs remain in .artifacts/logs/; no raw/binary dumps. The 19 owner-art PNGs are still absent from the GitHub production branch; art-backed owner visual approval remains open.
 
 ## Milestone — Visual Layout Tuner (Nov 11, 2026)
 
@@ -35,14 +37,14 @@
 ```bash
 git fetch origin
 git switch --track origin/debug/visual-layout-tuner
-npm ci
+npm test
 npm run preview:gate-b
 ```
 
-- `http://localhost:4184/preview/post-shuffle/?debug=1&layoutPreview=reading` — scripted reading/table.
-- `http://localhost:4184/preview/post-shuffle/?debug=1&layoutPreview=chat` — ready AI Synthesis HUD.
-- `http://localhost:4184/preview/post-shuffle/?debug=1&layoutPreview=long` — long conversation + guidance card.
-- `http://localhost:4184/preview/post-shuffle/?debug=1&layoutPreview=thinking` — thinking/progress state.
+- `http://127.0.0.1:4184/preview/post-shuffle/?debug=1&layoutPreview=reading` — scripted reading/table.
+- `http://127.0.0.1:4184/preview/post-shuffle/?debug=1&layoutPreview=chat` — ready AI Synthesis HUD.
+- `http://127.0.0.1:4184/preview/post-shuffle/?debug=1&layoutPreview=long` — long conversation + guidance card.
+- `http://127.0.0.1:4184/preview/post-shuffle/?debug=1&layoutPreview=thinking` — thinking/progress state.
 - `?debug=1` without `layoutPreview` — actual app journey. Shift+D opens/collapses the overlay; on touch, use the collapse and launcher buttons. Hotkey is ignored while editing text inputs.
 
 The fixtures call the actual `renderReadingStage` and `renderSynthesisChat` functions with fixed RWS cards and deterministic sample messages, not a live AI request. In the real journey the existing three RWS card/foil identities and ritual transition are preserved. Debug state is saved locally per **desktop (>720px), mobile (<=720px, >680px high), compact (<=720px, <=680px high)**. Use browser device emulation/resize to change profile. The owner can search 123 controls in seven groups, adjust numeric sliders/exact values, reset a control/group/profile, drag/dock/collapse the panel, use single-control Focus mode, and turn on guides/live collision diagnostics.
@@ -137,7 +139,7 @@ These remain **open for owner visual review**, even where tentative CSS fixes or
 5. Rerun `npm test`, `node scripts/smoke-artemis-synthesis-remake.mjs` and `node scripts/smoke-post-shuffle.mjs`, then inspect/capture real desktop and mobile screenshots.
 6. Keep PR #28 draft. Obtain owner **visual** approval before merge or deployment.
 
-**Run local preview:** `npm run preview:gate-b`, then open `http://localhost:4184/preview/post-shuffle/?skip=selection` for rapid card-selection testing. Preserve the original three RWS cards and their foil/42° pose through the entire reading.
+**Run local preview:** `npm run preview:gate-b`, then open `http://127.0.0.1:4184/preview/post-shuffle/?skip=selection` for rapid card-selection testing. Preserve the original three RWS cards and their foil/42° pose through the entire reading.
 
 ## Developer Workflow Rules
 
